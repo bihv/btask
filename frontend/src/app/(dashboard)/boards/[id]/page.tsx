@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Typography, Button, Input, Spin, message, Dropdown, Modal, Form, ColorPicker } from 'antd';
 import {
     StarOutlined,
@@ -9,71 +9,70 @@ import {
     MoreOutlined,
     ArrowLeftOutlined,
 } from '@ant-design/icons';
-import api from '@/lib/api';
 import { useBoardStore } from '@/stores/boardStore';
 import KanbanBoard from '@/components/kanban/KanbanBoard';
-import CardDrawer from '@/components/card/CardDrawer';
+import { useHeader } from '@/providers/HeaderProvider';
+import { useBoard, useUpdateBoard, useDeleteBoard } from '@/hooks/useBoards';
 
 const { Text } = Typography;
 
 export default function BoardPage() {
     const router = useRouter();
     const params = useParams();
-    const searchParams = useSearchParams();
     const boardId = params.id as string;
-    const cardId = searchParams.get('card');
 
-    const { currentBoard, fetchBoard, isLoading } = useBoardStore();
+    // React Query for fetching board data
+    const { data: board, isLoading, refetch } = useBoard(boardId);
+    
+    // Zustand store for list/card operations (used by KanbanBoard)
+    const { setLists } = useBoardStore();
+    
+    // Mutations
+    const updateMutation = useUpdateBoard();
+    const deleteMutation = useDeleteBoard();
+
+    const { setHeaderContent } = useHeader();
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState('');
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [settingsForm] = Form.useForm();
 
+    // Sync React Query data to Zustand store for KanbanBoard
     useEffect(() => {
-        fetchBoard(boardId);
-    }, [boardId, fetchBoard]);
+        if (board) {
+            setLists(board.lists || []);
+            // Also update currentBoard in store for compatibility
+            useBoardStore.setState({ currentBoard: board });
+        }
+    }, [board, setLists]);
 
     useEffect(() => {
-        if (currentBoard) {
-            setTitle(currentBoard.title);
+        if (board) {
+            setTitle(board.title);
         }
-    }, [currentBoard]);
-
-    // Find the selected card from all lists
-    const selectedCard = useMemo(() => {
-        if (!cardId || !currentBoard?.lists) return null;
-        for (const list of currentBoard.lists) {
-            const card = list.cards?.find(c => c.id === cardId);
-            if (card) return card;
-        }
-        return null;
-    }, [cardId, currentBoard]);
-
-    const handleCloseDrawer = () => {
-        // Remove card param from URL
-        router.push(`/boards/${boardId}`, { scroll: false });
-    };
+    }, [board]);
 
     const handleTitleSave = async () => {
-        if (title.trim() && title !== currentBoard?.title) {
+        if (title.trim() && title !== board?.title) {
             try {
-                await api.put(`/boards/${boardId}`, { title: title.trim() });
+                await updateMutation.mutateAsync({ id: boardId, data: { title: title.trim() } });
                 message.success('Board title updated');
+                refetch();
             } catch (error) {
                 message.error('Failed to update title');
-                setTitle(currentBoard?.title || '');
+                setTitle(board?.title || '');
             }
         }
         setIsEditing(false);
     };
 
     const toggleStar = async () => {
-        if (!currentBoard) return;
+        if (!board) return;
         try {
-            await api.put(`/boards/${boardId}`, {
-                is_starred: !currentBoard.is_starred,
+            await updateMutation.mutateAsync({ 
+                id: boardId, 
+                data: { is_starred: !board.is_starred } 
             });
-            fetchBoard(boardId);
         } catch (error) {
             message.error('Failed to update board');
         }
@@ -82,9 +81,9 @@ export default function BoardPage() {
     const handleMenuClick = ({ key }: { key: string }) => {
         if (key === 'settings') {
             settingsForm.setFieldsValue({
-                title: currentBoard?.title,
-                description: currentBoard?.description || '',
-                background_color: currentBoard?.background_color || '#0079bf',
+                title: board?.title,
+                description: board?.description || '',
+                background_color: board?.background_color || '#0079bf',
             });
             setSettingsOpen(true);
         } else if (key === 'delete') {
@@ -95,7 +94,7 @@ export default function BoardPage() {
                 okType: 'danger',
                 onOk: async () => {
                     try {
-                        await api.delete(`/boards/${boardId}`);
+                        await deleteMutation.mutateAsync(boardId);
                         message.success('Board deleted');
                         router.push('/workspaces');
                     } catch (error) {
@@ -113,20 +112,82 @@ export default function BoardPage() {
                 ? values.background_color
                 : values.background_color?.toHexString?.() || values.background_color;
 
-            await api.put(`/boards/${boardId}`, {
-                title: values.title,
-                description: values.description,
-                background_color: bgColor,
+            await updateMutation.mutateAsync({
+                id: boardId,
+                data: {
+                    title: values.title,
+                    description: values.description,
+                    background_color: bgColor,
+                }
             });
             message.success('Board settings updated');
             setSettingsOpen(false);
-            fetchBoard(boardId);
         } catch (error) {
             message.error('Failed to update board settings');
         }
     };
 
-    if (isLoading || !currentBoard) {
+    // Set dynamic header
+    useEffect(() => {
+        if (board) {
+            setHeaderContent(
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <Button
+                        type="text"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => router.back()}
+                    />
+                    {isEditing ? (
+                        <Input
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            onBlur={handleTitleSave}
+                            onPressEnter={handleTitleSave}
+                            autoFocus
+                            style={{
+                                width: 200,
+                                fontWeight: 700,
+                                fontSize: 16,
+                            }}
+                        />
+                    ) : (
+                        <Text
+                            strong
+                            style={{ fontSize: 16, cursor: 'pointer' }}
+                            onClick={() => setIsEditing(true)}
+                        >
+                            {board.title}
+                        </Text>
+                    )}
+                    <Button
+                        type="text"
+                        icon={
+                            board.is_starred ? (
+                                <StarFilled style={{ color: '#f5cd47' }} />
+                            ) : (
+                                <StarOutlined />
+                            )
+                        }
+                        onClick={toggleStar}
+                    />
+                    <Dropdown
+                        menu={{
+                            items: [
+                                { key: 'settings', label: 'Board Settings' },
+                                { key: 'delete', label: 'Delete Board', danger: true },
+                            ],
+                            onClick: handleMenuClick,
+                        }}
+                    >
+                        <Button type="text" icon={<MoreOutlined />} />
+                    </Dropdown>
+                </div>
+            );
+        }
+        return () => setHeaderContent(null);
+    }, [board, isEditing, title]);
+
+    if (isLoading || !board) {
         return (
             <div className="loading-container" style={{ minHeight: '100%' }}>
                 <Spin size="large" />
@@ -140,81 +201,14 @@ export default function BoardPage() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                background: currentBoard.background_color || '#0079bf',
+                background: board.background_color || '#0079bf',
             }}
         >
-            {/* Board Header */}
-            <div className="board-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Button
-                        type="text"
-                        icon={<ArrowLeftOutlined />}
-                        onClick={() => router.back()}
-                        style={{ color: 'white' }}
-                    />
-                    {isEditing ? (
-                        <Input
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            onBlur={handleTitleSave}
-                            onPressEnter={handleTitleSave}
-                            autoFocus
-                            style={{
-                                width: 200,
-                                fontWeight: 700,
-                                fontSize: 18,
-                            }}
-                        />
-                    ) : (
-                        <Text
-                            className="board-title"
-                            onClick={() => setIsEditing(true)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            {currentBoard.title}
-                        </Text>
-                    )}
-                    <Button
-                        type="text"
-                        icon={
-                            currentBoard.is_starred ? (
-                                <StarFilled style={{ color: '#f5cd47' }} />
-                            ) : (
-                                <StarOutlined style={{ color: 'white' }} />
-                            )
-                        }
-                        onClick={toggleStar}
-                    />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Dropdown
-                        menu={{
-                            items: [
-                                { key: 'settings', label: 'Board Settings' },
-                                { key: 'delete', label: 'Delete Board', danger: true },
-                            ],
-                            onClick: handleMenuClick,
-                        }}
-                    >
-                        <Button
-                            type="text"
-                            icon={<MoreOutlined style={{ color: 'white' }} />}
-                        />
-                    </Dropdown>
-                </div>
-            </div>
-
             {/* Kanban Board */}
             <div style={{ flex: 1, overflow: 'hidden' }}>
                 <KanbanBoard />
             </div>
 
-            {/* Card Drawer */}
-            <CardDrawer
-                card={selectedCard}
-                open={!!cardId && !!selectedCard}
-                onClose={handleCloseDrawer}
-            />
 
             {/* Board Settings Modal */}
             <Modal

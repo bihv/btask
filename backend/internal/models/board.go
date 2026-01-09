@@ -20,7 +20,7 @@ type Board struct {
 	UpdatedAt       time.Time `json:"updated_at"`
 
 	// Relations
-	Workspace Workspace `json:"workspace,omitempty" gorm:"foreignKey:WorkspaceID"`
+	Workspace Workspace `json:"-" gorm:"foreignKey:WorkspaceID"`
 	Lists     []List    `json:"lists,omitempty" gorm:"foreignKey:BoardID"`
 	Labels    []Label   `json:"labels,omitempty" gorm:"foreignKey:BoardID"`
 }

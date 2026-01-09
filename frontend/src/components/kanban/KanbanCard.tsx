@@ -61,8 +61,8 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
     };
 
     const handleCardClick = () => {
-        // Navigate with card query param to open drawer
-        router.push(`/boards/${boardId}?card=${card.id}`, { scroll: false });
+        // Navigate to separate card page
+        router.push(`/boards/${boardId}/cards/${card.id}`);
     };
 
     return (

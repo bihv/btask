@@ -15,6 +15,9 @@ type Workspace struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
+	// Computed fields (not stored in DB)
+	BoardCount int `json:"board_count" gorm:"-"`
+
 	// Relations
 	Owner   User              `json:"owner,omitempty" gorm:"foreignKey:OwnerID"`
 	Members []WorkspaceMember `json:"members,omitempty" gorm:"foreignKey:WorkspaceID"`

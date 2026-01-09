@@ -17,6 +17,7 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/providers/ThemeProvider';
+import { useHeader } from '@/providers/HeaderProvider';
 import type { MenuProps } from 'antd';
 
 const { Header, Sider, Content } = Layout;
@@ -31,6 +32,7 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const { user, isAuthenticated, logout } = useAuthStore();
     const { mode, toggleTheme } = useTheme();
+    const { headerContent } = useHeader();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
 
@@ -56,7 +58,7 @@ export default function DashboardLayout({
             label: 'Home',
         },
         {
-            key: 'starred',
+            key: '/starred',
             icon: <StarOutlined />,
             label: 'Starred',
         },
@@ -89,7 +91,9 @@ export default function DashboardLayout({
     };
 
     const handleNavClick = (e: { key: string }) => {
-        if (e.key.startsWith('/')) {
+        if (e.key === 'starred') {
+            router.push('/starred');
+        } else if (e.key.startsWith('/')) {
             router.push(e.key);
         }
     };
@@ -104,7 +108,7 @@ export default function DashboardLayout({
     };
 
     return (
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden' }}>
             <Sider
                 trigger={null}
                 collapsible
@@ -112,6 +116,12 @@ export default function DashboardLayout({
                 width={260}
                 style={{
                     borderRight: `1px solid var(--border-color)`,
+                    height: '100vh',
+                    position: 'fixed',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    overflow: 'auto',
                 }}
             >
                 <div
@@ -119,8 +129,8 @@ export default function DashboardLayout({
                         height: 64,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: collapsed ? 'center' : 'flex-start',
-                        padding: collapsed ? 0 : '0 16px',
+                        justifyContent: 'space-between',
+                        padding: '0 16px',
                         borderBottom: `1px solid var(--border-color)`,
                     }}
                 >
@@ -129,6 +139,12 @@ export default function DashboardLayout({
                             BTask
                         </Text>
                     )}
+                    <Button
+                        type="text"
+                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                        onClick={() => setCollapsed(!collapsed)}
+                        size="small"
+                    />
                 </div>
                 <Menu
                     mode="inline"
@@ -139,7 +155,7 @@ export default function DashboardLayout({
                 />
             </Sider>
 
-            <Layout>
+            <Layout style={{ marginLeft: collapsed ? 80 : 260, transition: 'margin-left 0.2s' }}>
                 <Header
                     style={{
                         padding: '0 16px',
@@ -147,14 +163,16 @@ export default function DashboardLayout({
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         borderBottom: `1px solid var(--border-color)`,
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 10,
                     }}
                 >
-                    <Button
-                        type="text"
-                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                        onClick={() => setCollapsed(!collapsed)}
-                    />
-
+                    {/* Dynamic header content from child pages */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        {headerContent}
+                    </div>
+                    
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Button
                             type="text"
@@ -180,7 +198,7 @@ export default function DashboardLayout({
                     </div>
                 </Header>
 
-                <Content style={{ overflow: 'auto' }}>{children}</Content>
+                <Content style={{ overflow: 'auto', height: 'calc(100vh - 64px)' }}>{children}</Content>
             </Layout>
         </Layout>
     );

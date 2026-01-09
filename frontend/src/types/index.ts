@@ -15,6 +15,7 @@ export interface Workspace {
     owner_id: string;
     owner?: User;
     boards?: Board[];
+    board_count?: number;
     created_at: string;
     updated_at: string;
 }

@@ -22,6 +22,8 @@ func (r *WorkspaceRepository) FindByID(id uuid.UUID) (*models.Workspace, error) 
 	if err != nil {
 		return nil, err
 	}
+	// Set BoardCount from preloaded Boards
+	workspace.BoardCount = len(workspace.Boards)
 	return &workspace, nil
 }
 
@@ -39,6 +41,14 @@ func (r *WorkspaceRepository) FindByUserID(userID uuid.UUID) ([]models.Workspace
 	if err != nil {
 		return nil, err
 	}
+
+	// Count boards for each workspace
+	for i := range workspaces {
+		var count int64
+		database.DB.Model(&models.Board{}).Where("workspace_id = ?", workspaces[i].ID).Count(&count)
+		workspaces[i].BoardCount = int(count)
+	}
+
 	return workspaces, nil
 }
 

@@ -16,50 +16,51 @@ import {
     Spin,
 } from 'antd';
 import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
-import api from '@/lib/api';
-import { Workspace, CreateWorkspaceRequest } from '@/types';
+import { CreateWorkspaceRequest } from '@/types';
+import { useHeader } from '@/providers/HeaderProvider';
+import { useWorkspaces, useCreateWorkspace } from '@/hooks/useWorkspaces';
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function WorkspacesPage() {
     const router = useRouter();
-    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { setHeaderContent } = useHeader();
     const [modalOpen, setModalOpen] = useState(false);
-    const [creating, setCreating] = useState(false);
     const [form] = Form.useForm();
 
-    useEffect(() => {
-        fetchWorkspaces();
-    }, []);
-
-    const fetchWorkspaces = async () => {
-        try {
-            const response = await api.get('/workspaces/');
-            setWorkspaces(response.data.data || []);
-        } catch (error) {
-            message.error('Failed to fetch workspaces');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // React Query hooks
+    const { data: workspaces = [], isLoading } = useWorkspaces();
+    const createMutation = useCreateWorkspace();
 
     const handleCreate = async (values: CreateWorkspaceRequest) => {
-        setCreating(true);
         try {
-            await api.post('/workspaces/', values);
+            await createMutation.mutateAsync(values);
             message.success('Workspace created successfully');
             setModalOpen(false);
             form.resetFields();
-            fetchWorkspaces();
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to create workspace');
-        } finally {
-            setCreating(false);
         }
     };
 
-    if (loading) {
+    // Set dynamic header
+    useEffect(() => {
+        setHeaderContent(
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', justifyContent: 'space-between' }}>
+                <Title level={4} style={{ margin: 0 }}>Your Workspaces</Title>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setModalOpen(true)}
+                >
+                    Create Workspace
+                </Button>
+            </div>
+        );
+        return () => setHeaderContent(null);
+    }, [setHeaderContent]);
+
+    if (isLoading) {
         return (
             <div className="loading-container">
                 <Spin size="large" />
@@ -69,26 +70,6 @@ export default function WorkspacesPage() {
 
     return (
         <div style={{ padding: 24 }}>
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 24,
-                }}
-            >
-                <Title level={3} style={{ margin: 0 }}>
-                    Your Workspaces
-                </Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setModalOpen(true)}
-                >
-                    Create Workspace
-                </Button>
-            </div>
-
             {workspaces.length === 0 ? (
                 <Empty
                     description="No workspaces yet"
@@ -148,7 +129,7 @@ export default function WorkspacesPage() {
                                 )}
                                 <div style={{ marginTop: 12 }}>
                                     <Text type="secondary" style={{ fontSize: 12 }}>
-                                        <ProjectOutlined /> {workspace.boards?.length || 0} boards
+                                        <ProjectOutlined /> {workspace.board_count ?? 0} boards
                                     </Text>
                                 </div>
                             </Card>
@@ -181,7 +162,7 @@ export default function WorkspacesPage() {
                         <Button onClick={() => setModalOpen(false)} style={{ marginRight: 8 }}>
                             Cancel
                         </Button>
-                        <Button type="primary" htmlType="submit" loading={creating}>
+                        <Button type="primary" htmlType="submit" loading={createMutation.isPending}>
                             Create
                         </Button>
                     </Form.Item>
