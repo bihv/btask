@@ -1,0 +1,54 @@
+package database
+
+import (
+	"github.com/btask/backend/internal/models"
+	"github.com/btask/backend/pkg/logger"
+	"go.uber.org/zap"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
+)
+
+var DB *gorm.DB
+
+func Connect(databaseURL string) error {
+	var err error
+
+	config := &gorm.Config{
+		Logger: gormlogger.Default.LogMode(gormlogger.Info),
+	}
+
+	DB, err = gorm.Open(postgres.Open(databaseURL), config)
+	if err != nil {
+		logger.Error("Failed to connect to database", zap.Error(err))
+		return err
+	}
+
+	logger.Info("Connected to database")
+	return nil
+}
+
+func Migrate() error {
+	logger.Info("Running database migrations")
+
+	err := DB.AutoMigrate(
+		&models.User{},
+		&models.Workspace{},
+		&models.WorkspaceMember{},
+		&models.Board{},
+		&models.List{},
+		&models.Card{},
+		&models.Label{},
+		&models.CardLabel{},
+		&models.CardMember{},
+		&models.Comment{},
+	)
+
+	if err != nil {
+		logger.Error("Failed to run migrations", zap.Error(err))
+		return err
+	}
+
+	logger.Info("Database migrations completed")
+	return nil
+}

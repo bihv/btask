@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: btask-postgres
+    environment:
+      POSTGRES_DB: btask
+      POSTGRES_USER: btask
+      POSTGRES_PASSWORD: btask123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - btask-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U btask"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: btask-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - btask-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: btask-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - btask-network
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/btask-uploads --ignore-existing;
+      mc anonymous set download myminio/btask-uploads;
+      exit 0;
+      "
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: btask-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - /app/tmp
+    environment:
+      - DATABASE_URL=postgres://btask:btask123@postgres:5432/btask?sslmode=disable
+      - JWT_SECRET=your-super-secret-key-change-in-production
+      - JWT_EXPIRY=24h
+      - SERVER_PORT=8080
+      - SERVER_ENV=development
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=btask-uploads
+      - MINIO_USE_SSL=false
+      - MINIO_PUBLIC_URL=http://localhost:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - btask-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: btask-frontend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api
+    depends_on:
+      - backend
+    networks:
+      - btask-network
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  btask-network:
+    driver: bridge
+

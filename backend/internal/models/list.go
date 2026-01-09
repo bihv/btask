@@ -1,0 +1,42 @@
+package models
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type List struct {
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
+	BoardID   uuid.UUID `json:"board_id" gorm:"type:uuid;not null"`
+	Title     string    `json:"title" gorm:"not null"`
+	Position  int       `json:"position" gorm:"default:0"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// Relations
+	Board Board  `json:"board,omitempty" gorm:"foreignKey:BoardID"`
+	Cards []Card `json:"cards,omitempty" gorm:"foreignKey:ListID"`
+}
+
+func (l *List) BeforeCreate(tx *gorm.DB) error {
+	if l.ID == uuid.Nil {
+		l.ID = uuid.New()
+	}
+	return nil
+}
+
+type CreateListRequest struct {
+	Title    string `json:"title" validate:"required,min=1,max=100"`
+	Position *int   `json:"position"`
+}
+
+type UpdateListRequest struct {
+	Title    string `json:"title" validate:"omitempty,min=1,max=100"`
+	Position *int   `json:"position"`
+}
+
+type MoveListRequest struct {
+	Position int `json:"position" validate:"required,min=0"`
+}
