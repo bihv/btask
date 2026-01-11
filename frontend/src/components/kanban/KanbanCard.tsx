@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Typography, Avatar, Tooltip } from 'antd';
-import { ClockCircleOutlined, CommentOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, CheckCircleOutlined, CommentOutlined } from '@ant-design/icons';
 import { Card } from '@/types';
 
 const { Text } = Typography;
@@ -53,12 +53,22 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
         const diffDays = Math.ceil(
             (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         );
-        return diffDays <= 1 && diffDays >= 0;
+        return diffDays <= 3 && diffDays >= 0;
     };
 
     const isOverdue = (date: string) => {
         return new Date(date) < new Date();
     };
+
+    const getDueDateStatus = () => {
+        if (!card.due_date) return null;
+        if (card.is_completed) return { color: '#61bd4f', text: 'Complete', textColor: 'white' };
+        if (isOverdue(card.due_date)) return { color: '#eb5a46', text: 'Overdue', textColor: 'white' };
+        if (isDueSoon(card.due_date)) return { color: '#f2d600', text: 'Due soon', textColor: '#172b4d' };
+        return { color: 'transparent', text: '', textColor: 'inherit' };
+    };
+
+    const dueDateStatus = getDueDateStatus();
 
     const handleCardClick = () => {
         // Navigate to separate card page
@@ -74,6 +84,32 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
             {...attributes}
             {...listeners}
         >
+            {/* Cover Image */}
+            {card.cover_image && (
+                <div
+                    style={{
+                        height: 120,
+                        marginBottom: 8,
+                        borderRadius: 4,
+                        overflow: 'hidden',
+                        marginTop: -8,
+                        marginLeft: -8,
+                        marginRight: -8,
+                        width: 'calc(100% + 16px)',
+                    }}
+                >
+                    <img
+                        src={card.cover_image}
+                        alt=""
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                        }}
+                    />
+                </div>
+            )}
+
             {/* Labels */}
             {card.labels && card.labels.length > 0 && (
                 <div className="card-labels">
@@ -100,8 +136,8 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
                 }}
             >
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {card.due_date && (
-                        <Tooltip title={formatDueDate(card.due_date)}>
+                    {card.due_date && dueDateStatus && (
+                        <Tooltip title={`${formatDueDate(card.due_date)}${dueDateStatus.text ? ` • ${dueDateStatus.text}` : ''}`}>
                             <div
                                 style={{
                                     display: 'flex',
@@ -110,19 +146,15 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
                                     padding: '2px 6px',
                                     borderRadius: 4,
                                     fontSize: 12,
-                                    backgroundColor: card.is_completed
-                                        ? '#61bd4f'
-                                        : isOverdue(card.due_date)
-                                            ? '#eb5a46'
-                                            : isDueSoon(card.due_date)
-                                                ? '#f2d600'
-                                                : 'transparent',
-                                    color: card.is_completed || isOverdue(card.due_date)
-                                        ? 'white'
-                                        : 'inherit',
+                                    backgroundColor: dueDateStatus.color,
+                                    color: dueDateStatus.textColor,
                                 }}
                             >
-                                <ClockCircleOutlined style={{ fontSize: 10 }} />
+                                {card.is_completed ? (
+                                    <CheckCircleOutlined style={{ fontSize: 10 }} />
+                                ) : (
+                                    <ClockCircleOutlined style={{ fontSize: 10 }} />
+                                )}
                                 {formatDueDate(card.due_date)}
                             </div>
                         </Tooltip>

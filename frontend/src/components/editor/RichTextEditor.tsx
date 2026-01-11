@@ -10,7 +10,7 @@ import '@blocknote/core/fonts/inter.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import { useCreateBlockNote } from '@blocknote/react';
-import { codeBlockOptions } from '@blocknote/code-block';
+import { fullCodeBlockOptions } from '@/lib/codeBlockConfig';
 import { useTheme } from '@/providers/ThemeProvider';
 import { uploadFile } from '@/lib/api';
 import Lightbox, { SlideImage, SlideVideo } from 'yet-another-react-lightbox';
@@ -18,8 +18,8 @@ import Video from 'yet-another-react-lightbox/plugins/video';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 
-// Create code block with syntax highlighting
-const codeBlock = createCodeBlockSpec(codeBlockOptions);
+// Create code block with syntax highlighting for ALL languages
+const codeBlock = createCodeBlockSpec(fullCodeBlockOptions);
 
 // Create schema with syntax-highlighted code block
 const schema = BlockNoteSchema.create({
@@ -62,7 +62,7 @@ export default function RichTextEditor({
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxSlide, setLightboxSlide] = useState<(SlideImage | SlideVideo)[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
-    
+
     // Parse content to blocks
     const initialContent = useMemo(() => {
         if (!content) {
@@ -126,14 +126,14 @@ export default function RichTextEditor({
 
         const handleClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            
+
             // Check if clicked on an image
             if (target.tagName === 'IMG') {
                 const imgSrc = (target as HTMLImageElement).src;
                 if (imgSrc) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
+
                     if (isVideoUrl(imgSrc)) {
                         // It's a video thumbnail
                         setLightboxSlide([{
@@ -147,12 +147,12 @@ export default function RichTextEditor({
                     setLightboxOpen(true);
                 }
             }
-            
+
             // Check if clicked on a video element
             if (target.tagName === 'VIDEO') {
-                const videoSrc = (target as HTMLVideoElement).currentSrc || 
-                                 (target as HTMLVideoElement).src ||
-                                 target.querySelector('source')?.src;
+                const videoSrc = (target as HTMLVideoElement).currentSrc ||
+                    (target as HTMLVideoElement).src ||
+                    target.querySelector('source')?.src;
                 if (videoSrc) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -191,4 +191,3 @@ export default function RichTextEditor({
         </div>
     );
 }
-

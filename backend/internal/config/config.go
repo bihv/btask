@@ -48,6 +48,22 @@ func Load() (*Config, error) {
 	}, nil
 }
 
+var globalConfig *Config
+
+// GetConfig returns the global config (must call Load first)
+func GetConfig() *Config {
+	if globalConfig == nil {
+		cfg, _ := Load()
+		globalConfig = cfg
+	}
+	return globalConfig
+}
+
+// SetConfig sets the global config (used during initialization)
+func SetConfig(cfg *Config) {
+	globalConfig = cfg
+}
+
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value

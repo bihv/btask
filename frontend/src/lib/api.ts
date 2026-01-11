@@ -1,29 +1,25 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-
-export const api = axios.create({
-    baseURL: API_URL,
+// Create axios instance
+const api = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-    (config) => {
-        if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('token');
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
+    }
+    return config;
+});
 
-// Response interceptor to handle errors
+// Handle response errors
 api.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -38,22 +34,55 @@ api.interceptors.response.use(
     }
 );
 
-// Upload file to server
+// Upload file helper
 export const uploadFile = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-    const response = await axios.post(`${API_URL}/upload`, formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-    });
+    const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/upload`,
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        }
+    );
 
     return response.data.data.url;
 };
 
-export default api;
+// Checklist API functions
+export const checklistApi = {
+    getByCardId: (cardId: string) => api.get(`/cards/${cardId}/checklists`),
+    create: (cardId: string, data: { title: string }) => api.post(`/cards/${cardId}/checklists`, data),
+    update: (id: string, data: { title?: string; position?: number }) => api.put(`/checklists/${id}`, data),
+    delete: (id: string) => api.delete(`/checklists/${id}`),
 
+    // Checklist items
+    createItem: (checklistId: string, data: { content: string }) => api.post(`/checklists/${checklistId}/items`, data),
+    updateItem: (checklistId: string, itemId: string, data: { content?: string; is_completed?: boolean }) =>
+        api.put(`/checklists/${checklistId}/items/${itemId}`, data),
+    deleteItem: (checklistId: string, itemId: string) => api.delete(`/checklists/${checklistId}/items/${itemId}`),
+    toggleItem: (checklistId: string, itemId: string) => api.put(`/checklists/${checklistId}/items/${itemId}/toggle`),
+};
+
+// Attachment API functions
+export const attachmentApi = {
+    getByCardId: (cardId: string) => api.get(`/cards/${cardId}/attachments`),
+    create: (cardId: string, data: { file_name: string; file_url: string; file_type?: string; file_size?: number }) =>
+        api.post(`/cards/${cardId}/attachments`, data),
+    delete: (id: string) => api.delete(`/attachments/${id}`),
+};
+
+// Card Archive API functions
+export const cardArchiveApi = {
+    archive: (cardId: string) => api.put(`/cards/${cardId}/archive`),
+    unarchive: (cardId: string) => api.put(`/cards/${cardId}/unarchive`),
+    getArchivedByBoard: (boardId: string) => api.get(`/boards/${boardId}/archived-cards`),
+};
+
+export default api;

@@ -4,6 +4,7 @@ import (
 	"github.com/btask/backend/internal/config"
 	"github.com/btask/backend/internal/handlers"
 	"github.com/btask/backend/internal/middleware"
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
@@ -55,6 +56,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	workspaces.Delete("/:id", workspaceHandler.Delete)
 	workspaces.Get("/:id/members", workspaceHandler.GetMembers)
 	workspaces.Post("/:id/members", workspaceHandler.AddMember)
+	workspaces.Post("/:id/invite", workspaceHandler.InviteMember)
 	workspaces.Delete("/:id/members/:userId", workspaceHandler.RemoveMember)
 
 	// Board routes
@@ -84,6 +86,9 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	lists.Put("/:id", listHandler.Update)
 	lists.Delete("/:id", listHandler.Delete)
 	lists.Put("/:id/move", listHandler.Move)
+	lists.Post("/:id/copy", listHandler.Copy)
+	lists.Post("/:id/move-all-cards", listHandler.MoveAllCards)
+	lists.Post("/:id/sort-cards", listHandler.SortCards)
 
 	// Card routes
 	cardHandler := handlers.NewCardHandler()
@@ -98,6 +103,11 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	cards.Delete("/:id/labels/:labelId", cardHandler.RemoveLabel)
 	cards.Post("/:id/members", cardHandler.AddMember)
 	cards.Delete("/:id/members/:userId", cardHandler.RemoveMember)
+	cards.Put("/:id/archive", cardHandler.Archive)
+	cards.Put("/:id/unarchive", cardHandler.Unarchive)
+
+	// Archived cards by board
+	boards.Get("/:id/archived-cards", cardHandler.GetArchivedCards)
 
 	// Comment routes
 	commentHandler := handlers.NewCommentHandler()
@@ -108,7 +118,45 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	comments.Put("/:id", commentHandler.Update)
 	comments.Delete("/:id", commentHandler.Delete)
 
+	// Checklist routes
+	checklistHandler := handlers.NewChecklistHandler()
+	cards.Get("/:cardId/checklists", checklistHandler.GetByCardID)
+	cards.Post("/:cardId/checklists", checklistHandler.Create)
+
+	checklists := protected.Group("/checklists")
+	checklists.Put("/:id", checklistHandler.Update)
+	checklists.Delete("/:id", checklistHandler.Delete)
+	checklists.Post("/:id/items", checklistHandler.CreateItem)
+	checklists.Put("/:id/items/:itemId", checklistHandler.UpdateItem)
+	checklists.Delete("/:id/items/:itemId", checklistHandler.DeleteItem)
+	checklists.Put("/:id/items/:itemId/toggle", checklistHandler.ToggleItem)
+
+	// Attachment routes
+	attachmentHandler := handlers.NewAttachmentHandler()
+	cards.Get("/:cardId/attachments", attachmentHandler.GetByCardID)
+	cards.Post("/:cardId/attachments", attachmentHandler.Create)
+
+	attachments := protected.Group("/attachments")
+	attachments.Delete("/:id", attachmentHandler.Delete)
+
 	// Upload routes
 	uploadHandler := handlers.NewUploadHandler()
 	protected.Post("/upload", uploadHandler.UploadFile)
+
+	// Notification routes
+	notificationHandler := handlers.NewNotificationHandler()
+	notifications := protected.Group("/notifications")
+	notifications.Get("/", notificationHandler.GetNotifications)
+	notifications.Get("/unread-count", notificationHandler.GetUnreadCount)
+	notifications.Put("/:id/read", notificationHandler.MarkAsRead)
+	notifications.Put("/read-all", notificationHandler.MarkAllAsRead)
+
+	// List watch routes
+	lists.Post("/:id/watch", notificationHandler.WatchList)
+	lists.Delete("/:id/watch", notificationHandler.UnwatchList)
+	lists.Get("/:id/watching", notificationHandler.IsWatching)
+
+	// WebSocket route (without auth middleware, uses token query param)
+	app.Use("/ws", handlers.WebSocketUpgrade)
+	app.Get("/ws", websocket.New(handlers.WebSocketHandler))
 }

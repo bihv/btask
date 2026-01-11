@@ -8,11 +8,17 @@ import {
     StarFilled,
     MoreOutlined,
     ArrowLeftOutlined,
+    InboxOutlined,
+    ShareAltOutlined,
 } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
 import KanbanBoard from '@/components/kanban/KanbanBoard';
 import { useHeader } from '@/providers/HeaderProvider';
 import { useBoard, useUpdateBoard, useDeleteBoard } from '@/hooks/useBoards';
+import { useWorkspaceMembers } from '@/hooks/useCards';
+import ArchivedCardsModal from '@/components/card/ArchivedCardsModal';
+import CardFilterBar, { FilterState, defaultFilters } from '@/components/board/CardFilterBar';
+import ShareModal from '@/components/workspace/ShareModal';
 
 const { Text } = Typography;
 
@@ -23,18 +29,24 @@ export default function BoardPage() {
 
     // React Query for fetching board data
     const { data: board, isLoading, refetch } = useBoard(boardId);
-    
+
     // Zustand store for list/card operations (used by KanbanBoard)
     const { setLists } = useBoardStore();
-    
+
     // Mutations
     const updateMutation = useUpdateBoard();
     const deleteMutation = useDeleteBoard();
+
+    // Fetch workspace members for filter
+    const { data: workspaceMembers = [] } = useWorkspaceMembers(board?.workspace_id || '');
 
     const { setHeaderContent } = useHeader();
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState('');
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [archivedOpen, setArchivedOpen] = useState(false);
+    const [shareOpen, setShareOpen] = useState(false);
+    const [filters, setFilters] = useState<FilterState>(defaultFilters);
     const [settingsForm] = Form.useForm();
 
     // Sync React Query data to Zustand store for KanbanBoard
@@ -69,9 +81,9 @@ export default function BoardPage() {
     const toggleStar = async () => {
         if (!board) return;
         try {
-            await updateMutation.mutateAsync({ 
-                id: boardId, 
-                data: { is_starred: !board.is_starred } 
+            await updateMutation.mutateAsync({
+                id: boardId,
+                data: { is_starred: !board.is_starred }
             });
         } catch (error) {
             message.error('Failed to update board');
@@ -102,6 +114,8 @@ export default function BoardPage() {
                     }
                 },
             });
+        } else if (key === 'archived') {
+            setArchivedOpen(true);
         }
     };
 
@@ -170,9 +184,18 @@ export default function BoardPage() {
                         }
                         onClick={toggleStar}
                     />
+                    <Button
+                        type="primary"
+                        icon={<ShareAltOutlined />}
+                        onClick={() => setShareOpen(true)}
+                    >
+                        Share
+                    </Button>
                     <Dropdown
                         menu={{
                             items: [
+                                { key: 'archived', label: 'Archived Cards', icon: <InboxOutlined /> },
+                                { type: 'divider' },
                                 { key: 'settings', label: 'Board Settings' },
                                 { key: 'delete', label: 'Delete Board', danger: true },
                             ],
@@ -204,9 +227,19 @@ export default function BoardPage() {
                 background: board.background_color || '#0079bf',
             }}
         >
+            {/* Filter Bar */}
+            <div style={{ padding: '8px 16px 0' }}>
+                <CardFilterBar
+                    labels={board.labels || []}
+                    members={workspaceMembers}
+                    filters={filters}
+                    onChange={setFilters}
+                />
+            </div>
+
             {/* Kanban Board */}
             <div style={{ flex: 1, overflow: 'hidden' }}>
-                <KanbanBoard />
+                <KanbanBoard filters={filters} />
             </div>
 
 
@@ -258,6 +291,22 @@ export default function BoardPage() {
                     </Form.Item>
                 </Form>
             </Modal>
+
+            {/* Archived Cards Modal */}
+            <ArchivedCardsModal
+                boardId={boardId}
+                open={archivedOpen}
+                onClose={() => setArchivedOpen(false)}
+                onCardRestored={() => refetch()}
+            />
+
+            {/* Share Modal */}
+            <ShareModal
+                open={shareOpen}
+                onClose={() => setShareOpen(false)}
+                workspaceId={board.workspace_id}
+                isOwner={true} // TODO: Check actual ownership
+            />
         </div>
     );
 }

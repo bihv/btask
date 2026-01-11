@@ -1,21 +1,26 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/btask/backend/internal/middleware"
 	"github.com/btask/backend/internal/models"
 	"github.com/btask/backend/internal/services"
+	"github.com/btask/backend/internal/websocket"
 	"github.com/btask/backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type CardHandler struct {
-	service *services.CardService
+	service             *services.CardService
+	notificationService *services.NotificationService
 }
 
 func NewCardHandler() *CardHandler {
 	return &CardHandler{
-		service: services.NewCardService(),
+		service:             services.NewCardService(),
+		notificationService: services.NewNotificationService(),
 	}
 }
 
@@ -40,6 +45,22 @@ func (h *CardHandler) Create(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
+
+	// Notify list watchers about new card
+	go func() {
+		notifications, _ := h.notificationService.NotifyListWatchers(
+			listID,
+			userID,
+			"card_created",
+			"New card created",
+			fmt.Sprintf("Card \"%s\" was added to the list", card.Title),
+			&card.ID,
+		)
+		// Push via WebSocket
+		if websocket.GlobalHub != nil {
+			websocket.GlobalHub.SendNotificationsToUsers(notifications)
+		}
+	}()
 
 	return utils.SuccessResponse(c, card)
 }
@@ -198,4 +219,50 @@ func (h *CardHandler) RemoveMember(c *fiber.Ctx) error {
 	}
 
 	return utils.SuccessMessageResponse(c, "Member removed successfully")
+}
+
+func (h *CardHandler) Archive(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	cardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid card ID")
+	}
+
+	if err := h.service.Archive(cardID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Card archived successfully")
+}
+
+func (h *CardHandler) Unarchive(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	cardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid card ID")
+	}
+
+	if err := h.service.Unarchive(cardID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Card restored successfully")
+}
+
+func (h *CardHandler) GetArchivedCards(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	boardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	cards, err := h.service.GetArchivedByBoardID(boardID, userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, cards)
 }

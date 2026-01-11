@@ -34,7 +34,7 @@ func (r *CardRepository) FindByID(id uuid.UUID) (*models.Card, error) {
 func (r *CardRepository) FindByListID(listID uuid.UUID) ([]models.Card, error) {
 	var cards []models.Card
 	err := database.DB.
-		Where("list_id = ?", listID).
+		Where("list_id = ? AND is_archived = ?", listID, false).
 		Order("position ASC").
 		Find(&cards).Error
 	if err != nil {
@@ -127,4 +127,28 @@ func (r *CardRepository) AddMember(cardID, userID uuid.UUID) error {
 
 func (r *CardRepository) RemoveMember(cardID, userID uuid.UUID) error {
 	return database.DB.Delete(&models.CardMember{}, "card_id = ? AND user_id = ?", cardID, userID).Error
+}
+
+func (r *CardRepository) Archive(cardID uuid.UUID) error {
+	return database.DB.Model(&models.Card{}).Where("id = ?", cardID).Update("is_archived", true).Error
+}
+
+func (r *CardRepository) Unarchive(cardID uuid.UUID) error {
+	return database.DB.Model(&models.Card{}).Where("id = ?", cardID).Update("is_archived", false).Error
+}
+
+func (r *CardRepository) FindArchivedByBoardID(boardID uuid.UUID) ([]models.Card, error) {
+	var cards []models.Card
+	err := database.DB.
+		Joins("JOIN lists ON lists.id = cards.list_id").
+		Where("lists.board_id = ? AND cards.is_archived = ?", boardID, true).
+		Preload("Labels.Label").
+		Preload("Members.User").
+		Preload("Creator").
+		Order("cards.updated_at DESC").
+		Find(&cards).Error
+	if err != nil {
+		return nil, err
+	}
+	return cards, nil
 }

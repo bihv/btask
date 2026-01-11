@@ -125,6 +125,33 @@ func (h *WorkspaceHandler) AddMember(c *fiber.Ctx) error {
 	return utils.SuccessMessageResponse(c, "Member added successfully")
 }
 
+func (h *WorkspaceHandler) InviteMember(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid workspace ID")
+	}
+
+	var req struct {
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	if req.Email == "" {
+		return utils.ValidationErrorResponse(c, "Email is required")
+	}
+
+	if err := h.service.AddMemberByEmail(id, userID, req.Email, req.Role); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Member invited successfully")
+}
+
 func (h *WorkspaceHandler) RemoveMember(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 

@@ -1,14 +1,15 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/api';
-import { Card, Comment, Label, User } from '@/types';
+import api, { checklistApi } from '@/lib/api';
+import { Card, Comment, Label, User, Checklist } from '@/types';
 import { boardKeys } from './useBoards';
 
 // Query Keys
 export const cardKeys = {
     detail: (id: string) => ['cards', id] as const,
     comments: (id: string) => ['cards', id, 'comments'] as const,
+    checklists: (id: string) => ['cards', id, 'checklists'] as const,
 };
 
 // Fetch single card
@@ -142,5 +143,36 @@ export function useToggleCardMember(cardId: string) {
             queryClient.invalidateQueries({ queryKey: cardKeys.detail(cardId) });
             queryClient.invalidateQueries({ queryKey: ['boards'] });
         },
+    });
+}
+
+// Fetch checklists for a card
+export function useChecklists(cardId: string) {
+    return useQuery({
+        queryKey: cardKeys.checklists(cardId),
+        queryFn: async (): Promise<Checklist[]> => {
+            const response = await checklistApi.getByCardId(cardId);
+            return response.data.data || [];
+        },
+        enabled: !!cardId,
+    });
+}
+
+// Invalidate checklists hook
+export function useInvalidateChecklists(cardId: string) {
+    const queryClient = useQueryClient();
+    return () => queryClient.invalidateQueries({ queryKey: cardKeys.checklists(cardId) });
+}
+
+// Fetch attachments for a card
+export function useAttachments(cardId: string) {
+    return useQuery({
+        queryKey: ['cards', cardId, 'attachments'],
+        queryFn: async () => {
+            const { attachmentApi } = await import('@/lib/api');
+            const response = await attachmentApi.getByCardId(cardId);
+            return response.data.data || [];
+        },
+        enabled: !!cardId,
     });
 }

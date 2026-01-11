@@ -99,3 +99,71 @@ func (h *ListHandler) Move(c *fiber.Ctx) error {
 
 	return utils.SuccessMessageResponse(c, "List moved successfully")
 }
+
+func (h *ListHandler) Copy(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid list ID")
+	}
+
+	var req models.CopyListRequest
+	c.BodyParser(&req) // Ignore error - title is optional
+
+	list, err := h.service.Copy(id, userID, req.Title)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, list)
+}
+
+func (h *ListHandler) MoveAllCards(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	sourceListID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid source list ID")
+	}
+
+	var req models.MoveAllCardsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	targetListID, err := uuid.Parse(req.TargetListID)
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid target list ID")
+	}
+
+	if err := h.service.MoveAllCards(sourceListID, targetListID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "All cards moved successfully")
+}
+
+func (h *ListHandler) SortCards(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	listID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid list ID")
+	}
+
+	var req models.SortCardsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	if req.SortBy == "" {
+		return utils.ValidationErrorResponse(c, "Sort type is required")
+	}
+
+	if err := h.service.SortCards(listID, userID, req.SortBy); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Cards sorted successfully")
+}

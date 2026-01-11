@@ -18,11 +18,16 @@ import {
 } from '@dnd-kit/sortable';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card, List } from '@/types';
+import { FilterState } from '@/components/board/CardFilterBar';
 import KanbanList from './KanbanList';
 import KanbanCard from './KanbanCard';
 import AddList from './AddList';
 
-export default function KanbanBoard() {
+interface KanbanBoardProps {
+    filters?: FilterState;
+}
+
+export default function KanbanBoard({ filters }: KanbanBoardProps) {
     const { lists, currentBoard, moveCard, moveList, optimisticMoveCard } =
         useBoardStore();
     const [activeCard, setActiveCard] = useState<Card | null>(null);
@@ -133,7 +138,7 @@ export default function KanbanBoard() {
                     strategy={horizontalListSortingStrategy}
                 >
                     {lists.map((list) => (
-                        <KanbanList key={list.id} list={list} />
+                        <KanbanList key={list.id} list={list} filters={filters} />
                     ))}
                 </SortableContext>
 

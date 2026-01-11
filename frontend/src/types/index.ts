@@ -51,6 +51,7 @@ export interface List {
     board_id: string;
     title: string;
     position: number;
+    color?: string;
     cards?: Card[];
     created_at: string;
     updated_at: string;
@@ -62,9 +63,11 @@ export interface Card {
     list_id: string;
     title: string;
     description?: string;
+    cover_image?: string;
     position: number;
     due_date?: string;
     is_completed: boolean;
+    is_archived?: boolean;
     created_by: string;
     creator?: User;
     labels?: CardLabel[];
@@ -105,6 +108,59 @@ export interface Comment {
     user?: User;
     created_at: string;
     updated_at: string;
+}
+
+// Checklist types
+export interface Checklist {
+    id: string;
+    card_id: string;
+    title: string;
+    position: number;
+    items?: ChecklistItem[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ChecklistItem {
+    id: string;
+    checklist_id: string;
+    content: string;
+    is_completed: boolean;
+    position: number;
+    created_at: string;
+    updated_at: string;
+}
+
+// Attachment types
+export interface Attachment {
+    id: string;
+    card_id: string;
+    file_name: string;
+    file_url: string;
+    file_type?: string;
+    file_size?: number;
+    uploaded_by: string;
+    uploader?: User;
+    created_at: string;
+    updated_at: string;
+}
+
+// Activity types
+export type ActivityType =
+    | 'card_created' | 'card_updated' | 'card_moved'
+    | 'comment_added' | 'member_added' | 'member_removed'
+    | 'label_added' | 'label_removed' | 'checklist_added'
+    | 'checklist_item_toggled' | 'attachment_added'
+    | 'due_date_set' | 'due_date_removed';
+
+export interface Activity {
+    id: string;
+    card_id: string;
+    user_id: string;
+    type: ActivityType;
+    details?: string;
+    user?: User;
+    created_at: string;
 }
 
 // API Response types

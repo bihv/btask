@@ -11,8 +11,12 @@ interface BoardState {
     fetchBoard: (boardId: string) => Promise<void>;
     createList: (boardId: string, title: string) => Promise<void>;
     updateList: (listId: string, title: string) => Promise<void>;
+    updateListColor: (listId: string, color: string | null) => Promise<void>;
     deleteList: (listId: string) => Promise<void>;
     moveList: (listId: string, position: number) => Promise<void>;
+    copyList: (listId: string, title?: string) => Promise<void>;
+    moveAllCards: (sourceListId: string, targetListId: string) => Promise<void>;
+    sortCards: (listId: string, sortBy: 'date_newest' | 'date_oldest' | 'alphabetical') => Promise<void>;
 
     createCard: (listId: string, title: string) => Promise<void>;
     updateCard: (cardId: string, data: Partial<Card>) => Promise<void>;
@@ -63,6 +67,20 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         }
     },
 
+    updateListColor: async (listId: string, color: string | null) => {
+        // Optimistic update
+        set((state) => ({
+            lists: state.lists.map((list) =>
+                list.id === listId ? { ...list, color: color || undefined } : list
+            ),
+        }));
+        try {
+            await api.put(`/lists/${listId}`, { color: color || '' });
+        } catch (error: any) {
+            set({ error: error.message });
+        }
+    },
+
     deleteList: async (listId: string) => {
         try {
             await api.delete(`/lists/${listId}`);
@@ -101,6 +119,56 @@ export const useBoardStore = create<BoardState>((set, get) => ({
             if (boardId) {
                 get().fetchBoard(boardId);
             }
+        }
+    },
+
+    copyList: async (listId: string, title?: string) => {
+        try {
+            const response = await api.post(`/lists/${listId}/copy`, { title });
+            const newList = response.data.data;
+            set((state) => ({ lists: [...state.lists, newList] }));
+        } catch (error: any) {
+            set({ error: error.message });
+        }
+    },
+
+    moveAllCards: async (sourceListId: string, targetListId: string) => {
+        // Optimistic update - move cards in local state
+        set((state) => {
+            const newLists = state.lists.map(list => ({ ...list, cards: [...(list.cards || [])] }));
+            const sourceList = newLists.find(l => l.id === sourceListId);
+            const targetList = newLists.find(l => l.id === targetListId);
+
+            if (sourceList && targetList && sourceList.cards) {
+                const cards = sourceList.cards;
+                sourceList.cards = [];
+                targetList.cards = [...(targetList.cards || []), ...cards];
+            }
+            return { lists: newLists };
+        });
+
+        try {
+            await api.post(`/lists/${sourceListId}/move-all-cards`, { target_list_id: targetListId });
+        } catch (error: any) {
+            set({ error: error.message });
+            // Refetch board on error
+            const boardId = get().currentBoard?.id;
+            if (boardId) {
+                get().fetchBoard(boardId);
+            }
+        }
+    },
+
+    sortCards: async (listId: string, sortBy: 'date_newest' | 'date_oldest' | 'alphabetical') => {
+        try {
+            await api.post(`/lists/${listId}/sort-cards`, { sort_by: sortBy });
+            // Refetch board to get updated card order
+            const boardId = get().currentBoard?.id;
+            if (boardId) {
+                get().fetchBoard(boardId);
+            }
+        } catch (error: any) {
+            set({ error: error.message });
         }
     },
 

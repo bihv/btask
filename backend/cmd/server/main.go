@@ -7,6 +7,7 @@ import (
 	"github.com/btask/backend/internal/database"
 	"github.com/btask/backend/internal/router"
 	"github.com/btask/backend/internal/storage"
+	"github.com/btask/backend/internal/websocket"
 	"github.com/btask/backend/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -18,6 +19,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Set global config for singleton access
+	config.SetConfig(cfg)
 
 	// Initialize logger
 	logger.Init(cfg.ServerEnv)
@@ -39,6 +43,10 @@ func main() {
 	} else {
 		logger.Info("MinIO storage initialized successfully")
 	}
+
+	// Initialize WebSocket hub
+	websocket.InitGlobalHub()
+	logger.Info("WebSocket hub initialized")
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{

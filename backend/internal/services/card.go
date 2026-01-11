@@ -118,6 +118,12 @@ func (s *CardService) Update(cardID uuid.UUID, userID uuid.UUID, req models.Upda
 	if req.IsCompleted != nil {
 		card.IsCompleted = *req.IsCompleted
 	}
+	if req.CoverImage != "" || req.CoverImage == "" {
+		card.CoverImage = req.CoverImage
+	}
+	if req.IsArchived != nil {
+		card.IsArchived = *req.IsArchived
+	}
 
 	if err := s.cardRepo.Update(card); err != nil {
 		return nil, err
@@ -262,6 +268,65 @@ func (s *CardService) RemoveMember(cardID uuid.UUID, memberUserID uuid.UUID, use
 	}
 
 	return s.cardRepo.RemoveMember(cardID, memberUserID)
+}
+
+func (s *CardService) Archive(cardID uuid.UUID, userID uuid.UUID) error {
+	card, err := s.cardRepo.FindByID(cardID)
+	if err != nil {
+		return errors.New("card not found")
+	}
+
+	list, err := s.listRepo.FindByID(card.ListID)
+	if err != nil {
+		return errors.New("list not found")
+	}
+
+	board, err := s.boardRepo.FindByID(list.BoardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return errors.New("access denied")
+	}
+
+	return s.cardRepo.Archive(cardID)
+}
+
+func (s *CardService) Unarchive(cardID uuid.UUID, userID uuid.UUID) error {
+	card, err := s.cardRepo.FindByID(cardID)
+	if err != nil {
+		return errors.New("card not found")
+	}
+
+	list, err := s.listRepo.FindByID(card.ListID)
+	if err != nil {
+		return errors.New("list not found")
+	}
+
+	board, err := s.boardRepo.FindByID(list.BoardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return errors.New("access denied")
+	}
+
+	return s.cardRepo.Unarchive(cardID)
+}
+
+func (s *CardService) GetArchivedByBoardID(boardID uuid.UUID, userID uuid.UUID) ([]models.Card, error) {
+	board, err := s.boardRepo.FindByID(boardID)
+	if err != nil {
+		return nil, errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return nil, errors.New("access denied")
+	}
+
+	return s.cardRepo.FindArchivedByBoardID(boardID)
 }
 
 func (s *CardService) hasAccess(workspaceID uuid.UUID, userID uuid.UUID) bool {

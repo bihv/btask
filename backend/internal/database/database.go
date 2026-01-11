@@ -42,6 +42,11 @@ func Migrate() error {
 		&models.CardLabel{},
 		&models.CardMember{},
 		&models.Comment{},
+		&models.Checklist{},
+		&models.ChecklistItem{},
+		&models.Attachment{},
+		&models.Notification{},
+		&models.ListWatcher{},
 	)
 
 	if err != nil {

@@ -18,6 +18,8 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useHeader } from '@/providers/HeaderProvider';
+import NotificationDropdown from '@/components/notification/NotificationDropdown';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import type { MenuProps } from 'antd';
 
 const { Header, Sider, Content } = Layout;
@@ -35,6 +37,10 @@ export default function DashboardLayout({
     const { headerContent } = useHeader();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
+
+    // Get auth token for WebSocket
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    useWebSocket(token);
 
     useEffect(() => {
         setMounted(true);
@@ -172,13 +178,15 @@ export default function DashboardLayout({
                     <div style={{ flex: 1, minWidth: 0 }}>
                         {headerContent}
                     </div>
-                    
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Button
                             type="text"
                             icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
                             onClick={toggleTheme}
+                            style={{ color: 'white' }}
                         />
+                        <NotificationDropdown />
                         <Button type="primary" icon={<PlusOutlined />}>
                             Create
                         </Button>

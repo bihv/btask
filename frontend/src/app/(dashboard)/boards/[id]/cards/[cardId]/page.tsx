@@ -19,6 +19,7 @@ import {
     Tag,
     List as AntList,
     Modal,
+    Upload,
 } from 'antd';
 import {
     AlignLeftOutlined,
@@ -30,14 +31,22 @@ import {
     EditOutlined,
     CheckOutlined,
     ArrowLeftOutlined,
+    InboxOutlined,
+    UndoOutlined,
+    PictureOutlined,
+    CloseCircleOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Card, Comment, Label, User } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
-import api from '@/lib/api';
+import api, { cardArchiveApi, uploadFile } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useHeader } from '@/providers/HeaderProvider';
-import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment } from '@/hooks/useCards';
+import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useChecklists, useInvalidateChecklists, useAttachments } from '@/hooks/useCards';
+import { useQueryClient } from '@tanstack/react-query';
+import ChecklistSection from '@/components/card/ChecklistSection';
+import AttachmentSection from '@/components/card/AttachmentSection';
+
 
 // Dynamic import to avoid SSR issues with BlockNote
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
@@ -62,11 +71,20 @@ export default function CardPage() {
     const { updateCard, deleteCard, currentBoard, fetchBoard } = useBoardStore();
     const { user } = useAuthStore();
     const { setHeaderContent } = useHeader();
+    const queryClient = useQueryClient();
+
+    // Helper to invalidate board cache after card updates
+    const invalidateBoardCache = () => {
+        queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
+    };
 
     // React Query hooks
     const { data: cardData, isLoading: cardLoading, refetch: refetchCard } = useCard(cardId);
     const { data: boardLabels = [], refetch: refetchLabels } = useBoardLabels(boardId);
     const { data: workspaceMembers = [] } = useWorkspaceMembers(currentBoard?.workspace_id || '');
+    const { data: checklists = [], refetch: refetchChecklists } = useChecklists(cardId);
+    const { data: attachments = [], refetch: refetchAttachments } = useAttachments(cardId);
+
     const addCommentMutation = useAddComment(cardId);
 
     // Local card state for optimistic updates
@@ -151,7 +169,7 @@ export default function CardPage() {
                 </div>
             );
         }
-        
+
         return () => {
             setHeaderContent(null);
         };
@@ -160,7 +178,10 @@ export default function CardPage() {
     const handleTitleSave = () => {
         if (!card) return;
         if (title.trim() && title !== card.title) {
+            // Optimistic update
+            setCard({ ...card, title: title.trim() });
             updateCard(card.id, { title: title.trim() });
+            invalidateBoardCache();
         }
         setIsEditingTitle(false);
     };
@@ -175,30 +196,32 @@ export default function CardPage() {
 
     const handleDueDateChange = (date: dayjs.Dayjs | null) => {
         if (!card) return;
-        
+
         // Optimistic update - update local state immediately
         setCard({
             ...card,
             due_date: date ? date.toISOString() : undefined,
         });
-        
+
         // Update on server
         updateCard(card.id, {
             due_date: date ? date.toISOString() : undefined,
         });
+        invalidateBoardCache();
         setDueDateOpen(false);
     };
 
     const handleCompletedChange = (checked: boolean) => {
         if (!card) return;
-        
+
         // Optimistic update
         setCard({
             ...card,
             is_completed: checked,
         });
-        
+
         updateCard(card.id, { is_completed: checked });
+        invalidateBoardCache();
     };
 
     const handleDelete = () => {
@@ -215,6 +238,36 @@ export default function CardPage() {
         });
     };
 
+    const handleArchive = async () => {
+        if (!card) return;
+        try {
+            if (card.is_archived) {
+                await cardArchiveApi.unarchive(card.id);
+                setCard({ ...card, is_archived: false });
+                message.success('Card restored');
+            } else {
+                await cardArchiveApi.archive(card.id);
+                setCard({ ...card, is_archived: true });
+                message.success('Card archived');
+            }
+        } catch (error) {
+            message.error('Failed to update card');
+        }
+    };
+
+    const handleSetCover = async (imageUrl: string) => {
+        if (!card) return;
+        try {
+            // If same cover, remove it
+            const newCover = card.cover_image === imageUrl ? '' : imageUrl;
+            await api.put(`/cards/${card.id}`, { cover_image: newCover });
+            setCard({ ...card, cover_image: newCover });
+            message.success(newCover ? 'Cover image set' : 'Cover image removed');
+        } catch (error) {
+            message.error('Failed to update cover image');
+        }
+    };
+
     const handleAddComment = async () => {
         if (!card || !newComment.trim()) return;
         try {
@@ -228,17 +281,32 @@ export default function CardPage() {
     const handleToggleLabel = async (labelId: string) => {
         if (!card) return;
         const hasLabel = card.labels?.some((cl) => cl.label_id === labelId);
+
+        // Optimistic update
+        const label = boardLabels.find((l) => l.id === labelId);
+        if (hasLabel) {
+            setCard({
+                ...card,
+                labels: card.labels?.filter((cl) => cl.label_id !== labelId) || [],
+            });
+        } else if (label) {
+            setCard({
+                ...card,
+                labels: [...(card.labels || []), { id: `temp-${Date.now()}`, label_id: labelId, card_id: card.id, label }],
+            });
+        }
+
         try {
             if (hasLabel) {
                 await api.delete(`/cards/${card.id}/labels/${labelId}`);
             } else {
                 await api.post(`/cards/${card.id}/labels`, { label_id: labelId });
             }
-            if (currentBoard?.id) {
-                fetchBoard(currentBoard.id);
-            }
+            invalidateBoardCache();
+            refetchCard();
         } catch (error) {
             message.error('Failed to update label');
+            refetchCard(); // Revert on error
         }
     };
 
@@ -259,17 +327,32 @@ export default function CardPage() {
     const handleToggleMember = async (userId: string) => {
         if (!card) return;
         const hasMember = card.members?.some((cm) => cm.user_id === userId);
+
+        // Optimistic update
+        const member = workspaceMembers.find((m) => m.id === userId);
+        if (hasMember) {
+            setCard({
+                ...card,
+                members: card.members?.filter((cm) => cm.user_id !== userId) || [],
+            });
+        } else if (member) {
+            setCard({
+                ...card,
+                members: [...(card.members || []), { id: `temp-${Date.now()}`, user_id: userId, card_id: card.id, user: member }],
+            });
+        }
+
         try {
             if (hasMember) {
                 await api.delete(`/cards/${card.id}/members/${userId}`);
             } else {
                 await api.post(`/cards/${card.id}/members`, { user_id: userId });
             }
-            if (currentBoard?.id) {
-                fetchBoard(currentBoard.id);
-            }
+            invalidateBoardCache();
+            refetchCard();
         } catch (error) {
             message.error('Failed to update member');
+            refetchCard(); // Revert on error
         }
     };
 
@@ -420,10 +503,10 @@ export default function CardPage() {
             }}
         >
             {/* Left Column - Description Only */}
-            <div 
-                style={{ 
-                    flex: 1, 
-                    minWidth: 0, 
+            <div
+                style={{
+                    flex: 1,
+                    minWidth: 0,
                     overflowY: 'auto',
                     padding: 24,
                 }}
@@ -492,12 +575,32 @@ export default function CardPage() {
                         </div>
                     )}
                 </div>
+
+                {/* Checklists */}
+                <div style={{ marginTop: 24 }}>
+                    <ChecklistSection
+                        cardId={cardId}
+                        checklists={checklists}
+                        onUpdate={refetchChecklists}
+                    />
+                </div>
+
+                {/* Attachments */}
+                <div style={{ marginTop: 24 }}>
+                    <AttachmentSection
+                        cardId={cardId}
+                        attachments={attachments}
+                        onUpdate={refetchAttachments}
+                        currentCover={card?.cover_image}
+                        onSetCover={handleSetCover}
+                    />
+                </div>
             </div>
 
             {/* Right Column - Metadata & Activity */}
-            <div 
-                style={{ 
-                    width: 380, 
+            <div
+                style={{
+                    width: 380,
                     borderLeft: '1px solid var(--border-color)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -608,6 +711,130 @@ export default function CardPage() {
                         )}
                     </div>
 
+                    {/* Cover Image Section */}
+                    <div style={{ marginBottom: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <Text type="secondary" style={{ fontSize: 12 }}>Cover</Text>
+                            {card.cover_image && (
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    danger
+                                    icon={<CloseCircleOutlined />}
+                                    onClick={() => handleSetCover('')}
+                                    title="Remove cover"
+                                />
+                            )}
+                        </div>
+                        {card.cover_image && (
+                            <div
+                                style={{
+                                    width: '100%',
+                                    height: 120,
+                                    borderRadius: 8,
+                                    overflow: 'hidden',
+                                    marginBottom: 8,
+                                }}
+                            >
+                                <img
+                                    src={card.cover_image}
+                                    alt="Cover"
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                    }}
+                                />
+                            </div>
+                        )}
+                        <Popover
+                            trigger="click"
+                            placement="bottomLeft"
+                            content={
+                                <div style={{ width: 280 }}>
+                                    <Text strong style={{ display: 'block', marginBottom: 12 }}>Choose Cover</Text>
+
+                                    {/* Image attachments grid */}
+                                    {attachments.filter((a: { file_name: string }) =>
+                                        ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].some(ext =>
+                                            a.file_name.toLowerCase().endsWith(ext)
+                                        )
+                                    ).length > 0 && (
+                                            <>
+                                                <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 8 }}>
+                                                    From attachments
+                                                </Text>
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+                                                    {attachments
+                                                        .filter((a: { file_name: string }) =>
+                                                            ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].some(ext =>
+                                                                a.file_name.toLowerCase().endsWith(ext)
+                                                            )
+                                                        )
+                                                        .map((a: { file_url: string; file_name: string }) => (
+                                                            <div
+                                                                key={a.file_url}
+                                                                onClick={() => handleSetCover(a.file_url)}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    paddingBottom: '75%',
+                                                                    position: 'relative',
+                                                                    borderRadius: 4,
+                                                                    overflow: 'hidden',
+                                                                    cursor: 'pointer',
+                                                                    border: card.cover_image === a.file_url ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                                                                }}
+                                                            >
+                                                                <img
+                                                                    src={a.file_url}
+                                                                    alt={a.file_name}
+                                                                    style={{
+                                                                        position: 'absolute',
+                                                                        top: 0,
+                                                                        left: 0,
+                                                                        width: '100%',
+                                                                        height: '100%',
+                                                                        objectFit: 'cover',
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        ))
+                                                    }
+                                                </div>
+                                            </>
+                                        )}
+
+                                    {/* Upload new image */}
+                                    <Upload
+                                        accept="image/*"
+                                        showUploadList={false}
+                                        beforeUpload={async (file) => {
+                                            try {
+                                                message.loading('Uploading...', 0);
+                                                const url = await uploadFile(file);
+                                                message.destroy();
+                                                handleSetCover(url);
+                                                message.success('Cover set!');
+                                            } catch {
+                                                message.destroy();
+                                                message.error('Upload failed');
+                                            }
+                                            return false;
+                                        }}
+                                    >
+                                        <Button type="dashed" block icon={<PictureOutlined />}>
+                                            Upload Image
+                                        </Button>
+                                    </Upload>
+                                </div>
+                            }
+                        >
+                            <Button type="dashed" block icon={<PictureOutlined />}>
+                                {card.cover_image ? 'Change Cover' : 'Set Cover'}
+                            </Button>
+                        </Popover>
+                    </div>
+
                     <Divider style={{ margin: '16px 0' }} />
 
                     {/* Activity Section */}
@@ -675,16 +902,25 @@ export default function CardPage() {
                     </div>
                 </div>
 
-                {/* Delete Button - Fixed at bottom */}
+                {/* Archive & Delete Buttons - Fixed at bottom */}
                 <div style={{ padding: 16, borderTop: '1px solid var(--border-color)' }}>
-                    <Button
-                        icon={<DeleteOutlined />}
-                        block
-                        danger
-                        onClick={handleDelete}
-                    >
-                        Delete Card
-                    </Button>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Button
+                            icon={card?.is_archived ? <UndoOutlined /> : <InboxOutlined />}
+                            block
+                            onClick={handleArchive}
+                        >
+                            {card?.is_archived ? 'Restore Card' : 'Archive Card'}
+                        </Button>
+                        <Button
+                            icon={<DeleteOutlined />}
+                            block
+                            danger
+                            onClick={handleDelete}
+                        >
+                            Delete Card
+                        </Button>
+                    </Space>
                 </div>
             </div>
         </div>

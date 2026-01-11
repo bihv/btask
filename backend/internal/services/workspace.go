@@ -109,6 +109,36 @@ func (s *WorkspaceService) AddMember(workspaceID uuid.UUID, userID uuid.UUID, me
 	return s.workspaceRepo.AddMember(member)
 }
 
+func (s *WorkspaceService) AddMemberByEmail(workspaceID uuid.UUID, userID uuid.UUID, email string, role string) error {
+	if !s.workspaceRepo.IsOwner(workspaceID, userID) {
+		return errors.New("only owner can add members")
+	}
+
+	// Find user by email
+	userRepo := repository.NewUserRepository()
+	memberUser, err := userRepo.FindByEmail(email)
+	if err != nil {
+		return errors.New("user not found with this email")
+	}
+
+	if role == "" {
+		role = "member"
+	}
+
+	// Check if already a member
+	if s.workspaceRepo.IsMember(workspaceID, memberUser.ID) {
+		return errors.New("user is already a member")
+	}
+
+	member := &models.WorkspaceMember{
+		WorkspaceID: workspaceID,
+		UserID:      memberUser.ID,
+		Role:        role,
+	}
+
+	return s.workspaceRepo.AddMember(member)
+}
+
 func (s *WorkspaceService) RemoveMember(workspaceID uuid.UUID, userID uuid.UUID, memberUserID uuid.UUID) error {
 	if !s.workspaceRepo.IsOwner(workspaceID, userID) && userID != memberUserID {
 		return errors.New("only owner can remove members")

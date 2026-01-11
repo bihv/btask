@@ -12,9 +12,11 @@ type Card struct {
 	ListID      uuid.UUID  `json:"list_id" gorm:"type:uuid;not null"`
 	Title       string     `json:"title" gorm:"not null"`
 	Description string     `json:"description"`
+	CoverImage  string     `json:"cover_image"`
 	Position    int        `json:"position" gorm:"default:0"`
 	DueDate     *time.Time `json:"due_date"`
 	IsCompleted bool       `json:"is_completed" gorm:"default:false"`
+	IsArchived  bool       `json:"is_archived" gorm:"default:false"`
 	CreatedBy   uuid.UUID  `json:"created_by" gorm:"type:uuid"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
@@ -61,9 +63,11 @@ type CreateCardRequest struct {
 type UpdateCardRequest struct {
 	Title       string     `json:"title" validate:"omitempty,min=1,max=200"`
 	Description string     `json:"description"`
+	CoverImage  string     `json:"cover_image"`
 	Position    *int       `json:"position"`
 	DueDate     *time.Time `json:"due_date"`
 	IsCompleted *bool      `json:"is_completed"`
+	IsArchived  *bool      `json:"is_archived"`
 }
 
 type MoveCardRequest struct {

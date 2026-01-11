@@ -65,3 +65,29 @@ func GetUserEmail(c *fiber.Ctx) string {
 	}
 	return email
 }
+
+// GetUserIDFromWS extracts user ID from WebSocket connection query params
+func GetUserIDFromWS(c interface {
+	Query(string, ...string) string
+}) uuid.UUID {
+	tokenString := c.Query("token")
+	if tokenString == "" {
+		return uuid.Nil
+	}
+
+	cfg := config.GetConfig()
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(cfg.JWTSecret), nil
+	})
+
+	if err != nil || !token.Valid {
+		return uuid.Nil
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return uuid.Nil
+	}
+
+	return claims.UserID
+}
