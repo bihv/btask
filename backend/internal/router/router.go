@@ -55,7 +55,6 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	workspaces.Put("/:id", workspaceHandler.Update)
 	workspaces.Delete("/:id", workspaceHandler.Delete)
 	workspaces.Get("/:id/members", workspaceHandler.GetMembers)
-	workspaces.Post("/:id/members", workspaceHandler.AddMember)
 	workspaces.Post("/:id/invite", workspaceHandler.InviteMember)
 	workspaces.Delete("/:id/members/:userId", workspaceHandler.RemoveMember)
 

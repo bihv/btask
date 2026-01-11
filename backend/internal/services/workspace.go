@@ -91,24 +91,6 @@ func (s *WorkspaceService) Delete(workspaceID uuid.UUID, userID uuid.UUID) error
 	return s.workspaceRepo.Delete(workspaceID)
 }
 
-func (s *WorkspaceService) AddMember(workspaceID uuid.UUID, userID uuid.UUID, memberUserID uuid.UUID, role string) error {
-	if !s.workspaceRepo.IsOwner(workspaceID, userID) {
-		return errors.New("only owner can add members")
-	}
-
-	if role == "" {
-		role = "member"
-	}
-
-	member := &models.WorkspaceMember{
-		WorkspaceID: workspaceID,
-		UserID:      memberUserID,
-		Role:        role,
-	}
-
-	return s.workspaceRepo.AddMember(member)
-}
-
 func (s *WorkspaceService) AddMemberByEmail(workspaceID uuid.UUID, userID uuid.UUID, email string, role string) error {
 	if !s.workspaceRepo.IsOwner(workspaceID, userID) {
 		return errors.New("only owner can add members")

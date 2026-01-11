@@ -102,29 +102,6 @@ func (h *WorkspaceHandler) Delete(c *fiber.Ctx) error {
 	return utils.SuccessMessageResponse(c, "Workspace deleted successfully")
 }
 
-func (h *WorkspaceHandler) AddMember(c *fiber.Ctx) error {
-	userID := middleware.GetUserID(c)
-
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return utils.ValidationErrorResponse(c, "Invalid workspace ID")
-	}
-
-	var req struct {
-		UserID uuid.UUID `json:"user_id"`
-		Role   string    `json:"role"`
-	}
-	if err := c.BodyParser(&req); err != nil {
-		return utils.ValidationErrorResponse(c, "Invalid request body")
-	}
-
-	if err := h.service.AddMember(id, userID, req.UserID, req.Role); err != nil {
-		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
-	}
-
-	return utils.SuccessMessageResponse(c, "Member added successfully")
-}
-
 func (h *WorkspaceHandler) InviteMember(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 
