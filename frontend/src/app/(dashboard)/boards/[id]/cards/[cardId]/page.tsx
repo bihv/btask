@@ -46,6 +46,7 @@ import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useCheckli
 import { useQueryClient } from '@tanstack/react-query';
 import ChecklistSection from '@/components/card/ChecklistSection';
 import AttachmentSection from '@/components/card/AttachmentSection';
+import ShareCardPopover from '@/components/card/ShareCardPopover';
 
 
 // Dynamic import to avoid SSR issues with BlockNote
@@ -902,9 +903,15 @@ export default function CardPage() {
                     </div>
                 </div>
 
-                {/* Archive & Delete Buttons - Fixed at bottom */}
+                {/* Actions - Fixed at bottom */}
                 <div style={{ padding: 16, borderTop: '1px solid var(--border-color)' }}>
                     <Space direction="vertical" style={{ width: '100%' }}>
+                        <ShareCardPopover
+                            cardId={cardId}
+                            cardTitle={card?.title || ''}
+                            boardId={boardId}
+                            cardData={card || undefined}
+                        />
                         <Button
                             icon={card?.is_archived ? <UndoOutlined /> : <InboxOutlined />}
                             block
