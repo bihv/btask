@@ -21,7 +21,7 @@ func (r *BoardRepository) FindByID(id uuid.UUID) (*models.Board, error) {
 	var board models.Board
 	err := database.DB.
 		Preload("Lists", func(db *gorm.DB) *gorm.DB {
-			return db.Order("lists.position ASC")
+			return db.Where("is_archived = ?", false).Order("lists.position ASC")
 		}).
 		Preload("Lists.Cards", func(db *gorm.DB) *gorm.DB {
 			return db.Where("is_archived = ?", false).Order("cards.position ASC")

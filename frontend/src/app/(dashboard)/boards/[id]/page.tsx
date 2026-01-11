@@ -16,7 +16,7 @@ import KanbanBoard from '@/components/kanban/KanbanBoard';
 import { useHeader } from '@/providers/HeaderProvider';
 import { useBoard, useUpdateBoard, useDeleteBoard } from '@/hooks/useBoards';
 import { useWorkspaceMembers } from '@/hooks/useCards';
-import ArchivedCardsModal from '@/components/card/ArchivedCardsModal';
+import ArchivedItemsDrawer from '@/components/board/ArchivedItemsDrawer';
 import CardFilterBar, { FilterState, defaultFilters } from '@/components/board/CardFilterBar';
 import ShareModal from '@/components/workspace/ShareModal';
 
@@ -194,7 +194,7 @@ export default function BoardPage() {
                     <Dropdown
                         menu={{
                             items: [
-                                { key: 'archived', label: 'Archived Cards', icon: <InboxOutlined /> },
+                                { key: 'archived', label: 'Archived Items', icon: <InboxOutlined /> },
                                 { type: 'divider' },
                                 { key: 'settings', label: 'Board Settings' },
                                 { key: 'delete', label: 'Delete Board', danger: true },
@@ -292,12 +292,11 @@ export default function BoardPage() {
                 </Form>
             </Modal>
 
-            {/* Archived Cards Modal */}
-            <ArchivedCardsModal
+            {/* Archived Items Drawer */}
+            <ArchivedItemsDrawer
                 boardId={boardId}
                 open={archivedOpen}
                 onClose={() => setArchivedOpen(false)}
-                onCardRestored={() => refetch()}
             />
 
             {/* Share Modal */}

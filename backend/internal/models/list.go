@@ -8,13 +8,14 @@ import (
 )
 
 type List struct {
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
-	BoardID   uuid.UUID `json:"board_id" gorm:"type:uuid;not null"`
-	Title     string    `json:"title" gorm:"not null"`
-	Position  int       `json:"position" gorm:"default:0"`
-	Color     string    `json:"color" gorm:"default:null"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
+	BoardID    uuid.UUID `json:"board_id" gorm:"type:uuid;not null"`
+	Title      string    `json:"title" gorm:"not null"`
+	Position   int       `json:"position" gorm:"default:0"`
+	Color      string    `json:"color" gorm:"default:null"`
+	IsArchived bool      `json:"is_archived" gorm:"default:false"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 
 	// Relations
 	Board Board  `json:"board,omitempty" gorm:"foreignKey:BoardID"`

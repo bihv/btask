@@ -52,6 +52,7 @@ export interface List {
     title: string;
     position: number;
     color?: string;
+    is_archived?: boolean;
     cards?: Card[];
     created_at: string;
     updated_at: string;

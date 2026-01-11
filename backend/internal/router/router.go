@@ -88,6 +88,12 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	lists.Post("/:id/copy", listHandler.Copy)
 	lists.Post("/:id/move-all-cards", listHandler.MoveAllCards)
 	lists.Post("/:id/sort-cards", listHandler.SortCards)
+	lists.Put("/:id/archive", listHandler.Archive)
+	lists.Put("/:id/unarchive", listHandler.Unarchive)
+	lists.Post("/:id/archive-all-cards", listHandler.ArchiveAllCards)
+
+	// Archived lists by board
+	boards.Get("/:id/archived-lists", listHandler.GetArchivedLists)
 
 	// Card routes
 	cardHandler := handlers.NewCardHandler()

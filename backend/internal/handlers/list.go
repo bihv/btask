@@ -167,3 +167,64 @@ func (h *ListHandler) SortCards(c *fiber.Ctx) error {
 
 	return utils.SuccessMessageResponse(c, "Cards sorted successfully")
 }
+
+func (h *ListHandler) Archive(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	listID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid list ID")
+	}
+
+	if err := h.service.Archive(listID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "List archived successfully")
+}
+
+func (h *ListHandler) Unarchive(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	listID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid list ID")
+	}
+
+	if err := h.service.Unarchive(listID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "List restored successfully")
+}
+
+func (h *ListHandler) ArchiveAllCards(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	listID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid list ID")
+	}
+
+	if err := h.service.ArchiveAllCards(listID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "All cards archived successfully")
+}
+
+func (h *ListHandler) GetArchivedLists(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	boardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	lists, err := h.service.GetArchivedByBoardID(boardID, userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, lists)
+}

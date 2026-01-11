@@ -5,7 +5,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Input, Button, Dropdown, Popover, Space, Divider, Modal, Select } from 'antd';
-import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutlined, CopyOutlined, SwapOutlined, SortAscendingOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutlined, CopyOutlined, SwapOutlined, SortAscendingOutlined, EyeOutlined, EyeInvisibleOutlined, InboxOutlined } from '@ant-design/icons';
 import { List, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import api from '@/lib/api';
@@ -257,6 +257,59 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             label: 'Change color',
             icon: <BgColorsOutlined />,
             onClick: handleOpenColorPicker,
+        },
+        { type: 'divider' as const },
+        {
+            key: 'archive-all-cards',
+            label: 'Archive all cards in this list',
+            icon: <InboxOutlined />,
+            onClick: () => {
+                setMenuOpen(false);
+                Modal.confirm({
+                    title: 'Archive all cards',
+                    content: `Are you sure you want to archive all ${list.cards?.length || 0} cards in "${list.title}"?`,
+                    okText: 'Archive all',
+                    cancelText: 'Cancel',
+                    onOk: async () => {
+                        try {
+                            await api.post(`/lists/${list.id}/archive-all-cards`);
+                            // Refresh board to reflect changes
+                            const { fetchBoard, currentBoard } = useBoardStore.getState();
+                            if (currentBoard) {
+                                fetchBoard(currentBoard.id);
+                            }
+                        } catch (error) {
+                            console.error('Failed to archive all cards:', error);
+                        }
+                    },
+                });
+            },
+        },
+        {
+            key: 'archive-list',
+            label: 'Archive this list',
+            icon: <InboxOutlined />,
+            onClick: () => {
+                setMenuOpen(false);
+                Modal.confirm({
+                    title: 'Archive list',
+                    content: `Are you sure you want to archive "${list.title}"? It will be hidden from the board.`,
+                    okText: 'Archive',
+                    cancelText: 'Cancel',
+                    onOk: async () => {
+                        try {
+                            await api.put(`/lists/${list.id}/archive`);
+                            // Refresh board to reflect changes
+                            const { fetchBoard, currentBoard } = useBoardStore.getState();
+                            if (currentBoard) {
+                                fetchBoard(currentBoard.id);
+                            }
+                        } catch (error) {
+                            console.error('Failed to archive list:', error);
+                        }
+                    },
+                });
+            },
         },
         { type: 'divider' as const },
         {

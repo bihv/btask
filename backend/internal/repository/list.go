@@ -87,3 +87,27 @@ func (r *ListRepository) ReorderLists(boardID uuid.UUID, listID uuid.UUID, newPo
 		return tx.Save(&list).Error
 	})
 }
+
+func (r *ListRepository) Archive(listID uuid.UUID) error {
+	return database.DB.Model(&models.List{}).Where("id = ?", listID).Update("is_archived", true).Error
+}
+
+func (r *ListRepository) Unarchive(listID uuid.UUID) error {
+	return database.DB.Model(&models.List{}).Where("id = ?", listID).Update("is_archived", false).Error
+}
+
+func (r *ListRepository) ArchiveAllCards(listID uuid.UUID) error {
+	return database.DB.Model(&models.Card{}).Where("list_id = ?", listID).Update("is_archived", true).Error
+}
+
+func (r *ListRepository) FindArchivedByBoardID(boardID uuid.UUID) ([]models.List, error) {
+	var lists []models.List
+	err := database.DB.
+		Where("board_id = ? AND is_archived = ?", boardID, true).
+		Order("updated_at DESC").
+		Find(&lists).Error
+	if err != nil {
+		return nil, err
+	}
+	return lists, nil
+}

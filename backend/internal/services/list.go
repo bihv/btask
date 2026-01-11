@@ -297,6 +297,73 @@ func (s *ListService) SortCards(listID uuid.UUID, userID uuid.UUID, sortBy strin
 	return nil
 }
 
+func (s *ListService) Archive(listID uuid.UUID, userID uuid.UUID) error {
+	list, err := s.listRepo.FindByID(listID)
+	if err != nil {
+		return errors.New("list not found")
+	}
+
+	board, err := s.boardRepo.FindByID(list.BoardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return errors.New("access denied")
+	}
+
+	return s.listRepo.Archive(listID)
+}
+
+func (s *ListService) Unarchive(listID uuid.UUID, userID uuid.UUID) error {
+	list, err := s.listRepo.FindByID(listID)
+	if err != nil {
+		return errors.New("list not found")
+	}
+
+	board, err := s.boardRepo.FindByID(list.BoardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return errors.New("access denied")
+	}
+
+	return s.listRepo.Unarchive(listID)
+}
+
+func (s *ListService) ArchiveAllCards(listID uuid.UUID, userID uuid.UUID) error {
+	list, err := s.listRepo.FindByID(listID)
+	if err != nil {
+		return errors.New("list not found")
+	}
+
+	board, err := s.boardRepo.FindByID(list.BoardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return errors.New("access denied")
+	}
+
+	return s.listRepo.ArchiveAllCards(listID)
+}
+
+func (s *ListService) GetArchivedByBoardID(boardID uuid.UUID, userID uuid.UUID) ([]models.List, error) {
+	board, err := s.boardRepo.FindByID(boardID)
+	if err != nil {
+		return nil, errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return nil, errors.New("access denied")
+	}
+
+	return s.listRepo.FindArchivedByBoardID(boardID)
+}
+
 func (s *ListService) hasAccess(workspaceID uuid.UUID, userID uuid.UUID) bool {
 	return s.workspaceRepo.IsOwner(workspaceID, userID) || s.workspaceRepo.IsMember(workspaceID, userID)
 }
