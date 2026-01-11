@@ -8,14 +8,15 @@ import (
 )
 
 type List struct {
-	ID         uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
-	BoardID    uuid.UUID `json:"board_id" gorm:"type:uuid;not null"`
-	Title      string    `json:"title" gorm:"not null"`
-	Position   int       `json:"position" gorm:"default:0"`
-	Color      string    `json:"color" gorm:"default:null"`
-	IsArchived bool      `json:"is_archived" gorm:"default:false"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID          uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
+	BoardID     uuid.UUID `json:"board_id" gorm:"type:uuid;not null"`
+	Title       string    `json:"title" gorm:"not null"`
+	Position    int       `json:"position" gorm:"default:0"`
+	Color       string    `json:"color" gorm:"default:null"`
+	IsArchived  bool      `json:"is_archived" gorm:"default:false"`
+	IsCollapsed bool      `json:"is_collapsed" gorm:"default:false"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 
 	// Relations
 	Board Board  `json:"board,omitempty" gorm:"foreignKey:BoardID"`
@@ -35,9 +36,10 @@ type CreateListRequest struct {
 }
 
 type UpdateListRequest struct {
-	Title    string `json:"title" validate:"omitempty,min=1,max=100"`
-	Position *int   `json:"position"`
-	Color    string `json:"color"`
+	Title       string  `json:"title" validate:"omitempty,min=1,max=100"`
+	Position    *int    `json:"position"`
+	Color       *string `json:"color"`
+	IsCollapsed *bool   `json:"is_collapsed"`
 }
 
 type MoveListRequest struct {

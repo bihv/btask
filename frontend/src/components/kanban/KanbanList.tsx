@@ -5,7 +5,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Input, Button, Dropdown, Popover, Space, Divider, Modal, Select } from 'antd';
-import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutlined, CopyOutlined, SwapOutlined, SortAscendingOutlined, EyeOutlined, EyeInvisibleOutlined, InboxOutlined } from '@ant-design/icons';
+import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutlined, CopyOutlined, SwapOutlined, SortAscendingOutlined, EyeOutlined, EyeInvisibleOutlined, InboxOutlined, ColumnWidthOutlined } from '@ant-design/icons';
 import { List, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import api from '@/lib/api';
@@ -81,6 +81,12 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
     const [moveModalOpen, setMoveModalOpen] = useState(false);
     const [targetListId, setTargetListId] = useState<string>('');
     const [isWatching, setIsWatching] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(list.is_collapsed || false);
+
+    // Sync collapsed state with list prop
+    useEffect(() => {
+        setIsCollapsed(list.is_collapsed || false);
+    }, [list.is_collapsed]);
 
     // Check if user is watching this list
     useEffect(() => {
@@ -88,6 +94,17 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             .then(res => setIsWatching(res.data.data?.is_watching || false))
             .catch(() => { });
     }, [list.id]);
+
+    const handleToggleCollapse = async () => {
+        const newCollapsed = !isCollapsed;
+        setIsCollapsed(newCollapsed);
+        try {
+            await api.put(`/lists/${list.id}`, { is_collapsed: newCollapsed });
+        } catch (error) {
+            console.error('Failed to update collapse state:', error);
+            setIsCollapsed(!newCollapsed); // Revert on error
+        }
+    };
 
     const handleToggleWatch = async () => {
         try {
@@ -321,6 +338,60 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
         },
     ];
 
+    // Collapsed view
+    if (isCollapsed) {
+        return (
+            <div
+                ref={setNodeRef}
+                style={{
+                    ...style,
+                    width: 40,
+                    minWidth: 40,
+                    height: 'fit-content',
+                    backgroundColor: list.color || 'var(--bg-secondary)',
+                    borderRadius: 12,
+                    padding: '12px 4px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                }}
+                {...attributes}
+                {...listeners}
+                onClick={handleToggleCollapse}
+            >
+                <ColumnWidthOutlined
+                    style={{
+                        color: list.color ? '#fff' : 'var(--text-primary)',
+                        marginBottom: 12,
+                    }}
+                />
+                <div
+                    style={{
+                        writingMode: 'vertical-rl',
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: list.color ? '#fff' : 'var(--text-primary)',
+                        whiteSpace: 'nowrap',
+                    }}
+                >
+                    {list.title}
+                </div>
+                <div
+                    style={{
+                        marginTop: 12,
+                        fontWeight: 600,
+                        fontSize: 12,
+                        color: list.color ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)',
+                    }}
+                >
+                    {filteredCards.length}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div
             ref={setNodeRef}
@@ -363,6 +434,13 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                 >
                     <span />
                 </Popover>
+                <Button
+                    type="text"
+                    size="small"
+                    icon={<ColumnWidthOutlined />}
+                    onClick={handleToggleCollapse}
+                    title="Collapse list"
+                />
                 <Dropdown
                     menu={{ items: menuItems }}
                     trigger={['click']}

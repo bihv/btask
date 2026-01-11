@@ -73,18 +73,29 @@ func (r *ListRepository) ReorderLists(boardID uuid.UUID, listID uuid.UUID, newPo
 
 		oldPosition := list.Position
 
-		if oldPosition < newPosition {
-			tx.Model(&models.List{}).
-				Where("board_id = ? AND position > ? AND position <= ?", boardID, oldPosition, newPosition).
-				Update("position", gorm.Expr("position - 1"))
-		} else if oldPosition > newPosition {
-			tx.Model(&models.List{}).
-				Where("board_id = ? AND position >= ? AND position < ?", boardID, newPosition, oldPosition).
-				Update("position", gorm.Expr("position + 1"))
+		// Skip if position hasn't changed
+		if oldPosition == newPosition {
+			return nil
 		}
 
-		list.Position = newPosition
-		return tx.Save(&list).Error
+		if oldPosition < newPosition {
+			// Moving right: shift lists between old and new position to the left
+			if err := tx.Model(&models.List{}).
+				Where("board_id = ? AND position > ? AND position <= ?", boardID, oldPosition, newPosition).
+				Update("position", gorm.Expr("position - 1")).Error; err != nil {
+				return err
+			}
+		} else {
+			// Moving left: shift lists between new and old position to the right
+			if err := tx.Model(&models.List{}).
+				Where("board_id = ? AND position >= ? AND position < ?", boardID, newPosition, oldPosition).
+				Update("position", gorm.Expr("position + 1")).Error; err != nil {
+				return err
+			}
+		}
+
+		// Update the moved list's position
+		return tx.Model(&list).Update("position", newPosition).Error
 	})
 }
 

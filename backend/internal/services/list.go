@@ -91,8 +91,14 @@ func (s *ListService) Update(listID uuid.UUID, userID uuid.UUID, req models.Upda
 	if req.Position != nil {
 		list.Position = *req.Position
 	}
-	// Always update color (can be set to empty string to remove)
-	list.Color = req.Color
+	// Only update color if provided (nil means don't change)
+	if req.Color != nil {
+		list.Color = *req.Color
+	}
+	// Update collapsed state if provided
+	if req.IsCollapsed != nil {
+		list.IsCollapsed = *req.IsCollapsed
+	}
 
 	if err := s.listRepo.Update(list); err != nil {
 		return nil, err
