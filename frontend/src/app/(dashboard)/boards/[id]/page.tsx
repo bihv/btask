@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Typography, Button, Input, Spin, message, Dropdown, Modal, Form, Switch } from 'antd';
+import { Typography, Button, Input, Spin, message, Dropdown, Modal, Form, Switch, Drawer, Avatar, Divider } from 'antd';
 import {
     StarOutlined,
     StarFilled,
@@ -11,6 +11,10 @@ import {
     InboxOutlined,
     ShareAltOutlined,
     PictureOutlined,
+    InfoCircleOutlined,
+    UserOutlined,
+    AlignLeftOutlined,
+    EditOutlined,
 } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
 import KanbanBoard from '@/components/kanban/KanbanBoard';
@@ -22,7 +26,7 @@ import CardFilterBar, { FilterState, defaultFilters } from '@/components/board/C
 import ShareModal from '@/components/workspace/ShareModal';
 import BackgroundPicker from '@/components/board/BackgroundPicker';
 
-const { Text } = Typography;
+const { Text, Title, Paragraph } = Typography;
 
 export default function BoardPage() {
     const router = useRouter();
@@ -48,9 +52,12 @@ export default function BoardPage() {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [archivedOpen, setArchivedOpen] = useState(false);
     const [shareOpen, setShareOpen] = useState(false);
+    const [aboutOpen, setAboutOpen] = useState(false);
     const [filters, setFilters] = useState<FilterState>(defaultFilters);
     const [settingsForm] = Form.useForm();
     const [selectedImage, setSelectedImage] = useState('');
+    const [isEditingDesc, setIsEditingDesc] = useState(false);
+    const [descValue, setDescValue] = useState('');
 
     // Sync React Query data to Zustand store for KanbanBoard
     useEffect(() => {
@@ -106,6 +113,8 @@ export default function BoardPage() {
             });
             setSelectedImage(board?.background_image || '');
             setSettingsOpen(true);
+        } else if (key === 'share') {
+            setShareOpen(true);
         } else if (key === 'delete') {
             Modal.confirm({
                 title: 'Delete this board?',
@@ -124,6 +133,9 @@ export default function BoardPage() {
             });
         } else if (key === 'archived') {
             setArchivedOpen(true);
+        } else if (key === 'about') {
+            setDescValue(board?.description || '');
+            setAboutOpen(true);
         }
     };
 
@@ -192,16 +204,11 @@ export default function BoardPage() {
                         }
                         onClick={toggleStar}
                     />
-                    <Button
-                        type="primary"
-                        icon={<ShareAltOutlined />}
-                        onClick={() => setShareOpen(true)}
-                    >
-                        Share
-                    </Button>
                     <Dropdown
                         menu={{
                             items: [
+                                { key: 'about', label: 'About this board', icon: <InfoCircleOutlined /> },
+                                { key: 'share', label: 'Share', icon: <ShareAltOutlined /> },
                                 { key: 'archived', label: 'Archived Items', icon: <InboxOutlined /> },
                                 { type: 'divider' },
                                 { key: 'settings', label: 'Board Settings' },
@@ -315,6 +322,101 @@ export default function BoardPage() {
                 workspaceId={board.workspace_id}
                 isOwner={true} // TODO: Check actual ownership
             />
+
+            {/* About Board Drawer */}
+            <Drawer
+                title="About this board"
+                placement="right"
+                open={aboutOpen}
+                onClose={() => {
+                    setAboutOpen(false);
+                    setIsEditingDesc(false);
+                }}
+                width={360}
+            >
+                {/* Board Admin */}
+                <div style={{ marginBottom: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <UserOutlined />
+                        <Text strong>Board Admin</Text>
+                    </div>
+                    {workspaceMembers
+                        .filter((m: any) => m.role === 'owner')
+                        .slice(0, 1)
+                        .map((member: any) => (
+                            <div key={member.id} style={{ display: 'flex', alignItems: 'center', gap: 12, paddingLeft: 24 }}>
+                                <Avatar style={{ backgroundColor: '#0052cc' }}>
+                                    {member.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                                </Avatar>
+                                <div>
+                                    <div><Text strong>{member.full_name || 'Unknown'}</Text></div>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>@{member.email?.split('@')[0]}</Text>
+                                </div>
+                            </div>
+                        ))}
+                </div>
+
+                <Divider />
+
+                {/* Description */}
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <AlignLeftOutlined />
+                            <Text strong>Description</Text>
+                        </div>
+                        {!isEditingDesc && (
+                            <Button
+                                size="small"
+                                icon={<EditOutlined />}
+                                onClick={() => setIsEditingDesc(true)}
+                            >
+                                Edit
+                            </Button>
+                        )}
+                    </div>
+                    {isEditingDesc ? (
+                        <div>
+                            <Input.TextArea
+                                value={descValue}
+                                onChange={(e) => setDescValue(e.target.value)}
+                                rows={4}
+                                placeholder="Add a description for this board..."
+                                autoFocus
+                            />
+                            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                                <Button
+                                    type="primary"
+                                    size="small"
+                                    onClick={async () => {
+                                        try {
+                                            await updateMutation.mutateAsync({
+                                                id: boardId,
+                                                data: { description: descValue }
+                                            });
+                                            message.success('Description updated');
+                                            setIsEditingDesc(false);
+                                        } catch {
+                                            message.error('Failed to update');
+                                        }
+                                    }}
+                                >
+                                    Save
+                                </Button>
+                                <Button size="small" onClick={() => setIsEditingDesc(false)}>
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ paddingLeft: 24 }}>
+                            <Paragraph type={board.description ? undefined : 'secondary'}>
+                                {board.description || 'No description yet. Click Edit to add one.'}
+                            </Paragraph>
+                        </div>
+                    )}
+                </div>
+            </Drawer>
         </div>
     );
 }

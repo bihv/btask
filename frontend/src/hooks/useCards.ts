@@ -48,15 +48,18 @@ export function useBoardLabels(boardId: string) {
     });
 }
 
-// Fetch workspace members
+// Fetch workspace members (with role)
 export function useWorkspaceMembers(workspaceId: string) {
     return useQuery({
         queryKey: ['workspaces', workspaceId, 'members'],
-        queryFn: async (): Promise<User[]> => {
+        queryFn: async (): Promise<(User & { role?: string })[]> => {
             const response = await api.get(`/workspaces/${workspaceId}/members`);
-            // Extract users from members response
+            // Extract users from members response and include role
             const members = response.data.data || [];
-            return members.map((m: { user: User }) => m.user).filter(Boolean);
+            return members.map((m: { user: User; role: string }) => ({
+                ...m.user,
+                role: m.role
+            })).filter(Boolean);
         },
         enabled: !!workspaceId,
     });
