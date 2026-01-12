@@ -95,6 +95,9 @@ func (s *BoardService) Update(boardID uuid.UUID, userID uuid.UUID, req models.Up
 	if req.Position != nil {
 		board.Position = *req.Position
 	}
+	if req.ShowCardCovers != nil {
+		board.ShowCardCovers = *req.ShowCardCovers
+	}
 
 	if err := s.boardRepo.Update(board); err != nil {
 		return nil, err

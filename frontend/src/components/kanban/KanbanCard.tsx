@@ -7,6 +7,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Typography, Avatar, Tooltip } from 'antd';
 import { ClockCircleOutlined, CheckCircleOutlined, CommentOutlined } from '@ant-design/icons';
 import { Card } from '@/types';
+import { useBoardStore } from '@/stores/boardStore';
 
 const { Text } = Typography;
 
@@ -19,6 +20,7 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
     const router = useRouter();
     const params = useParams();
     const boardId = params.id as string;
+    const showCardCovers = useBoardStore((state) => state.showCardCovers);
 
     const {
         attributes,
@@ -85,7 +87,7 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
             {...listeners}
         >
             {/* Cover Image */}
-            {card.cover_image && (
+            {showCardCovers && card.cover_image && (
                 <div
                     style={{
                         height: 120,

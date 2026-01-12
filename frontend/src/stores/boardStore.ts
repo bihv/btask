@@ -7,6 +7,7 @@ interface BoardState {
     lists: List[];
     isLoading: boolean;
     error: string | null;
+    showCardCovers: boolean;
 
     fetchBoard: (boardId: string) => Promise<void>;
     createList: (boardId: string, title: string) => Promise<void>;
@@ -25,6 +26,7 @@ interface BoardState {
 
     setLists: (lists: List[]) => void;
     optimisticMoveCard: (cardId: string, sourceListId: string, destListId: string, destIndex: number) => void;
+    toggleShowCardCovers: () => void;
 }
 
 export const useBoardStore = create<BoardState>((set, get) => ({
@@ -32,6 +34,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     lists: [],
     isLoading: false,
     error: null,
+    showCardCovers: true,
 
     fetchBoard: async (boardId: string) => {
         set({ isLoading: true, error: null });
@@ -279,5 +282,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
             return { lists: newLists };
         });
+    },
+
+    toggleShowCardCovers: () => {
+        set((state) => ({ showCardCovers: !state.showCardCovers }));
     },
 }));

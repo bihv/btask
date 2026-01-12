@@ -38,6 +38,7 @@ export interface Board {
     background_color: string;
     background_image?: string;
     is_starred: boolean;
+    show_card_covers: boolean;
     position: number;
     lists?: List[];
     labels?: Label[];

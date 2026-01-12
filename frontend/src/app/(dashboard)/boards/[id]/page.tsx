@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Typography, Button, Input, Spin, message, Dropdown, Modal, Form } from 'antd';
+import { Typography, Button, Input, Spin, message, Dropdown, Modal, Form, Switch } from 'antd';
 import {
     StarOutlined,
     StarFilled,
@@ -10,6 +10,7 @@ import {
     ArrowLeftOutlined,
     InboxOutlined,
     ShareAltOutlined,
+    PictureOutlined,
 } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
 import KanbanBoard from '@/components/kanban/KanbanBoard';
@@ -56,7 +57,10 @@ export default function BoardPage() {
         if (board) {
             setLists(board.lists || []);
             // Also update currentBoard in store for compatibility
-            useBoardStore.setState({ currentBoard: board });
+            useBoardStore.setState({
+                currentBoard: board,
+                showCardCovers: board.show_card_covers ?? true,
+            });
         }
     }, [board, setLists]);
 
@@ -98,6 +102,7 @@ export default function BoardPage() {
                 title: board?.title,
                 description: board?.description || '',
                 background_color: board?.background_color || '#0079bf',
+                show_card_covers: board?.show_card_covers ?? true,
             });
             setSelectedImage(board?.background_image || '');
             setSettingsOpen(true);
@@ -134,6 +139,7 @@ export default function BoardPage() {
                     description: values.description,
                     background_color: bgColor,
                     background_image: selectedImage,
+                    show_card_covers: values.show_card_covers,
                 }
             });
             message.success('Board settings updated');
@@ -226,7 +232,7 @@ export default function BoardPage() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                background: board.background_image 
+                background: board.background_image
                     ? `url(${board.background_image}) center/cover fixed`
                     : board.background_color || '#0079bf',
             }}
@@ -280,10 +286,17 @@ export default function BoardPage() {
                         name="background_color"
                         label="Background"
                     >
-                        <BackgroundPicker 
+                        <BackgroundPicker
                             imageValue={selectedImage}
                             onImageChange={setSelectedImage}
                         />
+                    </Form.Item>
+                    <Form.Item
+                        name="show_card_covers"
+                        label="Card Covers"
+                        valuePropName="checked"
+                    >
+                        <Switch checkedChildren={<PictureOutlined />} unCheckedChildren={<PictureOutlined />} />
                     </Form.Item>
                 </Form>
             </Modal>

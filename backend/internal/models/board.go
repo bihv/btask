@@ -15,6 +15,7 @@ type Board struct {
 	BackgroundColor string    `json:"background_color" gorm:"default:'#0079bf'"`
 	BackgroundImage string    `json:"background_image"`
 	IsStarred       bool      `json:"is_starred" gorm:"default:false"`
+	ShowCardCovers  bool      `json:"show_card_covers" gorm:"default:true"`
 	Position        int       `json:"position" gorm:"default:0"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
@@ -44,5 +45,6 @@ type UpdateBoardRequest struct {
 	BackgroundColor string `json:"background_color"`
 	BackgroundImage string `json:"background_image"`
 	IsStarred       *bool  `json:"is_starred"`
+	ShowCardCovers  *bool  `json:"show_card_covers"`
 	Position        *int   `json:"position"`
 }
