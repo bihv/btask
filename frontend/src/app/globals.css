@@ -74,13 +74,17 @@ body {
 .kanban-list {
     min-width: 272px;
     max-width: 272px;
-    background: var(--bg-tertiary);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 12px;
     padding: 8px;
     display: flex;
     flex-direction: column;
     max-height: 100%;
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .kanban-list-color-bar {
@@ -96,6 +100,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    color: #172b4d;
 }
 
 .kanban-list-content {
@@ -106,17 +111,19 @@ body {
 }
 
 .kanban-card {
-    background: var(--bg-secondary);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;
     padding: 8px 12px;
     margin-bottom: 8px;
     cursor: pointer;
-    box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25);
-    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    color: #172b4d;
 }
 
 .kanban-card:hover {
-    background: var(--bg-tertiary);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .kanban-card.dragging {
@@ -124,44 +131,56 @@ body {
     opacity: 0.8;
 }
 
+/* Dark theme - Glassmorphism */
 [data-theme='dark'] .kanban-list {
-    background: #22272b;
+    background: rgba(40, 40, 45, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .kanban-list-header {
+    color: #b6c2cf;
 }
 
 [data-theme='dark'] .kanban-card {
-    background: #1d2125;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+    background: rgba(30, 33, 37, 0.95);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    color: #b6c2cf;
 }
 
 [data-theme='dark'] .kanban-card:hover {
-    background: #282e33;
+    background: rgba(40, 46, 51, 1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
 }
 
-/* Add list button */
+/* Add list button - Glassmorphism */
 .add-list-btn {
     min-width: 272px;
-    background: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border-radius: 12px;
     padding: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    color: inherit;
+    color: white;
     font-weight: 500;
     transition: background 0.2s;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .add-list-btn:hover {
-    background: rgba(255, 255, 255, 0.32);
+    background: rgba(255, 255, 255, 0.4);
 }
 
 [data-theme='dark'] .add-list-btn {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme='dark'] .add-list-btn:hover {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.18);
 }
 
 /* Card labels */

@@ -200,6 +200,7 @@ export interface CreateBoardRequest {
     title: string;
     description?: string;
     background_color?: string;
+    background_image?: string;
 }
 
 export interface CreateListRequest {

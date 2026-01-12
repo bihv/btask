@@ -19,20 +19,12 @@ import { PlusOutlined, StarOutlined, StarFilled, ArrowLeftOutlined } from '@ant-
 import { useHeader } from '@/providers/HeaderProvider';
 import { useWorkspace } from '@/hooks/useWorkspaces';
 import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
+import BackgroundPicker, { GRADIENT_BACKGROUNDS, SOLID_COLORS } from '@/components/board/BackgroundPicker';
 
 const { Title, Text } = Typography;
 
-const BOARD_COLORS = [
-    '#0079bf',
-    '#d29034',
-    '#519839',
-    '#b04632',
-    '#89609e',
-    '#cd5a91',
-    '#4bbf6b',
-    '#00aecc',
-    '#838c91',
-];
+// Default background
+const DEFAULT_BACKGROUND = SOLID_COLORS[0];
 
 export default function WorkspaceDetailPage() {
     const router = useRouter();
@@ -41,7 +33,8 @@ export default function WorkspaceDetailPage() {
     const { setHeaderContent } = useHeader();
 
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedColor, setSelectedColor] = useState(BOARD_COLORS[0]);
+    const [selectedBackground, setSelectedBackground] = useState(DEFAULT_BACKGROUND);
+    const [selectedImage, setSelectedImage] = useState('');
     const [form] = Form.useForm();
 
     // React Query hooks - workspace already includes boards
@@ -54,12 +47,14 @@ export default function WorkspaceDetailPage() {
         try {
             await createMutation.mutateAsync({
                 title: values.title,
-                background_color: selectedColor,
+                background_color: selectedImage ? '' : selectedBackground,
+                background_image: selectedImage,
             });
             message.success('Board created successfully');
             setModalOpen(false);
             form.resetFields();
-            setSelectedColor(BOARD_COLORS[0]);
+            setSelectedBackground(DEFAULT_BACKGROUND);
+            setSelectedImage('');
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to create board');
         }
@@ -118,7 +113,9 @@ export default function WorkspaceDetailPage() {
                             <Card
                                 hoverable
                                 style={{
-                                    background: board.background_color,
+                                    background: board.background_image 
+                                        ? `url(${board.background_image}) center/cover`
+                                        : board.background_color,
                                     minHeight: 100,
                                     position: 'relative',
                                 }}
@@ -174,13 +171,15 @@ export default function WorkspaceDetailPage() {
                             height: 100,
                             borderRadius: 8,
                             marginBottom: 16,
-                            background: selectedColor,
+                            background: selectedImage 
+                                ? `url(${selectedImage}) center/cover`
+                                : selectedBackground,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}
                     >
-                        <Text style={{ color: 'white', fontSize: 18, fontWeight: 600 }}>
+                        <Text style={{ color: 'white', fontSize: 18, fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
                             Preview
                         </Text>
                     </div>
@@ -193,26 +192,13 @@ export default function WorkspaceDetailPage() {
                         <Input placeholder="e.g., Project Alpha" />
                     </Form.Item>
 
-                    <Form.Item label="Background Color">
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                            {BOARD_COLORS.map((color) => (
-                                <div
-                                    key={color}
-                                    onClick={() => setSelectedColor(color)}
-                                    style={{
-                                        width: 32,
-                                        height: 32,
-                                        borderRadius: 4,
-                                        background: color,
-                                        cursor: 'pointer',
-                                        border:
-                                            selectedColor === color
-                                                ? '2px solid #0052cc'
-                                                : '2px solid transparent',
-                                    }}
-                                />
-                            ))}
-                        </div>
+                    <Form.Item label="Background">
+                        <BackgroundPicker
+                            value={selectedBackground}
+                            imageValue={selectedImage}
+                            onChange={setSelectedBackground}
+                            onImageChange={setSelectedImage}
+                        />
                     </Form.Item>
 
                     <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

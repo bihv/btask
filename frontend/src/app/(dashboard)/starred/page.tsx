@@ -54,7 +54,9 @@ export default function StarredPage() {
                             <Card
                                 hoverable
                                 style={{
-                                    background: board.background_color || '#0079bf',
+                                    background: board.background_image 
+                                        ? `url(${board.background_image}) center/cover`
+                                        : board.background_color || '#0079bf',
                                     borderRadius: 8,
                                     height: 100,
                                 }}

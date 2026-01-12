@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Typography, Button, Input, Spin, message, Dropdown, Modal, Form, ColorPicker } from 'antd';
+import { Typography, Button, Input, Spin, message, Dropdown, Modal, Form } from 'antd';
 import {
     StarOutlined,
     StarFilled,
@@ -19,6 +19,7 @@ import { useWorkspaceMembers } from '@/hooks/useCards';
 import ArchivedItemsDrawer from '@/components/board/ArchivedItemsDrawer';
 import CardFilterBar, { FilterState, defaultFilters } from '@/components/board/CardFilterBar';
 import ShareModal from '@/components/workspace/ShareModal';
+import BackgroundPicker from '@/components/board/BackgroundPicker';
 
 const { Text } = Typography;
 
@@ -48,6 +49,7 @@ export default function BoardPage() {
     const [shareOpen, setShareOpen] = useState(false);
     const [filters, setFilters] = useState<FilterState>(defaultFilters);
     const [settingsForm] = Form.useForm();
+    const [selectedImage, setSelectedImage] = useState('');
 
     // Sync React Query data to Zustand store for KanbanBoard
     useEffect(() => {
@@ -97,6 +99,7 @@ export default function BoardPage() {
                 description: board?.description || '',
                 background_color: board?.background_color || '#0079bf',
             });
+            setSelectedImage(board?.background_image || '');
             setSettingsOpen(true);
         } else if (key === 'delete') {
             Modal.confirm({
@@ -122,9 +125,7 @@ export default function BoardPage() {
     const handleSettingsSave = async () => {
         try {
             const values = await settingsForm.validateFields();
-            const bgColor = typeof values.background_color === 'string'
-                ? values.background_color
-                : values.background_color?.toHexString?.() || values.background_color;
+            const bgColor = selectedImage ? '' : (values.background_color || board?.background_color || '#0079bf');
 
             await updateMutation.mutateAsync({
                 id: boardId,
@@ -132,6 +133,7 @@ export default function BoardPage() {
                     title: values.title,
                     description: values.description,
                     background_color: bgColor,
+                    background_image: selectedImage,
                 }
             });
             message.success('Board settings updated');
@@ -224,7 +226,9 @@ export default function BoardPage() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                background: board.background_color || '#0079bf',
+                background: board.background_image 
+                    ? `url(${board.background_image}) center/cover fixed`
+                    : board.background_color || '#0079bf',
             }}
         >
             {/* Filter Bar */}
@@ -274,19 +278,11 @@ export default function BoardPage() {
                     </Form.Item>
                     <Form.Item
                         name="background_color"
-                        label="Background Color"
+                        label="Background"
                     >
-                        <ColorPicker
-                            showText
-                            presets={[
-                                {
-                                    label: 'Recommended',
-                                    colors: [
-                                        '#0079bf', '#d29034', '#519839', '#b04632',
-                                        '#89609e', '#cd5a91', '#00aecc', '#838c91',
-                                    ],
-                                },
-                            ]}
+                        <BackgroundPicker 
+                            imageValue={selectedImage}
+                            onImageChange={setSelectedImage}
                         />
                     </Form.Item>
                 </Form>

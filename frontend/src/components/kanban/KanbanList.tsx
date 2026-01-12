@@ -348,7 +348,9 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     width: 40,
                     minWidth: 40,
                     height: 'fit-content',
-                    backgroundColor: list.color || 'var(--bg-secondary)',
+                    background: list.color || 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
                     borderRadius: 12,
                     padding: '12px 4px',
                     display: 'flex',
@@ -356,6 +358,8 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     alignItems: 'center',
                     cursor: 'pointer',
                     flexShrink: 0,
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
                 }}
                 {...attributes}
                 {...listeners}
@@ -363,7 +367,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             >
                 <ColumnWidthOutlined
                     style={{
-                        color: list.color ? '#fff' : 'var(--text-primary)',
+                        color: list.color ? '#fff' : '#172b4d',
                         marginBottom: 12,
                     }}
                 />
@@ -372,7 +376,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                         writingMode: 'vertical-rl',
                         fontWeight: 600,
                         fontSize: 14,
-                        color: list.color ? '#fff' : 'var(--text-primary)',
+                        color: list.color ? '#fff' : '#172b4d',
                         whiteSpace: 'nowrap',
                     }}
                 >
@@ -383,7 +387,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                         marginTop: 12,
                         fontWeight: 600,
                         fontSize: 12,
-                        color: list.color ? 'rgba(255,255,255,0.8)' : 'var(--text-secondary)',
+                        color: list.color ? 'rgba(255,255,255,0.8)' : '#5e6c84',
                     }}
                 >
                     {filteredCards.length}

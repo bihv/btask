@@ -55,8 +55,12 @@ export default function CardFilterBar({
             display: 'flex',
             alignItems: 'center',
             gap: 12,
-            padding: '8px 0',
+            padding: '10px 16px',
             flexWrap: 'wrap',
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            borderRadius: 8,
         }}>
             <Input.Search
                 placeholder="Search cards..."
