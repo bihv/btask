@@ -47,6 +47,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import ChecklistSection from '@/components/card/ChecklistSection';
 import AttachmentSection from '@/components/card/AttachmentSection';
 import ShareCardPopover from '@/components/card/ShareCardPopover';
+import LabelPicker from '@/components/card/LabelPicker';
 
 
 // Dynamic import to avoid SSR issues with BlockNote
@@ -101,10 +102,7 @@ export default function CardPage() {
     const [membersOpen, setMembersOpen] = useState(false);
     const [labelsOpen, setLabelsOpen] = useState(false);
     const [dueDateOpen, setDueDateOpen] = useState(false);
-
-    // Data for popovers
-    const [newLabelName, setNewLabelName] = useState('');
-    const [newLabelColor, setNewLabelColor] = useState(LABEL_COLORS[0]);
+    const [coverOpen, setCoverOpen] = useState(false);
 
     // Comments from card data
     const comments = card?.comments || [];
@@ -263,6 +261,7 @@ export default function CardPage() {
             const newCover = card.cover_image === imageUrl ? '' : imageUrl;
             await api.put(`/cards/${card.id}`, { cover_image: newCover });
             setCard({ ...card, cover_image: newCover });
+            setCoverOpen(false);  // Close the popover
             message.success(newCover ? 'Cover image set' : 'Cover image removed');
         } catch (error) {
             message.error('Failed to update cover image');
@@ -311,19 +310,7 @@ export default function CardPage() {
         }
     };
 
-    const handleCreateLabel = async () => {
-        if (!currentBoard?.id) return;
-        try {
-            await api.post(`/boards/${currentBoard.id}/labels`, {
-                name: newLabelName || undefined,
-                color: newLabelColor,
-            });
-            setNewLabelName('');
-            refetchLabels();
-        } catch (error) {
-            message.error('Failed to create label');
-        }
-    };
+
 
     const handleToggleMember = async (userId: string) => {
         if (!card) return;
@@ -411,63 +398,16 @@ export default function CardPage() {
         </div>
     );
 
-    // Popover content for Labels
+    // Popover content for Labels - using LabelPicker component
     const labelsContent = (
-        <div style={{ width: 280 }}>
-            <Text strong style={{ display: 'block', marginBottom: 8 }}>Labels</Text>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
-                {boardLabels.map((label) => {
-                    const isSelected = card.labels?.some((cl) => cl.label_id === label.id);
-                    return (
-                        <div
-                            key={label.id}
-                            onClick={() => handleToggleLabel(label.id)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                padding: '8px 12px',
-                                borderRadius: 4,
-                                backgroundColor: label.color,
-                                cursor: 'pointer',
-                                color: 'white',
-                            }}
-                        >
-                            <span style={{ flex: 1 }}>{label.name || ''}</span>
-                            {isSelected && <CheckOutlined />}
-                        </div>
-                    );
-                })}
-            </div>
-            <Divider style={{ margin: '8px 0' }} />
-            <Text type="secondary" style={{ fontSize: 12 }}>Create a new label</Text>
-            <Input
-                placeholder="Label name (optional)"
-                value={newLabelName}
-                onChange={(e) => setNewLabelName(e.target.value)}
-                size="small"
-                style={{ marginTop: 4, marginBottom: 8 }}
-            />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-                {LABEL_COLORS.map((color) => (
-                    <div
-                        key={color}
-                        onClick={() => setNewLabelColor(color)}
-                        style={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: 4,
-                            backgroundColor: color,
-                            cursor: 'pointer',
-                            border: newLabelColor === color ? '2px solid #000' : 'none',
-                        }}
-                    />
-                ))}
-            </div>
-            <Button type="primary" size="small" block onClick={handleCreateLabel}>
-                Create Label
-            </Button>
-        </div>
+        <LabelPicker
+            boardId={boardId}
+            labels={boardLabels}
+            selectedLabelIds={card.labels?.map((cl) => cl.label_id) || []}
+            onToggle={handleToggleLabel}
+            onRefresh={refetchLabels}
+            onCardRefresh={refetchCard}
+        />
     );
 
     // Popover content for Due Date
@@ -612,104 +552,124 @@ export default function CardPage() {
                 <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
                     {/* Members Section */}
                     <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <UserOutlined style={{ color: 'var(--text-secondary)' }} />
                             <Text type="secondary" style={{ fontSize: 12 }}>Members</Text>
-                            <Popover
-                                content={membersContent}
-                                trigger="click"
-                                open={membersOpen}
-                                onOpenChange={setMembersOpen}
-                                placement="bottomRight"
-                            >
-                                <Button type="text" size="small" icon={<UserOutlined />} />
-                            </Popover>
                         </div>
-                        {card.members && card.members.length > 0 ? (
-                            <Avatar.Group>
-                                {card.members.map((cm) => (
-                                    <Tooltip key={cm.id} title={cm.user?.full_name}>
-                                        <Avatar size="small" style={{ backgroundColor: '#0052cc' }}>
-                                            {cm.user?.full_name?.charAt(0).toUpperCase()}
-                                        </Avatar>
-                                    </Tooltip>
-                                ))}
-                            </Avatar.Group>
-                        ) : (
-                            <Text type="secondary" style={{ fontSize: 12 }}>No members</Text>
-                        )}
+                        <Popover
+                            content={membersContent}
+                            trigger="click"
+                            open={membersOpen}
+                            onOpenChange={setMembersOpen}
+                            placement="bottomLeft"
+                        >
+                            <div style={{ cursor: 'pointer' }}>
+                                {card.members && card.members.length > 0 ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                        <Avatar.Group>
+                                            {card.members.map((cm) => (
+                                                <Tooltip key={cm.id} title={cm.user?.full_name}>
+                                                    <Avatar size="small" style={{ backgroundColor: '#0052cc' }}>
+                                                        {cm.user?.full_name?.charAt(0).toUpperCase()}
+                                                    </Avatar>
+                                                </Tooltip>
+                                            ))}
+                                        </Avatar.Group>
+                                        <Button type="text" size="small" icon={<span style={{ fontSize: 16 }}>+</span>} />
+                                    </div>
+                                ) : (
+                                    <Button type="dashed" size="small" icon={<span>+</span>}>
+                                        Add member
+                                    </Button>
+                                )}
+                            </div>
+                        </Popover>
                     </div>
 
                     {/* Labels Section */}
                     <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <TagOutlined style={{ color: 'var(--text-secondary)' }} />
                             <Text type="secondary" style={{ fontSize: 12 }}>Labels</Text>
-                            <Popover
-                                content={labelsContent}
-                                trigger="click"
-                                open={labelsOpen}
-                                onOpenChange={setLabelsOpen}
-                                placement="bottomRight"
-                            >
-                                <Button type="text" size="small" icon={<TagOutlined />} />
-                            </Popover>
                         </div>
-                        {card.labels && card.labels.length > 0 ? (
-                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                                {card.labels.map((cl) => (
-                                    <div
-                                        key={cl.id}
-                                        style={{
-                                            backgroundColor: cl.label?.color,
-                                            padding: '2px 8px',
-                                            borderRadius: 4,
-                                            color: 'white',
-                                            fontSize: 12,
-                                        }}
-                                    >
-                                        {cl.label?.name || ''}
+                        <Popover
+                            content={labelsContent}
+                            trigger="click"
+                            open={labelsOpen}
+                            onOpenChange={setLabelsOpen}
+                            placement="bottomLeft"
+                        >
+                            <div style={{ cursor: 'pointer' }}>
+                                {card.labels && card.labels.length > 0 ? (
+                                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                                        {card.labels.map((cl) => (
+                                            <div
+                                                key={cl.id}
+                                                style={{
+                                                    backgroundColor: cl.label?.color,
+                                                    padding: '2px 8px',
+                                                    borderRadius: 4,
+                                                    color: 'white',
+                                                    fontSize: 12,
+                                                }}
+                                            >
+                                                {cl.label?.name || ''}
+                                            </div>
+                                        ))}
+                                        <Button type="text" size="small" icon={<span style={{ fontSize: 16 }}>+</span>} />
                                     </div>
-                                ))}
+                                ) : (
+                                    <Button type="dashed" size="small" icon={<span>+</span>}>
+                                        Add label
+                                    </Button>
+                                )}
                             </div>
-                        ) : (
-                            <Text type="secondary" style={{ fontSize: 12 }}>No labels</Text>
-                        )}
+                        </Popover>
                     </div>
 
                     {/* Due Date Section */}
                     <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <ClockCircleOutlined style={{ color: 'var(--text-secondary)' }} />
                             <Text type="secondary" style={{ fontSize: 12 }}>Due date</Text>
-                            <Popover
-                                content={dueDateContent}
-                                trigger="click"
-                                open={dueDateOpen}
-                                onOpenChange={setDueDateOpen}
-                                placement="bottomRight"
-                            >
-                                <Button type="text" size="small" icon={<ClockCircleOutlined />} />
-                            </Popover>
                         </div>
-                        {card.due_date ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Checkbox
-                                    checked={card.is_completed}
-                                    onChange={(e) => handleCompletedChange(e.target.checked)}
-                                />
-                                <Tag
-                                    color={
-                                        card.is_completed
-                                            ? 'success'
-                                            : new Date(card.due_date) < new Date()
-                                                ? 'error'
-                                                : 'default'
-                                    }
-                                >
-                                    {formatDate(card.due_date)}
-                                </Tag>
+                        <Popover
+                            content={dueDateContent}
+                            trigger="click"
+                            open={dueDateOpen}
+                            onOpenChange={setDueDateOpen}
+                            placement="bottomLeft"
+                        >
+                            <div style={{ cursor: 'pointer' }}>
+                                {card.due_date ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <Checkbox
+                                            checked={card.is_completed}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleCompletedChange(e.target.checked);
+                                            }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <Tag
+                                            color={
+                                                card.is_completed
+                                                    ? 'success'
+                                                    : new Date(card.due_date) < new Date()
+                                                        ? 'error'
+                                                        : 'default'
+                                            }
+                                        >
+                                            {formatDate(card.due_date)}
+                                        </Tag>
+                                    </div>
+                                ) : (
+                                    <Button type="dashed" size="small" icon={<span>+</span>}>
+                                        Add due date
+                                    </Button>
+                                )}
                             </div>
-                        ) : (
-                            <Text type="secondary" style={{ fontSize: 12 }}>No due date</Text>
-                        )}
+                        </Popover>
                     </div>
 
                     {/* Cover Image Section */}
@@ -751,6 +711,8 @@ export default function CardPage() {
                         <Popover
                             trigger="click"
                             placement="bottomLeft"
+                            open={coverOpen}
+                            onOpenChange={setCoverOpen}
                             content={
                                 <div style={{ width: 280 }}>
                                     <Text strong style={{ display: 'block', marginBottom: 12 }}>Choose Cover</Text>
@@ -815,7 +777,6 @@ export default function CardPage() {
                                                 const url = await uploadFile(file);
                                                 message.destroy();
                                                 handleSetCover(url);
-                                                message.success('Cover set!');
                                             } catch {
                                                 message.destroy();
                                                 message.error('Upload failed');
