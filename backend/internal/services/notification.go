@@ -10,6 +10,7 @@ type NotificationService struct {
 	notificationRepo *repository.NotificationRepository
 	listWatcherRepo  *repository.ListWatcherRepository
 	listRepo         *repository.ListRepository
+	boardRepo        *repository.BoardRepository
 }
 
 func NewNotificationService() *NotificationService {
@@ -17,6 +18,7 @@ func NewNotificationService() *NotificationService {
 		notificationRepo: repository.NewNotificationRepository(),
 		listWatcherRepo:  repository.NewListWatcherRepository(),
 		listRepo:         repository.NewListRepository(),
+		boardRepo:        repository.NewBoardRepository(),
 	}
 }
 
@@ -110,4 +112,37 @@ func (s *NotificationService) Unwatch(listID, userID uuid.UUID) error {
 // IsWatching checks if a user is watching a list
 func (s *NotificationService) IsWatching(listID, userID uuid.UUID) bool {
 	return s.listWatcherRepo.IsWatching(listID, userID)
+}
+
+// NotifyBoardWatchers creates notifications for all watchers of a board
+func (s *NotificationService) NotifyBoardWatchers(boardID uuid.UUID, excludeUserID uuid.UUID, notifType, title, message string, listID, cardID *uuid.UUID) ([]models.Notification, error) {
+	watchers, err := s.boardRepo.GetWatchers(boardID)
+	if err != nil {
+		return nil, err
+	}
+
+	var notifications []models.Notification
+	for _, watcherUserID := range watchers {
+		// Don't notify the user who triggered the action
+		if watcherUserID == excludeUserID {
+			continue
+		}
+
+		notification := models.Notification{
+			UserID:  watcherUserID,
+			Type:    notifType,
+			Title:   title,
+			Message: message,
+			BoardID: boardID,
+			ListID:  listID,
+			CardID:  cardID,
+		}
+
+		if err := s.notificationRepo.Create(&notification); err != nil {
+			continue
+		}
+		notifications = append(notifications, notification)
+	}
+
+	return notifications, nil
 }

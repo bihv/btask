@@ -14,12 +14,14 @@ import (
 
 type CardHandler struct {
 	service             *services.CardService
+	listService         *services.ListService
 	notificationService *services.NotificationService
 }
 
 func NewCardHandler() *CardHandler {
 	return &CardHandler{
 		service:             services.NewCardService(),
+		listService:         services.NewListService(),
 		notificationService: services.NewNotificationService(),
 	}
 }
@@ -46,9 +48,12 @@ func (h *CardHandler) Create(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
 
-	// Notify list watchers about new card
+	// Get board ID from list for board watcher notifications
+	list, _ := h.listService.GetByID(listID, userID)
+
+	// Notify list watchers and board watchers about new card
 	go func() {
-		notifications, _ := h.notificationService.NotifyListWatchers(
+		listNotifications, _ := h.notificationService.NotifyListWatchers(
 			listID,
 			userID,
 			"card_created",
@@ -58,7 +63,23 @@ func (h *CardHandler) Create(c *fiber.Ctx) error {
 		)
 		// Push via WebSocket
 		if websocket.GlobalHub != nil {
-			websocket.GlobalHub.SendNotificationsToUsers(notifications)
+			websocket.GlobalHub.SendNotificationsToUsers(listNotifications)
+		}
+
+		// Notify board watchers
+		if list != nil {
+			boardNotifications, _ := h.notificationService.NotifyBoardWatchers(
+				list.BoardID,
+				userID,
+				"card_created",
+				"New card created",
+				fmt.Sprintf("Card \"%s\" was added to \"%s\"", card.Title, list.Title),
+				&listID,
+				&card.ID,
+			)
+			if websocket.GlobalHub != nil {
+				websocket.GlobalHub.SendNotificationsToUsers(boardNotifications)
+			}
 		}
 	}()
 
@@ -99,6 +120,47 @@ func (h *CardHandler) Update(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
 
+	// Get list info for notifications
+	list, _ := h.listService.GetByID(card.ListID, userID)
+
+	// Notify board watchers about card update/completion/due date
+	go func() {
+		if list != nil {
+			var notifType, title, message string
+
+			if req.IsCompleted != nil && *req.IsCompleted {
+				notifType = "card_completed"
+				title = "Card completed"
+				message = fmt.Sprintf("Card \"%s\" was marked as complete", card.Title)
+			} else if req.DueDate != nil {
+				notifType = "due_date_changed"
+				title = "Due date changed"
+				message = fmt.Sprintf("Due date was set for card \"%s\"", card.Title)
+			} else if req.Title != "" || req.Description != "" {
+				notifType = "card_updated"
+				title = "Card updated"
+				message = fmt.Sprintf("Card \"%s\" was updated", card.Title)
+			} else {
+				return
+			}
+
+			listID := card.ListID
+			cardID := card.ID
+			notifications, _ := h.notificationService.NotifyBoardWatchers(
+				list.BoardID,
+				userID,
+				notifType,
+				title,
+				message,
+				&listID,
+				&cardID,
+			)
+			if websocket.GlobalHub != nil {
+				websocket.GlobalHub.SendNotificationsToUsers(notifications)
+			}
+		}
+	}()
+
 	return utils.SuccessResponse(c, card)
 }
 
@@ -125,6 +187,9 @@ func (h *CardHandler) Move(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "Invalid card ID")
 	}
 
+	// Get card info before move
+	card, _ := h.service.GetByID(id, userID)
+
 	var req models.MoveCardRequest
 	if err := c.BodyParser(&req); err != nil {
 		return utils.ValidationErrorResponse(c, "Invalid request body")
@@ -133,6 +198,29 @@ func (h *CardHandler) Move(c *fiber.Ctx) error {
 	if err := h.service.Move(id, userID, req); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
+
+	// Get new list info for notifications
+	newList, _ := h.listService.GetByID(req.ListID, userID)
+
+	// Notify board watchers about card move
+	go func() {
+		if card != nil && newList != nil {
+			cardID := card.ID
+			newListID := req.ListID
+			notifications, _ := h.notificationService.NotifyBoardWatchers(
+				newList.BoardID,
+				userID,
+				"card_moved",
+				"Card moved",
+				fmt.Sprintf("Card \"%s\" was moved to \"%s\"", card.Title, newList.Title),
+				&newListID,
+				&cardID,
+			)
+			if websocket.GlobalHub != nil {
+				websocket.GlobalHub.SendNotificationsToUsers(notifications)
+			}
+		}
+	}()
 
 	return utils.SuccessMessageResponse(c, "Card moved successfully")
 }
@@ -156,6 +244,32 @@ func (h *CardHandler) AddLabel(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
 
+	// Get card info for notifications
+	card, _ := h.service.GetByID(cardID, userID)
+
+	// Notify board watchers about label change
+	go func() {
+		if card != nil {
+			list, _ := h.listService.GetByID(card.ListID, userID)
+			if list != nil {
+				listID := card.ListID
+				cID := cardID
+				notifications, _ := h.notificationService.NotifyBoardWatchers(
+					list.BoardID,
+					userID,
+					"label_added",
+					"Label added",
+					fmt.Sprintf("A label was added to card \"%s\"", card.Title),
+					&listID,
+					&cID,
+				)
+				if websocket.GlobalHub != nil {
+					websocket.GlobalHub.SendNotificationsToUsers(notifications)
+				}
+			}
+		}
+	}()
+
 	return utils.SuccessMessageResponse(c, "Label added successfully")
 }
 
@@ -167,6 +281,9 @@ func (h *CardHandler) RemoveLabel(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "Invalid card ID")
 	}
 
+	// Get card info before remove
+	card, _ := h.service.GetByID(cardID, userID)
+
 	labelID, err := uuid.Parse(c.Params("labelId"))
 	if err != nil {
 		return utils.ValidationErrorResponse(c, "Invalid label ID")
@@ -175,6 +292,29 @@ func (h *CardHandler) RemoveLabel(c *fiber.Ctx) error {
 	if err := h.service.RemoveLabel(cardID, labelID, userID); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
+
+	// Notify board watchers about label removal
+	go func() {
+		if card != nil {
+			list, _ := h.listService.GetByID(card.ListID, userID)
+			if list != nil {
+				listID := card.ListID
+				cID := cardID
+				notifications, _ := h.notificationService.NotifyBoardWatchers(
+					list.BoardID,
+					userID,
+					"label_removed",
+					"Label removed",
+					fmt.Sprintf("A label was removed from card \"%s\"", card.Title),
+					&listID,
+					&cID,
+				)
+				if websocket.GlobalHub != nil {
+					websocket.GlobalHub.SendNotificationsToUsers(notifications)
+				}
+			}
+		}
+	}()
 
 	return utils.SuccessMessageResponse(c, "Label removed successfully")
 }
@@ -198,6 +338,32 @@ func (h *CardHandler) AddMember(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
 
+	// Get card and list info for notifications
+	card, _ := h.service.GetByID(cardID, userID)
+
+	// Notify board watchers and the assigned member
+	go func() {
+		if card != nil {
+			list, _ := h.listService.GetByID(card.ListID, userID)
+			if list != nil {
+				listID := card.ListID
+				cID := cardID
+				notifications, _ := h.notificationService.NotifyBoardWatchers(
+					list.BoardID,
+					userID,
+					"member_assigned",
+					"Member assigned",
+					fmt.Sprintf("A member was assigned to card \"%s\"", card.Title),
+					&listID,
+					&cID,
+				)
+				if websocket.GlobalHub != nil {
+					websocket.GlobalHub.SendNotificationsToUsers(notifications)
+				}
+			}
+		}
+	}()
+
 	return utils.SuccessMessageResponse(c, "Member added successfully")
 }
 
@@ -209,6 +375,9 @@ func (h *CardHandler) RemoveMember(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "Invalid card ID")
 	}
 
+	// Get card info before remove
+	card, _ := h.service.GetByID(cardID, userID)
+
 	memberID, err := uuid.Parse(c.Params("userId"))
 	if err != nil {
 		return utils.ValidationErrorResponse(c, "Invalid user ID")
@@ -217,6 +386,29 @@ func (h *CardHandler) RemoveMember(c *fiber.Ctx) error {
 	if err := h.service.RemoveMember(cardID, memberID, userID); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
+
+	// Notify board watchers about member removal
+	go func() {
+		if card != nil {
+			list, _ := h.listService.GetByID(card.ListID, userID)
+			if list != nil {
+				listID := card.ListID
+				cID := cardID
+				notifications, _ := h.notificationService.NotifyBoardWatchers(
+					list.BoardID,
+					userID,
+					"member_removed",
+					"Member removed",
+					fmt.Sprintf("A member was removed from card \"%s\"", card.Title),
+					&listID,
+					&cID,
+				)
+				if websocket.GlobalHub != nil {
+					websocket.GlobalHub.SendNotificationsToUsers(notifications)
+				}
+			}
+		}
+	}()
 
 	return utils.SuccessMessageResponse(c, "Member removed successfully")
 }

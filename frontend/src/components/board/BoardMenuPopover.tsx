@@ -35,6 +35,7 @@ interface BoardMenuPopoverProps {
     workspaceMembers?: (User & { role?: string })[];
     onShareClick: () => void;
     onToggleStar: () => void;
+    onToggleWatch: () => void;
     onUpdateBoard: (data: Partial<Board>) => Promise<void>;
     onDeleteBoard: () => void;
     onCardClick?: (cardId: string) => void;
@@ -46,6 +47,7 @@ export default function BoardMenuPopover({
     workspaceMembers = [],
     onShareClick,
     onToggleStar,
+    onToggleWatch,
     onUpdateBoard,
     onDeleteBoard,
     onCardClick,
@@ -132,9 +134,9 @@ export default function BoardMenuPopover({
 
             {/* Section 5: Board Actions */}
             <MenuItem
-                icon={(board as any).is_watching ? <BellFilled style={{ color: '#1890ff' }} /> : <BellOutlined />}
-                label={(board as any).is_watching ? 'Watching' : 'Watch'}
-                onClick={() => message.info('Watch feature coming soon')}
+                icon={board.is_watching ? <BellFilled style={{ color: '#1890ff' }} /> : <BellOutlined />}
+                label={board.is_watching ? 'Watching' : 'Watch'}
+                onClick={onToggleWatch}
             />
             <MenuItem
                 icon={<ColumnWidthOutlined />}

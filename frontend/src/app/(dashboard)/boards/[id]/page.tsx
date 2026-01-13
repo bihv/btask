@@ -12,6 +12,7 @@ import { useWorkspaceMembers } from '@/hooks/useCards';
 import CardFilterBar, { FilterState, defaultFilters } from '@/components/board/CardFilterBar';
 import ShareModal from '@/components/workspace/ShareModal';
 import BoardMenuPopover from '@/components/board/BoardMenuPopover';
+import api from '@/lib/api';
 
 const { Text } = Typography;
 
@@ -83,6 +84,22 @@ export default function BoardPage() {
         }
     };
 
+    const toggleWatch = async () => {
+        if (!board) return;
+        try {
+            if (board.is_watching) {
+                await api.delete(`/boards/${boardId}/watch`);
+                message.success('Stopped watching board');
+            } else {
+                await api.post(`/boards/${boardId}/watch`);
+                message.success('Now watching board');
+            }
+            refetch();
+        } catch (error) {
+            message.error('Failed to update watch status');
+        }
+    };
+
     // Set dynamic header
     useEffect(() => {
         if (board) {
@@ -120,6 +137,7 @@ export default function BoardPage() {
                         workspaceMembers={workspaceMembers}
                         onShareClick={() => setShareOpen(true)}
                         onToggleStar={toggleStar}
+                        onToggleWatch={toggleWatch}
                         onUpdateBoard={async (data) => {
                             await updateMutation.mutateAsync({ id: boardId, data });
                         }}

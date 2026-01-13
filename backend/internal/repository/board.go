@@ -64,3 +64,40 @@ func (r *BoardRepository) GetMaxPosition(workspaceID uuid.UUID) int {
 		Scan(&maxPos)
 	return maxPos
 }
+
+func (r *BoardRepository) AddWatcher(boardID uuid.UUID, userID uuid.UUID) error {
+	watcher := &models.BoardWatcher{
+		BoardID: boardID,
+		UserID:  userID,
+	}
+	// Use FirstOrCreate to avoid duplicates
+	return database.DB.Where("board_id = ? AND user_id = ?", boardID, userID).
+		FirstOrCreate(watcher).Error
+}
+
+func (r *BoardRepository) RemoveWatcher(boardID uuid.UUID, userID uuid.UUID) error {
+	return database.DB.Where("board_id = ? AND user_id = ?", boardID, userID).
+		Delete(&models.BoardWatcher{}).Error
+}
+
+func (r *BoardRepository) IsWatching(boardID uuid.UUID, userID uuid.UUID) bool {
+	var count int64
+	database.DB.Model(&models.BoardWatcher{}).
+		Where("board_id = ? AND user_id = ?", boardID, userID).
+		Count(&count)
+	return count > 0
+}
+
+func (r *BoardRepository) GetWatchers(boardID uuid.UUID) ([]uuid.UUID, error) {
+	var watchers []models.BoardWatcher
+	err := database.DB.Where("board_id = ?", boardID).Find(&watchers).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var userIDs []uuid.UUID
+	for _, w := range watchers {
+		userIDs = append(userIDs, w.UserID)
+	}
+	return userIDs, nil
+}

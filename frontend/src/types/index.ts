@@ -39,6 +39,7 @@ export interface Board {
     background_image?: string;
     is_starred: boolean;
     show_card_covers: boolean;
+    is_watching?: boolean;
     position: number;
     lists?: List[];
     labels?: Label[];

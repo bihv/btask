@@ -47,6 +47,7 @@ func Migrate() error {
 		&models.Attachment{},
 		&models.Notification{},
 		&models.ListWatcher{},
+		&models.BoardWatcher{},
 	)
 
 	if err != nil {

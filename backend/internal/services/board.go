@@ -122,3 +122,15 @@ func (s *BoardService) Delete(boardID uuid.UUID, userID uuid.UUID) error {
 func (s *BoardService) hasWorkspaceAccess(workspaceID uuid.UUID, userID uuid.UUID) bool {
 	return s.workspaceRepo.IsOwner(workspaceID, userID) || s.workspaceRepo.IsMember(workspaceID, userID)
 }
+
+func (s *BoardService) Watch(boardID uuid.UUID, userID uuid.UUID) error {
+	return s.boardRepo.AddWatcher(boardID, userID)
+}
+
+func (s *BoardService) Unwatch(boardID uuid.UUID, userID uuid.UUID) error {
+	return s.boardRepo.RemoveWatcher(boardID, userID)
+}
+
+func (s *BoardService) IsWatching(boardID uuid.UUID, userID uuid.UUID) bool {
+	return s.boardRepo.IsWatching(boardID, userID)
+}

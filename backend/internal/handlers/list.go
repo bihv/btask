@@ -1,21 +1,26 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/btask/backend/internal/middleware"
 	"github.com/btask/backend/internal/models"
 	"github.com/btask/backend/internal/services"
+	"github.com/btask/backend/internal/websocket"
 	"github.com/btask/backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type ListHandler struct {
-	service *services.ListService
+	service             *services.ListService
+	notificationService *services.NotificationService
 }
 
 func NewListHandler() *ListHandler {
 	return &ListHandler{
-		service: services.NewListService(),
+		service:             services.NewListService(),
+		notificationService: services.NewNotificationService(),
 	}
 }
 
@@ -40,6 +45,23 @@ func (h *ListHandler) Create(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
+
+	// Notify board watchers about new list
+	go func() {
+		listID := list.ID
+		notifications, _ := h.notificationService.NotifyBoardWatchers(
+			boardID,
+			userID,
+			"list_created",
+			"New list created",
+			fmt.Sprintf("List \"%s\" was created", list.Title),
+			&listID,
+			nil,
+		)
+		if websocket.GlobalHub != nil {
+			websocket.GlobalHub.SendNotificationsToUsers(notifications)
+		}
+	}()
 
 	return utils.SuccessResponse(c, list)
 }
@@ -176,9 +198,31 @@ func (h *ListHandler) Archive(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "Invalid list ID")
 	}
 
+	// Get list info before archive
+	list, _ := h.service.GetByID(listID, userID)
+
 	if err := h.service.Archive(listID, userID); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
+
+	// Notify board watchers about list archive
+	go func() {
+		if list != nil {
+			lID := listID
+			notifications, _ := h.notificationService.NotifyBoardWatchers(
+				list.BoardID,
+				userID,
+				"list_archived",
+				"List archived",
+				fmt.Sprintf("List \"%s\" was archived", list.Title),
+				&lID,
+				nil,
+			)
+			if websocket.GlobalHub != nil {
+				websocket.GlobalHub.SendNotificationsToUsers(notifications)
+			}
+		}
+	}()
 
 	return utils.SuccessMessageResponse(c, "List archived successfully")
 }

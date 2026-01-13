@@ -73,7 +73,25 @@ func (h *BoardHandler) GetByID(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
 
-	return utils.SuccessResponse(c, board)
+	// Add is_watching to response
+	isWatching := h.service.IsWatching(id, userID)
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"id":               board.ID,
+		"workspace_id":     board.WorkspaceID,
+		"title":            board.Title,
+		"description":      board.Description,
+		"background_color": board.BackgroundColor,
+		"background_image": board.BackgroundImage,
+		"is_starred":       board.IsStarred,
+		"show_card_covers": board.ShowCardCovers,
+		"is_watching":      isWatching,
+		"position":         board.Position,
+		"lists":            board.Lists,
+		"labels":           board.Labels,
+		"created_at":       board.CreatedAt,
+		"updated_at":       board.UpdatedAt,
+	})
 }
 
 func (h *BoardHandler) Update(c *fiber.Ctx) error {
@@ -110,4 +128,47 @@ func (h *BoardHandler) Delete(c *fiber.Ctx) error {
 	}
 
 	return utils.SuccessMessageResponse(c, "Board deleted successfully")
+}
+
+func (h *BoardHandler) Watch(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	if err := h.service.Watch(id, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Board watched successfully")
+}
+
+func (h *BoardHandler) Unwatch(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	if err := h.service.Unwatch(id, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Board unwatched successfully")
+}
+
+func (h *BoardHandler) IsWatching(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	isWatching := h.service.IsWatching(id, userID)
+
+	return utils.SuccessResponse(c, fiber.Map{"is_watching": isWatching})
 }

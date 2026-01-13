@@ -1,21 +1,30 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/btask/backend/internal/middleware"
 	"github.com/btask/backend/internal/models"
 	"github.com/btask/backend/internal/services"
+	"github.com/btask/backend/internal/websocket"
 	"github.com/btask/backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type CommentHandler struct {
-	service *services.CommentService
+	service             *services.CommentService
+	cardService         *services.CardService
+	listService         *services.ListService
+	notificationService *services.NotificationService
 }
 
 func NewCommentHandler() *CommentHandler {
 	return &CommentHandler{
-		service: services.NewCommentService(),
+		service:             services.NewCommentService(),
+		cardService:         services.NewCardService(),
+		listService:         services.NewListService(),
+		notificationService: services.NewNotificationService(),
 	}
 }
 
@@ -40,6 +49,32 @@ func (h *CommentHandler) Create(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
+
+	// Get card and list info for notifications
+	card, _ := h.cardService.GetByID(cardID, userID)
+
+	// Notify board watchers about new comment
+	go func() {
+		if card != nil {
+			list, _ := h.listService.GetByID(card.ListID, userID)
+			if list != nil {
+				listID := card.ListID
+				cID := cardID
+				notifications, _ := h.notificationService.NotifyBoardWatchers(
+					list.BoardID,
+					userID,
+					"comment_added",
+					"New comment",
+					fmt.Sprintf("New comment on card \"%s\"", card.Title),
+					&listID,
+					&cID,
+				)
+				if websocket.GlobalHub != nil {
+					websocket.GlobalHub.SendNotificationsToUsers(notifications)
+				}
+			}
+		}
+	}()
 
 	return utils.SuccessResponse(c, comment)
 }
