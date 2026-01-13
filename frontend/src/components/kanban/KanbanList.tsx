@@ -11,6 +11,7 @@ import { useBoardStore } from '@/stores/boardStore';
 import api from '@/lib/api';
 import { FilterState } from '@/components/board/CardFilterBar';
 import KanbanCard from './KanbanCard';
+import styles from './KanbanBoard.module.css';
 
 const LIST_COLORS = [
     '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
@@ -400,17 +401,17 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
         <div
             ref={setNodeRef}
             style={style}
-            className="kanban-list"
+            className={styles.list}
         >
             {/* Color Bar - Trello style accent */}
             {list.color && (
                 <div
-                    className="kanban-list-color-bar"
+                    className={styles.listColorBar}
                     style={{ backgroundColor: list.color }}
                 />
             )}
             {/* List Header */}
-            <div className="kanban-list-header" {...attributes} {...listeners}>
+            <div className={styles.listHeader} {...attributes} {...listeners}>
                 {isEditing ? (
                     <Input
                         value={title}
@@ -456,7 +457,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             </div>
 
             {/* Cards */}
-            <div className="kanban-list-content">
+            <div className={styles.listContent}>
                 <SortableContext
                     items={filteredCards.map((c) => c.id)}
                     strategy={verticalListSortingStrategy}

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button, Input } from 'antd';
 import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
+import styles from './KanbanBoard.module.css';
 
 interface AddListProps {
     boardId: string;
@@ -25,7 +26,7 @@ export default function AddList({ boardId }: AddListProps) {
     if (!isAdding) {
         return (
             <div
-                className="add-list-btn"
+                className={styles.addListBtn}
                 onClick={() => setIsAdding(true)}
             >
                 <PlusOutlined />

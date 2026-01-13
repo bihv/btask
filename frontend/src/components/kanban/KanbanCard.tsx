@@ -8,6 +8,7 @@ import { Typography, Avatar, Tooltip } from 'antd';
 import { ClockCircleOutlined, CheckCircleOutlined, CommentOutlined } from '@ant-design/icons';
 import { Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
+import styles from './KanbanBoard.module.css';
 
 const { Text } = Typography;
 
@@ -81,7 +82,7 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
         <div
             ref={setNodeRef}
             style={style}
-            className="kanban-card"
+            className={styles.card}
             onClick={handleCardClick}
             {...attributes}
             {...listeners}
@@ -114,11 +115,11 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
 
             {/* Labels */}
             {card.labels && card.labels.length > 0 && (
-                <div className="card-labels">
+                <div className={styles.cardLabels}>
                     {card.labels.map((cl) => (
                         <div
                             key={cl.id}
-                            className="card-label"
+                            className={styles.cardLabel}
                             style={{ backgroundColor: cl.label?.color }}
                         />
                     ))}

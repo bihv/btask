@@ -22,6 +22,7 @@ import { FilterState } from '@/components/board/CardFilterBar';
 import KanbanList from './KanbanList';
 import KanbanCard from './KanbanCard';
 import AddList from './AddList';
+import styles from './KanbanBoard.module.css';
 
 interface KanbanBoardProps {
     filters?: FilterState;
@@ -132,7 +133,7 @@ export default function KanbanBoard({ filters }: KanbanBoardProps) {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="kanban-board">
+            <div className={styles.board}>
                 <SortableContext
                     items={lists.map((l) => l.id)}
                     strategy={horizontalListSortingStrategy}
@@ -147,18 +148,18 @@ export default function KanbanBoard({ filters }: KanbanBoardProps) {
 
             <DragOverlay>
                 {activeCard && (
-                    <div className="kanban-card dragging">
+                    <div className={`${styles.card} ${styles.cardDragging}`}>
                         <KanbanCard card={activeCard} listId="" />
                     </div>
                 )}
                 {activeList && (
-                    <div className="kanban-list dragging" style={{ opacity: 0.9 }}>
-                        <div className="kanban-list-header">
+                    <div className={styles.list} style={{ opacity: 0.9 }}>
+                        <div className={styles.listHeader}>
                             <span>{activeList.title}</span>
                         </div>
-                        <div className="kanban-list-content">
+                        <div className={styles.listContent}>
                             {(activeList.cards || []).slice(0, 3).map((card) => (
-                                <div key={card.id} className="kanban-card">
+                                <div key={card.id} className={styles.card}>
                                     {card.title}
                                 </div>
                             ))}

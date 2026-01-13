@@ -184,7 +184,6 @@ export default function DashboardLayout({
                             type="text"
                             icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
                             onClick={toggleTheme}
-                            style={{ color: 'white' }}
                         />
                         <NotificationDropdown />
                         <Button type="primary" icon={<PlusOutlined />}>

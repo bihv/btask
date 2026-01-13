@@ -1,0 +1,13 @@
+/* Board Menu Popover Styles */
+.popover :global(.ant-popover-inner) {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    border: none;
+}
+
+:global([data-theme='dark']) .popover :global(.ant-popover-inner) {
+    background: #282e33;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}

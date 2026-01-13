@@ -1,0 +1,135 @@
+/* Kanban Board Styles */
+.board {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    overflow-x: auto;
+    height: calc(100vh - 120px);
+    align-items: flex-start;
+}
+
+.list {
+    min-width: 272px;
+    max-width: 272px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.listColorBar {
+    height: 8px;
+    margin: -8px -8px 8px -8px;
+    border-radius: 12px 12px 0 0;
+}
+
+.listHeader {
+    padding: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #172b4d;
+}
+
+.listContent {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 4px 0;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    color: #172b4d;
+}
+
+.card:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cardDragging {
+    transform: rotate(5deg);
+    opacity: 0.8;
+}
+
+/* Add list button */
+.addListBtn {
+    min-width: 272px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-weight: 500;
+    transition: background 0.2s;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.addListBtn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Card labels */
+.cardLabels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.cardLabel {
+    height: 8px;
+    min-width: 40px;
+    border-radius: 4px;
+}
+
+/* Dark theme */
+:global([data-theme='dark']) .list {
+    background: rgba(40, 40, 45, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .listHeader {
+    color: #b6c2cf;
+}
+
+:global([data-theme='dark']) .card {
+    background: rgba(30, 33, 37, 0.95);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    color: #b6c2cf;
+}
+
+:global([data-theme='dark']) .card:hover {
+    background: rgba(40, 46, 51, 1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='dark']) .addListBtn {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .addListBtn:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
