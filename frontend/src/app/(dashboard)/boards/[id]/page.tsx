@@ -138,6 +138,14 @@ export default function BoardPage() {
                         onShareClick={() => setShareOpen(true)}
                         onToggleStar={toggleStar}
                         onToggleWatch={toggleWatch}
+                        onExpandAllLists={async () => {
+                            await api.put(`/boards/${boardId}/expand-all-lists`);
+                            refetch();
+                        }}
+                        onCollapseAllLists={async () => {
+                            await api.put(`/boards/${boardId}/collapse-all-lists`);
+                            refetch();
+                        }}
                         onUpdateBoard={async (data) => {
                             await updateMutation.mutateAsync({ id: boardId, data });
                         }}

@@ -122,3 +122,9 @@ func (r *ListRepository) FindArchivedByBoardID(boardID uuid.UUID) ([]models.List
 	}
 	return lists, nil
 }
+
+func (r *ListRepository) SetAllListsCollapsed(boardID uuid.UUID, collapsed bool) error {
+	return database.DB.Model(&models.List{}).
+		Where("board_id = ? AND is_archived = ?", boardID, false).
+		Update("is_collapsed", collapsed).Error
+}

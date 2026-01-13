@@ -98,6 +98,10 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Archived lists by board
 	boards.Get("/:id/archived-lists", listHandler.GetArchivedLists)
 
+	// Expand/Collapse all lists in board
+	boards.Put("/:id/expand-all-lists", listHandler.ExpandAllLists)
+	boards.Put("/:id/collapse-all-lists", listHandler.CollapseAllLists)
+
 	// Card routes
 	cardHandler := handlers.NewCardHandler()
 	lists.Post("/:listId/cards", cardHandler.Create)

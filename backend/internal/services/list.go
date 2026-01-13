@@ -370,6 +370,34 @@ func (s *ListService) GetArchivedByBoardID(boardID uuid.UUID, userID uuid.UUID) 
 	return s.listRepo.FindArchivedByBoardID(boardID)
 }
 
+// ExpandAllLists expands all lists in a board
+func (s *ListService) ExpandAllLists(boardID uuid.UUID, userID uuid.UUID) error {
+	board, err := s.boardRepo.FindByID(boardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return errors.New("access denied")
+	}
+
+	return s.listRepo.SetAllListsCollapsed(boardID, false)
+}
+
+// CollapseAllLists collapses all lists in a board
+func (s *ListService) CollapseAllLists(boardID uuid.UUID, userID uuid.UUID) error {
+	board, err := s.boardRepo.FindByID(boardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasAccess(board.WorkspaceID, userID) {
+		return errors.New("access denied")
+	}
+
+	return s.listRepo.SetAllListsCollapsed(boardID, true)
+}
+
 func (s *ListService) hasAccess(workspaceID uuid.UUID, userID uuid.UUID) bool {
 	return s.workspaceRepo.IsOwner(workspaceID, userID) || s.workspaceRepo.IsMember(workspaceID, userID)
 }

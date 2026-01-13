@@ -272,3 +272,33 @@ func (h *ListHandler) GetArchivedLists(c *fiber.Ctx) error {
 
 	return utils.SuccessResponse(c, lists)
 }
+
+func (h *ListHandler) ExpandAllLists(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	boardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	if err := h.service.ExpandAllLists(boardID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "All lists expanded")
+}
+
+func (h *ListHandler) CollapseAllLists(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	boardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	if err := h.service.CollapseAllLists(boardID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "All lists collapsed")
+}

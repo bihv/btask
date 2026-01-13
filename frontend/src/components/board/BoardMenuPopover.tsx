@@ -36,6 +36,8 @@ interface BoardMenuPopoverProps {
     onShareClick: () => void;
     onToggleStar: () => void;
     onToggleWatch: () => void;
+    onExpandAllLists: () => Promise<void>;
+    onCollapseAllLists: () => Promise<void>;
     onUpdateBoard: (data: Partial<Board>) => Promise<void>;
     onDeleteBoard: () => void;
     onCardClick?: (cardId: string) => void;
@@ -48,6 +50,8 @@ export default function BoardMenuPopover({
     onShareClick,
     onToggleStar,
     onToggleWatch,
+    onExpandAllLists,
+    onCollapseAllLists,
     onUpdateBoard,
     onDeleteBoard,
     onCardClick,
@@ -141,7 +145,18 @@ export default function BoardMenuPopover({
             <MenuItem
                 icon={<ColumnWidthOutlined />}
                 label="Expand all lists"
-                onClick={() => message.info('Expand all lists coming soon')}
+                onClick={async () => {
+                    await onExpandAllLists();
+                    message.success('All lists expanded');
+                }}
+            />
+            <MenuItem
+                icon={<ColumnWidthOutlined style={{ transform: 'rotate(90deg)' }} />}
+                label="Collapse all lists"
+                onClick={async () => {
+                    await onCollapseAllLists();
+                    message.success('All lists collapsed');
+                }}
             />
             <MenuItem
                 icon={<CopyOutlined />}
