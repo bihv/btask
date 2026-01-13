@@ -157,6 +157,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	notifications.Get("/", notificationHandler.GetNotifications)
 	notifications.Get("/unread-count", notificationHandler.GetUnreadCount)
 	notifications.Put("/:id/read", notificationHandler.MarkAsRead)
+	notifications.Put("/:id/unread", notificationHandler.MarkAsUnread)
 	notifications.Put("/read-all", notificationHandler.MarkAllAsRead)
 
 	// List watch routes

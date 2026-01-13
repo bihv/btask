@@ -20,13 +20,16 @@ interface NotificationState {
     isLoading: boolean;
     hasMore: boolean;
     offset: number;
+    unreadOnly: boolean;
 
     fetchNotifications: () => Promise<void>;
     fetchMoreNotifications: () => Promise<void>;
     fetchUnreadCount: () => Promise<void>;
     markAsRead: (id: string) => Promise<void>;
+    markAsUnread: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     addNotification: (notification: Notification) => void;
+    setUnreadOnly: (value: boolean) => void;
     resetNotifications: () => void;
 }
 
@@ -38,11 +41,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     isLoading: false,
     hasMore: true,
     offset: 0,
+    unreadOnly: false,
 
     fetchNotifications: async () => {
+        const { unreadOnly } = get();
         set({ isLoading: true, offset: 0 });
         try {
-            const response = await api.get(`/notifications/?limit=${LIMIT}&offset=0`);
+            const url = `/notifications/?limit=${LIMIT}&offset=0${unreadOnly ? '&unread_only=true' : ''}`;
+            const response = await api.get(url);
             const data = response.data.data;
             set({
                 notifications: data?.notifications || [],
@@ -56,12 +62,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     },
 
     fetchMoreNotifications: async () => {
-        const { isLoading, hasMore, offset } = get();
+        const { isLoading, hasMore, offset, unreadOnly } = get();
         if (isLoading || !hasMore) return;
 
         set({ isLoading: true });
         try {
-            const response = await api.get(`/notifications/?limit=${LIMIT}&offset=${offset}`);
+            const url = `/notifications/?limit=${LIMIT}&offset=${offset}${unreadOnly ? '&unread_only=true' : ''}`;
+            const response = await api.get(url);
             const data = response.data.data;
             set((state) => ({
                 notifications: [...state.notifications, ...(data?.notifications || [])],
@@ -97,6 +104,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         }
     },
 
+    markAsUnread: async (id: string) => {
+        try {
+            await api.put(`/notifications/${id}/unread`);
+            set((state) => ({
+                notifications: state.notifications.map(n =>
+                    n.id === id ? { ...n, is_read: false } : n
+                ),
+                unreadCount: state.unreadCount + 1
+            }));
+        } catch (error) {
+            // Ignore
+        }
+    },
+
     markAllAsRead: async () => {
         try {
             await api.put('/notifications/read-all');
@@ -114,6 +135,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             notifications: [notification, ...state.notifications],
             unreadCount: state.unreadCount + 1
         }));
+    },
+
+    setUnreadOnly: (value: boolean) => {
+        set({ unreadOnly: value });
+        get().fetchNotifications();
     },
 
     resetNotifications: () => {

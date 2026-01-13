@@ -28,8 +28,8 @@ func (s *NotificationService) Create(notification *models.Notification) error {
 }
 
 // GetByUserIDPaginated gets notifications for a user with pagination
-func (s *NotificationService) GetByUserIDPaginated(userID uuid.UUID, limit, offset int) ([]models.Notification, int64, error) {
-	return s.notificationRepo.FindByUserIDPaginated(userID, limit, offset)
+func (s *NotificationService) GetByUserIDPaginated(userID uuid.UUID, limit, offset int, unreadOnly bool) ([]models.Notification, int64, error) {
+	return s.notificationRepo.FindByUserIDPaginated(userID, limit, offset, unreadOnly)
 }
 
 // MarkAsRead marks a notification as read
@@ -42,6 +42,18 @@ func (s *NotificationService) MarkAsRead(notificationID, userID uuid.UUID) error
 		return nil // Silently ignore if not owner
 	}
 	return s.notificationRepo.MarkAsRead(notificationID)
+}
+
+// MarkAsUnread marks a notification as unread
+func (s *NotificationService) MarkAsUnread(notificationID, userID uuid.UUID) error {
+	notification, err := s.notificationRepo.FindByID(notificationID)
+	if err != nil {
+		return err
+	}
+	if notification.UserID != userID {
+		return nil // Silently ignore if not owner
+	}
+	return s.notificationRepo.MarkAsUnread(notificationID)
 }
 
 // MarkAllAsRead marks all notifications for a user as read

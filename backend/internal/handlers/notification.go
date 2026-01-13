@@ -27,6 +27,7 @@ func (h *NotificationHandler) GetNotifications(c *fiber.Ctx) error {
 	// Parse pagination parameters
 	limit := 20
 	offset := 0
+	unreadOnly := false
 
 	if l := c.Query("limit"); l != "" {
 		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 50 {
@@ -40,7 +41,11 @@ func (h *NotificationHandler) GetNotifications(c *fiber.Ctx) error {
 		}
 	}
 
-	notifications, total, err := h.service.GetByUserIDPaginated(userID, limit, offset)
+	if c.Query("unread_only") == "true" {
+		unreadOnly = true
+	}
+
+	notifications, total, err := h.service.GetByUserIDPaginated(userID, limit, offset, unreadOnly)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
@@ -82,6 +87,22 @@ func (h *NotificationHandler) MarkAsRead(c *fiber.Ctx) error {
 	}
 
 	return utils.SuccessMessageResponse(c, "Notification marked as read")
+}
+
+// MarkAsUnread marks a notification as unread
+func (h *NotificationHandler) MarkAsUnread(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	notificationID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid notification ID")
+	}
+
+	if err := h.service.MarkAsUnread(notificationID, userID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Notification marked as unread")
 }
 
 // MarkAllAsRead marks all notifications as read

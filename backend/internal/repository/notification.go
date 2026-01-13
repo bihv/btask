@@ -16,18 +16,24 @@ func (r *NotificationRepository) Create(notification *models.Notification) error
 	return database.DB.Create(notification).Error
 }
 
-func (r *NotificationRepository) FindByUserIDPaginated(userID uuid.UUID, limit, offset int) ([]models.Notification, int64, error) {
+func (r *NotificationRepository) FindByUserIDPaginated(userID uuid.UUID, limit, offset int, unreadOnly bool) ([]models.Notification, int64, error) {
 	var notifications []models.Notification
 	var total int64
 
+	query := database.DB.Model(&models.Notification{}).Where("user_id = ?", userID)
+	if unreadOnly {
+		query = query.Where("is_read = ?", false)
+	}
+
 	// Get total count
-	database.DB.Model(&models.Notification{}).
-		Where("user_id = ?", userID).
-		Count(&total)
+	query.Count(&total)
 
 	// Get paginated results
-	err := database.DB.
-		Where("user_id = ?", userID).
+	dataQuery := database.DB.Where("user_id = ?", userID)
+	if unreadOnly {
+		dataQuery = dataQuery.Where("is_read = ?", false)
+	}
+	err := dataQuery.
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -49,6 +55,12 @@ func (r *NotificationRepository) MarkAsRead(id uuid.UUID) error {
 	return database.DB.Model(&models.Notification{}).
 		Where("id = ?", id).
 		Update("is_read", true).Error
+}
+
+func (r *NotificationRepository) MarkAsUnread(id uuid.UUID) error {
+	return database.DB.Model(&models.Notification{}).
+		Where("id = ?", id).
+		Update("is_read", false).Error
 }
 
 func (r *NotificationRepository) MarkAllAsRead(userID uuid.UUID) error {
