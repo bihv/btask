@@ -27,9 +27,9 @@ func (s *NotificationService) Create(notification *models.Notification) error {
 	return s.notificationRepo.Create(notification)
 }
 
-// GetByUserID gets notifications for a user
-func (s *NotificationService) GetByUserID(userID uuid.UUID, limit int) ([]models.Notification, error) {
-	return s.notificationRepo.FindByUserID(userID, limit)
+// GetByUserIDPaginated gets notifications for a user with pagination
+func (s *NotificationService) GetByUserIDPaginated(userID uuid.UUID, limit, offset int) ([]models.Notification, int64, error) {
+	return s.notificationRepo.FindByUserIDPaginated(userID, limit, offset)
 }
 
 // MarkAsRead marks a notification as read

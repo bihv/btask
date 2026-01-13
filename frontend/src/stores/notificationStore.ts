@@ -18,27 +18,57 @@ interface NotificationState {
     notifications: Notification[];
     unreadCount: number;
     isLoading: boolean;
+    hasMore: boolean;
+    offset: number;
 
     fetchNotifications: () => Promise<void>;
+    fetchMoreNotifications: () => Promise<void>;
     fetchUnreadCount: () => Promise<void>;
     markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     addNotification: (notification: Notification) => void;
+    resetNotifications: () => void;
 }
+
+const LIMIT = 20;
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
     notifications: [],
     unreadCount: 0,
     isLoading: false,
+    hasMore: true,
+    offset: 0,
 
     fetchNotifications: async () => {
-        set({ isLoading: true });
+        set({ isLoading: true, offset: 0 });
         try {
-            const response = await api.get('/notifications/');
+            const response = await api.get(`/notifications/?limit=${LIMIT}&offset=0`);
+            const data = response.data.data;
             set({
-                notifications: response.data.data || [],
+                notifications: data?.notifications || [],
+                hasMore: data?.has_more || false,
+                offset: LIMIT,
                 isLoading: false
             });
+        } catch (error) {
+            set({ isLoading: false });
+        }
+    },
+
+    fetchMoreNotifications: async () => {
+        const { isLoading, hasMore, offset } = get();
+        if (isLoading || !hasMore) return;
+
+        set({ isLoading: true });
+        try {
+            const response = await api.get(`/notifications/?limit=${LIMIT}&offset=${offset}`);
+            const data = response.data.data;
+            set((state) => ({
+                notifications: [...state.notifications, ...(data?.notifications || [])],
+                hasMore: data?.has_more || false,
+                offset: state.offset + LIMIT,
+                isLoading: false
+            }));
         } catch (error) {
             set({ isLoading: false });
         }
@@ -84,5 +114,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             notifications: [notification, ...state.notifications],
             unreadCount: state.unreadCount + 1
         }));
+    },
+
+    resetNotifications: () => {
+        set({ notifications: [], offset: 0, hasMore: true });
     }
 }));

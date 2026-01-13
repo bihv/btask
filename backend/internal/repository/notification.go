@@ -16,18 +16,24 @@ func (r *NotificationRepository) Create(notification *models.Notification) error
 	return database.DB.Create(notification).Error
 }
 
-func (r *NotificationRepository) FindByUserID(userID uuid.UUID, limit int) ([]models.Notification, error) {
+func (r *NotificationRepository) FindByUserIDPaginated(userID uuid.UUID, limit, offset int) ([]models.Notification, int64, error) {
 	var notifications []models.Notification
-	query := database.DB.
+	var total int64
+
+	// Get total count
+	database.DB.Model(&models.Notification{}).
 		Where("user_id = ?", userID).
-		Order("created_at DESC")
+		Count(&total)
 
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
+	// Get paginated results
+	err := database.DB.
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&notifications).Error
 
-	err := query.Find(&notifications).Error
-	return notifications, err
+	return notifications, total, err
 }
 
 func (r *NotificationRepository) FindByID(id uuid.UUID) (*models.Notification, error) {

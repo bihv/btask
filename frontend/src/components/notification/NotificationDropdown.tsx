@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Dropdown, Badge, Button, List, Typography, Spin, Empty } from 'antd';
 import { BellOutlined, CheckOutlined } from '@ant-design/icons';
 import { useNotificationStore, Notification } from '@/stores/notificationStore';
@@ -17,12 +17,15 @@ export default function NotificationDropdown() {
     const notifications = useNotificationStore((state) => state.notifications);
     const unreadCount = useNotificationStore((state) => state.unreadCount);
     const isLoading = useNotificationStore((state) => state.isLoading);
+    const hasMore = useNotificationStore((state) => state.hasMore);
     const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+    const fetchMoreNotifications = useNotificationStore((state) => state.fetchMoreNotifications);
     const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
     const markAsRead = useNotificationStore((state) => state.markAsRead);
     const markAllAsRead = useNotificationStore((state) => state.markAllAsRead);
 
     const [open, setOpen] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchUnreadCount();
@@ -42,14 +45,27 @@ export default function NotificationDropdown() {
         setOpen(false);
     };
 
+    // Infinite scroll handler
+    const handleScroll = useCallback(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        // Load more when scrolled to bottom (with 50px threshold)
+        if (scrollHeight - scrollTop - clientHeight < 50 && hasMore && !isLoading) {
+            fetchMoreNotifications();
+        }
+    }, [hasMore, isLoading, fetchMoreNotifications]);
+
     const dropdownContent = (
         <div style={{
             width: 360,
             maxHeight: 400,
-            overflow: 'auto',
             background: 'var(--bg-secondary)',
             borderRadius: 8,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            display: 'flex',
+            flexDirection: 'column'
         }}>
             <div style={{
                 padding: '12px 16px',
@@ -74,64 +90,82 @@ export default function NotificationDropdown() {
                 )}
             </div>
 
-            {isLoading ? (
-                <div style={{ padding: 40, textAlign: 'center' }}>
-                    <Spin />
-                </div>
-            ) : notifications.length === 0 ? (
-                <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="No notifications"
-                    style={{ padding: 40 }}
-                />
-            ) : (
-                <List
-                    dataSource={notifications}
-                    renderItem={(notification) => (
-                        <List.Item
-                            style={{
-                                padding: '12px 16px',
-                                cursor: 'pointer',
-                                background: notification.is_read ? 'transparent' : 'rgba(24, 144, 255, 0.1)',
-                                borderBottom: '1px solid var(--border-color)'
-                            }}
-                            onClick={() => handleNotificationClick(notification)}
-                        >
-                            {notification.card_id ? (
-                                <Link
-                                    href={`/boards/${notification.board_id}/cards/${notification.card_id}`}
-                                    style={{ width: '100%', color: 'inherit' }}
+            <div
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
+                style={{
+                    overflow: 'auto',
+                    flex: 1,
+                    maxHeight: 350
+                }}
+            >
+                {notifications.length === 0 && !isLoading ? (
+                    <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description="No notifications"
+                        style={{ padding: 40 }}
+                    />
+                ) : (
+                    <>
+                        <List
+                            dataSource={notifications}
+                            renderItem={(notification) => (
+                                <List.Item
+                                    style={{
+                                        padding: '12px 16px',
+                                        cursor: 'pointer',
+                                        background: notification.is_read ? 'transparent' : 'rgba(24, 144, 255, 0.1)',
+                                        borderBottom: '1px solid var(--border-color)'
+                                    }}
                                     onClick={() => handleNotificationClick(notification)}
                                 >
-                                    <div>
-                                        <Text strong style={{ display: 'block' }}>
-                                            {notification.title}
-                                        </Text>
-                                        <Text type="secondary" style={{ fontSize: 12 }}>
-                                            {notification.message}
-                                        </Text>
-                                        <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
-                                            {dayjs(notification.created_at).fromNow()}
-                                        </Text>
-                                    </div>
-                                </Link>
-                            ) : (
-                                <div style={{ width: '100%' }}>
-                                    <Text strong style={{ display: 'block' }}>
-                                        {notification.title}
-                                    </Text>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>
-                                        {notification.message}
-                                    </Text>
-                                    <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
-                                        {dayjs(notification.created_at).fromNow()}
-                                    </Text>
-                                </div>
+                                    {notification.card_id ? (
+                                        <Link
+                                            href={`/boards/${notification.board_id}/cards/${notification.card_id}`}
+                                            style={{ width: '100%', color: 'inherit' }}
+                                            onClick={() => handleNotificationClick(notification)}
+                                        >
+                                            <div>
+                                                <Text strong style={{ display: 'block' }}>
+                                                    {notification.title}
+                                                </Text>
+                                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                                    {notification.message}
+                                                </Text>
+                                                <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                                                    {dayjs(notification.created_at).fromNow()}
+                                                </Text>
+                                            </div>
+                                        </Link>
+                                    ) : (
+                                        <div style={{ width: '100%' }}>
+                                            <Text strong style={{ display: 'block' }}>
+                                                {notification.title}
+                                            </Text>
+                                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                                {notification.message}
+                                            </Text>
+                                            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                                                {dayjs(notification.created_at).fromNow()}
+                                            </Text>
+                                        </div>
+                                    )}
+                                </List.Item>
                             )}
-                        </List.Item>
-                    )}
-                />
-            )}
+                        />
+                        {isLoading && (
+                            <div style={{ padding: 16, textAlign: 'center' }}>
+                                <Spin size="small" />
+                            </div>
+                        )}
+                        {!hasMore && notifications.length > 0 && (
+                            <div style={{ padding: 12, textAlign: 'center' }}>
+                                <Text type="secondary" style={{ fontSize: 12 }}>No more notifications</Text>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
         </div>
     );
 

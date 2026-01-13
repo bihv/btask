@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strconv"
+
 	"github.com/btask/backend/internal/middleware"
 	"github.com/btask/backend/internal/services"
 	"github.com/btask/backend/pkg/utils"
@@ -18,16 +20,40 @@ func NewNotificationHandler() *NotificationHandler {
 	}
 }
 
-// GetNotifications gets all notifications for the current user
+// GetNotifications gets notifications for the current user with pagination
 func (h *NotificationHandler) GetNotifications(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 
-	notifications, err := h.service.GetByUserID(userID, 50) // Limit to 50
+	// Parse pagination parameters
+	limit := 20
+	offset := 0
+
+	if l := c.Query("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 50 {
+			limit = parsed
+		}
+	}
+
+	if o := c.Query("offset"); o != "" {
+		if parsed, err := strconv.Atoi(o); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	notifications, total, err := h.service.GetByUserIDPaginated(userID, limit, offset)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	return utils.SuccessResponse(c, notifications)
+	hasMore := offset+len(notifications) < int(total)
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"notifications": notifications,
+		"total":         total,
+		"has_more":      hasMore,
+		"offset":        offset,
+		"limit":         limit,
+	})
 }
 
 // GetUnreadCount gets unread notification count
