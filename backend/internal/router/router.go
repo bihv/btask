@@ -70,6 +70,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	boards.Post("/:id/watch", boardHandler.Watch)
 	boards.Delete("/:id/watch", boardHandler.Unwatch)
 	boards.Get("/:id/watching", boardHandler.IsWatching)
+	boards.Post("/:id/copy", boardHandler.Copy)
 
 	// Label routes
 	labelHandler := handlers.NewLabelHandler()

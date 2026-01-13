@@ -146,6 +146,11 @@ export default function BoardPage() {
                             await api.put(`/boards/${boardId}/collapse-all-lists`);
                             refetch();
                         }}
+                        onCopyBoard={async (title) => {
+                            const response = await api.post(`/boards/${boardId}/copy`, { title });
+                            const newBoard = response.data.data;
+                            router.push(`/boards/${newBoard.id}`);
+                        }}
                         onUpdateBoard={async (data) => {
                             await updateMutation.mutateAsync({ id: boardId, data });
                         }}

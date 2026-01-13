@@ -36,6 +36,25 @@ func (r *BoardRepository) FindByID(id uuid.UUID) (*models.Board, error) {
 	return &board, nil
 }
 
+// FindByIDWithDetails finds a board with all lists, cards, and labels for copying
+func (r *BoardRepository) FindByIDWithDetails(id uuid.UUID) (*models.Board, error) {
+	var board models.Board
+	err := database.DB.
+		Preload("Lists", func(db *gorm.DB) *gorm.DB {
+			return db.Order("lists.position ASC")
+		}).
+		Preload("Lists.Cards", func(db *gorm.DB) *gorm.DB {
+			return db.Order("cards.position ASC")
+		}).
+		Preload("Lists.Cards.Labels.Label").
+		Preload("Labels").
+		First(&board, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &board, nil
+}
+
 func (r *BoardRepository) FindByWorkspaceID(workspaceID uuid.UUID) ([]models.Board, error) {
 	var boards []models.Board
 	err := database.DB.

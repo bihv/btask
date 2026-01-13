@@ -48,3 +48,8 @@ type UpdateBoardRequest struct {
 	ShowCardCovers  *bool  `json:"show_card_covers"`
 	Position        *int   `json:"position"`
 }
+
+type CopyBoardRequest struct {
+	Title       string `json:"title" validate:"required,min=1,max=100"`
+	WorkspaceID string `json:"workspace_id"` // Optional, defaults to same workspace
+}

@@ -130,6 +130,31 @@ func (h *BoardHandler) Delete(c *fiber.Ctx) error {
 	return utils.SuccessMessageResponse(c, "Board deleted successfully")
 }
 
+func (h *BoardHandler) Copy(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	var req models.CopyBoardRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	if req.Title == "" {
+		return utils.ValidationErrorResponse(c, "Title is required")
+	}
+
+	board, err := h.service.Copy(id, userID, req)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, board)
+}
+
 func (h *BoardHandler) Watch(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 

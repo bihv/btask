@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Popover, Button, Divider, message, Modal } from 'antd';
+import { Popover, Button, Divider, message, Modal, Input } from 'antd';
 import styles from './BoardMenuPopover.module.css';
 import {
     ShareAltOutlined,
@@ -38,6 +38,7 @@ interface BoardMenuPopoverProps {
     onToggleWatch: () => void;
     onExpandAllLists: () => Promise<void>;
     onCollapseAllLists: () => Promise<void>;
+    onCopyBoard: (title: string) => Promise<void>;
     onUpdateBoard: (data: Partial<Board>) => Promise<void>;
     onDeleteBoard: () => void;
     onCardClick?: (cardId: string) => void;
@@ -52,6 +53,7 @@ export default function BoardMenuPopover({
     onToggleWatch,
     onExpandAllLists,
     onCollapseAllLists,
+    onCopyBoard,
     onUpdateBoard,
     onDeleteBoard,
     onCardClick,
@@ -59,6 +61,8 @@ export default function BoardMenuPopover({
 }: BoardMenuPopoverProps) {
     const [open, setOpen] = useState(false);
     const [screen, setScreen] = useState<MenuScreen>('main');
+    const [copyModalOpen, setCopyModalOpen] = useState(false);
+    const [copyTitle, setCopyTitle] = useState('');
 
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen);
@@ -161,7 +165,11 @@ export default function BoardMenuPopover({
             <MenuItem
                 icon={<CopyOutlined />}
                 label="Copy board"
-                onClick={() => message.info('Copy board coming soon')}
+                onClick={() => {
+                    setCopyTitle(board.title + ' (copy)');
+                    setCopyModalOpen(true);
+                    setOpen(false);
+                }}
             />
             <MenuItem
                 icon={<StopOutlined />}
@@ -213,16 +221,42 @@ export default function BoardMenuPopover({
     };
 
     return (
-        <Popover
-            content={renderContent()}
-            trigger="click"
-            open={open}
-            onOpenChange={handleOpenChange}
-            placement="bottomRight"
-            arrow={false}
-            overlayClassName={styles.popover}
-        >
-            {children}
-        </Popover>
+        <>
+            <Popover
+                content={renderContent()}
+                trigger="click"
+                open={open}
+                onOpenChange={handleOpenChange}
+                placement="bottomRight"
+                arrow={false}
+                overlayClassName={styles.popover}
+            >
+                {children}
+            </Popover>
+
+            <Modal
+                title="Copy Board"
+                open={copyModalOpen}
+                onCancel={() => setCopyModalOpen(false)}
+                onOk={async () => {
+                    if (copyTitle.trim()) {
+                        await onCopyBoard(copyTitle.trim());
+                        setCopyModalOpen(false);
+                        message.success('Board copied successfully');
+                    }
+                }}
+                okText="Create Copy"
+            >
+                <div style={{ marginTop: 16 }}>
+                    <label>Board title</label>
+                    <Input
+                        value={copyTitle}
+                        onChange={(e) => setCopyTitle(e.target.value)}
+                        placeholder="Enter board title"
+                        style={{ marginTop: 8 }}
+                    />
+                </div>
+            </Modal>
+        </>
     );
 }

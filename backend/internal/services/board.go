@@ -11,12 +11,18 @@ import (
 type BoardService struct {
 	boardRepo     *repository.BoardRepository
 	workspaceRepo *repository.WorkspaceRepository
+	listRepo      *repository.ListRepository
+	cardRepo      *repository.CardRepository
+	labelRepo     *repository.LabelRepository
 }
 
 func NewBoardService() *BoardService {
 	return &BoardService{
 		boardRepo:     repository.NewBoardRepository(),
 		workspaceRepo: repository.NewWorkspaceRepository(),
+		listRepo:      repository.NewListRepository(),
+		cardRepo:      repository.NewCardRepository(),
+		labelRepo:     repository.NewLabelRepository(),
 	}
 }
 
@@ -117,6 +123,108 @@ func (s *BoardService) Delete(boardID uuid.UUID, userID uuid.UUID) error {
 	}
 
 	return s.boardRepo.Delete(boardID)
+}
+
+// Copy creates a copy of a board with all its lists, cards, and labels
+func (s *BoardService) Copy(boardID uuid.UUID, userID uuid.UUID, req models.CopyBoardRequest) (*models.Board, error) {
+	// Get source board with lists and cards
+	sourceBoard, err := s.boardRepo.FindByIDWithDetails(boardID)
+	if err != nil {
+		return nil, errors.New("board not found")
+	}
+
+	if !s.hasWorkspaceAccess(sourceBoard.WorkspaceID, userID) {
+		return nil, errors.New("access denied")
+	}
+
+	// Determine target workspace
+	targetWorkspaceID := sourceBoard.WorkspaceID
+	if req.WorkspaceID != "" {
+		wsID, err := uuid.Parse(req.WorkspaceID)
+		if err == nil {
+			if s.hasWorkspaceAccess(wsID, userID) {
+				targetWorkspaceID = wsID
+			}
+		}
+	}
+
+	// Create new board
+	maxPos := s.boardRepo.GetMaxPosition(targetWorkspaceID)
+	newBoard := &models.Board{
+		WorkspaceID:     targetWorkspaceID,
+		Title:           req.Title,
+		Description:     sourceBoard.Description,
+		BackgroundColor: sourceBoard.BackgroundColor,
+		BackgroundImage: sourceBoard.BackgroundImage,
+		ShowCardCovers:  sourceBoard.ShowCardCovers,
+		Position:        maxPos + 1,
+	}
+
+	if err := s.boardRepo.Create(newBoard); err != nil {
+		return nil, err
+	}
+
+	// Copy labels and create mapping from old to new
+	labelMapping := make(map[uuid.UUID]uuid.UUID)
+	for _, label := range sourceBoard.Labels {
+		newLabel := &models.Label{
+			BoardID: newBoard.ID,
+			Name:    label.Name,
+			Color:   label.Color,
+		}
+		if err := s.labelRepo.Create(newLabel); err == nil {
+			labelMapping[label.ID] = newLabel.ID
+		}
+	}
+
+	// Copy lists with cards
+	for _, list := range sourceBoard.Lists {
+		if list.IsArchived {
+			continue // Skip archived lists
+		}
+
+		newList := &models.List{
+			BoardID:     newBoard.ID,
+			Title:       list.Title,
+			Position:    list.Position,
+			Color:       list.Color,
+			IsCollapsed: list.IsCollapsed,
+		}
+
+		if err := s.listRepo.Create(newList); err != nil {
+			continue
+		}
+
+		// Copy cards in the list
+		for _, card := range list.Cards {
+			if card.IsArchived {
+				continue // Skip archived cards
+			}
+
+			newCard := &models.Card{
+				ListID:      newList.ID,
+				Title:       card.Title,
+				Description: card.Description,
+				Position:    card.Position,
+				CoverImage:  card.CoverImage,
+				DueDate:     card.DueDate,
+				CreatedBy:   userID,
+			}
+
+			if err := s.cardRepo.Create(newCard); err != nil {
+				continue
+			}
+
+			// Copy card labels
+			for _, cardLabel := range card.Labels {
+				if newLabelID, ok := labelMapping[cardLabel.LabelID]; ok {
+					s.cardRepo.AddLabel(newCard.ID, newLabelID)
+				}
+			}
+		}
+	}
+
+	return newBoard, nil
 }
 
 func (s *BoardService) hasWorkspaceAccess(workspaceID uuid.UUID, userID uuid.UUID) bool {
