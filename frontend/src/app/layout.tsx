@@ -6,8 +6,14 @@ import { HeaderProvider } from '@/providers/HeaderProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'BTask - Task Management',
-    description: 'A Trello-like task management application',
+    title: 'Mello - Task Management',
+    description: 'A modern Kanban-style task management application',
+    icons: {
+        icon: [
+            { url: '/favicon.svg', type: 'image/svg+xml' },
+        ],
+        apple: '/mello-icon.svg',
+    },
 };
 
 export default function RootLayout({

@@ -140,11 +140,23 @@ export default function DashboardLayout({
                         borderBottom: `1px solid var(--border-color)`,
                     }}
                 >
-                    {!collapsed && (
-                        <Text strong style={{ fontSize: 20 }}>
-                            BTask
-                        </Text>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <img 
+                            src="/mello-icon-only.svg" 
+                            alt="Mello" 
+                            style={{ width: 32, height: 32 }}
+                        />
+                        {!collapsed && (
+                            <span style={{ 
+                                fontSize: 20, 
+                                fontWeight: 700, 
+                                color: 'var(--text-primary)',
+                                letterSpacing: '-0.5px'
+                            }}>
+                                Mello
+                            </span>
+                        )}
+                    </div>
                     <Button
                         type="text"
                         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
