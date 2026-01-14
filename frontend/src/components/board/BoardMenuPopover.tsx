@@ -21,14 +21,18 @@ import {
     ColumnWidthOutlined,
     CopyOutlined,
     StopOutlined,
+    FormOutlined,
 } from '@ant-design/icons';
-import { Board, User } from '@/types';
+import { Board, User, CustomField } from '@/types';
 import { MenuItem, MenuTitle } from './menu/MenuShared';
 import AboutScreen from './menu/AboutScreen';
 import BackgroundScreen from './menu/BackgroundScreen';
 import ArchivedScreen from './menu/ArchivedScreen';
+import CustomFieldsScreen from './menu/CustomFieldsScreen';
+import NewFieldScreen from './menu/NewFieldScreen';
+import EditFieldScreen from './menu/EditFieldScreen';
 
-type MenuScreen = 'main' | 'about' | 'background' | 'archived';
+type MenuScreen = 'main' | 'about' | 'background' | 'archived' | 'customFields' | 'newField' | 'editField';
 
 interface BoardMenuPopoverProps {
     board: Board;
@@ -63,6 +67,7 @@ export default function BoardMenuPopover({
     const [screen, setScreen] = useState<MenuScreen>('main');
     const [copyModalOpen, setCopyModalOpen] = useState(false);
     const [copyTitle, setCopyTitle] = useState('');
+    const [selectedField, setSelectedField] = useState<CustomField | null>(null);
 
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen);
@@ -132,6 +137,7 @@ export default function BoardMenuPopover({
                 onClick={handleToggleCardCovers}
             />
             <MenuItem icon={<TagsOutlined />} label="Labels" onClick={() => message.info('Coming soon')} />
+            <MenuItem icon={<FormOutlined />} label="Custom Fields" onClick={() => setScreen('customFields')} />
 
             <Divider style={{ margin: '8px 0' }} />
 
@@ -215,6 +221,35 @@ export default function BoardMenuPopover({
                         }}
                     />
                 );
+            case 'customFields':
+                return (
+                    <CustomFieldsScreen
+                        boardId={board.id}
+                        onBack={goBack}
+                        onNewField={() => setScreen('newField')}
+                        onEditField={(field) => {
+                            setSelectedField(field);
+                            setScreen('editField');
+                        }}
+                    />
+                );
+            case 'newField':
+                return (
+                    <NewFieldScreen
+                        boardId={board.id}
+                        onBack={() => setScreen('customFields')}
+                        onCreate={() => setScreen('customFields')}
+                    />
+                );
+            case 'editField':
+                return selectedField ? (
+                    <EditFieldScreen
+                        field={selectedField}
+                        onBack={() => setScreen('customFields')}
+                        onUpdate={() => setScreen('customFields')}
+                        onDelete={() => setScreen('customFields')}
+                    />
+                ) : null;
             default:
                 return renderMainScreen();
         }

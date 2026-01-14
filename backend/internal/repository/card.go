@@ -152,3 +152,19 @@ func (r *CardRepository) FindArchivedByBoardID(boardID uuid.UUID) ([]models.Card
 	}
 	return cards, nil
 }
+
+// GetListByCardID returns the list that contains the card
+func (r *CardRepository) GetListByCardID(cardID uuid.UUID) (*models.List, error) {
+	var card models.Card
+	err := database.DB.Select("list_id").First(&card, "id = ?", cardID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var list models.List
+	err = database.DB.First(&list, "id = ?", card.ListID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &list, nil
+}

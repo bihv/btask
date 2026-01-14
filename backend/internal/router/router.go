@@ -122,6 +122,24 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Archived cards by board
 	boards.Get("/:id/archived-cards", cardHandler.GetArchivedCards)
 
+	// Custom Field routes
+	customFieldHandler := handlers.NewCustomFieldHandler()
+	boards.Get("/:boardId/custom-fields", customFieldHandler.GetByBoardID)
+	boards.Post("/:boardId/custom-fields", customFieldHandler.Create)
+	boards.Post("/:boardId/custom-fields/default", customFieldHandler.AddDefaultField)
+
+	customFields := protected.Group("/custom-fields")
+	customFields.Put("/:id", customFieldHandler.Update)
+	customFields.Delete("/:id", customFieldHandler.Delete)
+	customFields.Post("/:id/options", customFieldHandler.AddOption)
+	customFields.Put("/options/:optionId", customFieldHandler.UpdateOption)
+	customFields.Delete("/options/:optionId", customFieldHandler.DeleteOption)
+
+	// Card Custom Field Values
+	cards.Get("/:cardId/custom-fields", customFieldHandler.GetCardValues)
+	cards.Put("/:cardId/custom-fields/:fieldId", customFieldHandler.SetCardValue)
+	cards.Delete("/:cardId/custom-fields/:fieldId", customFieldHandler.ClearCardValue)
+
 	// Comment routes
 	commentHandler := handlers.NewCommentHandler()
 	cards.Get("/:cardId/comments", commentHandler.GetByCardID)
