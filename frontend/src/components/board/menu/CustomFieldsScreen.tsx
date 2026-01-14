@@ -1,16 +1,38 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Spin, message, Divider } from 'antd';
+import { Typography, Button, Spin, message, Divider, Tooltip } from 'antd';
 import {
-    CheckCircleOutlined,
+    CheckSquareOutlined,
     FlagOutlined,
     ThunderboltOutlined,
     WarningOutlined,
     RightOutlined,
     PlusOutlined,
     InfoCircleOutlined,
+    CalendarOutlined,
+    NumberOutlined,
+    FontSizeOutlined,
+    AppstoreOutlined,
+    HolderOutlined,
 } from '@ant-design/icons';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { CustomField } from '@/types';
 import { customFieldApi } from '@/lib/api';
 import { ScreenHeader } from './MenuShared';
@@ -29,11 +51,17 @@ const getFieldIcon = (type: string, name?: string) => {
     // For custom fields, use icons based on type
     switch (type) {
         case 'checkbox':
-            return <CheckCircleOutlined />;
+            return <CheckSquareOutlined />;
         case 'dropdown':
-            return <FlagOutlined />;
+            return <AppstoreOutlined />;
+        case 'text':
+            return <FontSizeOutlined />;
+        case 'number':
+            return <NumberOutlined />;
+        case 'date':
+            return <CalendarOutlined />;
         default:
-            return <CheckCircleOutlined />;
+            return <FlagOutlined />;
     }
 };
 
@@ -57,10 +85,97 @@ interface CustomFieldsScreenProps {
     onEditField: (field: CustomField) => void;
 }
 
+// Sortable field item component
+interface SortableFieldItemProps {
+    field: CustomField;
+    onEditField: (field: CustomField) => void;
+}
+
+function SortableFieldItem({ field, onEditField }: SortableFieldItemProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: field.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={{
+                ...style,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 12px',
+                cursor: 'pointer',
+                borderRadius: 4,
+                backgroundColor: isDragging ? 'var(--bg-tertiary)' : 'transparent',
+                transition: 'background-color 0.15s',
+            }}
+            onMouseEnter={(e) => {
+                if (!isDragging) e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+            }}
+            onMouseLeave={(e) => {
+                if (!isDragging) e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+        >
+            {/* Drag handle */}
+            <div
+                {...attributes}
+                {...listeners}
+                style={{
+                    cursor: 'grab',
+                    padding: '4px',
+                    marginRight: 6,
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                }}
+            >
+                <HolderOutlined />
+            </div>
+            
+            <div 
+                style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}
+                onClick={() => onEditField(field)}
+            >
+                <span style={{ opacity: 0.7 }}>
+                    {getFieldIcon(field.type, field.name)}
+                </span>
+                <Text>{field.name}</Text>
+            </div>
+            <RightOutlined 
+                style={{ fontSize: 12, opacity: 0.5, cursor: 'pointer' }} 
+                onClick={() => onEditField(field)}
+            />
+        </div>
+    );
+}
+
 export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEditField }: CustomFieldsScreenProps) {
     const [fields, setFields] = useState<CustomField[]>([]);
     const [loading, setLoading] = useState(true);
     const [addingDefault, setAddingDefault] = useState<string | null>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const loadFields = async () => {
         try {
@@ -76,6 +191,32 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
     useEffect(() => {
         loadFields();
     }, [boardId]);
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = fields.findIndex((f) => f.id === active.id);
+            const newIndex = fields.findIndex((f) => f.id === over.id);
+
+            // Optimistic update
+            const newFields = arrayMove(fields, oldIndex, newIndex);
+            setFields(newFields);
+
+            // Update positions for all reordered fields
+            try {
+                // Update positions sequentially 
+                await Promise.all(
+                    newFields.map((field, index) => 
+                        customFieldApi.update(field.id, { position: index })
+                    )
+                );
+            } catch (error) {
+                message.error('Failed to reorder field');
+                loadFields(); // Revert on error
+            }
+        }
+    };
 
     const handleAddDefaultField = async (fieldKey: string) => {
         setAddingDefault(fieldKey);
@@ -110,44 +251,38 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
 
             {/* Info button */}
             <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '4px 12px 8px' }}>
-                <Button type="text" size="small" icon={<InfoCircleOutlined />} style={{ color: 'var(--text-secondary)' }}>
-                    About custom fields
-                </Button>
+                <Tooltip 
+                    title="Custom Fields let you add extra info to cards. Use them to track priority, status, estimates, and more."
+                    placement="bottom"
+                >
+                    <Button type="text" size="small" icon={<InfoCircleOutlined />} style={{ color: 'var(--text-secondary)' }}>
+                        About custom fields
+                    </Button>
+                </Tooltip>
             </div>
 
-            {/* Existing custom fields */}
+            {/* Existing custom fields with drag and drop */}
             {fields.length > 0 && (
-                <div style={{ marginBottom: 8 }}>
-                    {fields.map((field) => (
-                        <div
-                            key={field.id}
-                            onClick={() => onEditField(field)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '10px 12px',
-                                cursor: 'pointer',
-                                borderRadius: 4,
-                                transition: 'background-color 0.15s',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                            }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <span style={{ opacity: 0.7 }}>
-                                    {getFieldIcon(field.type, field.name)}
-                                </span>
-                                <Text>{field.name}</Text>
-                            </div>
-                            <RightOutlined style={{ fontSize: 12, opacity: 0.5 }} />
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext
+                        items={fields.map(f => f.id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        <div style={{ marginBottom: 8 }}>
+                            {fields.map((field) => (
+                                <SortableFieldItem
+                                    key={field.id}
+                                    field={field}
+                                    onEditField={onEditField}
+                                />
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    </SortableContext>
+                </DndContext>
             )}
 
             {/* Suggested fields section */}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Popover, Button, Divider, message, Modal, Input } from 'antd';
+import { Popover, Button, Divider, Modal, Input, App } from 'antd';
 import styles from './BoardMenuPopover.module.css';
 import {
     ShareAltOutlined,
@@ -63,6 +63,7 @@ export default function BoardMenuPopover({
     onCardClick,
     children,
 }: BoardMenuPopoverProps) {
+    const { modal, message } = App.useApp();
     const [open, setOpen] = useState(false);
     const [screen, setScreen] = useState<MenuScreen>('main');
     const [copyModalOpen, setCopyModalOpen] = useState(false);
@@ -81,7 +82,7 @@ export default function BoardMenuPopover({
 
     const handleDelete = () => {
         setOpen(false);
-        Modal.confirm({
+        modal.confirm({
             title: 'Delete this board?',
             content: 'This action cannot be undone. All lists and cards will be permanently deleted.',
             okText: 'Delete',

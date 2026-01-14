@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Tabs, List, Button, Empty, Spin, message, Typography, Tooltip, Modal } from 'antd';
+import { Tabs, List, Button, Empty, Spin, message, Typography, Tooltip, Modal, App } from 'antd';
 import { UndoOutlined, InboxOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import { List as ListType, Card } from '@/types';
@@ -18,6 +18,7 @@ interface ArchivedScreenProps {
 }
 
 export default function ArchivedScreen({ boardId, onBack, onCardClick }: ArchivedScreenProps) {
+    const { modal } = App.useApp();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('cards');
     const [archivedLists, setArchivedLists] = useState<ListType[]>([]);
@@ -77,7 +78,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
     };
 
     const handleDeleteCard = (cardId: string, cardTitle: string) => {
-        Modal.confirm({
+        modal.confirm({
             title: 'Delete card permanently?',
             content: `"${cardTitle}" will be permanently deleted. This cannot be undone.`,
             okText: 'Delete',
@@ -95,7 +96,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
     };
 
     const handleDeleteList = (listId: string, listTitle: string) => {
-        Modal.confirm({
+        modal.confirm({
             title: 'Delete list permanently?',
             content: `"${listTitle}" and all its cards will be permanently deleted. This cannot be undone.`,
             okText: 'Delete',

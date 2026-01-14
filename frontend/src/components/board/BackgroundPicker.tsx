@@ -511,7 +511,7 @@ export default function BackgroundPicker({
                         key: 'photos',
                         label: (
                             <span>
-                                <PictureOutlined />
+                                <PictureOutlined style={{ marginRight: 6 }} />
                                 Photos
                             </span>
                         ),
@@ -521,7 +521,7 @@ export default function BackgroundPicker({
                         key: 'colors',
                         label: (
                             <span>
-                                <BgColorsOutlined />
+                                <BgColorsOutlined style={{ marginRight: 6 }} />
                                 Colors
                             </span>
                         ),

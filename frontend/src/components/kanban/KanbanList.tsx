@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Input, Button, Dropdown, Popover, Space, Divider, Modal, Select } from 'antd';
+import { Input, Button, Dropdown, Popover, Space, Divider, Modal, Select, App } from 'antd';
 import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutlined, CopyOutlined, SwapOutlined, SortAscendingOutlined, EyeOutlined, EyeInvisibleOutlined, InboxOutlined, ColumnWidthOutlined } from '@ant-design/icons';
 import { List, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
@@ -70,6 +70,7 @@ function matchesFilters(card: Card, filters: FilterState): boolean {
 }
 
 export default function KanbanList({ list, filters }: KanbanListProps) {
+    const { modal } = App.useApp();
     const { updateList, updateListColor, deleteList, copyList, moveAllCards, sortCards, createCard, lists } = useBoardStore();
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState(list.title);
@@ -283,7 +284,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             icon: <InboxOutlined />,
             onClick: () => {
                 setMenuOpen(false);
-                Modal.confirm({
+                modal.confirm({
                     title: 'Archive all cards',
                     content: `Are you sure you want to archive all ${list.cards?.length || 0} cards in "${list.title}"?`,
                     okText: 'Archive all',
@@ -309,7 +310,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             icon: <InboxOutlined />,
             onClick: () => {
                 setMenuOpen(false);
-                Modal.confirm({
+                modal.confirm({
                     title: 'Archive list',
                     content: `Are you sure you want to archive "${list.title}"? It will be hidden from the board.`,
                     okText: 'Archive',
@@ -335,7 +336,16 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             label: 'Delete list',
             danger: true,
             icon: <DeleteOutlined />,
-            onClick: () => deleteList(list.id),
+            onClick: () => {
+                setMenuOpen(false);
+                modal.confirm({
+                    title: 'Delete list?',
+                    content: `Are you sure you want to delete "${list.title}"? This action cannot be undone.`,
+                    okText: 'Delete',
+                    okType: 'danger',
+                    onOk: () => deleteList(list.id),
+                });
+            },
         },
     ];
 

@@ -28,7 +28,12 @@ func (r *BoardRepository) FindByID(id uuid.UUID) (*models.Board, error) {
 		}).
 		Preload("Lists.Cards.Labels.Label").
 		Preload("Lists.Cards.Members.User").
+		Preload("Lists.Cards.CustomFieldValues.CustomField").
+		Preload("Lists.Cards.CustomFieldValues.Option").
 		Preload("Labels").
+		Preload("CustomFields.Options", func(db *gorm.DB) *gorm.DB {
+			return db.Order("custom_field_options.position ASC")
+		}).
 		First(&board, "id = ?", id).Error
 	if err != nil {
 		return nil, err

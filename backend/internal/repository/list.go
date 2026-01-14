@@ -50,9 +50,57 @@ func (r *ListRepository) Update(list *models.List) error {
 }
 
 func (r *ListRepository) Delete(id uuid.UUID) error {
-	// Delete all cards in the list first
-	database.DB.Delete(&models.Card{}, "list_id = ?", id)
-	return database.DB.Delete(&models.List{}, "id = ?", id).Error
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// Get all card IDs in this list
+		var cardIDs []uuid.UUID
+		if err := tx.Model(&models.Card{}).Where("list_id = ?", id).Pluck("id", &cardIDs).Error; err != nil {
+			return err
+		}
+
+		if len(cardIDs) > 0 {
+			// Delete card related data
+			if err := tx.Where("card_id IN ?", cardIDs).Delete(&models.CardLabel{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("card_id IN ?", cardIDs).Delete(&models.CardMember{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("card_id IN ?", cardIDs).Delete(&models.Comment{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("card_id IN ?", cardIDs).Delete(&models.CardCustomFieldValue{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("card_id IN ?", cardIDs).Delete(&models.Attachment{}).Error; err != nil {
+				return err
+			}
+			// Delete checklist items first, then checklists
+			var checklistIDs []uuid.UUID
+			if err := tx.Model(&models.Checklist{}).Where("card_id IN ?", cardIDs).Pluck("id", &checklistIDs).Error; err != nil {
+				return err
+			}
+			if len(checklistIDs) > 0 {
+				if err := tx.Where("checklist_id IN ?", checklistIDs).Delete(&models.ChecklistItem{}).Error; err != nil {
+					return err
+				}
+			}
+			if err := tx.Where("card_id IN ?", cardIDs).Delete(&models.Checklist{}).Error; err != nil {
+				return err
+			}
+			// Delete cards
+			if err := tx.Where("list_id = ?", id).Delete(&models.Card{}).Error; err != nil {
+				return err
+			}
+		}
+
+		// Delete list watchers
+		if err := tx.Where("list_id = ?", id).Delete(&models.ListWatcher{}).Error; err != nil {
+			return err
+		}
+
+		// Delete the list
+		return tx.Delete(&models.List{}, "id = ?", id).Error
+	})
 }
 
 func (r *ListRepository) GetMaxPosition(boardID uuid.UUID) int {
