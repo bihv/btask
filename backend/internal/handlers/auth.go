@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"github.com/btask/backend/internal/config"
-	"github.com/btask/backend/internal/services"
-	"github.com/btask/backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/mello/backend/internal/config"
+	"github.com/mello/backend/internal/services"
+	"github.com/mello/backend/pkg/utils"
 )
 
 type AuthHandler struct {

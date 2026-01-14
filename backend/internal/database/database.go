@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/btask/backend/internal/models"
-	"github.com/btask/backend/pkg/logger"
+	"github.com/mello/backend/internal/models"
+	"github.com/mello/backend/pkg/logger"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

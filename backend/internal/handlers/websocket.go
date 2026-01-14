@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"github.com/btask/backend/internal/middleware"
-	ws "github.com/btask/backend/internal/websocket"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
+	"github.com/mello/backend/internal/middleware"
+	ws "github.com/mello/backend/internal/websocket"
 )
 
 // WebSocketHandler handles WebSocket connections

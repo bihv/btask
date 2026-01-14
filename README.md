@@ -1,4 +1,4 @@
-# BTask - Trello Clone
+# Mello - Trello Clone
 
 A full-stack Trello clone built with modern technologies.
 
@@ -117,7 +117,7 @@ npm run dev
 ## Project Structure
 
 ```
-btask/
+mello/
 ├── backend/
 │   ├── cmd/server/         # Entry point
 │   ├── internal/

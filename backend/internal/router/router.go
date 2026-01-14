@@ -1,12 +1,12 @@
 package router
 
 import (
-	"github.com/btask/backend/internal/config"
-	"github.com/btask/backend/internal/handlers"
-	"github.com/btask/backend/internal/middleware"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/mello/backend/internal/config"
+	"github.com/mello/backend/internal/handlers"
+	"github.com/mello/backend/internal/middleware"
 )
 
 func Setup(app *fiber.App, cfg *config.Config) {

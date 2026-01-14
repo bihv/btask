@@ -32,7 +32,7 @@ func Load() (*Config, error) {
 	}
 
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://btask:btask123@localhost:5432/btask?sslmode=disable"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://mello:mello123@localhost:5432/mello?sslmode=disable"),
 		JWTSecret:   getEnv("JWT_SECRET", "your-super-secret-key"),
 		JWTExpiry:   jwtExpiry,
 		ServerPort:  getEnv("SERVER_PORT", "8080"),
@@ -42,7 +42,7 @@ func Load() (*Config, error) {
 		MinioEndpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
 		MinioAccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
 		MinioSecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin"),
-		MinioBucket:    getEnv("MINIO_BUCKET", "btask-uploads"),
+		MinioBucket:    getEnv("MINIO_BUCKET", "mello-uploads"),
 		MinioUseSSL:    getEnv("MINIO_USE_SSL", "false") == "true",
 		MinioPublicURL: getEnv("MINIO_PUBLIC_URL", "http://localhost:9000"),
 	}, nil

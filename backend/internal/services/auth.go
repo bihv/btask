@@ -4,11 +4,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/btask/backend/internal/config"
-	"github.com/btask/backend/internal/middleware"
-	"github.com/btask/backend/internal/models"
-	"github.com/btask/backend/internal/repository"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/mello/backend/internal/config"
+	"github.com/mello/backend/internal/middleware"
+	"github.com/mello/backend/internal/models"
+	"github.com/mello/backend/internal/repository"
 )
 
 type AuthService struct {

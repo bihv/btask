@@ -1,4 +1,4 @@
-module github.com/btask/backend
+module github.com/mello/backend
 
 go 1.23.0
 

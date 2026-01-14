@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Tabs, List, Button, Empty, Spin, message, Typography, Tooltip, Modal, App } from 'antd';
+import { Tabs, Button, Empty, Spin, Typography, Tooltip, App, Flex } from 'antd';
 import { UndoOutlined, InboxOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import { List as ListType, Card } from '@/types';
@@ -18,7 +18,7 @@ interface ArchivedScreenProps {
 }
 
 export default function ArchivedScreen({ boardId, onBack, onCardClick }: ArchivedScreenProps) {
-    const { modal } = App.useApp();
+    const { modal, message } = App.useApp();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('cards');
     const [archivedLists, setArchivedLists] = useState<ListType[]>([]);
@@ -122,23 +122,28 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             ) : archivedCards.length === 0 ? (
                 <Empty description="No archived cards" image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
             ) : (
-                <List
-                    size="small"
-                    dataSource={archivedCards}
-                    style={{ maxHeight: 300, overflow: 'auto' }}
-                    renderItem={(card) => (
-                        <List.Item
-                            style={{ padding: '6px 0' }}
-                            actions={[
-                                <Tooltip title="Restore" key="restore">
+                <div style={{ maxHeight: 300, overflow: 'auto' }}>
+                    {archivedCards.map((card, index) => (
+                        <Flex key={card.id} align="center" justify="space-between" style={{ padding: '6px 0', borderBottom: index < archivedCards.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+                            <Flex align="center" gap={8} style={{ flex: 1, minWidth: 0 }}>
+                                <InboxOutlined style={{ fontSize: 14, color: '#999', flexShrink: 0 }} />
+                                <Link
+                                    onClick={() => handleCardClick(card.id)}
+                                    style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                >
+                                    {card.title}
+                                </Link>
+                            </Flex>
+                            <Flex gap={4}>
+                                <Tooltip title="Restore">
                                     <Button
                                         type="text"
                                         size="small"
                                         icon={<UndoOutlined />}
                                         onClick={() => handleRestoreCard(card.id)}
                                     />
-                                </Tooltip>,
-                                <Tooltip title="Delete permanently" key="delete">
+                                </Tooltip>
+                                <Tooltip title="Delete permanently">
                                     <Button
                                         type="text"
                                         size="small"
@@ -147,20 +152,10 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                                         onClick={() => handleDeleteCard(card.id, card.title)}
                                     />
                                 </Tooltip>
-                            ]}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                                <InboxOutlined style={{ fontSize: 14, color: '#999', flexShrink: 0 }} />
-                                <Link
-                                    onClick={() => handleCardClick(card.id)}
-                                    style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                                >
-                                    {card.title}
-                                </Link>
-                            </div>
-                        </List.Item>
-                    )}
-                />
+                            </Flex>
+                        </Flex>
+                    ))}
+                </div>
             ),
         },
         {
@@ -171,23 +166,25 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             ) : archivedLists.length === 0 ? (
                 <Empty description="No archived lists" image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
             ) : (
-                <List
-                    size="small"
-                    dataSource={archivedLists}
-                    style={{ maxHeight: 300, overflow: 'auto' }}
-                    renderItem={(list) => (
-                        <List.Item
-                            style={{ padding: '6px 0' }}
-                            actions={[
-                                <Tooltip title="Restore" key="restore">
+                <div style={{ maxHeight: 300, overflow: 'auto' }}>
+                    {archivedLists.map((list, index) => (
+                        <Flex key={list.id} align="center" justify="space-between" style={{ padding: '6px 0', borderBottom: index < archivedLists.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+                            <Flex align="center" gap={8} style={{ flex: 1, minWidth: 0 }}>
+                                <InboxOutlined style={{ fontSize: 14, color: '#999', flexShrink: 0 }} />
+                                <Text style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {list.title}
+                                </Text>
+                            </Flex>
+                            <Flex gap={4}>
+                                <Tooltip title="Restore">
                                     <Button
                                         type="text"
                                         size="small"
                                         icon={<UndoOutlined />}
                                         onClick={() => handleRestoreList(list.id)}
                                     />
-                                </Tooltip>,
-                                <Tooltip title="Delete permanently" key="delete">
+                                </Tooltip>
+                                <Tooltip title="Delete permanently">
                                     <Button
                                         type="text"
                                         size="small"
@@ -196,17 +193,10 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                                         onClick={() => handleDeleteList(list.id, list.title)}
                                     />
                                 </Tooltip>
-                            ]}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                                <InboxOutlined style={{ fontSize: 14, color: '#999', flexShrink: 0 }} />
-                                <Text style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {list.title}
-                                </Text>
-                            </div>
-                        </List.Item>
-                    )}
-                />
+                            </Flex>
+                        </Flex>
+                    ))}
+                </div>
             ),
         },
     ];
