@@ -24,7 +24,7 @@ export default function ShareCardPopover({ cardId, cardTitle, boardId, cardData 
         : `/boards/${boardId}/cards/${cardId}`;
 
     // Generate embed code
-    const embedCode = `<blockquote class="btask-card"><a href="${cardUrl}">${cardTitle}</a></blockquote>`;
+    const embedCode = `<blockquote class="mello-card"><a href="${cardUrl}">${cardTitle}</a></blockquote>`;
 
     const handleCopy = (text: string, label: string) => {
         navigator.clipboard.writeText(text);

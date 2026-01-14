@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"github.com/btask/backend/internal/database"
-	"github.com/btask/backend/internal/models"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/database"
+	"github.com/mello/backend/internal/models"
 )
 
 type ChecklistRepository struct{}

@@ -31,7 +31,7 @@ export default function RegisterPage() {
     return (
         <div className={styles.card}>
             <div className={styles.logo}>
-                <Title level={2} style={{ marginBottom: 8 }}>BTask</Title>
+                <Title level={2} style={{ marginBottom: 8 }}>Mello</Title>
                 <Text type="secondary">Create your account</Text>
             </div>
 

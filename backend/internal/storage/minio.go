@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/btask/backend/internal/config"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -97,7 +97,7 @@ func (s *MinioStorage) DeleteFile(ctx context.Context, fileURL string) error {
 
 // extractObjectName extracts the object name from a full URL
 func extractObjectName(url, bucket string) string {
-	// URL format: http://localhost:9000/btask-uploads/filename.jpg
+	// URL format: http://localhost:9000/mello-uploads/filename.jpg
 	parts := strings.Split(url, "/"+bucket+"/")
 	if len(parts) < 2 {
 		return ""

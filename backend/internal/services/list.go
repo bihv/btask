@@ -3,9 +3,9 @@ package services
 import (
 	"errors"
 
-	"github.com/btask/backend/internal/models"
-	"github.com/btask/backend/internal/repository"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/models"
+	"github.com/mello/backend/internal/repository"
 )
 
 type ListService struct {

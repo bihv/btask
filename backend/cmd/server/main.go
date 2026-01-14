@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/btask/backend/internal/config"
-	"github.com/btask/backend/internal/database"
-	"github.com/btask/backend/internal/router"
-	"github.com/btask/backend/internal/storage"
-	"github.com/btask/backend/internal/websocket"
-	"github.com/btask/backend/pkg/logger"
 	"github.com/gofiber/fiber/v2"
+	"github.com/mello/backend/internal/config"
+	"github.com/mello/backend/internal/database"
+	"github.com/mello/backend/internal/router"
+	"github.com/mello/backend/internal/storage"
+	"github.com/mello/backend/internal/websocket"
+	"github.com/mello/backend/pkg/logger"
 	"go.uber.org/zap"
 )
 

@@ -28,7 +28,7 @@ export default function LoginPage() {
     return (
         <div className={styles.card}>
             <div className={styles.logo}>
-                <Title level={2} style={{ marginBottom: 8 }}>BTask</Title>
+                <Title level={2} style={{ marginBottom: 8 }}>Mello</Title>
                 <Text type="secondary">Task Management Made Simple</Text>
             </div>
 

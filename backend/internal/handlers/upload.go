@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/btask/backend/internal/storage"
-	"github.com/btask/backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/mello/backend/internal/storage"
+	"github.com/mello/backend/pkg/utils"
 )
 
 type UploadHandler struct{}

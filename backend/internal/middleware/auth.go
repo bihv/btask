@@ -3,11 +3,11 @@ package middleware
 import (
 	"strings"
 
-	"github.com/btask/backend/internal/config"
-	"github.com/btask/backend/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/config"
+	"github.com/mello/backend/pkg/utils"
 )
 
 type Claims struct {
