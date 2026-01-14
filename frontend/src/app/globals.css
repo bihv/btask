@@ -70,3 +70,32 @@ body {
     justify-content: center;
     min-height: 200px;
 }
+
+/* Ant Design Input Styling */
+.ant-input,
+.ant-input-password input {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.ant-input-affix-wrapper {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+}
+
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused {
+    border-color: var(--primary-color) !important;
+}
+
+/* Override browser autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--bg-tertiary) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}

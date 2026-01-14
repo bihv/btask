@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Popover, Button, Divider, message, Modal, Input } from 'antd';
+import { Popover, Button, Divider, Modal, Input, App } from 'antd';
 import styles from './BoardMenuPopover.module.css';
 import {
     ShareAltOutlined,
@@ -21,14 +21,18 @@ import {
     ColumnWidthOutlined,
     CopyOutlined,
     StopOutlined,
+    FormOutlined,
 } from '@ant-design/icons';
-import { Board, User } from '@/types';
+import { Board, User, CustomField } from '@/types';
 import { MenuItem, MenuTitle } from './menu/MenuShared';
 import AboutScreen from './menu/AboutScreen';
 import BackgroundScreen from './menu/BackgroundScreen';
 import ArchivedScreen from './menu/ArchivedScreen';
+import CustomFieldsScreen from './menu/CustomFieldsScreen';
+import NewFieldScreen from './menu/NewFieldScreen';
+import EditFieldScreen from './menu/EditFieldScreen';
 
-type MenuScreen = 'main' | 'about' | 'background' | 'archived';
+type MenuScreen = 'main' | 'about' | 'background' | 'archived' | 'customFields' | 'newField' | 'editField';
 
 interface BoardMenuPopoverProps {
     board: Board;
@@ -59,10 +63,12 @@ export default function BoardMenuPopover({
     onCardClick,
     children,
 }: BoardMenuPopoverProps) {
+    const { modal, message } = App.useApp();
     const [open, setOpen] = useState(false);
     const [screen, setScreen] = useState<MenuScreen>('main');
     const [copyModalOpen, setCopyModalOpen] = useState(false);
     const [copyTitle, setCopyTitle] = useState('');
+    const [selectedField, setSelectedField] = useState<CustomField | null>(null);
 
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen);
@@ -76,7 +82,7 @@ export default function BoardMenuPopover({
 
     const handleDelete = () => {
         setOpen(false);
-        Modal.confirm({
+        modal.confirm({
             title: 'Delete this board?',
             content: 'This action cannot be undone. All lists and cards will be permanently deleted.',
             okText: 'Delete',
@@ -132,6 +138,7 @@ export default function BoardMenuPopover({
                 onClick={handleToggleCardCovers}
             />
             <MenuItem icon={<TagsOutlined />} label="Labels" onClick={() => message.info('Coming soon')} />
+            <MenuItem icon={<FormOutlined />} label="Custom Fields" onClick={() => setScreen('customFields')} />
 
             <Divider style={{ margin: '8px 0' }} />
 
@@ -215,6 +222,35 @@ export default function BoardMenuPopover({
                         }}
                     />
                 );
+            case 'customFields':
+                return (
+                    <CustomFieldsScreen
+                        boardId={board.id}
+                        onBack={goBack}
+                        onNewField={() => setScreen('newField')}
+                        onEditField={(field) => {
+                            setSelectedField(field);
+                            setScreen('editField');
+                        }}
+                    />
+                );
+            case 'newField':
+                return (
+                    <NewFieldScreen
+                        boardId={board.id}
+                        onBack={() => setScreen('customFields')}
+                        onCreate={() => setScreen('customFields')}
+                    />
+                );
+            case 'editField':
+                return selectedField ? (
+                    <EditFieldScreen
+                        field={selectedField}
+                        onBack={() => setScreen('customFields')}
+                        onUpdate={() => setScreen('customFields')}
+                        onDelete={() => setScreen('customFields')}
+                    />
+                ) : null;
             default:
                 return renderMainScreen();
         }

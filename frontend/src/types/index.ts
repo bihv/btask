@@ -43,6 +43,7 @@ export interface Board {
     position: number;
     lists?: List[];
     labels?: Label[];
+    custom_fields?: CustomField[];
     created_at: string;
     updated_at: string;
 }
@@ -77,6 +78,7 @@ export interface Card {
     labels?: CardLabel[];
     members?: CardMember[];
     comments?: Comment[];
+    custom_field_values?: CardCustomFieldValue[];
     created_at: string;
     updated_at: string;
 }
@@ -101,6 +103,40 @@ export interface Label {
     board_id: string;
     name?: string;
     color: string;
+}
+
+// Custom Field types
+export type CustomFieldType = 'checkbox' | 'text' | 'dropdown' | 'number' | 'date';
+
+export interface CustomFieldOption {
+    id: string;
+    custom_field_id: string;
+    value: string;
+    color?: string;
+    position: number;
+}
+
+export interface CustomField {
+    id: string;
+    board_id: string;
+    name: string;
+    type: CustomFieldType;
+    position: number;
+    show_on_card: boolean;
+    is_default: boolean;
+    options?: CustomFieldOption[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CardCustomFieldValue {
+    id: string;
+    card_id: string;
+    custom_field_id: string;
+    value?: string;
+    option_id?: string;
+    custom_field?: CustomField;
+    option?: CustomFieldOption;
 }
 
 // Comment types

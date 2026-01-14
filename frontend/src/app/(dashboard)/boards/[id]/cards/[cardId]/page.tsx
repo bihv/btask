@@ -20,6 +20,7 @@ import {
     List as AntList,
     Modal,
     Upload,
+    App,
 } from 'antd';
 import {
     AlignLeftOutlined,
@@ -48,6 +49,7 @@ import ChecklistSection from '@/components/card/ChecklistSection';
 import AttachmentSection from '@/components/card/AttachmentSection';
 import ShareCardPopover from '@/components/card/ShareCardPopover';
 import LabelPicker from '@/components/card/LabelPicker';
+import CustomFieldsSection from '@/components/card/CustomFieldsSection';
 
 
 // Dynamic import to avoid SSR issues with BlockNote
@@ -74,6 +76,7 @@ export default function CardPage() {
     const { user } = useAuthStore();
     const { setHeaderContent } = useHeader();
     const queryClient = useQueryClient();
+    const { modal } = App.useApp();
 
     // Helper to invalidate board cache after card updates
     const invalidateBoardCache = () => {
@@ -225,7 +228,7 @@ export default function CardPage() {
 
     const handleDelete = () => {
         if (!card) return;
-        Modal.confirm({
+        modal.confirm({
             title: 'Delete card?',
             content: 'This action cannot be undone.',
             okText: 'Delete',
@@ -672,6 +675,9 @@ export default function CardPage() {
                         </Popover>
                     </div>
 
+                    {/* Custom Fields Section */}
+                    <CustomFieldsSection cardId={cardId} boardId={boardId} />
+
                     {/* Cover Image Section */}
                     <div style={{ marginBottom: 16 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -866,7 +872,7 @@ export default function CardPage() {
 
                 {/* Actions - Fixed at bottom */}
                 <div style={{ padding: 16, borderTop: '1px solid var(--border-color)' }}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
                         <ShareCardPopover
                             cardId={cardId}
                             cardTitle={card?.title || ''}
@@ -875,20 +881,20 @@ export default function CardPage() {
                         />
                         <Button
                             icon={card?.is_archived ? <UndoOutlined /> : <InboxOutlined />}
-                            block
                             onClick={handleArchive}
+                            style={{ flex: 1 }}
                         >
-                            {card?.is_archived ? 'Restore Card' : 'Archive Card'}
+                            {card?.is_archived ? 'Restore' : 'Archive'}
                         </Button>
                         <Button
                             icon={<DeleteOutlined />}
-                            block
                             danger
                             onClick={handleDelete}
+                            style={{ flex: 1 }}
                         >
-                            Delete Card
+                            Delete
                         </Button>
-                    </Space>
+                    </div>
                 </div>
             </div>
         </div>

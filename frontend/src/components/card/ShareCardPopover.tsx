@@ -141,7 +141,7 @@ export default function ShareCardPopover({ cardId, cardTitle, boardId, cardData 
             onOpenChange={setOpen}
             placement="bottomLeft"
         >
-            <Button icon={<ShareAltOutlined />} block>
+            <Button icon={<ShareAltOutlined />} style={{ flex: 1 }}>
                 Share
             </Button>
         </Popover>

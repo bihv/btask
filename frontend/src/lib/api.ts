@@ -85,4 +85,31 @@ export const cardArchiveApi = {
     getArchivedByBoard: (boardId: string) => api.get(`/boards/${boardId}/archived-cards`),
 };
 
+// Custom Field API functions
+export const customFieldApi = {
+    // Board-level custom fields
+    getByBoardId: (boardId: string) => api.get(`/boards/${boardId}/custom-fields`),
+    create: (boardId: string, data: { name: string; type: string; show_on_card: boolean; options?: string[] }) =>
+        api.post(`/boards/${boardId}/custom-fields`, data),
+    addDefaultField: (boardId: string, fieldName: string) =>
+        api.post(`/boards/${boardId}/custom-fields/default`, { field_name: fieldName }),
+    update: (id: string, data: { name?: string; show_on_card?: boolean; position?: number }) =>
+        api.put(`/custom-fields/${id}`, data),
+    delete: (id: string) => api.delete(`/custom-fields/${id}`),
+
+    // Custom field options
+    addOption: (fieldId: string, data: { value: string; color?: string }) =>
+        api.post(`/custom-fields/${fieldId}/options`, data),
+    updateOption: (optionId: string, data: { value: string; color?: string }) =>
+        api.put(`/custom-fields/options/${optionId}`, data),
+    deleteOption: (optionId: string) => api.delete(`/custom-fields/options/${optionId}`),
+
+    // Card custom field values
+    getCardValues: (cardId: string) => api.get(`/cards/${cardId}/custom-fields`),
+    setCardValue: (cardId: string, fieldId: string, data: { value?: string; option_id?: string }) =>
+        api.put(`/cards/${cardId}/custom-fields/${fieldId}`, data),
+    clearCardValue: (cardId: string, fieldId: string) =>
+        api.delete(`/cards/${cardId}/custom-fields/${fieldId}`),
+};
+
 export default api;

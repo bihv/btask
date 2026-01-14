@@ -22,11 +22,12 @@ type Card struct {
 	UpdatedAt   time.Time  `json:"updated_at"`
 
 	// Relations
-	List     List         `json:"list,omitempty" gorm:"foreignKey:ListID"`
-	Creator  User         `json:"creator,omitempty" gorm:"foreignKey:CreatedBy"`
-	Labels   []CardLabel  `json:"labels,omitempty" gorm:"foreignKey:CardID"`
-	Members  []CardMember `json:"members,omitempty" gorm:"foreignKey:CardID"`
-	Comments []Comment    `json:"comments,omitempty" gorm:"foreignKey:CardID"`
+	List              List                   `json:"list,omitempty" gorm:"foreignKey:ListID"`
+	Creator           User                   `json:"creator,omitempty" gorm:"foreignKey:CreatedBy"`
+	Labels            []CardLabel            `json:"labels,omitempty" gorm:"foreignKey:CardID"`
+	Members           []CardMember           `json:"members,omitempty" gorm:"foreignKey:CardID"`
+	Comments          []Comment              `json:"comments,omitempty" gorm:"foreignKey:CardID"`
+	CustomFieldValues []CardCustomFieldValue `json:"custom_field_values,omitempty" gorm:"foreignKey:CardID"`
 }
 
 func (c *Card) BeforeCreate(tx *gorm.DB) error {

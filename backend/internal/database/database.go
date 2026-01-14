@@ -48,6 +48,9 @@ func Migrate() error {
 		&models.Notification{},
 		&models.ListWatcher{},
 		&models.BoardWatcher{},
+		&models.CustomField{},
+		&models.CustomFieldOption{},
+		&models.CardCustomFieldValue{},
 	)
 
 	if err != nil {

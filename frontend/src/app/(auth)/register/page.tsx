@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Form, Input, Button, message, Typography } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
+import styles from '../auth.module.css';
 
 const { Title, Text } = Typography;
 
@@ -28,8 +29,8 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="auth-card">
-            <div className="auth-logo">
+        <div className={styles.card}>
+            <div className={styles.logo}>
                 <Title level={2} style={{ marginBottom: 8 }}>BTask</Title>
                 <Text type="secondary">Create your account</Text>
             </div>

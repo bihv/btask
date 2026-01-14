@@ -4,25 +4,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0052cc 0%, #00875a 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    padding: 20px;
 }
 
 .card {
     width: 100%;
-    max-width: 400px;
-    padding: 40px;
+    max-width: 420px;
+    padding: 48px 40px;
     background: var(--bg-secondary);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
 }
 
 .logo {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 40px;
 }
 
-.logo h1 {
-    font-size: 32px;
+.logo h2 {
+    font-size: 36px;
     font-weight: 700;
     color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.logo span {
+    color: var(--text-secondary);
+    font-size: 14px;
 }

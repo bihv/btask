@@ -4,9 +4,18 @@ import React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Typography, Avatar, Tooltip } from 'antd';
-import { ClockCircleOutlined, CheckCircleOutlined, CommentOutlined } from '@ant-design/icons';
-import { Card } from '@/types';
+import { Typography, Avatar, Tooltip, Tag } from 'antd';
+import { 
+    ClockCircleOutlined, 
+    CheckCircleOutlined, 
+    CommentOutlined, 
+    CheckSquareOutlined,
+    CalendarOutlined,
+    NumberOutlined,
+    FontSizeOutlined,
+    AppstoreOutlined,
+} from '@ant-design/icons';
+import { Card, CustomField, CardCustomFieldValue } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import styles from './KanbanBoard.module.css';
 
@@ -22,6 +31,7 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
     const params = useParams();
     const boardId = params.id as string;
     const showCardCovers = useBoardStore((state) => state.showCardCovers);
+    const currentBoard = useBoardStore((state) => state.currentBoard);
 
     const {
         attributes,
@@ -78,6 +88,119 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
         router.push(`/boards/${boardId}/cards/${card.id}`);
     };
 
+    // Render custom field value from card's custom_field_values
+    // Each value has custom_field nested inside with show_on_card flag
+    const renderCustomFieldTags = () => {
+        if (!card.custom_field_values || card.custom_field_values.length === 0) {
+            return null;
+        }
+
+        return card.custom_field_values
+            .filter(cfv => cfv.custom_field?.show_on_card)
+            .map(cfv => {
+                const field = cfv.custom_field;
+                if (!field) return null;
+
+                // Common badge style
+                const badgeStyle = {
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 11,
+                    padding: '2px 6px',
+                    borderRadius: 3,
+                    backgroundColor: 'var(--bg-tertiary)',
+                };
+
+                switch (field.type) {
+                    case 'checkbox':
+                        if (cfv.value === 'true') {
+                            return (
+                                <div key={cfv.id} style={badgeStyle}>
+                                    <CheckSquareOutlined style={{ color: '#52c41a', fontSize: 12 }} />
+                                    <span style={{ color: 'var(--text-secondary)' }}>{field.name}</span>
+                                </div>
+                            );
+                        }
+                        return null;
+
+                    case 'dropdown':
+                        if (cfv.option) {
+                            return (
+                                <div 
+                                    key={cfv.id} 
+                                    style={{
+                                        ...badgeStyle,
+                                        backgroundColor: cfv.option.color || 'var(--bg-tertiary)',
+                                    }}
+                                >
+                                    <AppstoreOutlined style={{ 
+                                        color: cfv.option.color ? 'white' : 'var(--text-secondary)',
+                                        fontSize: 12,
+                                    }} />
+                                    <span style={{ 
+                                        color: cfv.option.color ? 'white' : 'var(--text-secondary)',
+                                    }}>
+                                        {field.name}:
+                                    </span>
+                                    <span style={{ 
+                                        color: cfv.option.color ? 'white' : 'var(--text-primary)',
+                                        fontWeight: 500,
+                                    }}>
+                                        {cfv.option.value}
+                                    </span>
+                                </div>
+                            );
+                        }
+                        return null;
+
+                    case 'text':
+                        if (cfv.value) {
+                            return (
+                                <div key={cfv.id} style={badgeStyle}>
+                                    <FontSizeOutlined style={{ color: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <span style={{ color: 'var(--text-secondary)' }}>{field.name}:</span>
+                                    <span style={{ color: 'var(--text-primary)' }}>{cfv.value}</span>
+                                </div>
+                            );
+                        }
+                        return null;
+
+                    case 'number':
+                        if (cfv.value) {
+                            return (
+                                <div key={cfv.id} style={badgeStyle}>
+                                    <NumberOutlined style={{ color: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <span style={{ color: 'var(--text-secondary)' }}>{field.name}:</span>
+                                    <span style={{ color: 'var(--text-primary)' }}>{cfv.value}</span>
+                                </div>
+                            );
+                        }
+                        return null;
+
+                    case 'date':
+                        if (cfv.value) {
+                            return (
+                                <div key={cfv.id} style={badgeStyle}>
+                                    <CalendarOutlined style={{ color: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <span style={{ color: 'var(--text-secondary)' }}>{field.name}:</span>
+                                    <span style={{ color: 'var(--text-primary)' }}>
+                                        {new Date(cfv.value).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            );
+                        }
+                        return null;
+
+                    default:
+                        return null;
+                }
+            })
+            .filter(Boolean);
+    };
+
+    const customFieldTags = renderCustomFieldTags();
+
     return (
         <div
             ref={setNodeRef}
@@ -128,6 +251,13 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
 
             {/* Title */}
             <Text style={{ fontSize: 14 }}>{card.title}</Text>
+
+            {/* Custom Fields */}
+            {customFieldTags && customFieldTags.length > 0 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                    {customFieldTags}
+                </div>
+            )}
 
             {/* Footer */}
             <div

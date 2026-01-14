@@ -186,9 +186,6 @@ export default function DashboardLayout({
                             onClick={toggleTheme}
                         />
                         <NotificationDropdown />
-                        <Button type="primary" icon={<PlusOutlined />}>
-                            Create
-                        </Button>
                         <Dropdown
                             menu={{ items: userMenuItems, onClick: handleMenuClick }}
                             placement="bottomRight"
