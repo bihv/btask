@@ -161,6 +161,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	checklists.Put("/:id/items/:itemId", checklistHandler.UpdateItem)
 	checklists.Delete("/:id/items/:itemId", checklistHandler.DeleteItem)
 	checklists.Put("/:id/items/:itemId/toggle", checklistHandler.ToggleItem)
+	checklists.Post("/:id/items/:itemId/convert-to-card", checklistHandler.ConvertItemToCard)
 
 	// Attachment routes
 	attachmentHandler := handlers.NewAttachmentHandler()

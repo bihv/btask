@@ -161,12 +161,21 @@ export interface Checklist {
     updated_at: string;
 }
 
+export interface ChecklistItemAssignee {
+    id: string;
+    checklist_item_id: string;
+    user_id: string;
+    user?: User;
+}
+
 export interface ChecklistItem {
     id: string;
     checklist_id: string;
     content: string;
     is_completed: boolean;
     position: number;
+    assignees?: ChecklistItemAssignee[];
+    due_date?: string;
     created_at: string;
     updated_at: string;
 }

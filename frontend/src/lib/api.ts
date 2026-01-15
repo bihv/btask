@@ -63,11 +63,14 @@ export const checklistApi = {
     delete: (id: string) => api.delete(`/checklists/${id}`),
 
     // Checklist items
-    createItem: (checklistId: string, data: { content: string }) => api.post(`/checklists/${checklistId}/items`, data),
-    updateItem: (checklistId: string, itemId: string, data: { content?: string; is_completed?: boolean }) =>
+    createItem: (checklistId: string, data: { content: string; assignee_ids?: string[]; due_date?: string }) =>
+        api.post(`/checklists/${checklistId}/items`, data),
+    updateItem: (checklistId: string, itemId: string, data: { content?: string; is_completed?: boolean; assignee_ids?: string[]; due_date?: string | null }) =>
         api.put(`/checklists/${checklistId}/items/${itemId}`, data),
     deleteItem: (checklistId: string, itemId: string) => api.delete(`/checklists/${checklistId}/items/${itemId}`),
     toggleItem: (checklistId: string, itemId: string) => api.put(`/checklists/${checklistId}/items/${itemId}/toggle`),
+    convertItemToCard: (checklistId: string, itemId: string, listId: string) =>
+        api.post(`/checklists/${checklistId}/items/${itemId}/convert-to-card`, { list_id: listId }),
 };
 
 // Attachment API functions

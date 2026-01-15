@@ -3,18 +3,22 @@ package handlers
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/repository"
+	"github.com/mello/backend/internal/services"
 	"github.com/mello/backend/pkg/utils"
 )
 
 type ChecklistHandler struct {
-	repo *repository.ChecklistRepository
+	repo        *repository.ChecklistRepository
+	cardService *services.CardService
 }
 
 func NewChecklistHandler() *ChecklistHandler {
 	return &ChecklistHandler{
-		repo: repository.NewChecklistRepository(),
+		repo:        repository.NewChecklistRepository(),
+		cardService: services.NewCardService(),
 	}
 }
 
@@ -117,11 +121,22 @@ func (h *ChecklistHandler) CreateItem(c *fiber.Ctx) error {
 	item := &models.ChecklistItem{
 		ChecklistID: checklistID,
 		Content:     req.Content,
+		DueDate:     req.DueDate,
 	}
 
 	if err := h.repo.CreateItem(item); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to create item")
 	}
+
+	// Add assignees if provided
+	if len(req.AssigneeIDs) > 0 {
+		if err := h.repo.SyncItemAssignees(item.ID, req.AssigneeIDs); err != nil {
+			// Log but don't fail the request
+		}
+	}
+
+	// Reload item with assignees
+	item, _ = h.repo.GetItemByID(item.ID)
 
 	return utils.SuccessResponse(c, item)
 }
@@ -152,10 +167,24 @@ func (h *ChecklistHandler) UpdateItem(c *fiber.Ctx) error {
 	if req.Position != nil {
 		item.Position = *req.Position
 	}
+	// Handle due date - can be set to null to remove
+	if req.DueDate != nil {
+		item.DueDate = req.DueDate
+	}
 
 	if err := h.repo.UpdateItem(item); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to update item")
 	}
+
+	// Sync assignees if provided (empty array means remove all)
+	if req.AssigneeIDs != nil {
+		if err := h.repo.SyncItemAssignees(item.ID, req.AssigneeIDs); err != nil {
+			// Log but don't fail the request
+		}
+	}
+
+	// Reload item with assignees
+	item, _ = h.repo.GetItemByID(item.ID)
 
 	return utils.SuccessResponse(c, item)
 }
@@ -187,4 +216,50 @@ func (h *ChecklistHandler) ToggleItem(c *fiber.Ctx) error {
 	}
 
 	return utils.SuccessResponse(c, item)
+}
+
+// ConvertItemToCard converts a checklist item to a card
+func (h *ChecklistHandler) ConvertItemToCard(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	itemID, err := uuid.Parse(c.Params("itemId"))
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "Invalid item ID")
+	}
+
+	var req models.ConvertToCardRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	// Get the checklist item with its checklist info
+	item, err := h.repo.GetItemWithChecklist(itemID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, "Item not found")
+	}
+
+	// Create the card with the item's content as title
+	cardReq := models.CreateCardRequest{
+		Title:   item.Content,
+		DueDate: item.DueDate,
+	}
+
+	card, err := h.cardService.Create(req.ListID, userID, cardReq)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to create card: "+err.Error())
+	}
+
+	// If item has assignees, add them as card members
+	for _, assignee := range item.Assignees {
+		if err := h.cardService.AddMember(card.ID, assignee.UserID, userID); err != nil {
+			// Log but don't fail the request
+		}
+	}
+
+	// Delete the checklist item
+	if err := h.repo.DeleteItem(itemID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to delete item")
+	}
+
+	return utils.SuccessResponse(c, card)
 }

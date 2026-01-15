@@ -44,6 +44,7 @@ func Migrate() error {
 		&models.Comment{},
 		&models.Checklist{},
 		&models.ChecklistItem{},
+		&models.ChecklistItemAssignee{},
 		&models.Attachment{},
 		&models.Notification{},
 		&models.ListWatcher{},
