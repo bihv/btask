@@ -167,8 +167,10 @@ func (h *ChecklistHandler) UpdateItem(c *fiber.Ctx) error {
 	if req.Position != nil {
 		item.Position = *req.Position
 	}
-	// Handle due date - can be set to null to remove
-	if req.DueDate != nil {
+	// Handle due date - ClearDueDate flag explicitly clears it, otherwise set if provided
+	if req.ClearDueDate {
+		item.DueDate = nil
+	} else if req.DueDate != nil {
 		item.DueDate = req.DueDate
 	}
 

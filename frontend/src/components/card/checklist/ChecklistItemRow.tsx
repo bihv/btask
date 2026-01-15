@@ -1,0 +1,417 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+    Typography,
+    Checkbox,
+    Input,
+    Button,
+    Space,
+    Dropdown,
+    Avatar,
+    Popover,
+    DatePicker,
+    Tag,
+    message,
+    Modal,
+} from 'antd';
+import {
+    UserOutlined,
+    CalendarOutlined,
+    SwapOutlined,
+    DeleteOutlined,
+    MoreOutlined,
+} from '@ant-design/icons';
+import { ChecklistItem as ChecklistItemType, User } from '@/types';
+import dayjs from 'dayjs';
+import MemberPicker, { getInitials } from './MemberPicker';
+import { checklistApi } from '@/lib/api';
+
+const { Text } = Typography;
+
+interface ChecklistItemRowProps {
+    item: ChecklistItemType;
+    checklistId: string;
+    mode: 'dark' | 'light';
+    workspaceMembers: User[];
+    isHovered: boolean;
+    isEditing: boolean;
+    editingContent: string;
+    onMouseEnter: () => void;
+    onMouseLeave: () => void;
+    onToggle: () => void;
+    onStartEdit: () => void;
+    onEditContentChange: (content: string) => void;
+    onSaveEdit: () => void;
+    onCancelEdit: () => void;
+    onAssignMember: (userId: string, currentAssigneeIds: string[]) => void;
+    onRemoveAllAssignees: () => void;
+    onSetDueDate: (date: string | null) => void;
+    onConvertToCard: () => void;
+    onDelete: () => void;
+    onUpdateData: () => void;
+}
+
+// Component that manages its own state and calls API directly - matching original behavior
+function MemberPickerContent({
+    checklistId,
+    item,
+    workspaceMembers,
+    mode,
+    onUpdate,
+}: {
+    checklistId: string;
+    item: ChecklistItemType;
+    workspaceMembers: User[];
+    mode: 'dark' | 'light';
+    onUpdate: () => void;
+}) {
+    const [selectedIds, setSelectedIds] = useState<string[]>(
+        item.assignees?.map(a => a.user_id) || []
+    );
+
+    // Sync with external data when item changes
+    useEffect(() => {
+        setSelectedIds(item.assignees?.map(a => a.user_id) || []);
+    }, [item.assignees]);
+
+    const handleToggle = async (userId: string) => {
+        const isAssigned = selectedIds.includes(userId);
+        const newIds = isAssigned
+            ? selectedIds.filter(id => id !== userId)
+            : [...selectedIds, userId];
+
+        // Optimistic update
+        setSelectedIds(newIds);
+
+        try {
+            await checklistApi.updateItem(checklistId, item.id, { assignee_ids: newIds });
+            onUpdate();
+        } catch (error) {
+            // Rollback on error
+            setSelectedIds(selectedIds);
+            message.error('Failed to update assignees');
+        }
+    };
+
+    const handleRemoveAll = async () => {
+        const previousIds = selectedIds;
+        // Optimistic update
+        setSelectedIds([]);
+
+        try {
+            await checklistApi.updateItem(checklistId, item.id, { assignee_ids: [] });
+            onUpdate();
+        } catch (error) {
+            // Rollback on error
+            setSelectedIds(previousIds);
+            message.error('Failed to remove assignees');
+        }
+    };
+
+    return (
+        <MemberPicker
+            selectedIds={selectedIds}
+            workspaceMembers={workspaceMembers}
+            onToggle={handleToggle}
+            onRemoveAll={handleRemoveAll}
+            mode={mode}
+        />
+    );
+}
+
+// Component for due date picker with proper close handling
+function DueDatePickerContent({
+    checklistId,
+    item,
+    onUpdate,
+    onClose,
+}: {
+    checklistId: string;
+    item: ChecklistItemType;
+    onUpdate: () => void;
+    onClose: () => void;
+}) {
+    const handleDateChange = async (date: dayjs.Dayjs | null) => {
+        try {
+            await checklistApi.updateItem(checklistId, item.id, {
+                due_date: date ? date.toISOString() : null
+            });
+            onUpdate();
+            // Use setTimeout to ensure state update completes before closing
+            setTimeout(() => {
+                onClose();
+            }, 0);
+        } catch (error) {
+            message.error('Failed to update due date');
+        }
+    };
+
+    const handleRemoveDueDate = async () => {
+        try {
+            await checklistApi.updateItem(checklistId, item.id, { clear_due_date: true });
+            onUpdate();
+            // Use setTimeout to ensure state update completes before closing
+            setTimeout(() => {
+                onClose();
+            }, 0);
+        } catch (error) {
+            message.error('Failed to remove due date');
+        }
+    };
+
+    return (
+        <div style={{ padding: 8 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>Due Date</div>
+            <DatePicker
+                value={item.due_date ? dayjs(item.due_date) : null}
+                onChange={handleDateChange}
+                style={{ width: '100%' }}
+                placeholder="Select due date"
+            />
+            {item.due_date && (
+                <Button
+                    size="small"
+                    danger
+                    style={{ marginTop: 8, width: '100%' }}
+                    onClick={handleRemoveDueDate}
+                >
+                    Remove due date
+                </Button>
+            )}
+        </div>
+    );
+}
+
+export default function ChecklistItemRow({
+    item,
+    checklistId,
+    mode,
+    workspaceMembers,
+    isHovered,
+    isEditing,
+    editingContent,
+    onMouseEnter,
+    onMouseLeave,
+    onToggle,
+    onStartEdit,
+    onEditContentChange,
+    onSaveEdit,
+    onCancelEdit,
+    onAssignMember,
+    onRemoveAllAssignees,
+    onSetDueDate,
+    onConvertToCard,
+    onDelete,
+    onUpdateData,
+}: ChecklistItemRowProps) {
+    const [dueDateModalOpen, setDueDateModalOpen] = useState(false);
+    const [memberModalOpen, setMemberModalOpen] = useState(false);
+
+    const closeDueDateModal = React.useCallback(() => {
+        setDueDateModalOpen(false);
+    }, []);
+
+    const closeMemberModal = React.useCallback(() => {
+        setMemberModalOpen(false);
+    }, []);
+
+    const getDueDateColor = (dueDate: string) => {
+        const due = dayjs(dueDate);
+        const now = dayjs();
+        if (due.isBefore(now, 'day')) return 'red';
+        if (due.isSame(now, 'day')) return 'orange';
+        if (due.diff(now, 'day') <= 2) return 'gold';
+        return 'default';
+    };
+
+    const renderMemberPicker = () => (
+        <MemberPickerContent
+            checklistId={checklistId}
+            item={item}
+            workspaceMembers={workspaceMembers}
+            mode={mode}
+            onUpdate={onUpdateData}
+        />
+    );
+
+
+    const menuItems = [
+        {
+            key: 'assign',
+            icon: <UserOutlined />,
+            label: 'Assign member',
+            onClick: () => {
+                setMemberModalOpen(true);
+            },
+        },
+        {
+            key: 'duedate',
+            icon: <CalendarOutlined />,
+            label: 'Set due date',
+            onClick: () => {
+                setDueDateModalOpen(true);
+            },
+        },
+        { type: 'divider' as const },
+        {
+            key: 'convert',
+            label: 'Convert to card',
+            icon: <SwapOutlined />,
+            onClick: onConvertToCard,
+        },
+        { type: 'divider' as const },
+        {
+            key: 'delete',
+            label: 'Delete',
+            danger: true,
+            icon: <DeleteOutlined />,
+            onClick: onDelete,
+        },
+    ];
+
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 4,
+                padding: '8px 8px',
+                borderRadius: 8,
+                transition: 'background 0.2s',
+                background: isHovered
+                    ? (mode === 'dark' ? '#22272b' : '#ebecf0')
+                    : 'transparent',
+                cursor: 'default',
+            }}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        >
+            <Checkbox
+                checked={item.is_completed}
+                onChange={onToggle}
+            />
+
+            {/* Content - left side */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+                {isEditing ? (
+                    <div>
+                        <Input.TextArea
+                            value={editingContent}
+                            onChange={(e) => onEditContentChange(e.target.value)}
+                            autoSize={{ minRows: 1, maxRows: 4 }}
+                            autoFocus
+                        />
+                        <Space style={{ marginTop: 4 }}>
+                            <Button type="primary" size="small" onClick={onSaveEdit}>
+                                Save
+                            </Button>
+                            <Button size="small" onClick={onCancelEdit}>
+                                Cancel
+                            </Button>
+                        </Space>
+                    </div>
+                ) : (
+                    <Text
+                        style={{
+                            textDecoration: item.is_completed ? 'line-through' : 'none',
+                            opacity: item.is_completed ? 0.5 : 1,
+                            cursor: 'pointer',
+                            wordBreak: 'break-word',
+                        }}
+                        onClick={onStartEdit}
+                    >
+                        {item.content}
+                    </Text>
+                )}
+            </div>
+
+            {/* Right side - Due date, Assignee, More menu */}
+            {!isEditing && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                    {/* Due Date */}
+                    {item.due_date && (
+                        <Tag
+                            color={getDueDateColor(item.due_date)}
+                            icon={<CalendarOutlined />}
+                            style={{
+                                cursor: 'pointer',
+                                margin: 0,
+                                borderRadius: 4,
+                            }}
+                            onClick={() => setDueDateModalOpen(true)}
+                        >
+                            {dayjs(item.due_date).format('MMM D')}
+                        </Tag>
+                    )}
+
+                    {/* Assignee Avatars */}
+                    {item.assignees && item.assignees.length > 0 && (
+                        <div
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => setMemberModalOpen(true)}
+                        >
+                            <Avatar.Group
+                                size={28}
+                                max={{ count: 3 }}
+                            >
+                                {item.assignees.map(assignee => (
+                                    <Avatar
+                                        key={assignee.id}
+                                        src={assignee.user?.avatar_url || undefined}
+                                        style={{ backgroundColor: '#0052cc' }}
+                                    >
+                                        {getInitials(assignee.user?.full_name || assignee.user?.email || '')}
+                                    </Avatar>
+                                ))}
+                            </Avatar.Group>
+                        </div>
+                    )}
+
+                    {/* More menu */}
+                    <Dropdown
+                        menu={{ items: menuItems }}
+                        trigger={['click']}
+                    >
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<MoreOutlined />}
+                            style={{ opacity: 0.6 }}
+                        />
+                    </Dropdown>
+                </div>
+            )}
+
+            {/* Due Date Modal */}
+            <Modal
+                title="Set Due Date"
+                open={dueDateModalOpen}
+                onCancel={closeDueDateModal}
+                footer={null}
+                width={300}
+                destroyOnClose
+            >
+                <DueDatePickerContent
+                    checklistId={checklistId}
+                    item={item}
+                    onUpdate={onUpdateData}
+                    onClose={closeDueDateModal}
+                />
+            </Modal>
+
+            {/* Assign Member Modal */}
+            <Modal
+                title="Assign Member"
+                open={memberModalOpen}
+                onCancel={closeMemberModal}
+                footer={null}
+                width={320}
+                destroyOnClose
+            >
+                {renderMemberPicker()}
+            </Modal>
+        </div>
+    );
+}

@@ -65,7 +65,7 @@ export const checklistApi = {
     // Checklist items
     createItem: (checklistId: string, data: { content: string; assignee_ids?: string[]; due_date?: string }) =>
         api.post(`/checklists/${checklistId}/items`, data),
-    updateItem: (checklistId: string, itemId: string, data: { content?: string; is_completed?: boolean; assignee_ids?: string[]; due_date?: string | null }) =>
+    updateItem: (checklistId: string, itemId: string, data: { content?: string; is_completed?: boolean; assignee_ids?: string[]; due_date?: string | null; clear_due_date?: boolean }) =>
         api.put(`/checklists/${checklistId}/items/${itemId}`, data),
     deleteItem: (checklistId: string, itemId: string) => api.delete(`/checklists/${checklistId}/items/${itemId}`),
     toggleItem: (checklistId: string, itemId: string) => api.put(`/checklists/${checklistId}/items/${itemId}/toggle`),

@@ -86,11 +86,12 @@ type CreateChecklistItemRequest struct {
 }
 
 type UpdateChecklistItemRequest struct {
-	Content     string      `json:"content" validate:"omitempty,min=1,max=500"`
-	IsCompleted *bool       `json:"is_completed"`
-	Position    *int        `json:"position"`
-	AssigneeIDs []uuid.UUID `json:"assignee_ids"`
-	DueDate     *time.Time  `json:"due_date"`
+	Content      string      `json:"content" validate:"omitempty,min=1,max=500"`
+	IsCompleted  *bool       `json:"is_completed"`
+	Position     *int        `json:"position"`
+	AssigneeIDs  []uuid.UUID `json:"assignee_ids"`
+	DueDate      *time.Time  `json:"due_date"`
+	ClearDueDate bool        `json:"clear_due_date"` // Set to true to explicitly clear the due date
 }
 
 // ConvertToCardRequest for converting a checklist item to a card
