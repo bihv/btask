@@ -1,19 +1,13 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import SettingsLayout from '@/components/settings/SettingsLayout';
+import React from 'react';
 
-export default function WorkspaceSettingsLayout({
+export default function WorkspaceLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const params = useParams();
-    const workspaceId = params.workspaceId as string;
-
-    return (
-        <SettingsLayout workspaceId={workspaceId}>
-            {children}
-        </SettingsLayout>
-    );
+    // Simple passthrough layout for workspace pages
+    // Individual tabs handle their own layout (e.g., settings uses SettingsLayout)
+    return <>{children}</>;
 }
