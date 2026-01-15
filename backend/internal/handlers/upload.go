@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/storage"
 	"github.com/mello/backend/pkg/utils"
 )
@@ -15,8 +16,11 @@ func NewUploadHandler() *UploadHandler {
 	return &UploadHandler{}
 }
 
-// UploadFile handles file upload to MinIO
+// UploadFile handles file upload to MinIO, organizing files by user ID
 func (h *UploadHandler) UploadFile(c *fiber.Ctx) error {
+	// Get user ID for organizing files
+	userID := middleware.GetUserID(c)
+
 	// Get file from form
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -53,7 +57,8 @@ func (h *UploadHandler) UploadFile(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Storage not initialized")
 	}
 
-	url, err := minioStorage.UploadFile(context.Background(), src, file.Filename, contentType, file.Size)
+	// Upload with user ID prefix for organization
+	url, err := minioStorage.UploadFileWithPrefix(context.Background(), src, file.Filename, contentType, file.Size, fmt.Sprintf("users/%s", userID.String()))
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to upload file: "+err.Error())
 	}

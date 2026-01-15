@@ -62,12 +62,23 @@ func GetMinioStorage() *MinioStorage {
 
 // UploadFile uploads a file to MinIO and returns the public URL
 func (s *MinioStorage) UploadFile(ctx context.Context, file io.Reader, filename string, contentType string, size int64) (string, error) {
+	return s.UploadFileWithPrefix(ctx, file, filename, contentType, size, "")
+}
+
+// UploadFileWithPrefix uploads a file to MinIO with a custom prefix (e.g., users/{userId})
+func (s *MinioStorage) UploadFileWithPrefix(ctx context.Context, file io.Reader, filename string, contentType string, size int64, prefix string) (string, error) {
 	// Generate unique filename
 	ext := filepath.Ext(filename)
 	uniqueName := fmt.Sprintf("%s-%s%s", time.Now().Format("20060102"), uuid.New().String(), ext)
 
+	// Add prefix if provided
+	objectName := uniqueName
+	if prefix != "" {
+		objectName = fmt.Sprintf("%s/%s", prefix, uniqueName)
+	}
+
 	// Upload file
-	_, err := s.client.PutObject(ctx, s.bucket, uniqueName, file, size, minio.PutObjectOptions{
+	_, err := s.client.PutObject(ctx, s.bucket, objectName, file, size, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
@@ -75,7 +86,7 @@ func (s *MinioStorage) UploadFile(ctx context.Context, file io.Reader, filename 
 	}
 
 	// Return public URL
-	url := fmt.Sprintf("%s/%s/%s", s.publicURL, s.bucket, uniqueName)
+	url := fmt.Sprintf("%s/%s/%s", s.publicURL, s.bucket, objectName)
 	return url, nil
 }
 
