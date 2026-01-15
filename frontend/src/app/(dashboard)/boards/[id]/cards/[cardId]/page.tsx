@@ -524,8 +524,11 @@ export default function CardPage() {
                 <div style={{ marginTop: 24 }}>
                     <ChecklistSection
                         cardId={cardId}
+                        boardId={boardId}
                         checklists={checklists}
                         onUpdate={refetchChecklists}
+                        workspaceMembers={workspaceMembers}
+                        lists={currentBoard?.lists || []}
                     />
                 </div>
 

@@ -1,40 +1,54 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-    Typography,
-    Checkbox,
-    Input,
-    Button,
-    Progress,
-    Space,
-    Dropdown,
-    message,
-} from 'antd';
-import {
-    CheckSquareOutlined,
-    PlusOutlined,
-    DeleteOutlined,
-    MoreOutlined,
-} from '@ant-design/icons';
-import { Checklist, ChecklistItem } from '@/types';
+import { useTheme } from '@/providers/ThemeProvider';
+import { Input, Button, Space, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Checklist, ChecklistItem, User, List } from '@/types';
 import { checklistApi } from '@/lib/api';
+import api from '@/lib/api';
 
-const { Text } = Typography;
+import {
+    ChecklistHeader,
+    ChecklistItemRow,
+    NewChecklistItemForm,
+    ConvertToCardModal,
+} from './checklist';
 
 interface ChecklistSectionProps {
     cardId: string;
+    boardId?: string;
     checklists: Checklist[];
     onUpdate: () => void;
+    workspaceMembers?: User[];
+    lists?: List[];
 }
 
-export default function ChecklistSection({ cardId, checklists, onUpdate }: ChecklistSectionProps) {
+export default function ChecklistSection({
+    cardId,
+    boardId,
+    checklists,
+    onUpdate,
+    workspaceMembers = [],
+    lists = [],
+}: ChecklistSectionProps) {
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
     const [showAddChecklist, setShowAddChecklist] = useState(false);
     const [newItemContent, setNewItemContent] = useState<Record<string, string>>({});
+    const [newItemAssignees, setNewItemAssignees] = useState<Record<string, string[]>>({});
+    const [newItemDueDate, setNewItemDueDate] = useState<Record<string, string | null>>({});
+    const [addingItemToChecklist, setAddingItemToChecklist] = useState<string | null>(null);
     const [editingItem, setEditingItem] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
+    const [convertModalVisible, setConvertModalVisible] = useState(false);
+    const [convertingItem, setConvertingItem] = useState<{ checklistId: string; item: ChecklistItem } | null>(null);
+    const [selectedListId, setSelectedListId] = useState<string>('');
+    const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+    const [modalLists, setModalLists] = useState<List[]>(lists);
 
+    const { mode } = useTheme();
+
+    // API Handlers
     const handleAddChecklist = async () => {
         if (!newChecklistTitle.trim()) return;
         try {
@@ -60,12 +74,23 @@ export default function ChecklistSection({ cardId, checklists, onUpdate }: Check
         const content = newItemContent[checklistId]?.trim();
         if (!content) return;
         try {
-            await checklistApi.createItem(checklistId, { content });
-            setNewItemContent({ ...newItemContent, [checklistId]: '' });
+            await checklistApi.createItem(checklistId, {
+                content,
+                assignee_ids: newItemAssignees[checklistId]?.length ? newItemAssignees[checklistId] : undefined,
+                due_date: newItemDueDate[checklistId] || undefined,
+            });
+            clearNewItemForm(checklistId);
             onUpdate();
         } catch (error) {
             message.error('Failed to add item');
         }
+    };
+
+    const clearNewItemForm = (checklistId: string) => {
+        setNewItemContent({ ...newItemContent, [checklistId]: '' });
+        setNewItemAssignees({ ...newItemAssignees, [checklistId]: [] });
+        setNewItemDueDate({ ...newItemDueDate, [checklistId]: null });
+        setAddingItemToChecklist(null);
     };
 
     const handleToggleItem = async (checklistId: string, itemId: string) => {
@@ -98,6 +123,73 @@ export default function ChecklistSection({ cardId, checklists, onUpdate }: Check
         }
     };
 
+    const handleAssignMember = async (checklistId: string, itemId: string, userId: string, currentAssigneeIds: string[]) => {
+        try {
+            const isAssigned = currentAssigneeIds.includes(userId);
+            const newAssigneeIds = isAssigned
+                ? currentAssigneeIds.filter(id => id !== userId)
+                : [...currentAssigneeIds, userId];
+            await checklistApi.updateItem(checklistId, itemId, { assignee_ids: newAssigneeIds });
+            onUpdate();
+        } catch (error) {
+            message.error('Failed to update assignees');
+        }
+    };
+
+    const handleRemoveAllAssignees = async (checklistId: string, itemId: string) => {
+        try {
+            await checklistApi.updateItem(checklistId, itemId, { assignee_ids: [] });
+            onUpdate();
+        } catch (error) {
+            message.error('Failed to remove assignees');
+        }
+    };
+
+    const handleSetDueDate = async (checklistId: string, itemId: string, date: string | null) => {
+        try {
+            await checklistApi.updateItem(checklistId, itemId, { due_date: date });
+            onUpdate();
+            message.success(date ? 'Due date set' : 'Due date removed');
+        } catch (error) {
+            message.error('Failed to update due date');
+        }
+    };
+
+    const handleConvertToCard = async () => {
+        if (!convertingItem || !selectedListId) return;
+        try {
+            await checklistApi.convertItemToCard(convertingItem.checklistId, convertingItem.item.id, selectedListId);
+            message.success('Item converted to card');
+            setConvertModalVisible(false);
+            setConvertingItem(null);
+            setSelectedListId('');
+            onUpdate();
+        } catch (error) {
+            message.error('Failed to convert to card');
+        }
+    };
+
+    const openConvertModal = async (checklistId: string, item: ChecklistItem) => {
+        setConvertingItem({ checklistId, item });
+        setConvertModalVisible(true);
+
+        if (boardId) {
+            try {
+                const boardRes = await api.get(`/boards/${boardId}`);
+                const freshLists = boardRes.data.data.lists || [];
+                setModalLists(freshLists);
+                setSelectedListId(freshLists.length > 0 ? freshLists[0].id : '');
+                return;
+            } catch (error) {
+                console.error('Failed to fetch fresh lists:', error);
+            }
+        }
+
+        setModalLists(lists);
+        setSelectedListId(lists.length > 0 ? lists[0].id : '');
+    };
+
+    // Utility functions
     const getProgress = (items: ChecklistItem[] = []) => {
         if (items.length === 0) return 0;
         const completed = items.filter(item => item.is_completed).length;
@@ -110,134 +202,61 @@ export default function ChecklistSection({ cardId, checklists, onUpdate }: Check
                 const progress = getProgress(checklist.items);
                 return (
                     <div key={checklist.id} style={{ marginBottom: 24 }}>
-                        {/* Checklist Header */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <CheckSquareOutlined />
-                            <Text strong style={{ flex: 1 }}>{checklist.title}</Text>
-                            <Dropdown
-                                menu={{
-                                    items: [
-                                        {
-                                            key: 'delete',
-                                            label: 'Delete',
-                                            danger: true,
-                                            icon: <DeleteOutlined />,
-                                            onClick: () => handleDeleteChecklist(checklist.id),
-                                        },
-                                    ],
-                                }}
-                                trigger={['click']}
-                            >
-                                <Button type="text" size="small" icon={<MoreOutlined />} />
-                            </Dropdown>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                            <Text type="secondary" style={{ fontSize: 11, minWidth: 32 }}>
-                                {progress}%
-                            </Text>
-                            <Progress
-                                percent={progress}
-                                showInfo={false}
-                                size="small"
-                                strokeColor={progress === 100 ? '#52c41a' : undefined}
-                            />
-                        </div>
+                        <ChecklistHeader
+                            title={checklist.title}
+                            progress={progress}
+                            onDelete={() => handleDeleteChecklist(checklist.id)}
+                        />
 
                         {/* Checklist Items */}
                         <div style={{ marginLeft: 24 }}>
                             {checklist.items?.map((item) => (
-                                <div
+                                <ChecklistItemRow
                                     key={item.id}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'flex-start',
-                                        gap: 8,
-                                        marginBottom: 8,
-                                        padding: '4px 0',
+                                    item={item}
+                                    checklistId={checklist.id}
+                                    mode={mode}
+                                    workspaceMembers={workspaceMembers}
+                                    isHovered={hoveredItemId === item.id}
+                                    isEditing={editingItem === item.id}
+                                    editingContent={editingContent}
+                                    onMouseEnter={() => setHoveredItemId(item.id)}
+                                    onMouseLeave={() => setHoveredItemId(null)}
+                                    onToggle={() => handleToggleItem(checklist.id, item.id)}
+                                    onStartEdit={() => {
+                                        setEditingItem(item.id);
+                                        setEditingContent(item.content);
                                     }}
-                                >
-                                    <Checkbox
-                                        checked={item.is_completed}
-                                        onChange={() => handleToggleItem(checklist.id, item.id)}
-                                    />
-                                    {editingItem === item.id ? (
-                                        <div style={{ flex: 1 }}>
-                                            <Input.TextArea
-                                                value={editingContent}
-                                                onChange={(e) => setEditingContent(e.target.value)}
-                                                autoSize={{ minRows: 1, maxRows: 4 }}
-                                                autoFocus
-                                            />
-                                            <Space style={{ marginTop: 4 }}>
-                                                <Button
-                                                    type="primary"
-                                                    size="small"
-                                                    onClick={() => handleUpdateItem(checklist.id, item.id)}
-                                                >
-                                                    Save
-                                                </Button>
-                                                <Button
-                                                    size="small"
-                                                    onClick={() => {
-                                                        setEditingItem(null);
-                                                        setEditingContent('');
-                                                    }}
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            </Space>
-                                        </div>
-                                    ) : (
-                                        <Text
-                                            style={{
-                                                flex: 1,
-                                                textDecoration: item.is_completed ? 'line-through' : 'none',
-                                                opacity: item.is_completed ? 0.6 : 1,
-                                                cursor: 'pointer',
-                                                wordBreak: 'break-word',
-                                            }}
-                                            onClick={() => {
-                                                setEditingItem(item.id);
-                                                setEditingContent(item.content);
-                                            }}
-                                        >
-                                            {item.content}
-                                        </Text>
-                                    )}
-                                    <Button
-                                        type="text"
-                                        size="small"
-                                        danger
-                                        icon={<DeleteOutlined />}
-                                        onClick={() => handleDeleteItem(checklist.id, item.id)}
-                                        style={{ opacity: 0.5 }}
-                                    />
-                                </div>
+                                    onEditContentChange={setEditingContent}
+                                    onSaveEdit={() => handleUpdateItem(checklist.id, item.id)}
+                                    onCancelEdit={() => {
+                                        setEditingItem(null);
+                                        setEditingContent('');
+                                    }}
+                                    onAssignMember={(userId, currentIds) => handleAssignMember(checklist.id, item.id, userId, currentIds)}
+                                    onRemoveAllAssignees={() => handleRemoveAllAssignees(checklist.id, item.id)}
+                                    onSetDueDate={(date) => handleSetDueDate(checklist.id, item.id, date)}
+                                    onConvertToCard={() => openConvertModal(checklist.id, item)}
+                                    onDelete={() => handleDeleteItem(checklist.id, item.id)}
+                                    onUpdateData={onUpdate}
+                                />
                             ))}
 
-                            {/* Add Item Input */}
-                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                                <Input
-                                    placeholder="Add an item..."
-                                    value={newItemContent[checklist.id] || ''}
-                                    onChange={(e) => setNewItemContent({
-                                        ...newItemContent,
-                                        [checklist.id]: e.target.value
-                                    })}
-                                    onPressEnter={() => handleAddItem(checklist.id)}
-                                    size="small"
-                                />
-                                <Button
-                                    type="primary"
-                                    size="small"
-                                    onClick={() => handleAddItem(checklist.id)}
-                                    disabled={!newItemContent[checklist.id]?.trim()}
-                                >
-                                    Add
-                                </Button>
-                            </div>
+                            <NewChecklistItemForm
+                                checklistId={checklist.id}
+                                mode={mode}
+                                workspaceMembers={workspaceMembers}
+                                isActive={addingItemToChecklist === checklist.id}
+                                content={newItemContent[checklist.id] || ''}
+                                assigneeIds={newItemAssignees[checklist.id] || []}
+                                dueDate={newItemDueDate[checklist.id] || null}
+                                onContentChange={(content) => setNewItemContent({ ...newItemContent, [checklist.id]: content })}
+                                onAssigneeIdsChange={(ids) => setNewItemAssignees({ ...newItemAssignees, [checklist.id]: ids })}
+                                onDueDateChange={(date) => setNewItemDueDate({ ...newItemDueDate, [checklist.id]: date })}
+                                onFocus={() => setAddingItemToChecklist(checklist.id)}
+                                onSubmit={() => handleAddItem(checklist.id)}
+                                onCancel={() => clearNewItemForm(checklist.id)}
+                            />
                         </div>
                     </div>
                 );
@@ -276,6 +295,21 @@ export default function ChecklistSection({ cardId, checklists, onUpdate }: Check
                     Add Checklist
                 </Button>
             )}
+
+            {/* Convert to Card Modal */}
+            <ConvertToCardModal
+                visible={convertModalVisible}
+                item={convertingItem?.item || null}
+                lists={modalLists}
+                selectedListId={selectedListId}
+                onListChange={setSelectedListId}
+                onConvert={handleConvertToCard}
+                onCancel={() => {
+                    setConvertModalVisible(false);
+                    setConvertingItem(null);
+                    setSelectedListId('');
+                }}
+            />
         </div>
     );
 }
