@@ -10,12 +10,8 @@ import {
     DollarOutlined,
     ExportOutlined,
 } from '@ant-design/icons';
-import SettingsLayout from '@/components/settings/SettingsLayout';
 
 const { Title } = Typography;
-
-// Tabs that should use SettingsLayout
-const SETTINGS_TABS = ['boards', 'members', 'settings', 'powerups', 'billing', 'export'];
 
 const tabConfig: Record<string, { title: string; icon: React.ReactNode; description: string }> = {
     boards: {
@@ -53,10 +49,9 @@ const tabConfig: Record<string, { title: string; icon: React.ReactNode; descript
 export default function WorkspaceSettingsTabPage() {
     const params = useParams();
     const tab = params.tab as string;
-    const workspaceId = params.workspaceId as string;
     const config = tabConfig[tab] || tabConfig.boards;
 
-    const content = (
+    return (
         <div>
             <Title level={3} style={{ marginBottom: 24 }}>{config.title}</Title>
 
@@ -73,15 +68,4 @@ export default function WorkspaceSettingsTabPage() {
             />
         </div>
     );
-
-    // Wrap with SettingsLayout for workspace settings tabs
-    if (SETTINGS_TABS.includes(tab)) {
-        return (
-            <SettingsLayout workspaceId={workspaceId}>
-                {content}
-            </SettingsLayout>
-        );
-    }
-
-    return content;
 }
