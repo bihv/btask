@@ -63,9 +63,9 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		FullName  string `json:"full_name"`
-		Bio       string `json:"bio"`
-		AvatarURL string `json:"avatar_url"`
+		FullName  string  `json:"full_name"`
+		Bio       *string `json:"bio"`
+		AvatarURL string  `json:"avatar_url"`
 	}
 
 	if err := c.BodyParser(&req); err != nil {
@@ -75,7 +75,10 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	if req.FullName != "" {
 		user.FullName = req.FullName
 	}
-	user.Bio = req.Bio
+	// Bio is a pointer - nil means not sent, empty string means clear
+	if req.Bio != nil {
+		user.Bio = *req.Bio
+	}
 
 	// Delete old avatar if new one is provided
 	if req.AvatarURL != "" && req.AvatarURL != user.AvatarURL {
