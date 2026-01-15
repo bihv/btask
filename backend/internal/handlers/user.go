@@ -6,6 +6,7 @@ import (
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/repository"
+	"github.com/mello/backend/internal/storage"
 	"github.com/mello/backend/pkg/utils"
 )
 
@@ -63,6 +64,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 
 	var req struct {
 		FullName  string `json:"full_name"`
+		Bio       string `json:"bio"`
 		AvatarURL string `json:"avatar_url"`
 	}
 
@@ -73,7 +75,17 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	if req.FullName != "" {
 		user.FullName = req.FullName
 	}
-	if req.AvatarURL != "" {
+	user.Bio = req.Bio
+
+	// Delete old avatar if new one is provided
+	if req.AvatarURL != "" && req.AvatarURL != user.AvatarURL {
+		// Delete old avatar from storage if it exists
+		if user.AvatarURL != "" {
+			minioStorage := storage.GetMinioStorage()
+			if minioStorage != nil {
+				_ = minioStorage.DeleteFile(c.Context(), user.AvatarURL)
+			}
+		}
 		user.AvatarURL = req.AvatarURL
 	}
 

@@ -13,6 +13,7 @@ type User struct {
 	Email        string    `json:"email" gorm:"uniqueIndex;not null"`
 	PasswordHash string    `json:"-" gorm:"not null"`
 	FullName     string    `json:"full_name" gorm:"not null"`
+	Bio          string    `json:"bio"`
 	AvatarURL    string    `json:"avatar_url"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
@@ -47,6 +48,7 @@ type UserResponse struct {
 	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
 	FullName  string    `json:"full_name"`
+	Bio       string    `json:"bio"`
 	AvatarURL string    `json:"avatar_url"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -56,6 +58,7 @@ func (u *User) ToResponse() UserResponse {
 		ID:        u.ID,
 		Email:     u.Email,
 		FullName:  u.FullName,
+		Bio:       u.Bio,
 		AvatarURL: u.AvatarURL,
 		CreatedAt: u.CreatedAt,
 	}
