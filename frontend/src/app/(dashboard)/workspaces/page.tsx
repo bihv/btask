@@ -48,17 +48,19 @@ export default function WorkspacesPage() {
         setHeaderContent(
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', justifyContent: 'space-between' }}>
                 <Title level={4} style={{ margin: 0 }}>Your Workspaces</Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setModalOpen(true)}
-                >
-                    Create Workspace
-                </Button>
+                {workspaces.length > 0 && (
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => setModalOpen(true)}
+                    >
+                        Create Workspace
+                    </Button>
+                )}
             </div>
         );
         return () => setHeaderContent(null);
-    }, [setHeaderContent]);
+    }, [setHeaderContent, workspaces.length]);
 
     if (isLoading) {
         return (

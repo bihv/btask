@@ -77,18 +77,20 @@ export default function WorkspaceDetailPage() {
                         />
                         <Title level={4} style={{ margin: 0 }}>{workspace.name}</Title>
                     </div>
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => setModalOpen(true)}
-                    >
-                        Create Board
-                    </Button>
+                    {boards.length > 0 && (
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => setModalOpen(true)}
+                        >
+                            Create Board
+                        </Button>
+                    )}
                 </div>
             );
         }
         return () => setHeaderContent(null);
-    }, [workspace]);
+    }, [workspace, boards.length]);
 
     if (isLoading) {
         return (

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/middleware"
@@ -9,6 +11,11 @@ import (
 	"github.com/mello/backend/internal/storage"
 	"github.com/mello/backend/pkg/utils"
 )
+
+// isEmojiAvatar checks if the avatar URL is an emoji avatar (not a file to delete)
+func isEmojiAvatar(avatarURL string) bool {
+	return strings.HasPrefix(avatarURL, "emoji:")
+}
 
 type UserHandler struct {
 	userRepo *repository.UserRepository
@@ -65,7 +72,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	var req struct {
 		FullName  string  `json:"full_name"`
 		Bio       *string `json:"bio"`
-		AvatarURL string  `json:"avatar_url"`
+		AvatarURL *string `json:"avatar_url"` // nil = not sent, "" = clear, "url" = set
 	}
 
 	if err := c.BodyParser(&req); err != nil {
@@ -80,16 +87,19 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		user.Bio = *req.Bio
 	}
 
-	// Delete old avatar if new one is provided
-	if req.AvatarURL != "" && req.AvatarURL != user.AvatarURL {
-		// Delete old avatar from storage if it exists
-		if user.AvatarURL != "" {
+	// Handle avatar update/removal
+	// AvatarURL is a pointer - nil means not sent, empty string means clear, value means set
+	if req.AvatarURL != nil {
+		newAvatarURL := *req.AvatarURL
+
+		// Delete old avatar from storage if it exists and is changing
+		if user.AvatarURL != "" && user.AvatarURL != newAvatarURL && !isEmojiAvatar(user.AvatarURL) {
 			minioStorage := storage.GetMinioStorage()
 			if minioStorage != nil {
 				_ = minioStorage.DeleteFile(c.Context(), user.AvatarURL)
 			}
 		}
-		user.AvatarURL = req.AvatarURL
+		user.AvatarURL = newAvatarURL
 	}
 
 	if err := h.userRepo.Update(user); err != nil {

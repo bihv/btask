@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Avatar } from 'antd';
 import { CheckSquareOutlined, CloseOutlined } from '@ant-design/icons';
 import { User } from '@/types';
+import UserAvatar from '@/components/common/UserAvatar';
 
 interface MemberPickerProps {
     selectedIds: string[];
@@ -13,15 +13,6 @@ interface MemberPickerProps {
     mode: 'dark' | 'light';
 }
 
-// Helper to get initials from name
-const getInitials = (name: string) => {
-    return name
-        ?.split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2) || '?';
-};
 
 export default function MemberPicker({
     selectedIds,
@@ -65,9 +56,11 @@ export default function MemberPicker({
                             background: isSelected ? (mode === 'dark' ? '#1e3a5f' : '#e6f7ff') : undefined,
                         }}
                     >
-                        <Avatar size={24} src={member.avatar_url || undefined} style={{ backgroundColor: '#0052cc' }}>
-                            {getInitials(member.full_name || member.email || '')}
-                        </Avatar>
+                        <UserAvatar
+                            avatarUrl={member.avatar_url}
+                            name={member.full_name || member.email}
+                            size={24}
+                        />
                         <span style={{ flex: 1 }}>{member.full_name}</span>
                         {isSelected && <CheckSquareOutlined style={{ color: '#52c41a' }} />}
                     </div>
@@ -79,6 +72,3 @@ export default function MemberPicker({
         </div>
     );
 }
-
-// Export getInitials for reuse
-export { getInitials };

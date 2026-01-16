@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Input, Button, List, Avatar, Typography, message, Spin, Select } from 'antd';
+import { Modal, Input, Button, List, Typography, message, Spin, Select } from 'antd';
 import { UserAddOutlined, DeleteOutlined, CrownOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
+import UserAvatar from '@/components/common/UserAvatar';
 
 const { Text } = Typography;
 
@@ -16,6 +17,7 @@ interface Member {
         id: string;
         email: string;
         full_name: string;
+        avatar_url?: string;
     };
 }
 
@@ -81,14 +83,6 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
         }
     };
 
-    const getInitials = (name: string) => {
-        return name
-            ?.split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2) || '?';
-    };
 
     return (
         <Modal
@@ -163,9 +157,11 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
                             >
                                 <List.Item.Meta
                                     avatar={
-                                        <Avatar style={{ backgroundColor: '#0052cc' }}>
-                                            {getInitials(member.user?.full_name || member.user?.email || '')}
-                                        </Avatar>
+                                        <UserAvatar
+                                            avatarUrl={member.user?.avatar_url}
+                                            name={member.user?.full_name || member.user?.email}
+                                            size={32}
+                                        />
                                     }
                                     title={
                                         <span>

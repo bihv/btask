@@ -11,7 +11,6 @@ import {
     Divider,
     DatePicker,
     Checkbox,
-    Avatar,
     Tooltip,
     message,
     Spin,
@@ -50,6 +49,7 @@ import AttachmentSection from '@/components/card/AttachmentSection';
 import ShareCardPopover from '@/components/card/ShareCardPopover';
 import LabelPicker from '@/components/card/LabelPicker';
 import CustomFieldsSection from '@/components/card/CustomFieldsSection';
+import UserAvatar from '@/components/common/UserAvatar';
 
 
 // Dynamic import to avoid SSR issues with BlockNote
@@ -388,9 +388,11 @@ export default function CardPage() {
                             onClick={() => handleToggleMember(member.id)}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
-                                <Avatar size="small" style={{ backgroundColor: '#0052cc' }}>
-                                    {member.full_name?.charAt(0).toUpperCase()}
-                                </Avatar>
+                                <UserAvatar
+                                    avatarUrl={member.avatar_url}
+                                    name={member.full_name}
+                                    size="small"
+                                />
                                 <span style={{ flex: 1 }}>{member.full_name}</span>
                                 {isAssigned && <CheckOutlined style={{ color: '#52c41a' }} />}
                             </div>
@@ -572,15 +574,17 @@ export default function CardPage() {
                             <div style={{ cursor: 'pointer' }}>
                                 {card.members && card.members.length > 0 ? (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                        <Avatar.Group>
-                                            {card.members.map((cm) => (
-                                                <Tooltip key={cm.id} title={cm.user?.full_name}>
-                                                    <Avatar size="small" style={{ backgroundColor: '#0052cc' }}>
-                                                        {cm.user?.full_name?.charAt(0).toUpperCase()}
-                                                    </Avatar>
-                                                </Tooltip>
-                                            ))}
-                                        </Avatar.Group>
+                                        {card.members.map((cm) => (
+                                            <Tooltip key={cm.id} title={cm.user?.full_name}>
+                                                <div style={{ marginLeft: -4 }}>
+                                                    <UserAvatar
+                                                        avatarUrl={cm.user?.avatar_url}
+                                                        name={cm.user?.full_name}
+                                                        size="small"
+                                                    />
+                                                </div>
+                                            </Tooltip>
+                                        ))}
                                         <Button type="text" size="small" icon={<span style={{ fontSize: 16 }}>+</span>} />
                                     </div>
                                 ) : (
@@ -817,9 +821,11 @@ export default function CardPage() {
 
                         {/* Add Comment */}
                         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-                            <Avatar style={{ backgroundColor: '#0052cc', flexShrink: 0 }} size="small">
-                                {user?.full_name?.charAt(0).toUpperCase()}
-                            </Avatar>
+                            <UserAvatar
+                                avatarUrl={user?.avatar_url}
+                                name={user?.full_name}
+                                size="small"
+                            />
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <TextArea
                                     value={newComment}
@@ -845,9 +851,11 @@ export default function CardPage() {
                                 key={comment.id}
                                 style={{ display: 'flex', gap: 12, marginBottom: 16 }}
                             >
-                                <Avatar style={{ backgroundColor: '#0052cc', flexShrink: 0 }} size="small">
-                                    {comment.user?.full_name?.charAt(0).toUpperCase()}
-                                </Avatar>
+                                <UserAvatar
+                                    avatarUrl={comment.user?.avatar_url}
+                                    name={comment.user?.full_name}
+                                    size="small"
+                                />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div>
                                         <Text strong style={{ fontSize: 13 }}>{comment.user?.full_name}</Text>

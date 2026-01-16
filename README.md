@@ -61,7 +61,12 @@ The application will be available at:
 cd backend
 cp .env.example .env
 go mod download
+
+# Windows (default)
 air
+
+# macOS / Linux
+air -c .air.unix.toml
 ```
 
 #### Frontend

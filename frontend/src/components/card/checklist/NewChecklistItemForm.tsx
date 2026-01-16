@@ -8,12 +8,12 @@ import {
     Popover,
     DatePicker,
     Tag,
-    Avatar,
 } from 'antd';
 import { UserOutlined, CalendarOutlined } from '@ant-design/icons';
 import { User } from '@/types';
 import dayjs from 'dayjs';
-import MemberPicker, { getInitials } from './MemberPicker';
+import MemberPicker from './MemberPicker';
+import UserAvatar from '@/components/common/UserAvatar';
 
 interface NewChecklistItemFormProps {
     checklistId: string;
@@ -133,9 +133,13 @@ export default function NewChecklistItemForm({
                                 key={member.id}
                                 closable
                                 onClose={() => onAssigneeIdsChange(assigneeIds.filter(id => id !== assigneeId))}
-                                icon={<Avatar size={14} src={member.avatar_url || undefined} style={{ marginRight: 4, backgroundColor: '#0052cc', fontSize: 8 }}>{getInitials(member.full_name || '')}</Avatar>}
-                                style={{ display: 'flex', alignItems: 'center' }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
                             >
+                                <UserAvatar
+                                    avatarUrl={member.avatar_url}
+                                    name={member.full_name}
+                                    size={14}
+                                />
                                 {member.full_name}
                             </Tag>
                         ) : null;

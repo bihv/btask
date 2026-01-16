@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Menu, Button, Avatar, Dropdown, Typography, Spin, Divider } from 'antd';
+import { Layout, Menu, Button, Dropdown, Typography, Spin, Divider } from 'antd';
 import {
     HomeOutlined,
     ProjectOutlined,
@@ -28,6 +28,7 @@ import { useHeader } from '@/providers/HeaderProvider';
 import NotificationDropdown from '@/components/notification/NotificationDropdown';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import type { MenuProps } from 'antd';
+import UserAvatar from '@/components/common/UserAvatar';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -77,15 +78,6 @@ export default function DashboardLayout({
         },
     ];
 
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
-    };
-
     const handleNavClick = (e: { key: string }) => {
         if (e.key === 'starred') {
             router.push('/starred');
@@ -101,12 +93,11 @@ export default function DashboardLayout({
             <div className="dropdown-section">
                 <div className="dropdown-section-label">ACCOUNT</div>
                 <div className="dropdown-user-info">
-                    <Avatar
+                    <UserAvatar
+                        avatarUrl={user?.avatar_url}
+                        name={user?.full_name}
                         size={40}
-                        style={{ backgroundColor: '#0052cc', flexShrink: 0 }}
-                    >
-                        {user?.full_name ? getInitials(user.full_name) : 'U'}
-                    </Avatar>
+                    />
                     <div className="dropdown-user-details">
                         <div className="dropdown-user-name">{user?.full_name || 'User'}</div>
                         <div className="dropdown-user-email">{user?.email || ''}</div>
@@ -343,18 +334,18 @@ export default function DashboardLayout({
                         />
                         <NotificationDropdown />
                         <Dropdown
-                            dropdownRender={() => avatarDropdownContent}
+                            popupRender={() => avatarDropdownContent}
                             placement="bottomRight"
                             trigger={['click']}
                         >
-                            <Avatar
-                                style={{
-                                    backgroundColor: '#0052cc',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                {user?.full_name ? getInitials(user.full_name) : 'U'}
-                            </Avatar>
+                            <div style={{ cursor: 'pointer' }}>
+                                <UserAvatar
+                                    avatarUrl={user?.avatar_url}
+                                    name={user?.full_name}
+                                    size={32}
+                                style={{ cursor: 'pointer' }}
+                                />
+                            </div>
                         </Dropdown>
                     </div>
                 </Header>

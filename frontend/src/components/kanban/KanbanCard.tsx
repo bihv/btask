@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Typography, Avatar, Tooltip, Tag } from 'antd';
+import { Typography, Tooltip, Tag } from 'antd';
 import { 
     ClockCircleOutlined, 
     CheckCircleOutlined, 
@@ -18,6 +18,7 @@ import {
 import { Card, CustomField, CardCustomFieldValue } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import styles from './KanbanBoard.module.css';
+import UserAvatar from '@/components/common/UserAvatar';
 
 const { Text } = Typography;
 
@@ -310,22 +311,35 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
 
                 {/* Members */}
                 {card.members && card.members.length > 0 && (
-                    <Avatar.Group
-                        maxCount={3}
-                        size="small"
-                        maxStyle={{ backgroundColor: '#0052cc' }}
-                    >
-                        {card.members.map((cm) => (
+                    <div style={{ display: 'flex', marginLeft: 'auto' }}>
+                        {card.members.slice(0, 3).map((cm) => (
                             <Tooltip key={cm.id} title={cm.user?.full_name}>
-                                <Avatar
-                                    size="small"
-                                    style={{ backgroundColor: '#0052cc' }}
-                                >
-                                    {cm.user?.full_name?.charAt(0).toUpperCase()}
-                                </Avatar>
+                                <div style={{ marginLeft: -4 }}>
+                                    <UserAvatar
+                                        avatarUrl={cm.user?.avatar_url}
+                                        name={cm.user?.full_name}
+                                        size="small"
+                                    />
+                                </div>
                             </Tooltip>
                         ))}
-                    </Avatar.Group>
+                        {card.members.length > 3 && (
+                            <div style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                backgroundColor: '#0052cc',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 10,
+                                color: 'white',
+                                marginLeft: -4,
+                            }}>
+                                +{card.members.length - 3}
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
         </div>

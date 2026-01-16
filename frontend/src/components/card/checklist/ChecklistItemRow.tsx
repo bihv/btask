@@ -8,7 +8,6 @@ import {
     Button,
     Space,
     Dropdown,
-    Avatar,
     Popover,
     DatePicker,
     Tag,
@@ -24,8 +23,9 @@ import {
 } from '@ant-design/icons';
 import { ChecklistItem as ChecklistItemType, User } from '@/types';
 import dayjs from 'dayjs';
-import MemberPicker, { getInitials } from './MemberPicker';
+import MemberPicker from './MemberPicker';
 import { checklistApi } from '@/lib/api';
+import UserAvatar from '@/components/common/UserAvatar';
 
 const { Text } = Typography;
 
@@ -352,20 +352,33 @@ export default function ChecklistItemRow({
                             style={{ cursor: 'pointer' }}
                             onClick={() => setMemberModalOpen(true)}
                         >
-                            <Avatar.Group
-                                size={28}
-                                max={{ count: 3 }}
-                            >
-                                {item.assignees.map(assignee => (
-                                    <Avatar
-                                        key={assignee.id}
-                                        src={assignee.user?.avatar_url || undefined}
-                                        style={{ backgroundColor: '#0052cc' }}
-                                    >
-                                        {getInitials(assignee.user?.full_name || assignee.user?.email || '')}
-                                    </Avatar>
+                            <div style={{ display: 'flex' }}>
+                                {item.assignees.slice(0, 3).map(assignee => (
+                                    <div key={assignee.id} style={{ marginLeft: -4 }}>
+                                        <UserAvatar
+                                            avatarUrl={assignee.user?.avatar_url}
+                                            name={assignee.user?.full_name || assignee.user?.email}
+                                            size={28}
+                                        />
+                                    </div>
                                 ))}
-                            </Avatar.Group>
+                                {item.assignees.length > 3 && (
+                                    <div style={{
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        backgroundColor: '#0052cc',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: 10,
+                                        color: 'white',
+                                        marginLeft: -4,
+                                    }}>
+                                        +{item.assignees.length - 3}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 
