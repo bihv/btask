@@ -28,3 +28,85 @@ export function useUpdateUser() {
         },
     });
 }
+
+// Settings hooks
+
+interface ChangePasswordRequest {
+    current_password: string;
+    new_password: string;
+}
+
+export function useChangePassword() {
+    return useMutation({
+        mutationFn: async (data: ChangePasswordRequest): Promise<{ message: string }> => {
+            const response = await api.put('/users/me/password', data);
+            return response.data.data;
+        },
+    });
+}
+
+interface ChangeEmailRequest {
+    new_email: string;
+    password: string;
+}
+
+export function useChangeEmail() {
+    const { setUser } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: ChangeEmailRequest): Promise<User> => {
+            const response = await api.put('/users/me/email', data);
+            return response.data.data;
+        },
+        onSuccess: (updatedUser) => {
+            setUser(updatedUser);
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+        },
+    });
+}
+
+interface UpdatePreferencesRequest {
+    notify_card_assigned?: boolean;
+    notify_due_date?: boolean;
+    notify_comment?: boolean;
+    notify_mention?: boolean;
+    language?: string;
+    timezone?: string;
+    date_format?: string;
+}
+
+export function useUpdatePreferences() {
+    const { setUser } = useAuthStore();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: UpdatePreferencesRequest): Promise<User> => {
+            const response = await api.put('/users/me/preferences', data);
+            return response.data.data;
+        },
+        onSuccess: (updatedUser) => {
+            setUser(updatedUser);
+            queryClient.invalidateQueries({ queryKey: ['user'] });
+        },
+    });
+}
+
+interface DeleteAccountRequest {
+    password: string;
+}
+
+export function useDeleteAccount() {
+    const { logout } = useAuthStore();
+
+    return useMutation({
+        mutationFn: async (data: DeleteAccountRequest): Promise<{ message: string }> => {
+            const response = await api.delete('/users/me', { data });
+            return response.data.data;
+        },
+        onSuccess: () => {
+            logout();
+        },
+    });
+}
+
