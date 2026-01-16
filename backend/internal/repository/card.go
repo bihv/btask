@@ -168,3 +168,95 @@ func (r *CardRepository) GetListByCardID(cardID uuid.UUID) (*models.List, error)
 	}
 	return &list, nil
 }
+
+// FindByAssignedUserID returns all non-archived cards where the user is a member with optional filters
+func (r *CardRepository) FindByAssignedUserID(userID uuid.UUID, filter models.CardFilterRequest) ([]models.Card, error) {
+	var cards []models.Card
+	query := database.DB.
+		Joins("JOIN card_members ON card_members.card_id = cards.id").
+		Joins("JOIN lists ON lists.id = cards.list_id").
+		Joins("JOIN boards ON boards.id = lists.board_id").
+		Where("card_members.user_id = ? AND cards.is_archived = ?", userID, false)
+
+	// Keyword filter
+	if filter.Keyword != "" {
+		query = query.Where("cards.title ILIKE ?", "%"+filter.Keyword+"%")
+	}
+
+	// Status filter
+	if filter.IsComplete != nil && *filter.IsComplete && (filter.IsIncomplete == nil || !*filter.IsIncomplete) {
+		query = query.Where("cards.is_completed = ?", true)
+	} else if filter.IsIncomplete != nil && *filter.IsIncomplete && (filter.IsComplete == nil || !*filter.IsComplete) {
+		query = query.Where("cards.is_completed = ?", false)
+	}
+
+	// Due date filters (these are OR conditions)
+	dueDateConditions := []string{}
+	dueDateArgs := []interface{}{}
+
+	if filter.NoDueDate {
+		dueDateConditions = append(dueDateConditions, "cards.due_date IS NULL")
+	}
+	if filter.Overdue {
+		dueDateConditions = append(dueDateConditions, "cards.due_date < NOW()")
+	}
+	if filter.DueNextDay {
+		dueDateConditions = append(dueDateConditions, "(cards.due_date >= NOW() AND cards.due_date <= NOW() + INTERVAL '1 day')")
+	}
+	if filter.DueNextWeek {
+		dueDateConditions = append(dueDateConditions, "(cards.due_date >= NOW() AND cards.due_date <= NOW() + INTERVAL '7 days')")
+	}
+	if filter.DueNextMonth {
+		dueDateConditions = append(dueDateConditions, "(cards.due_date >= NOW() AND cards.due_date <= NOW() + INTERVAL '30 days')")
+	}
+
+	if len(dueDateConditions) > 0 {
+		combined := "(" + dueDateConditions[0]
+		for i := 1; i < len(dueDateConditions); i++ {
+			combined += " OR " + dueDateConditions[i]
+		}
+		combined += ")"
+		query = query.Where(combined, dueDateArgs...)
+	}
+
+	// Board filter
+	if len(filter.BoardIDs) > 0 {
+		query = query.Where("boards.id IN ?", filter.BoardIDs)
+	}
+
+	// Activity filters (these are OR conditions)
+	activityConditions := []string{}
+
+	if filter.ActiveLastDay {
+		activityConditions = append(activityConditions, "cards.updated_at >= NOW() - INTERVAL '1 day'")
+	}
+	if filter.ActiveLastWeek {
+		activityConditions = append(activityConditions, "cards.updated_at >= NOW() - INTERVAL '7 days'")
+	}
+	if filter.ActiveLastMonth {
+		activityConditions = append(activityConditions, "cards.updated_at >= NOW() - INTERVAL '30 days'")
+	}
+	if filter.ActiveLastYear {
+		activityConditions = append(activityConditions, "cards.updated_at >= NOW() - INTERVAL '365 days'")
+	}
+
+	if len(activityConditions) > 0 {
+		combined := "(" + activityConditions[0]
+		for i := 1; i < len(activityConditions); i++ {
+			combined += " OR " + activityConditions[i]
+		}
+		combined += ")"
+		query = query.Where(combined)
+	}
+
+	err := query.
+		Preload("Labels.Label").
+		Preload("Members.User").
+		Preload("List.Board.Workspace").
+		Order("cards.due_date ASC NULLS LAST, cards.updated_at DESC").
+		Find(&cards).Error
+	if err != nil {
+		return nil, err
+	}
+	return cards, nil
+}

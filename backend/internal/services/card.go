@@ -332,3 +332,8 @@ func (s *CardService) GetArchivedByBoardID(boardID uuid.UUID, userID uuid.UUID) 
 func (s *CardService) hasAccess(workspaceID uuid.UUID, userID uuid.UUID) bool {
 	return s.workspaceRepo.IsOwner(workspaceID, userID) || s.workspaceRepo.IsMember(workspaceID, userID)
 }
+
+// GetByAssignedUserID returns all cards assigned to a user with optional filters
+func (s *CardService) GetByAssignedUserID(userID uuid.UUID, filter models.CardFilterRequest) ([]models.Card, error) {
+	return s.cardRepo.FindByAssignedUserID(userID, filter)
+}

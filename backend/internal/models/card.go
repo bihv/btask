@@ -75,3 +75,20 @@ type MoveCardRequest struct {
 	ListID   uuid.UUID `json:"list_id" validate:"required"`
 	Position int       `json:"position" validate:"min=0"`
 }
+
+// CardFilterRequest contains filter parameters for fetching cards
+type CardFilterRequest struct {
+	Keyword         string   `json:"keyword" query:"keyword"`
+	IsComplete      *bool    `json:"is_complete" query:"is_complete"`
+	IsIncomplete    *bool    `json:"is_incomplete" query:"is_incomplete"`
+	NoDueDate       bool     `json:"no_due_date" query:"no_due_date"`
+	Overdue         bool     `json:"overdue" query:"overdue"`
+	DueNextDay      bool     `json:"due_next_day" query:"due_next_day"`
+	DueNextWeek     bool     `json:"due_next_week" query:"due_next_week"`
+	DueNextMonth    bool     `json:"due_next_month" query:"due_next_month"`
+	BoardIDs        []string `json:"board_ids" query:"board_ids"`
+	ActiveLastDay   bool     `json:"active_last_day" query:"active_last_day"`
+	ActiveLastWeek  bool     `json:"active_last_week" query:"active_last_week"`
+	ActiveLastMonth bool     `json:"active_last_month" query:"active_last_month"`
+	ActiveLastYear  bool     `json:"active_last_year" query:"active_last_year"`
+}

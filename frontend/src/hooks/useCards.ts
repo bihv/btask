@@ -179,3 +179,50 @@ export function useAttachments(cardId: string) {
         enabled: !!cardId,
     });
 }
+
+// Card filter parameters
+export interface CardFilters {
+    keyword?: string;
+    isComplete?: boolean;
+    isIncomplete?: boolean;
+    noDueDate?: boolean;
+    overdue?: boolean;
+    dueNextDay?: boolean;
+    dueNextWeek?: boolean;
+    dueNextMonth?: boolean;
+    boardIds?: string[];
+    activeLastDay?: boolean;
+    activeLastWeek?: boolean;
+    activeLastMonth?: boolean;
+    activeLastYear?: boolean;
+}
+
+// Fetch cards assigned to current user with optional filters
+export function useMyCards(filters?: CardFilters) {
+    return useQuery({
+        queryKey: ['cards', 'my', filters],
+        queryFn: async (): Promise<Card[]> => {
+            const params = new URLSearchParams();
+
+            if (filters?.keyword) params.append('keyword', filters.keyword);
+            if (filters?.isComplete) params.append('is_complete', 'true');
+            if (filters?.isIncomplete) params.append('is_incomplete', 'true');
+            if (filters?.noDueDate) params.append('no_due_date', 'true');
+            if (filters?.overdue) params.append('overdue', 'true');
+            if (filters?.dueNextDay) params.append('due_next_day', 'true');
+            if (filters?.dueNextWeek) params.append('due_next_week', 'true');
+            if (filters?.dueNextMonth) params.append('due_next_month', 'true');
+            if (filters?.boardIds?.length) params.append('board_ids', filters.boardIds.join(','));
+            if (filters?.activeLastDay) params.append('active_last_day', 'true');
+            if (filters?.activeLastWeek) params.append('active_last_week', 'true');
+            if (filters?.activeLastMonth) params.append('active_last_month', 'true');
+            if (filters?.activeLastYear) params.append('active_last_year', 'true');
+
+            const queryString = params.toString();
+            const url = queryString ? `/users/me/cards?${queryString}` : '/users/me/cards';
+
+            const response = await api.get(url);
+            return response.data.data || [];
+        },
+    });
+}

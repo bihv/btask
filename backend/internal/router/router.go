@@ -40,8 +40,10 @@ func Setup(app *fiber.App, cfg *config.Config) {
 
 	// User routes
 	userHandler := handlers.NewUserHandler()
+	cardHandler := handlers.NewCardHandler()
 	users := protected.Group("/users")
 	users.Get("/me", userHandler.GetMe)
+	users.Get("/me/cards", cardHandler.GetMyCards)
 	users.Get("/search", userHandler.Search)
 	users.Get("/:id", userHandler.GetByID)
 	users.Put("/:id", userHandler.Update)
@@ -104,7 +106,6 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	boards.Put("/:id/collapse-all-lists", listHandler.CollapseAllLists)
 
 	// Card routes
-	cardHandler := handlers.NewCardHandler()
 	lists.Post("/:listId/cards", cardHandler.Create)
 
 	cards := protected.Group("/cards")

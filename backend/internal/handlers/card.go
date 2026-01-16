@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -454,6 +455,46 @@ func (h *CardHandler) GetArchivedCards(c *fiber.Ctx) error {
 	cards, err := h.service.GetArchivedByBoardID(boardID, userID)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, cards)
+}
+
+// GetMyCards returns all cards assigned to the current user with optional filters
+func (h *CardHandler) GetMyCards(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	// Parse filter parameters
+	var filter models.CardFilterRequest
+	filter.Keyword = c.Query("keyword")
+
+	if c.Query("is_complete") == "true" {
+		isComplete := true
+		filter.IsComplete = &isComplete
+	}
+	if c.Query("is_incomplete") == "true" {
+		isIncomplete := true
+		filter.IsIncomplete = &isIncomplete
+	}
+
+	filter.NoDueDate = c.Query("no_due_date") == "true"
+	filter.Overdue = c.Query("overdue") == "true"
+	filter.DueNextDay = c.Query("due_next_day") == "true"
+	filter.DueNextWeek = c.Query("due_next_week") == "true"
+	filter.DueNextMonth = c.Query("due_next_month") == "true"
+
+	if boardIDs := c.Query("board_ids"); boardIDs != "" {
+		filter.BoardIDs = strings.Split(boardIDs, ",")
+	}
+
+	filter.ActiveLastDay = c.Query("active_last_day") == "true"
+	filter.ActiveLastWeek = c.Query("active_last_week") == "true"
+	filter.ActiveLastMonth = c.Query("active_last_month") == "true"
+	filter.ActiveLastYear = c.Query("active_last_year") == "true"
+
+	cards, err := h.service.GetByAssignedUserID(userID, filter)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to fetch cards")
 	}
 
 	return utils.SuccessResponse(c, cards)
