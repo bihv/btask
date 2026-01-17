@@ -1,19 +1,82 @@
 ---
 title: Attachments
-description: File đính kèm
+description: Upload and manage files on cards
 ---
 
 # Attachments
 
-## Mô tả
+Attachments allow you to add files to cards, keeping all relevant documents, images, and resources in one place.
 
-Attachments cho phép đính kèm file vào cards.
+## Uploading Files
 
-## Tính năng
+1. Open a card
+2. Click **Attachment** in the sidebar
+3. Select a file from your computer
+4. Wait for upload to complete
 
-- Upload file (images, documents, etc.)
-- Lưu trữ với MinIO
-- Download và preview
-- Xóa attachments
+## Supported Files
 
-*Chi tiết sẽ được bổ sung...*
+| Category | Extensions |
+|----------|------------|
+| Images | `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.svg` |
+| Documents | `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx` |
+| Text | `.txt`, `.md`, `.csv`, `.json` |
+| Archives | `.zip`, `.rar`, `.7z` |
+
+**Maximum file size:** 10 MB per file
+
+## Storage
+
+Files are stored in MinIO (S3-compatible storage):
+- Reliable cloud storage
+- Fast uploads and downloads
+- Secure access control
+
+## Viewing Attachments
+
+### Image Preview
+- Images display inline on the card
+- Click to view full size
+- Supports zoom and download
+
+### Document Download
+- Click attachment to download
+- Opens in browser if supported
+
+## Attachment Information
+
+Each attachment shows:
+- **Filename** - Original file name
+- **File size** - Size in KB/MB
+- **Upload date** - When it was added
+- **Uploader** - Who added the file
+
+## Managing Attachments
+
+### Delete Attachment
+1. Hover over the attachment
+2. Click the delete icon
+3. Confirm deletion
+
+Files are permanently deleted from storage.
+
+## Card Display
+
+On the card front:
+- Attachment count badge shows (📎 3)
+- Image attachments can be set as card cover
+
+## Use Cases
+
+**Common attachment uses:**
+- 📄 Design mockups and specs
+- 📊 Reports and spreadsheets
+- 📸 Screenshots and photos
+- 📝 Reference documents
+- 📦 Asset files
+
+## Related
+
+- [Attachments API](/docs/api-reference/attachments) - API endpoints
+- [Cards](/docs/features/cards) - Card details
+

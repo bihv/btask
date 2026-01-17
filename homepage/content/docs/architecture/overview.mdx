@@ -1,30 +1,104 @@
 ---
-title: Tổng quan kiến trúc
-description: Tổng quan về kiến trúc hệ thống Mello
+title: Architecture Overview
+description: System architecture overview for Mello
 ---
 
-# Tổng quan kiến trúc
+# Architecture Overview
 
-## Sơ đồ hệ thống
+Mello is a full-stack Trello clone built with a modern microservices-ready architecture. This document provides a high-level overview of the system components and how they interact.
+
+## System Diagram
 
 ```
-┌─────────────────┐     ┌─────────────────┐
-│    Frontend     │────▶│     Backend     │
-│   (Next.js)     │     │   (Go Fiber)    │
-└─────────────────┘     └─────────────────┘
-                              │
-                              ▼
-                ┌─────────────────────────┐
-                │      PostgreSQL         │
-                └─────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client Browser                          │
+└─────────────────────────────────────────────────────────────────┘
+                    │                           │
+                    │ HTTP/HTTPS                │ WebSocket
+                    ▼                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Frontend (Next.js)                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │  App Router │  │   Zustand   │  │     React Query         │  │
+│  │   (Pages)   │  │  (Stores)   │  │  (Data Fetching)        │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+                    │                           │
+                    │ REST API                  │ WebSocket
+                    ▼                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Backend (Go Fiber)                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │  Handlers   │──│  Services   │──│     Repositories        │  │
+│  │  (Routes)   │  │  (Logic)    │  │  (Data Access)          │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
+│                                           │                      │
+│  ┌─────────────┐  ┌─────────────┐         │                      │
+│  │   JWT Auth  │  │  WebSocket  │         │                      │
+│  │ (Middleware)│  │    Hub      │         │                      │
+│  └─────────────┘  └─────────────┘         │                      │
+└───────────────────────────────────────────│──────────────────────┘
+                                            │
+                    ┌───────────────────────┴───────────────────────┐
+                    │                                               │
+                    ▼                                               ▼
+        ┌─────────────────────┐                       ┌─────────────────────┐
+        │     PostgreSQL      │                       │       MinIO         │
+        │     (Database)      │                       │   (File Storage)    │
+        └─────────────────────┘                       └─────────────────────┘
 ```
 
-## Các thành phần
+## Components
 
-- **Frontend**: Next.js 14 với App Router
-- **Backend**: Go Fiber HTTP framework
-- **Database**: PostgreSQL với GORM ORM
-- **Real-time**: WebSocket connections
-- **Storage**: MinIO cho file uploads
+### Frontend
+- **Next.js** with App Router for server-side rendering and routing
+- **Ant Design** for UI components
+- **Zustand** for lightweight state management
+- **React Query** for server state and caching
+- **dnd-kit** for drag-and-drop functionality
 
-*Chi tiết sẽ được bổ sung...*
+### Backend
+- **Go Fiber** - Fast HTTP web framework
+- **GORM** - Object-Relational Mapping for PostgreSQL
+- **JWT** - Stateless authentication
+- **Zap** - Structured logging
+- **WebSocket** - Real-time notifications
+
+### Database
+- **PostgreSQL** - Primary data store
+- Relational schema with foreign keys
+- GORM migrations for schema management
+
+### Storage
+- **MinIO** - S3-compatible object storage for file uploads
+- Configurable for local development or cloud deployment
+
+## Data Flow
+
+1. **User Authentication**: Client sends credentials → Backend validates → Returns JWT token
+2. **API Requests**: Client includes JWT in header → Middleware validates → Handler processes → Returns JSON
+3. **Real-time Updates**: Backend broadcasts via WebSocket → Connected clients receive notifications
+4. **File Uploads**: Client uploads to MinIO → Backend stores reference in database
+
+## Communication Patterns
+
+| Pattern | Protocol | Use Case |
+|---------|----------|----------|
+| REST API | HTTP | CRUD operations, data fetching |
+| WebSocket | WS | Real-time notifications |
+| File Upload | HTTP Multipart | Attachments, avatars |
+
+## Deployment Options
+
+The application supports multiple deployment configurations:
+
+- **Development**: Docker Compose with hot-reload for rapid iteration
+- **Production**: Docker containers orchestrated via Docker Compose
+- **Cloud-ready**: Compatible with AWS, GCP, or Azure (using managed PostgreSQL and S3-compatible storage)
+
+<Cards>
+  <Card title="Backend Architecture" href="/docs/architecture/backend" />
+  <Card title="Frontend Architecture" href="/docs/architecture/frontend" />
+  <Card title="Database Schema" href="/docs/architecture/database" />
+</Cards>
+

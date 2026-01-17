@@ -1,26 +1,105 @@
 ---
-title: Bắt đầu nhanh
-description: Hướng dẫn bắt đầu sử dụng Mello nhanh chóng
+title: Quick Start
+description: Get up and running with Mello in 5 minutes
 ---
 
-# Bắt đầu nhanh
+# Quick Start
 
-## Clone repository
+Get Mello running and create your first board in under 5 minutes.
+
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
+- Git installed
+- Terminal access
+
+## Step 1: Clone and Start
 
 ```bash
+# Clone the repository
 git clone https://github.com/your-org/mello.git
 cd mello
-```
 
-## Chạy với Docker
-
-```bash
+# Start all services
 docker-compose up -d
+
+# Wait for services to be ready (~30 seconds)
+docker-compose logs -f
+# Press Ctrl+C when you see "Server started on port 8080"
 ```
 
-## Truy cập ứng dụng
+## Step 2: Open the Application
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080
+Open your browser and navigate to:
 
-*Chi tiết sẽ được bổ sung...*
+| Service | URL |
+|---------|-----|
+| **Application** | http://localhost:3000 |
+| **API** | http://localhost:8080 |
+| **pgAdmin** | http://localhost:5050 |
+| **MinIO Console** | http://localhost:9001 |
+
+## Step 3: Create an Account
+
+1. Click **Register** on the login page
+2. Enter your details:
+   - Full name
+   - Email address
+   - Password (min 6 characters)
+3. Click **Create Account**
+
+You'll be automatically logged in.
+
+## Step 4: Create Your First Workspace
+
+1. Click **Create Workspace** in the sidebar
+2. Enter a workspace name (e.g., "My Projects")
+3. Add an optional description
+4. Click **Create**
+
+## Step 5: Create a Board
+
+1. Inside your workspace, click **Create Board**
+2. Enter a board title (e.g., "Project Tasks")
+3. Choose a background color
+4. Click **Create**
+
+## Step 6: Add Lists and Cards
+
+### Create Lists
+1. Click **Add another list**
+2. Enter "To Do" and press Enter
+3. Create more lists: "In Progress", "Done"
+
+### Add Cards
+1. Click **Add a card** at the bottom of a list
+2. Enter a card title
+3. Press Enter to save
+
+### Move Cards
+- Drag and drop cards between lists
+- Cards save their position automatically
+
+## What's Next?
+
+You now have a working Mello installation! Explore these features:
+
+<Cards>
+  <Card title="Workspaces" href="/docs/features/workspaces" />
+  <Card title="Boards" href="/docs/features/boards" />
+  <Card title="Cards" href="/docs/features/cards" />
+  <Card title="Labels" href="/docs/features/labels" />
+</Cards>
+
+## Learn More
+
+- [Features Overview](/docs/features/workspaces) - Explore all Mello features
+- [Architecture](/docs/architecture/overview) - Understand how Mello works
+- [API Reference](/docs/api-reference/overview) - Integrate with the API
+
+## Need Help?
+
+- [Docker Setup Details](/docs/getting-started/docker-setup)
+- [Troubleshooting](/docs/deployment/docker#troubleshooting)
+- [GitHub Issues](https://github.com/your-org/mello/issues)
+

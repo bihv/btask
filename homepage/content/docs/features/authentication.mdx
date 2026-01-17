@@ -1,23 +1,84 @@
 ---
 title: Authentication
-description: Hệ thống xác thực người dùng
+description: User authentication and authorization system
 ---
 
 # Authentication
 
-## Đăng ký tài khoản
+Mello uses JWT (JSON Web Token) based authentication for secure, stateless user sessions.
 
-- Email và password
-- Validation đầu vào
+## Registration
 
-## Đăng nhập
+Users can create an account with email and password.
 
-- JWT token-based authentication
-- Token refresh mechanism
+**Requirements:**
+- Valid email address (unique)
+- Password minimum 6 characters
+- Full name
 
-## Bảo mật
+**Process:**
+1. User submits registration form
+2. Server validates input and checks email uniqueness
+3. Password is hashed using bcrypt
+4. User record is created in database
+5. JWT token is generated and returned
 
-- Password hashing với bcrypt
-- JWT expiration
+## Login
 
-*Chi tiết sẽ được bổ sung...*
+Registered users can sign in with their credentials.
+
+**Process:**
+1. User submits email and password
+2. Server verifies credentials against stored hash
+3. On success, JWT token is generated
+4. Token is returned to client for future requests
+
+## JWT Token
+
+The JWT token contains:
+
+| Claim | Description |
+|-------|-------------|
+| `sub` | User ID (UUID) |
+| `email` | User email address |
+| `exp` | Expiration timestamp |
+| `iat` | Issued at timestamp |
+
+**Token lifetime:** 24 hours (configurable via `JWT_EXPIRY`)
+
+## Using Authentication
+
+Include the token in the `Authorization` header:
+
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+## Security Features
+
+### Password Hashing
+- Passwords are hashed using bcrypt with cost factor 10
+- Original passwords are never stored
+
+### Token Expiration
+- Tokens expire after 24 hours
+- Users must re-authenticate after expiration
+
+### Protected Routes
+- All API routes (except `/auth/register` and `/auth/login`) require valid JWT
+- Invalid or expired tokens return 401 Unauthorized
+
+## Error Handling
+
+| Error | Description |
+|-------|-------------|
+| Invalid credentials | Email or password incorrect |
+| Email already exists | Registration with existing email |
+| Token expired | JWT has expired, re-login required |
+| Invalid token | Malformed or tampered token |
+
+## Related
+
+- [Authentication API](/docs/api-reference/authentication) - API endpoints
+- [Users API](/docs/api-reference/users) - User profile management
+

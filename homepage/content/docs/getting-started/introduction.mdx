@@ -1,22 +1,77 @@
 ---
-title: Giới thiệu
-description: Giới thiệu về dự án Mello - Trello Clone
+title: Introduction
+description: Introduction to Mello - A Trello Clone
 ---
 
-# Giới thiệu Mello
+# Introduction to Mello
 
-Mello là ứng dụng quản lý công việc theo phong cách Kanban, được xây dựng như một phiên bản clone của Trello với công nghệ hiện đại.
+Mello is a modern, open-source project management application built in the style of Trello. It provides a Kanban-style interface for organizing tasks, collaborating with teams, and managing projects.
 
-## Tính năng nổi bật
+## What is Mello?
 
-- **Workspaces**: Quản lý nhiều không gian làm việc
-- **Boards**: Tạo bảng với background tùy chỉnh
-- **Drag & Drop**: Di chuyển cards và lists dễ dàng
-- **Real-time**: Cập nhật theo thời gian thực với WebSocket
-- **Open Source**: Mã nguồn mở, tự do sử dụng
+Mello is a full-stack Trello clone that demonstrates modern web development practices:
 
-## Dành cho ai?
+- **Full-featured Kanban boards** with drag-and-drop functionality
+- **Real-time collaboration** using WebSocket technology
+- **Clean, responsive UI** built with Next.js and Ant Design
+- **Robust API** powered by Go and Fiber framework
+- **Self-hosted** - deploy on your own infrastructure
 
-- Các nhóm phát triển phần mềm
-- Quản lý dự án cá nhân hoặc nhóm
-- Bất kỳ ai cần một công cụ Kanban đơn giản
+## Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Workspaces** | Organize boards into workspaces with team members |
+| **Boards** | Create unlimited Kanban boards with custom backgrounds |
+| **Lists & Cards** | Organize work into columns and task cards |
+| **Drag & Drop** | Intuitive interface for moving cards and lists |
+| **Labels** | Color-coded categorization for cards |
+| **Checklists** | Break tasks into sub-items with progress tracking |
+| **Due Dates** | Set deadlines and track completion |
+| **Comments** | Collaborate and discuss on cards |
+| **Attachments** | Upload files and documents to cards |
+| **Custom Fields** | Extend cards with custom data |
+| **Notifications** | Real-time alerts for activity |
+| **WebSocket** | Live updates across all users |
+
+## Tech Stack
+
+### Backend
+- **Go** with Fiber framework
+- **PostgreSQL** database with GORM
+- **JWT** authentication
+- **WebSocket** for real-time communication
+- **MinIO** for file storage
+
+### Frontend
+- **Next.js** with App Router
+- **Ant Design** component library
+- **Zustand** for state management
+- **React Query** for data fetching
+- **dnd-kit** for drag and drop
+
+## Who is Mello For?
+
+- 👩‍💻 **Developers** learning full-stack development
+- 🏢 **Teams** needing a self-hosted project management tool
+- 📚 **Students** studying modern web architecture
+- 🚀 **Startups** looking for an open-source Trello alternative
+
+## Why Choose Mello?
+
+| Benefit | Description |
+|---------|-------------|
+| **Open Source** | Free to use, modify, and deploy |
+| **Self-Hosted** | Full control over your data |
+| **Modern Stack** | Built with latest technologies |
+| **Well Documented** | Comprehensive documentation |
+| **Easy Setup** | Docker Compose for quick deployment |
+
+## Next Steps
+
+<Cards>
+  <Card title="Quick Start" href="/docs/getting-started/quick-start" />
+  <Card title="Installation" href="/docs/getting-started/installation" />
+  <Card title="Features Overview" href="/docs/features/workspaces" />
+</Cards>
+

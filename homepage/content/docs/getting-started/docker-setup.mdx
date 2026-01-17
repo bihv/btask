@@ -1,21 +1,204 @@
 ---
 title: Docker Setup
-description: Hướng dẫn cài đặt chi tiết với Docker
+description: Detailed Docker configuration and services
 ---
 
 # Docker Setup
 
-## Docker Compose
+This guide provides detailed information about the Docker Compose setup for Mello.
 
-*Chi tiết sẽ được bổ sung...*
+## Architecture
 
-## Các services
+```
+                     ┌─────────────────┐
+                     │   Frontend      │
+                     │  (Next.js)      │
+                     │  Port: 3000     │
+                     └────────┬────────┘
+                              │
+                              ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│    pgAdmin      │  │    Backend      │  │     MinIO       │
+│   Port: 5050    │  │   (Go Fiber)    │  │  Port: 9000     │
+└────────┬────────┘  │   Port: 8080    │  │  Console: 9001  │
+         │           └────────┬────────┘  └─────────────────┘
+         │                    │
+         └──────────┬─────────┘
+                    │
+                    ▼
+           ┌─────────────────┐
+           │   PostgreSQL    │
+           │   Port: 5432    │
+           └─────────────────┘
+```
 
-- **PostgreSQL**: Database chính
-- **Backend**: Go Fiber API server
-- **Frontend**: Next.js application
-- **MinIO**: Object storage cho file uploads
+## Services Overview
+
+| Service | Image | Ports | Purpose |
+|---------|-------|-------|---------|
+| `postgres` | postgres:16-alpine | 5432 | Primary database |
+| `pgadmin` | dpage/pgadmin4 | 5050 | Database administration |
+| `minio` | minio/minio | 9000, 9001 | File storage |
+| `backend` | Custom (Dockerfile.dev) | 8080 | API server |
+| `frontend` | Custom (Dockerfile.dev) | 3000 | Web application |
+
+## Quick Start
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+```
+
+## Service Details
+
+### PostgreSQL
+
+Primary data store for all application data.
+
+**Default Credentials:**
+- Host: `localhost` (or `postgres` from other containers)
+- Port: `5432`
+- Database: `mello`
+- Username: `mello`
+- Password: `mello123`
+
+### pgAdmin
+
+Web-based database management tool.
+
+**Access:** http://localhost:5050
+- Email: `admin@admin.com`
+- Password: `admin123`
+
+**Connecting to database:**
+1. Right-click Servers → Create → Server
+2. Name: `Mello`
+3. Connection tab:
+   - Host: `postgres`
+   - Port: `5432`
+   - Database: `mello`
+   - Username: `mello`
+   - Password: `mello123`
+
+### MinIO
+
+S3-compatible object storage for file uploads.
+
+**Console:** http://localhost:9001
+- Username: `minioadmin`
+- Password: `minioadmin`
+
+**API Endpoint:** http://localhost:9000
+- Bucket: `mello-uploads` (auto-created)
+
+### Backend
+
+Go Fiber API server with hot-reload.
+
+**API Base URL:** http://localhost:8080
+- Health check: `GET /health`
+- API routes: `/api/*`
+
+### Frontend
+
+Next.js application with Fast Refresh.
+
+**URL:** http://localhost:3000
 
 ## Environment Variables
 
-*Chi tiết sẽ được bổ sung...*
+### Backend Environment
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgres://mello:mello123@postgres:5432/mello` | PostgreSQL connection |
+| `JWT_SECRET` | `your-super-secret-key` | JWT signing secret |
+| `JWT_EXPIRY` | `24h` | Token expiration |
+| `MINIO_ENDPOINT` | `minio:9000` | MinIO server |
+| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO access key |
+| `MINIO_SECRET_KEY` | `minioadmin` | MinIO secret key |
+| `MINIO_BUCKET` | `mello-uploads` | Storage bucket |
+
+### Frontend Environment
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080/api` | Backend API URL |
+
+## Data Persistence
+
+Data is persisted in Docker volumes:
+
+| Volume | Purpose |
+|--------|---------|
+| `postgres_data` | Database files |
+| `minio_data` | Uploaded files |
+
+**Reset all data:**
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+## Common Commands
+
+```bash
+# Start services in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f backend
+
+# Restart a service
+docker-compose restart backend
+
+# Rebuild after code changes
+docker-compose up -d --build backend
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes
+docker-compose down -v
+```
+
+## Troubleshooting
+
+### Check service health
+```bash
+docker-compose ps
+```
+
+### View service logs
+```bash
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs postgres
+```
+
+### Container won't start
+```bash
+# Remove and recreate
+docker-compose down
+docker-compose up -d --force-recreate
+```
+
+### Port already in use
+Check if another process is using the required ports:
+```bash
+lsof -i :3000
+lsof -i :8080
+```
+
+## Next Steps
+
+- [Quick Start](/docs/getting-started/quick-start) - First steps with Mello
+- [Production Setup](/docs/deployment/production) - Deploy to production
+- [Architecture](/docs/architecture/overview) - Understand the system
+

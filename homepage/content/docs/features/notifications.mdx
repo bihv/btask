@@ -1,25 +1,93 @@
 ---
 title: Notifications
-description: Hệ thống thông báo
+description: Stay informed about activity and updates
 ---
 
 # Notifications
 
-## Mô tả
+Notifications keep you informed about changes and activity on boards, lists, and cards you're watching or assigned to.
 
-Hệ thống thông báo giúp người dùng theo dõi các hoạt động.
+## Notification Types
 
-## Tính năng
+| Type | Trigger |
+|------|---------|
+| Card created | New card added to watched board/list |
+| Card updated | Changes to watched cards |
+| Card moved | Card moved between lists |
+| Card completed | Due date marked complete |
+| Member assigned | You are added to a card |
+| Member removed | You are removed from a card |
+| Comment added | New comment on your cards |
+| Due date changed | Due date set or modified |
+| Label added/removed | Label changes on watched cards |
 
-- Thông báo khi được gán vào card
-- Thông báo khi có comment mới
-- Thông báo due date sắp đến hạn
-- Đánh dấu đã đọc/chưa đọc
-- Badge hiển thị số thông báo chưa đọc
+## Notification Center
 
-## Watch
+Access notifications from the bell icon in the header:
 
-- Watch board để nhận thông báo
-- Watch list để nhận thông báo
+### Notification List
+- Shows all your notifications
+- Newest first
+- Click to view related card
 
-*Chi tiết sẽ được bổ sung...*
+### Unread Badge
+- Red badge shows unread count
+- Updates in real-time
+- Clears when you view notifications
+
+### Mark as Read
+- Click a notification to mark as read
+- Or use "Mark all as read" button
+
+### Mark as Unread
+- Keep important notifications visible
+- Click menu → Mark as unread
+
+## Watching
+
+Subscribe to receive notifications by watching:
+
+### Watch a Board
+
+1. Open a board
+2. Click **Watch** in board menu
+3. Receive all board activity notifications
+
+### Watch a List
+
+1. Click list menu (⋮)
+2. Select **Watch**
+3. Receive notifications for that list
+
+### Stop Watching
+
+1. Click **Watching** button
+2. Notifications stop for that resource
+
+## What You're Automatically Notified About
+
+You receive notifications when:
+- You are assigned to a card
+- Someone comments on your card
+- Your due date approaches
+- You are mentioned (if supported)
+
+## Notification Settings
+
+Control what notifications you receive:
+- Watch/unwatch specific boards or lists
+- Automatic notifications for assignments
+
+## Real-time Delivery
+
+Notifications are delivered instantly via WebSocket:
+- Badge updates immediately
+- No page refresh needed
+- Works across browser tabs
+
+## Related
+
+- [Notifications API](/docs/api-reference/notifications) - API endpoints
+- [Real-time Updates](/docs/features/real-time) - WebSocket details
+- [Boards](/docs/features/boards) - Watch boards
+

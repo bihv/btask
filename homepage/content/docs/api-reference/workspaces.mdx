@@ -1,32 +1,224 @@
 ---
 title: Workspaces API
-description: Workspace API Endpoints
+description: API endpoints for workspace management
 ---
 
 # Workspaces API
 
+All workspace endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
 ## GET /api/workspaces/
-Lấy danh sách workspaces.
+
+Get all workspaces the current user is a member of.
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "My Workspace",
+      "description": "Workspace description",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
 
 ## POST /api/workspaces/
-Tạo workspace.
+
+Create a new workspace.
+
+### Request Body
+
+```json
+{
+  "name": "New Workspace",
+  "description": "Workspace description"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Workspace name |
+| `description` | string | No | Workspace description |
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Name is required |
+
+---
 
 ## GET /api/workspaces/:id
-Lấy workspace theo ID.
+
+Get workspace details by ID.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Workspace ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "My Workspace",
+    "description": "Workspace description",
+    "boards": [...],
+    "members": [...],
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
 
 ## PUT /api/workspaces/:id
-Cập nhật workspace.
+
+Update workspace properties.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Workspace ID |
+
+### Request Body
+
+```json
+{
+  "name": "Updated Name",
+  "description": "Updated description"
+}
+```
+
+---
 
 ## DELETE /api/workspaces/:id
-Xóa workspace.
+
+Delete a workspace and all its contents.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Workspace ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Workspace deleted successfully"
+}
+```
+
+---
 
 ## GET /api/workspaces/:id/members
-Lấy danh sách thành viên.
+
+Get all members of a workspace.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Workspace ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "user": {
+        "id": "uuid",
+        "email": "user@example.com",
+        "full_name": "John Doe"
+      },
+      "role": "admin"
+    }
+  ]
+}
+```
+
+---
 
 ## POST /api/workspaces/:id/invite
-Mời thành viên.
+
+Invite a user to the workspace by email.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Workspace ID |
+
+### Request Body
+
+```json
+{
+  "email": "newuser@example.com",
+  "role": "member"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | Email of user to invite |
+| `role` | string | No | Role: `admin` or `member` (default: `member`) |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Member invited successfully"
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Email is required |
+| 400 | User not found |
+| 400 | User is already a member |
+
+---
 
 ## DELETE /api/workspaces/:id/members/:userId
-Xóa thành viên.
 
-*Chi tiết sẽ được bổ sung...*
+Remove a member from the workspace.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Workspace ID |
+| `userId` | UUID | User ID to remove |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Member removed successfully"
+}
+```

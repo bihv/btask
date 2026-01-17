@@ -1,19 +1,101 @@
 ---
 title: Labels
-description: Nhãn màu cho Cards
+description: Color-coded card categorization
 ---
 
 # Labels
 
-## Mô tả
+Labels help categorize and filter cards using colors and optional names. They provide a quick visual way to identify card types, priorities, or categories.
 
-Labels giúp phân loại và lọc cards theo màu sắc và tên.
+## Board Labels
 
-## Tính năng
+Labels are defined at the board level and shared across all cards on that board.
 
-- Tạo labels với màu và tên
-- Gắn nhiều labels cho một card
-- Filter cards theo labels
-- Labels được quản lý ở cấp board
+### Default Colors
 
-*Chi tiết sẽ được bổ sung...*
+Each board starts with a set of color options:
+- 🔴 Red
+- 🟠 Orange
+- 🟡 Yellow
+- 🟢 Green
+- 🔵 Blue
+- 🟣 Purple
+- ⚫ Black
+
+### Creating Labels
+
+1. Open any card
+2. Click **Labels** in sidebar
+3. Click **Create a new label**
+4. Choose a color
+5. Enter a name (optional)
+6. Click **Create**
+
+### Editing Labels
+
+1. Open label manager from card or board menu
+2. Click the pencil icon next to a label
+3. Change color or name
+4. Click **Save**
+
+Changes apply to all cards using that label.
+
+### Deleting Labels
+
+1. Edit the label
+2. Click **Delete**
+3. Confirm deletion
+
+The label is removed from all cards.
+
+## Using Labels on Cards
+
+### Adding Labels
+
+1. Open a card
+2. Click **Labels**
+3. Check the labels you want to apply
+4. Close the popover
+
+### Removing Labels
+
+1. Open a card
+2. Click **Labels**
+3. Uncheck the label to remove
+
+### Multiple Labels
+
+Cards can have multiple labels:
+- All labels display on the card front
+- Labels appear as colored bars above the title
+
+## Label Display
+
+### On Card Front
+- Labels show as thin colored bars
+- Hover to see label names
+- Click to expand and see all labels
+
+### In Card Detail
+- Full label chips with names
+- Quick access to add/remove
+
+## Filtering by Labels
+
+Use labels to filter the board:
+- Show only cards with specific labels
+- Combine with other filters
+
+## Best Practices
+
+**Common label schemes:**
+- **Priority**: High (red), Medium (yellow), Low (green)
+- **Type**: Bug (red), Feature (blue), Task (yellow)
+- **Status**: Blocked (red), Review (orange), Approved (green)
+- **Team**: Frontend (blue), Backend (green), Design (purple)
+
+## Related
+
+- [Labels API](/docs/api-reference/labels) - API endpoints
+- [Cards](/docs/features/cards) - Using labels on cards
+

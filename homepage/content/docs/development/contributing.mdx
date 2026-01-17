@@ -1,22 +1,202 @@
 ---
 title: Contributing
-description: Hướng dẫn đóng góp cho dự án
+description: Guidelines for contributing to Mello
 ---
 
 # Contributing
 
-## How to Contribute
+Thank you for your interest in contributing to Mello! This guide will help you get started.
 
-1. Fork repository
-2. Tạo branch mới
-3. Commit changes
-4. Push và tạo Pull Request
+## Getting Started
+
+1. **Fork the repository** on GitHub
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/mello.git
+   cd mello
+   ```
+3. **Add upstream remote:**
+   ```bash
+   git remote add upstream https://github.com/original-org/mello.git
+   ```
+
+## Development Workflow
+
+### 1. Create a Branch
+
+```bash
+# Sync with upstream
+git fetch upstream
+git checkout main
+git merge upstream/main
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+```
+
+**Branch naming conventions:**
+- `feature/` - New features
+- `fix/` - Bug fixes
+- `docs/` - Documentation changes
+- `refactor/` - Code refactoring
+
+### 2. Make Changes
+
+- Write clean, readable code
+- Follow the code style guidelines
+- Add tests for new functionality
+- Update documentation as needed
+
+### 3. Commit Changes
+
+```bash
+git add .
+git commit -m "feat: add user avatar upload"
+```
+
+**Commit message format:**
+```
+<type>: <description>
+
+[optional body]
+```
+
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation |
+| `style` | Formatting, missing semicolons |
+| `refactor` | Code change that doesn't fix/add |
+| `test` | Adding tests |
+| `chore` | Maintenance tasks |
+
+### 4. Push and Create PR
+
+```bash
+git push origin feature/your-feature-name
+```
+
+Then open a Pull Request on GitHub.
 
 ## Code Style
 
-- Backend: Go conventions
-- Frontend: ESLint/Prettier
+### Backend (Go)
+
+- Follow [Effective Go](https://go.dev/doc/effective_go) guidelines
+- Use `gofmt` for formatting
+- Run `golangci-lint` before committing:
+  ```bash
+  golangci-lint run
+  ```
+
+**Example:**
+```go
+// Good
+func (s *BoardService) Create(req CreateBoardRequest) (*Board, error) {
+    // Implementation
+}
+
+// Bad - unexported function with exported parameters
+func createBoard(Req CreateBoardRequest) *Board {
+    // Implementation
+}
+```
+
+### Frontend (TypeScript/React)
+
+- Use ESLint and Prettier
+- Follow React best practices
+- Use TypeScript strictly (no `any`)
+
+**Format before commit:**
+```bash
+npm run lint
+npm run format
+```
+
+**Example:**
+```typescript
+// Good
+interface BoardCardProps {
+  board: Board;
+  onDelete: (id: string) => void;
+}
+
+const BoardCard: React.FC<BoardCardProps> = ({ board, onDelete }) => {
+  // Implementation
+};
+
+// Bad - inline types, missing FC type
+const BoardCard = ({ board, onDelete }: { board: any; onDelete: Function }) => {
+  // Implementation
+};
+```
 
 ## Pull Request Guidelines
 
-*Chi tiết sẽ được bổ sung...*
+### Before Submitting
+
+- [ ] Code compiles without errors
+- [ ] All tests pass
+- [ ] No linting errors
+- [ ] Documentation updated (if applicable)
+- [ ] Commit messages follow conventions
+
+### PR Template
+
+When creating a PR, include:
+
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+How did you test these changes?
+
+## Screenshots (if applicable)
+```
+
+### Review Process
+
+1. **Automated checks** must pass (CI/CD)
+2. **Code review** by at least one maintainer
+3. **Address feedback** with additional commits
+4. **Squash and merge** once approved
+
+## Reporting Issues
+
+### Bug Reports
+
+Include:
+- Steps to reproduce
+- Expected behavior
+- Actual behavior
+- Screenshots (if applicable)
+- Environment (OS, browser, versions)
+
+### Feature Requests
+
+Include:
+- Use case description
+- Proposed solution
+- Alternative solutions considered
+
+## Community
+
+- Be respectful and constructive
+- Help others when you can
+- Follow the Code of Conduct
+
+## Need Help?
+
+- Open an issue for questions
+- Check existing issues before creating new ones
+- Join our Discord community (if available)
+

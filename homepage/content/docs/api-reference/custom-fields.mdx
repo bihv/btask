@@ -1,0 +1,339 @@
+---
+title: Custom Fields API
+description: API endpoints for managing custom fields on boards and cards
+---
+
+# Custom Fields API
+
+Custom fields allow adding additional structured data to cards. Supported field types include text, number, date, checkbox, and dropdown.
+
+All endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
+## Field Types
+
+| Type | Description | Value Format |
+|------|-------------|--------------|
+| `text` | Free-form text | String |
+| `number` | Numeric value | Number |
+| `date` | Date picker | ISO 8601 datetime |
+| `checkbox` | Boolean toggle | `true` / `false` |
+| `dropdown` | Select from options | Option ID |
+
+---
+
+## GET /api/boards/:boardId/custom-fields
+
+Get all custom fields defined for a board.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `boardId` | UUID | Board ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "board_id": "uuid",
+      "name": "Priority",
+      "type": "dropdown",
+      "position": 0,
+      "options": [
+        {
+          "id": "uuid",
+          "value": "Low",
+          "color": "#00ff00",
+          "position": 0
+        },
+        {
+          "id": "uuid",
+          "value": "High",
+          "color": "#ff0000",
+          "position": 1
+        }
+      ],
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## POST /api/boards/:boardId/custom-fields
+
+Create a new custom field on a board.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `boardId` | UUID | Board ID |
+
+### Request Body
+
+```json
+{
+  "name": "Priority",
+  "type": "dropdown",
+  "options": [
+    { "value": "Low", "color": "#00ff00" },
+    { "value": "Medium", "color": "#ffff00" },
+    { "value": "High", "color": "#ff0000" }
+  ]
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Field name |
+| `type` | string | Yes | Field type: `text`, `number`, `date`, `checkbox`, `dropdown` |
+| `options` | array | No | Options for dropdown type |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "board_id": "uuid",
+    "name": "Priority",
+    "type": "dropdown",
+    "position": 0,
+    "options": [...],
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Name is required |
+| 400 | Type is required |
+| 403 | Access denied |
+
+---
+
+## PUT /api/custom-fields/:id
+
+Update a custom field.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Custom field ID |
+
+### Request Body
+
+```json
+{
+  "name": "Updated Name",
+  "position": 1
+}
+```
+
+---
+
+## DELETE /api/custom-fields/:id
+
+Delete a custom field and all its values from cards.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Custom field ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Custom field deleted successfully"
+}
+```
+
+---
+
+## Dropdown Options
+
+### POST /api/custom-fields/:id/options
+
+Add an option to a dropdown field.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Custom field ID |
+
+### Request Body
+
+```json
+{
+  "value": "Critical",
+  "color": "#990000"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `value` | string | Yes | Option display value |
+| `color` | string | No | Hex color code |
+
+---
+
+### PUT /api/custom-fields/:id/options/:optionId
+
+Update a dropdown option.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Custom field ID |
+| `optionId` | UUID | Option ID |
+
+### Request Body
+
+```json
+{
+  "value": "Very High",
+  "color": "#ff0000"
+}
+```
+
+---
+
+### DELETE /api/custom-fields/:id/options/:optionId
+
+Delete a dropdown option.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Custom field ID |
+| `optionId` | UUID | Option ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Option deleted successfully"
+}
+```
+
+---
+
+## Card Values
+
+### GET /api/cards/:cardId/custom-fields
+
+Get all custom field values for a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cardId` | UUID | Card ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "card_id": "uuid",
+      "custom_field_id": "uuid",
+      "value": "High",
+      "option_id": "uuid",
+      "custom_field": {
+        "id": "uuid",
+        "name": "Priority",
+        "type": "dropdown"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### PUT /api/cards/:cardId/custom-fields/:fieldId
+
+Set a custom field value on a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cardId` | UUID | Card ID |
+| `fieldId` | UUID | Custom field ID |
+
+### Request Body
+
+For text/number/date/checkbox:
+```json
+{
+  "value": "High priority task"
+}
+```
+
+For dropdown:
+```json
+{
+  "option_id": "uuid"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "card_id": "uuid",
+    "custom_field_id": "uuid",
+    "value": "High",
+    "option_id": "uuid"
+  }
+}
+```
+
+---
+
+### DELETE /api/cards/:cardId/custom-fields/:fieldId
+
+Clear a custom field value from a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cardId` | UUID | Card ID |
+| `fieldId` | UUID | Custom field ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Custom field value cleared"
+}
+```

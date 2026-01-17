@@ -1,0 +1,174 @@
+---
+title: Comments API
+description: API endpoints for managing card comments
+---
+
+# Comments API
+
+Comments allow users to discuss and collaborate on cards. Each comment is associated with a card and tracks the author.
+
+All endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
+## GET /api/cards/:cardId/comments
+
+Get all comments for a card, ordered by creation date.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cardId` | UUID | Card ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "card_id": "uuid",
+      "user_id": "uuid",
+      "content": "This looks great!",
+      "user": {
+        "id": "uuid",
+        "email": "user@example.com",
+        "full_name": "John Doe",
+        "avatar_url": "https://example.com/avatar.jpg"
+      },
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## POST /api/cards/:cardId/comments
+
+Create a new comment on a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cardId` | UUID | Card ID |
+
+### Request Body
+
+```json
+{
+  "content": "This is my comment"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `content` | string | Yes | Comment text (supports markdown) |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "card_id": "uuid",
+    "user_id": "uuid",
+    "content": "This is my comment",
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "full_name": "John Doe",
+      "avatar_url": null
+    },
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Content is required |
+| 403 | Access denied |
+
+### Notifications
+
+When a comment is created, board watchers will receive a notification via WebSocket.
+
+---
+
+## PUT /api/comments/:id
+
+Update a comment. Only the comment author can update their own comments.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Comment ID |
+
+### Request Body
+
+```json
+{
+  "content": "Updated comment text"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "card_id": "uuid",
+    "user_id": "uuid",
+    "content": "Updated comment text",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 403 | Can only update your own comments |
+| 404 | Comment not found |
+
+---
+
+## DELETE /api/comments/:id
+
+Delete a comment. Only the comment author can delete their own comments.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Comment ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Comment deleted successfully"
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 403 | Can only delete your own comments |
+| 404 | Comment not found |

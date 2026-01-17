@@ -1,41 +1,339 @@
 ---
 title: Cards API
-description: Card API Endpoints
+description: API endpoints for card management
 ---
 
 # Cards API
 
+All card endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
 ## POST /api/lists/:listId/cards
-Tạo card.
+
+Create a new card in a list.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `listId` | UUID | List ID |
+
+### Request Body
+
+```json
+{
+  "title": "New Task",
+  "description": "Task description",
+  "position": 0,
+  "due_date": "2024-12-31T23:59:59Z"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | Card title (1-200 characters) |
+| `description` | string | No | Card description |
+| `position` | integer | No | Position in list |
+| `due_date` | datetime | No | Due date (ISO 8601 format) |
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Title is required |
+| 403 | Access denied |
+
+---
 
 ## GET /api/cards/:id
-Lấy card chi tiết.
+
+Get card details including labels, members, comments, and custom field values.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "list_id": "uuid",
+    "title": "Task Title",
+    "description": "Task description",
+    "cover_image": null,
+    "position": 0,
+    "due_date": "2024-12-31T23:59:59Z",
+    "is_completed": false,
+    "is_archived": false,
+    "created_by": "uuid",
+    "labels": [...],
+    "members": [...],
+    "comments": [...],
+    "custom_field_values": [...],
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
 
 ## PUT /api/cards/:id
-Cập nhật card.
+
+Update card properties.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Request Body
+
+All fields are optional:
+
+```json
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "cover_image": "https://example.com/image.jpg",
+  "position": 1,
+  "due_date": "2024-12-31T23:59:59Z",
+  "is_completed": true,
+  "is_archived": false
+}
+```
+
+---
 
 ## DELETE /api/cards/:id
-Xóa card.
+
+Delete a card permanently.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Card deleted successfully"
+}
+```
+
+---
 
 ## PUT /api/cards/:id/move
-Di chuyển card.
+
+Move a card to a different list or position.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Request Body
+
+```json
+{
+  "list_id": "uuid",
+  "position": 0
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `list_id` | UUID | Yes | Target list ID |
+| `position` | integer | Yes | New position in target list |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Card moved successfully"
+}
+```
+
+---
 
 ## POST /api/cards/:id/labels
-Thêm label.
+
+Add a label to a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Request Body
+
+```json
+{
+  "label_id": "uuid"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Label added successfully"
+}
+```
+
+---
 
 ## DELETE /api/cards/:id/labels/:labelId
-Xóa label.
+
+Remove a label from a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+| `labelId` | UUID | Label ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Label removed successfully"
+}
+```
+
+---
 
 ## POST /api/cards/:id/members
-Thêm member.
+
+Assign a member to a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Request Body
+
+```json
+{
+  "user_id": "uuid"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Member added successfully"
+}
+```
+
+---
 
 ## DELETE /api/cards/:id/members/:userId
-Xóa member.
+
+Remove a member from a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+| `userId` | UUID | User ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Member removed successfully"
+}
+```
+
+---
 
 ## PUT /api/cards/:id/archive
-Lưu trữ card.
+
+Archive a card (soft delete).
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Card archived successfully"
+}
+```
+
+---
 
 ## PUT /api/cards/:id/unarchive
-Khôi phục card.
 
-*Chi tiết sẽ được bổ sung...*
+Restore an archived card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Card ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Card restored successfully"
+}
+```
+
+---
+
+## GET /api/boards/:id/archived-cards
+
+Get all archived cards for a board.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Board ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Archived Card",
+      "is_archived": true,
+      ...
+    }
+  ]
+}
+```

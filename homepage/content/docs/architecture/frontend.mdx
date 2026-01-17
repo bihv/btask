@@ -1,38 +1,250 @@
 ---
-title: Frontend
-description: Kiến trúc Frontend với Next.js
+title: Frontend Architecture
+description: Frontend architecture with Next.js
 ---
 
 # Frontend Architecture
 
+The frontend is built with Next.js 14 using the App Router, providing server-side rendering, client-side navigation, and a modern React development experience.
+
 ## Tech Stack
 
-- **Next.js 14**: React framework với App Router
-- **Ant Design 5**: UI component library
-- **Zustand**: State management
-- **React Query**: Data fetching & caching
-- **dnd-kit**: Drag and drop
+| Technology | Purpose |
+|------------|---------|
+| **Next.js 14** | React framework with App Router |
+| **React 18** | UI library with Server Components |
+| **Ant Design 5** | UI component library |
+| **Zustand** | Lightweight state management |
+| **React Query** | Server state & data fetching |
+| **dnd-kit** | Drag and drop functionality |
+| **TypeScript** | Type safety |
 
-## Cấu trúc thư mục
+## Project Structure
 
 ```
 frontend/src/
-├── app/                # Next.js pages (App Router)
-│   ├── (auth)/         # Auth pages (login, register)
-│   ├── (dashboard)/    # Dashboard pages
-│   ├── workspace/      # Workspace pages
-│   └── me/             # Profile pages
-├── components/         # React components
-│   ├── board/          # Board components
-│   ├── card/           # Card modal & components
-│   ├── kanban/         # Kanban board
-│   ├── settings/       # Settings components
-│   └── notification/   # Notification components
-├── hooks/              # Custom React hooks
-├── lib/                # API client
-├── providers/          # Context providers
-├── stores/             # Zustand stores
-└── types/              # TypeScript types
+├── app/                        # Next.js App Router
+│   ├── (auth)/                 # Auth layout group
+│   │   ├── login/              # Login page
+│   │   └── register/           # Register page
+│   ├── (dashboard)/            # Dashboard layout
+│   │   └── page.tsx            # Home dashboard
+│   ├── workspace/
+│   │   ├── [workspaceId]/      # Workspace detail
+│   │   │   ├── boards/         # Boards list
+│   │   │   ├── settings/       # Workspace settings
+│   │   │   └── members/        # Member management
+│   │   └── page.tsx
+│   ├── board/
+│   │   └── [boardId]/          # Kanban board view
+│   ├── me/                     # User profile
+│   ├── layout.tsx              # Root layout
+│   └── page.tsx                # Landing page
+│
+├── components/
+│   ├── board/
+│   │   ├── BoardHeader.tsx     # Board title, menu
+│   │   ├── BoardMenu.tsx       # Board settings drawer
+│   │   └── BoardCard.tsx       # Board preview card
+│   ├── kanban/
+│   │   ├── KanbanBoard.tsx     # Main board component
+│   │   ├── KanbanList.tsx      # List column
+│   │   ├── KanbanCard.tsx      # Card component
+│   │   └── AddCardForm.tsx     # New card form
+│   ├── card/
+│   │   ├── CardModal.tsx       # Card detail modal
+│   │   ├── CardDescription.tsx # Rich text editor
+│   │   ├── CardLabels.tsx      # Label selector
+│   │   ├── CardMembers.tsx     # Member assignment
+│   │   ├── CardChecklist.tsx   # Checklist component
+│   │   └── CardComments.tsx    # Comments section
+│   ├── workspace/
+│   │   ├── WorkspaceSidebar.tsx
+│   │   └── WorkspaceCard.tsx
+│   ├── notification/
+│   │   ├── NotificationBell.tsx
+│   │   └── NotificationList.tsx
+│   ├── settings/
+│   │   └── ProfileSettings.tsx
+│   └── common/
+│       ├── Header.tsx
+│       ├── Sidebar.tsx
+│       └── Loading.tsx
+│
+├── hooks/
+│   ├── useAuth.ts              # Authentication hook
+│   ├── useWebSocket.ts         # WebSocket connection
+│   ├── useBoards.ts            # Board queries
+│   └── useNotifications.ts     # Notification queries
+│
+├── lib/
+│   ├── api.ts                  # Axios client configuration
+│   └── utils.ts                # Utility functions
+│
+├── providers/
+│   ├── AuthProvider.tsx        # Authentication context
+│   ├── QueryProvider.tsx       # React Query setup
+│   └── ThemeProvider.tsx       # Ant Design theme
+│
+├── stores/
+│   ├── authStore.ts            # User authentication state
+│   ├── boardStore.ts           # Board state (drag & drop)
+│   └── notificationStore.ts    # Notification state
+│
+└── types/
+    └── index.ts                # TypeScript interfaces
 ```
 
-*Chi tiết sẽ được bổ sung...*
+## State Management Strategy
+
+### Server State (React Query)
+Used for data that comes from the API:
+
+```typescript
+// Fetching boards
+const { data: boards, isLoading } = useQuery({
+  queryKey: ['boards', workspaceId],
+  queryFn: () => api.get(`/workspaces/${workspaceId}/boards`),
+});
+
+// Mutations with cache invalidation
+const createBoard = useMutation({
+  mutationFn: (data) => api.post(`/workspaces/${id}/boards`, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries(['boards', workspaceId]);
+  },
+});
+```
+
+### Client State (Zustand)
+Used for UI state and local interactions:
+
+```typescript
+// Auth store
+interface AuthStore {
+  user: User | null;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+}
+
+export const useAuthStore = create<AuthStore>((set) => ({
+  user: null,
+  token: localStorage.getItem('token'),
+  login: async (email, password) => {
+    const { data } = await api.post('/auth/login', { email, password });
+    set({ user: data.user, token: data.token });
+  },
+  logout: () => set({ user: null, token: null }),
+}));
+```
+
+## Drag and Drop
+
+Using dnd-kit for Kanban board interactions:
+
+```typescript
+<DndContext
+  sensors={sensors}
+  collisionDetection={closestCorners}
+  onDragEnd={handleDragEnd}
+>
+  <SortableContext items={lists}>
+    {lists.map((list) => (
+      <KanbanList key={list.id} list={list}>
+        <SortableContext items={list.cards}>
+          {list.cards.map((card) => (
+            <KanbanCard key={card.id} card={card} />
+          ))}
+        </SortableContext>
+      </KanbanList>
+    ))}
+  </SortableContext>
+</DndContext>
+```
+
+## API Client
+
+Centralized API configuration with Axios:
+
+```typescript
+// lib/api.ts
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+## WebSocket Integration
+
+Real-time notifications via WebSocket:
+
+```typescript
+// hooks/useWebSocket.ts
+export function useWebSocket() {
+  const { token } = useAuthStore();
+  
+  useEffect(() => {
+    const ws = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
+    
+    ws.onmessage = (event) => {
+      const notification = JSON.parse(event.data);
+      // Update notification store
+      // Invalidate relevant queries
+    };
+    
+    return () => ws.close();
+  }, [token]);
+}
+```
+
+## Routing Structure
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page |
+| `/login` | Login form |
+| `/register` | Registration form |
+| `/dashboard` | User's workspaces |
+| `/workspace/[id]` | Workspace detail |
+| `/workspace/[id]/boards` | Workspace boards |
+| `/board/[id]` | Kanban board view |
+| `/me` | User profile |
+| `/me/settings` | Profile settings |
+
+## Theme & Styling
+
+Using Ant Design's ConfigProvider for theming:
+
+```typescript
+<ConfigProvider
+  theme={{
+    token: {
+      colorPrimary: '#0079bf',
+      borderRadius: 4,
+    },
+  }}
+>
+  <App />
+</ConfigProvider>
+```
+
+CSS Modules for custom styling where needed.
+

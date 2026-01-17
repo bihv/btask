@@ -1,25 +1,228 @@
 ---
 title: Production Setup
-description: Cấu hình cho môi trường production
+description: Production deployment configuration and best practices
 ---
 
 # Production Setup
 
+This guide covers configuration and best practices for deploying Mello to a production environment.
+
 ## Environment Variables
 
-- `DATABASE_URL`
-- `JWT_SECRET`
-- `MINIO_*` settings
+### Backend Configuration
 
-## Security
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string | `postgres://user:pass@host:5432/mello?sslmode=require` |
+| `JWT_SECRET` | Yes | Secret key for JWT signing (min 32 chars) | `your-very-long-random-secret-key` |
+| `JWT_EXPIRY` | No | Token expiration time | `24h` (default) |
+| `SERVER_PORT` | No | API server port | `8080` (default) |
+| `SERVER_ENV` | No | Environment mode | `production` |
+| `MINIO_ENDPOINT` | Yes | MinIO/S3 endpoint | `s3.amazonaws.com` |
+| `MINIO_ACCESS_KEY` | Yes | S3 access key | `AKIAIOSFODNN7EXAMPLE` |
+| `MINIO_SECRET_KEY` | Yes | S3 secret key | `wJalrXUtnFEMI/K7MDENG/...` |
+| `MINIO_BUCKET` | Yes | Storage bucket name | `mello-uploads` |
+| `MINIO_USE_SSL` | No | Use HTTPS for S3 | `true` |
+| `MINIO_PUBLIC_URL` | No | Public URL for files | `https://cdn.example.com` |
 
-- HTTPS
-- CORS configuration
-- Rate limiting
+### Frontend Configuration
 
-## Monitoring
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `NEXT_PUBLIC_API_URL` | Yes | Backend API URL | `https://api.mello.example.com/api` |
 
-- Health check endpoints
-- Logging
+### Example .env file
 
-*Chi tiết sẽ được bổ sung...*
+```bash
+# Database (use managed PostgreSQL in production)
+DATABASE_URL=postgres://mello:secure-password@db.example.com:5432/mello?sslmode=require
+
+# JWT (generate a strong random secret)
+JWT_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+JWT_EXPIRY=24h
+
+# Server
+SERVER_PORT=8080
+SERVER_ENV=production
+
+# Storage (AWS S3 or compatible)
+MINIO_ENDPOINT=s3.us-east-1.amazonaws.com
+MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE
+MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+MINIO_BUCKET=mello-uploads
+MINIO_USE_SSL=true
+MINIO_PUBLIC_URL=https://mello-uploads.s3.amazonaws.com
+```
+
+## Security Checklist
+
+### Authentication
+- [ ] Use a strong, random `JWT_SECRET` (minimum 32 characters)
+- [ ] Set appropriate `JWT_EXPIRY` (e.g., 24h for web, 7d for mobile)
+- [ ] Enable HTTPS for all endpoints
+
+### Database
+- [ ] Use a strong database password
+- [ ] Enable SSL for database connections (`sslmode=require`)
+- [ ] Restrict database access to application servers only
+- [ ] Regular backups with point-in-time recovery
+
+### Network
+- [ ] Configure CORS to allow only your domains
+- [ ] Use a reverse proxy (nginx, Caddy) for SSL termination
+- [ ] Enable rate limiting to prevent abuse
+- [ ] Set up firewall rules to restrict access
+
+### Storage
+- [ ] Use private bucket with pre-signed URLs for sensitive files
+- [ ] Enable server-side encryption for S3
+- [ ] Set up proper IAM roles with minimal permissions
+
+## HTTPS Configuration
+
+### Using Caddy (Recommended)
+
+```text
+# Caddyfile
+api.mello.example.com {
+    reverse_proxy localhost:8080
+}
+
+mello.example.com {
+    reverse_proxy localhost:3000
+}
+```
+
+### Using Nginx
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name api.mello.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/api.mello.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.mello.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+## CORS Configuration
+
+Update the backend to allow your frontend domain:
+
+```go
+app.Use(cors.New(cors.Config{
+    AllowOrigins: "https://mello.example.com",
+    AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+    AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+}))
+```
+
+## Health Checks
+
+The backend provides health check endpoints:
+
+```bash
+# Basic health check
+curl https://api.mello.example.com/health
+
+# Response
+{"status": "ok"}
+```
+
+Use these endpoints for:
+- Load balancer health checks
+- Kubernetes liveness/readiness probes
+- Monitoring and alerting
+
+## Monitoring & Logging
+
+### Structured Logging
+
+The backend uses Zap for structured JSON logging:
+
+```json
+{
+  "level": "info",
+  "ts": "2024-01-01T12:00:00Z",
+  "caller": "handlers/board.go:45",
+  "msg": "Board created",
+  "board_id": "uuid",
+  "user_id": "uuid"
+}
+```
+
+### Recommended Tools
+
+| Purpose | Tools |
+|---------|-------|
+| Log aggregation | ELK Stack, Grafana Loki, CloudWatch |
+| Metrics | Prometheus + Grafana |
+| Uptime monitoring | UptimeRobot, Pingdom, Better Uptime |
+| Error tracking | Sentry, Rollbar |
+
+## Scaling Considerations
+
+### Horizontal Scaling
+
+- **Backend**: Stateless, can run multiple instances behind load balancer
+- **Frontend**: Static export or multiple instances
+- **Database**: Use managed PostgreSQL with read replicas
+- **Storage**: S3/MinIO handles scaling automatically
+
+### Caching (Optional)
+
+For high traffic, consider adding:
+
+```
+Client → CDN (static assets) → Load Balancer → Backend → Redis (cache) → PostgreSQL
+```
+
+## Cloud Deployment Examples
+
+### AWS
+
+- **Database**: Amazon RDS for PostgreSQL
+- **Storage**: Amazon S3
+- **Compute**: ECS, EKS, or EC2
+- **CDN**: CloudFront
+
+### Google Cloud
+
+- **Database**: Cloud SQL for PostgreSQL
+- **Storage**: Cloud Storage
+- **Compute**: Cloud Run, GKE, or Compute Engine
+- **CDN**: Cloud CDN
+
+### DigitalOcean
+
+- **Database**: Managed PostgreSQL
+- **Storage**: Spaces (S3-compatible)
+- **Compute**: App Platform or Droplets
+
+## Backup Strategy
+
+### Database Backups
+
+```bash
+# Automated daily backup
+pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
+
+# Upload to S3
+aws s3 cp backup-$(date +%Y%m%d).sql s3://backups/mello/
+```
+
+### Point-in-time Recovery
+
+Enable continuous archiving in PostgreSQL for point-in-time recovery capabilities.
+

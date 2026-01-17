@@ -1,29 +1,229 @@
 ---
 title: Local Setup
-description: Cài đặt môi trường phát triển local
+description: Set up your local development environment
 ---
 
 # Local Development Setup
 
-## Backend
+This guide walks you through setting up Mello for local development without Docker.
+
+## Prerequisites
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Go | 1.21+ | Backend development |
+| Node.js | 18+ | Frontend development |
+| PostgreSQL | 14+ | Database |
+| MinIO | Latest | File storage (optional) |
+| Air | Latest | Go hot-reload |
+
+## Option 1: Docker (Recommended)
+
+The easiest way to get started is using Docker Compose:
+
+```bash
+git clone https://github.com/your-org/mello.git
+cd mello
+docker-compose up -d
+```
+
+See [Docker Deployment](/docs/deployment/docker) for details.
+
+---
+
+## Option 2: Manual Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-org/mello.git
+cd mello
+```
+
+### 2. Start PostgreSQL
+
+**Using Docker:**
+```bash
+docker run -d \
+  --name mello-postgres \
+  -e POSTGRES_DB=mello \
+  -e POSTGRES_USER=mello \
+  -e POSTGRES_PASSWORD=mello123 \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+**Using local PostgreSQL:**
+```bash
+createdb mello
+createuser mello -P  # Enter password: mello123
+```
+
+### 3. Start MinIO (Optional)
+
+Required for file uploads:
+
+```bash
+docker run -d \
+  --name mello-minio \
+  -e MINIO_ROOT_USER=minioadmin \
+  -e MINIO_ROOT_PASSWORD=minioadmin \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  minio/minio server /data --console-address ":9001"
+```
+
+Create the bucket:
+```bash
+# Using MinIO client
+mc alias set local http://localhost:9000 minioadmin minioadmin
+mc mb local/mello-uploads
+mc anonymous set download local/mello-uploads
+```
+
+### 4. Backend Setup
 
 ```bash
 cd backend
+
+# Copy environment file
 cp .env.example .env
+
+# Edit .env with your settings
+# DATABASE_URL=postgres://mello:mello123@localhost:5432/mello?sslmode=disable
+
+# Download dependencies
 go mod download
+
+# Install Air for hot-reload
+go install github.com/cosmtrek/air@latest
+
+# Start the server
 air
 ```
 
-## Frontend
+The backend will be available at http://localhost:8080
+
+### 5. Frontend Setup
 
 ```bash
 cd frontend
+
+# Install dependencies
 npm install
+
+# Create environment file
+echo "NEXT_PUBLIC_API_URL=http://localhost:8080/api" > .env.local
+
+# Start development server
 npm run dev
 ```
 
-## Database
+The frontend will be available at http://localhost:3000
 
-- PostgreSQL chạy qua Docker hoặc local
+## Environment Variables
 
-*Chi tiết sẽ được bổ sung...*
+### Backend (.env)
+
+```bash
+# Database
+DATABASE_URL=postgres://mello:mello123@localhost:5432/mello?sslmode=disable
+
+# JWT
+JWT_SECRET=your-super-secret-key-change-in-production
+JWT_EXPIRY=24h
+
+# Server
+SERVER_PORT=8080
+SERVER_ENV=development
+
+# MinIO (optional)
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=mello-uploads
+MINIO_USE_SSL=false
+MINIO_PUBLIC_URL=http://localhost:9000
+```
+
+### Frontend (.env.local)
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+```
+
+## Verify Installation
+
+1. **Backend health check:**
+   ```bash
+   curl http://localhost:8080/health
+   # Expected: {"status":"ok"}
+   ```
+
+2. **Frontend:** Open http://localhost:3000 in your browser
+
+3. **Create an account:** Register a new user and create a workspace
+
+## Development Workflow
+
+1. **Backend changes:** Air automatically reloads when you save files
+2. **Frontend changes:** Next.js Fast Refresh updates the browser instantly
+3. **Database changes:** GORM auto-migrates on startup
+
+## IDE Setup
+
+### VS Code Extensions
+
+**Backend (Go):**
+- Go (official extension)
+- Go Test Explorer
+- Error Lens
+
+**Frontend (React/TypeScript):**
+- ESLint
+- Prettier
+- TypeScript + JavaScript
+- Tailwind CSS IntelliSense (if using Tailwind)
+
+### Recommended Settings
+
+```json
+{
+  "editor.formatOnSave": true,
+  "go.lintTool": "golangci-lint",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
+```
+
+## Troubleshooting
+
+### Port already in use
+```bash
+# Find and kill the process
+lsof -i :8080
+kill -9 <PID>
+```
+
+### Database connection failed
+```bash
+# Check PostgreSQL is running
+pg_isready -h localhost -p 5432
+
+# Check connection string
+psql postgres://mello:mello123@localhost:5432/mello
+```
+
+### Go module issues
+```bash
+go clean -modcache
+go mod download
+```
+
+### Node module issues
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+

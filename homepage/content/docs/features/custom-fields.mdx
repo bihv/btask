@@ -1,26 +1,113 @@
 ---
 title: Custom Fields
-description: Trường dữ liệu tùy chỉnh
+description: Extend cards with custom data fields
 ---
 
 # Custom Fields
 
-## Mô tả
+Custom Fields allow you to add structured data to cards beyond the standard properties. Define fields at the board level and fill in values on each card.
 
-Custom Fields cho phép thêm các trường dữ liệu tùy chỉnh cho cards.
+## Field Types
 
-## Các loại field
+| Type | Description | Example Values |
+|------|-------------|----------------|
+| **Text** | Free-form text input | "Client: Acme Corp" |
+| **Number** | Numeric values | 42, 3.14, -100 |
+| **Date** | Date picker | 2024-12-31 |
+| **Checkbox** | Boolean toggle | ✓ or ✗ |
+| **Dropdown** | Select from options | "High", "Medium", "Low" |
 
-- **Text**: Văn bản
-- **Number**: Số
-- **Date**: Ngày tháng
-- **Checkbox**: Đánh dấu
-- **Dropdown**: Lựa chọn từ danh sách
+## Creating Custom Fields
 
-## Quản lý
+1. Open a board
+2. Click **Board Menu** → **Custom Fields**
+3. Click **New Field**
+4. Select field type
+5. Enter field name
+6. For Dropdown: add options with colors
+7. Click **Create**
 
-- Tạo custom fields ở cấp board
-- Gán giá trị cho từng card
-- Hiển thị trên card preview
+## Field Configuration
 
-*Chi tiết sẽ được bổ sung...*
+### Text Field
+- Simple text input
+- No character limit
+
+### Number Field
+- Accepts integers and decimals
+- Validates numeric input
+
+### Date Field
+- Date picker interface
+- Shows selected date on card
+
+### Checkbox Field
+- Toggle on/off
+- Shows as checkmark on card
+
+### Dropdown Field
+Options configuration:
+- Add multiple options
+- Assign colors to each option
+- Reorder options by dragging
+- Edit or delete options
+
+## Using Custom Fields on Cards
+
+### Setting Values
+
+1. Open a card
+2. Find **Custom Fields** section
+3. Click on a field to edit
+4. Enter or select value
+5. Value saves automatically
+
+### Clearing Values
+
+- Click the ✕ button next to the value
+- Or set to empty/unchecked
+
+## Display
+
+### On Card Front
+- Custom field values show on the card preview
+- Dropdown shows colored badge
+- Checkbox shows ✓ or empty
+- Date shows formatted date
+
+### In Card Detail
+- All custom fields appear in sidebar section
+- Edit values directly
+
+## Managing Custom Fields
+
+### Edit Field
+- Change name
+- Modify options (Dropdown)
+- Changes apply to all cards
+
+### Delete Field
+- Removes field and all values from cards
+- ⚠️ This action cannot be undone
+
+### Reorder Fields
+- Drag to change display order
+
+## Use Cases
+
+**Common custom field setups:**
+
+| Field Name | Type | Purpose |
+|------------|------|---------|
+| Priority | Dropdown | High/Medium/Low |
+| Story Points | Number | Effort estimation |
+| Client | Text | Customer name |
+| Approved | Checkbox | Sign-off status |
+| Start Date | Date | When work begins |
+
+## Related
+
+- [Custom Fields API](/docs/api-reference/custom-fields) - API endpoints
+- [Cards](/docs/features/cards) - Card properties
+- [Boards](/docs/features/boards) - Board-level settings
+

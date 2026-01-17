@@ -1,0 +1,257 @@
+---
+title: Notifications API
+description: API endpoints for managing user notifications
+---
+
+# Notifications API
+
+Notifications alert users about activity on boards, lists, and cards they are watching. Notifications are delivered in real-time via WebSocket and can also be retrieved via REST API.
+
+All endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
+## Notification Types
+
+| Type | Description |
+|------|-------------|
+| `card_created` | New card was created |
+| `card_updated` | Card was updated |
+| `card_moved` | Card was moved to another list |
+| `card_completed` | Card was marked as complete |
+| `comment_added` | New comment on a card |
+| `member_assigned` | User was assigned to a card |
+| `member_removed` | User was removed from a card |
+| `due_date_changed` | Due date was set or changed |
+| `label_added` | Label was added to a card |
+| `label_removed` | Label was removed from a card |
+| `list_created` | New list was created |
+| `list_archived` | List was archived |
+
+---
+
+## GET /api/notifications/
+
+Get notifications for the current user with pagination.
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | 20 | Number of notifications (max: 50) |
+| `offset` | integer | 0 | Pagination offset |
+| `unread_only` | boolean | false | Only return unread notifications |
+
+### Example
+
+```
+GET /api/notifications/?limit=20&offset=0&unread_only=true
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "notifications": [
+      {
+        "id": "uuid",
+        "user_id": "uuid",
+        "type": "card_created",
+        "title": "New card created",
+        "message": "Card \"Task 1\" was added to \"To Do\"",
+        "is_read": false,
+        "list_id": "uuid",
+        "card_id": "uuid",
+        "actor": {
+          "id": "uuid",
+          "full_name": "John Doe",
+          "avatar_url": null
+        },
+        "created_at": "2024-01-01T00:00:00Z"
+      }
+    ],
+    "total": 100,
+    "has_more": true,
+    "offset": 0,
+    "limit": 20
+  }
+}
+```
+
+---
+
+## GET /api/notifications/unread-count
+
+Get the count of unread notifications.
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "count": 5
+  }
+}
+```
+
+---
+
+## PUT /api/notifications/:id/read
+
+Mark a specific notification as read.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Notification ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Notification marked as read"
+}
+```
+
+---
+
+## PUT /api/notifications/:id/unread
+
+Mark a notification as unread.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Notification ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Notification marked as unread"
+}
+```
+
+---
+
+## PUT /api/notifications/read-all
+
+Mark all notifications as read.
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "All notifications marked as read"
+}
+```
+
+---
+
+## Watching Resources
+
+Users can subscribe to notifications from specific boards or lists.
+
+### POST /api/boards/:id/watch
+
+Start watching a board. See [Boards API](/docs/api-reference/boards).
+
+### DELETE /api/boards/:id/watch
+
+Stop watching a board.
+
+### POST /api/lists/:id/watch
+
+Start watching a list for notifications.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Now watching list"
+}
+```
+
+---
+
+### DELETE /api/lists/:id/watch
+
+Stop watching a list.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Stopped watching list"
+}
+```
+
+---
+
+### GET /api/lists/:id/watching
+
+Check if the current user is watching a list.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "is_watching": true
+  }
+}
+```
+
+---
+
+## WebSocket
+
+For real-time notifications, connect to the WebSocket endpoint:
+
+```
+ws://localhost:8080/ws?token=<jwt_token>
+```
+
+The server will push notifications as JSON messages:
+
+```json
+{
+  "type": "notification",
+  "data": {
+    "id": "uuid",
+    "type": "card_created",
+    "title": "New card created",
+    "message": "Card \"Task 1\" was added",
+    ...
+  }
+}
+```

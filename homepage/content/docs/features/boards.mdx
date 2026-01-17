@@ -1,25 +1,85 @@
 ---
 title: Boards
-description: Quản lý Boards
+description: Kanban boards for visual project management
 ---
 
 # Boards
 
-## Tạo Board
+Boards are the core of Mello's Kanban interface. Each board contains lists and cards that represent your workflow.
 
-- Đặt tên board
-- Chọn background (màu hoặc ảnh)
+## Creating a Board
 
-## Các tính năng
+1. Navigate to a workspace
+2. Click **Create Board**
+3. Enter a title
+4. Choose a background color or image
+5. Click **Create**
 
-- **Watch**: Theo dõi board để nhận thông báo
-- **Copy**: Sao chép toàn bộ board
-- **Archive**: Lưu trữ boards
+## Board Properties
+
+| Property | Description |
+|----------|-------------|
+| **Title** | Board name displayed in navigation |
+| **Description** | Optional detailed description |
+| **Background** | Color or image background |
+| **Starred** | Quick access from sidebar |
+
+## Board Features
+
+### Watch Board
+
+Subscribe to receive notifications about all activity on the board:
+- New cards created
+- Cards moved between lists
+- Cards updated
+- Comments added
+
+Click the **Watch** button in the board menu to start watching.
+
+### Copy Board
+
+Duplicate an entire board including:
+- All lists and their positions
+- All cards with descriptions and due dates
+- All labels
+- Card positions within lists
+
+**Note:** Comments, members, and attachments are not copied.
+
+### Star Board
+
+Star important boards for quick access:
+- Starred boards appear at the top of your sidebar
+- Click the star icon on the board card or header
+
+## Board Menu
+
+Access the board menu from the top-right corner:
+
+- **Change Background** - Select new color or image
+- **Labels** - Manage board labels
+- **Custom Fields** - Define custom card fields
+- **Copy Board** - Duplicate the board
+- **Close Board** - Archive the board
+- **Delete Board** - Permanently remove
 
 ## Board Settings
 
-- Cập nhật tên, background
-- Quản lý labels của board
-- Custom fields
+### Background Options
 
-*Chi tiết sẽ được bổ sung...*
+Choose from:
+- **Solid colors** - Quick, clean backgrounds
+- **Custom image** - Upload your own background
+
+## Board Navigation
+
+- Click board title in sidebar to open
+- Use breadcrumbs to navigate to workspace
+- Recent boards appear in quick access
+
+## Related
+
+- [Boards API](/docs/api-reference/boards) - API endpoints
+- [Lists](/docs/features/lists) - Managing lists on boards
+- [Labels](/docs/features/labels) - Board labels
+

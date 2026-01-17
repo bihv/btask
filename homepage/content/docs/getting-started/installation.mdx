@@ -1,20 +1,113 @@
 ---
-title: Cài đặt
-description: Hướng dẫn cài đặt Mello
+title: Installation
+description: System requirements and installation options
 ---
 
-# Cài đặt
+# Installation
 
-## Yêu cầu hệ thống
+This guide covers the system requirements and different ways to install Mello.
 
-- Docker & Docker Compose
-- Node.js 20+ (cho frontend)
-- Go 1.21+ (cho backend)
+## System Requirements
 
-## Cài đặt với Docker
+### Minimum Requirements
 
-*Chi tiết sẽ được bổ sung...*
+| Component | Requirement |
+|-----------|-------------|
+| **RAM** | 4 GB |
+| **Storage** | 10 GB free space |
+| **CPU** | 2 cores |
 
-## Cài đặt thủ công
+### Software Requirements
 
-*Chi tiết sẽ được bổ sung...*
+| Software | Version | Purpose |
+|----------|---------|---------|
+| Docker | 20.10+ | Container runtime |
+| Docker Compose | 2.0+ | Multi-container orchestration |
+| Git | 2.0+ | Clone repository |
+
+**For manual installation:**
+
+| Software | Version | Purpose |
+|----------|---------|---------|
+| Go | 1.21+ | Backend development |
+| Node.js | 18+ | Frontend development |
+| PostgreSQL | 14+ | Database |
+
+## Installation Methods
+
+### Method 1: Docker (Recommended)
+
+The fastest way to get Mello running:
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/mello.git
+cd mello
+
+# Start all services
+docker-compose up -d
+```
+
+✅ Includes all dependencies
+✅ No manual configuration needed
+✅ Works on Windows, macOS, and Linux
+
+See [Docker Setup](/docs/getting-started/docker-setup) for detailed instructions.
+
+### Method 2: Manual Installation
+
+For development or customized setups:
+
+1. Set up PostgreSQL database
+2. Configure and run the Go backend
+3. Configure and run the Next.js frontend
+
+See [Local Development Setup](/docs/development/local-setup) for step-by-step instructions.
+
+## Quick Start Commands
+
+```bash
+# Clone repository
+git clone https://github.com/your-org/mello.git
+cd mello
+
+# Start with Docker (recommended)
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost:3000
+# API: http://localhost:8080
+```
+
+## Verify Installation
+
+After starting the services:
+
+1. Open http://localhost:3000 in your browser
+2. You should see the Mello login page
+3. Register a new account to start using the app
+
+## Troubleshooting
+
+### Docker not starting
+```bash
+# Check container status
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+```
+
+### Port conflicts
+Make sure these ports are available:
+- 3000 (Frontend)
+- 5432 (PostgreSQL)
+- 8080 (Backend API)
+- 9000/9001 (MinIO)
+
+## Next Steps
+
+- [Quick Start Guide](/docs/getting-started/quick-start) - First steps after installation
+- [Docker Setup](/docs/getting-started/docker-setup) - Detailed Docker configuration
+- [Features](/docs/features/workspaces) - Explore Mello features
+

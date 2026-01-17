@@ -1,28 +1,312 @@
 ---
-title: Database
-description: Database schema và models
+title: Database Schema
+description: PostgreSQL database schema and relationships
 ---
 
 # Database Schema
 
-## Entity Relationship
+Mello uses PostgreSQL as its primary data store with GORM for object-relational mapping. The schema follows a hierarchical structure from workspaces down to individual card items.
 
-### Core Entities
+## Entity Relationship Diagram
 
-- **Users**: Thông tin người dùng
-- **Workspaces**: Không gian làm việc
-- **Boards**: Bảng Kanban
-- **Lists**: Danh sách trong board
-- **Cards**: Thẻ công việc
+```
+┌─────────────┐       ┌─────────────┐
+│    Users    │───────│  Workspaces │
+└─────────────┘       └─────────────┘
+      │                     │
+      │                     │
+      ▼                     ▼
+┌─────────────┐       ┌─────────────┐
+│ WorkspaceM. │       │   Boards    │
+└─────────────┘       └─────────────┘
+                            │
+              ┌─────────────┼─────────────┐
+              ▼             ▼             ▼
+        ┌─────────┐   ┌─────────┐   ┌─────────────┐
+        │  Lists  │   │ Labels  │   │CustomFields │
+        └─────────┘   └─────────┘   └─────────────┘
+              │
+              ▼
+        ┌─────────┐───────┬───────────┬──────────────┐
+        │  Cards  │       │           │              │
+        └─────────┘       ▼           ▼              ▼
+              │     ┌──────────┐ ┌──────────┐ ┌─────────────┐
+              │     │CardLabels│ │CardMembers│ │ Attachments │
+              ▼     └──────────┘ └──────────┘ └─────────────┘
+        ┌─────────────┐
+        │  Comments   │
+        └─────────────┘
+        ┌─────────────┐
+        │ Checklists  │───▶ ChecklistItems ───▶ ItemAssignees
+        └─────────────┘
+        ┌─────────────┐
+        │CustomField  │
+        │   Values    │
+        └─────────────┘
+```
 
-### Supporting Entities
+## Core Tables
 
-- **Labels**: Nhãn màu cho cards
-- **Comments**: Bình luận
-- **Checklists**: Danh sách kiểm tra
-- **ChecklistItems**: Các item trong checklist
-- **CustomFields**: Trường tùy chỉnh
-- **Attachments**: File đính kèm
-- **Notifications**: Thông báo
+### Users
 
-*Chi tiết sẽ được bổ sung...*
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `email` | VARCHAR | Unique email address |
+| `password` | VARCHAR | Bcrypt hashed password |
+| `full_name` | VARCHAR | Display name |
+| `bio` | TEXT | User biography |
+| `avatar_url` | VARCHAR | Avatar image URL |
+| `created_at` | TIMESTAMP | Creation timestamp |
+| `updated_at` | TIMESTAMP | Last update timestamp |
+
+### Workspaces
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `name` | VARCHAR | Workspace name |
+| `description` | TEXT | Workspace description |
+| `owner_id` | UUID | FK to Users |
+| `created_at` | TIMESTAMP | Creation timestamp |
+| `updated_at` | TIMESTAMP | Last update timestamp |
+
+### Workspace Members
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `workspace_id` | UUID | FK to Workspaces |
+| `user_id` | UUID | FK to Users |
+| `role` | VARCHAR | `admin` or `member` |
+| `created_at` | TIMESTAMP | Join timestamp |
+
+### Boards
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `workspace_id` | UUID | FK to Workspaces |
+| `title` | VARCHAR | Board title |
+| `description` | TEXT | Board description |
+| `background_color` | VARCHAR | Hex color code |
+| `background_image` | VARCHAR | Background image URL |
+| `is_starred` | BOOLEAN | Starred status |
+| `show_card_covers` | BOOLEAN | Show cover images |
+| `position` | INTEGER | Display order |
+| `created_at` | TIMESTAMP | Creation timestamp |
+| `updated_at` | TIMESTAMP | Last update timestamp |
+
+### Lists
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `board_id` | UUID | FK to Boards |
+| `title` | VARCHAR | List title |
+| `position` | INTEGER | Display order |
+| `is_collapsed` | BOOLEAN | Collapsed state |
+| `is_archived` | BOOLEAN | Archived status |
+| `created_at` | TIMESTAMP | Creation timestamp |
+| `updated_at` | TIMESTAMP | Last update timestamp |
+
+### Cards
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `list_id` | UUID | FK to Lists |
+| `title` | VARCHAR | Card title |
+| `description` | TEXT | Card description |
+| `cover_image` | VARCHAR | Cover image URL |
+| `position` | INTEGER | Display order |
+| `due_date` | TIMESTAMP | Due date |
+| `is_completed` | BOOLEAN | Completion status |
+| `is_archived` | BOOLEAN | Archived status |
+| `created_by` | UUID | FK to Users |
+| `created_at` | TIMESTAMP | Creation timestamp |
+| `updated_at` | TIMESTAMP | Last update timestamp |
+
+## Supporting Tables
+
+### Labels
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `board_id` | UUID | FK to Boards |
+| `name` | VARCHAR | Label name |
+| `color` | VARCHAR | Hex color code |
+
+### Card Labels (Many-to-Many)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `card_id` | UUID | FK to Cards |
+| `label_id` | UUID | FK to Labels |
+
+### Card Members (Many-to-Many)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `card_id` | UUID | FK to Cards |
+| `user_id` | UUID | FK to Users |
+
+### Comments
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `card_id` | UUID | FK to Cards |
+| `user_id` | UUID | FK to Users |
+| `content` | TEXT | Comment content |
+| `created_at` | TIMESTAMP | Creation timestamp |
+| `updated_at` | TIMESTAMP | Last update timestamp |
+
+### Checklists
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `card_id` | UUID | FK to Cards |
+| `title` | VARCHAR | Checklist title |
+| `position` | INTEGER | Display order |
+
+### Checklist Items
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `checklist_id` | UUID | FK to Checklists |
+| `content` | VARCHAR | Item content |
+| `is_completed` | BOOLEAN | Completion status |
+| `position` | INTEGER | Display order |
+| `due_date` | TIMESTAMP | Item due date |
+
+### Custom Fields
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `board_id` | UUID | FK to Boards |
+| `name` | VARCHAR | Field name |
+| `type` | VARCHAR | `text`, `number`, `date`, `checkbox`, `dropdown` |
+| `position` | INTEGER | Display order |
+
+### Custom Field Options (Dropdown)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `custom_field_id` | UUID | FK to Custom Fields |
+| `value` | VARCHAR | Option value |
+| `color` | VARCHAR | Option color |
+| `position` | INTEGER | Display order |
+
+### Card Custom Field Values
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `card_id` | UUID | FK to Cards |
+| `custom_field_id` | UUID | FK to Custom Fields |
+| `value` | VARCHAR | Text/number/date value |
+| `option_id` | UUID | FK to Custom Field Options |
+
+### Attachments
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `card_id` | UUID | FK to Cards |
+| `file_name` | VARCHAR | Original filename |
+| `file_url` | VARCHAR | Storage URL |
+| `file_type` | VARCHAR | MIME type |
+| `file_size` | BIGINT | Size in bytes |
+| `uploaded_by` | UUID | FK to Users |
+| `created_at` | TIMESTAMP | Upload timestamp |
+
+### Notifications
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `user_id` | UUID | FK to Users (recipient) |
+| `actor_id` | UUID | FK to Users (who triggered) |
+| `type` | VARCHAR | Notification type |
+| `title` | VARCHAR | Notification title |
+| `message` | TEXT | Notification message |
+| `list_id` | UUID | Related list |
+| `card_id` | UUID | Related card |
+| `is_read` | BOOLEAN | Read status |
+| `created_at` | TIMESTAMP | Creation timestamp |
+
+### Board Watchers
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `board_id` | UUID | FK to Boards |
+| `user_id` | UUID | FK to Users |
+
+### List Watchers
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `list_id` | UUID | FK to Lists |
+| `user_id` | UUID | FK to Users |
+
+## Indexes
+
+Key indexes for performance:
+
+```sql
+-- User lookups
+CREATE UNIQUE INDEX idx_users_email ON users(email);
+
+-- Workspace member lookups
+CREATE INDEX idx_workspace_members_workspace_id ON workspace_members(workspace_id);
+CREATE INDEX idx_workspace_members_user_id ON workspace_members(user_id);
+
+-- Board filtering
+CREATE INDEX idx_boards_workspace_id ON boards(workspace_id);
+
+-- List ordering
+CREATE INDEX idx_lists_board_id ON lists(board_id);
+
+-- Card filtering
+CREATE INDEX idx_cards_list_id ON cards(list_id);
+CREATE INDEX idx_cards_created_by ON cards(created_by);
+
+-- Notification queries
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_is_read ON notifications(user_id, is_read);
+```
+
+## Migrations
+
+GORM handles migrations automatically on startup:
+
+```go
+db.AutoMigrate(
+    &models.User{},
+    &models.Workspace{},
+    &models.WorkspaceMember{},
+    &models.Board{},
+    &models.List{},
+    &models.Card{},
+    &models.Label{},
+    &models.CardLabel{},
+    &models.CardMember{},
+    &models.Comment{},
+    &models.Checklist{},
+    &models.ChecklistItem{},
+    &models.CustomField{},
+    &models.Attachment{},
+    &models.Notification{},
+)
+```
+

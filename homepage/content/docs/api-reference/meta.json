@@ -8,6 +8,11 @@
         "boards",
         "lists",
         "cards",
-        "other"
+        "labels",
+        "comments",
+        "checklists",
+        "custom-fields",
+        "attachments",
+        "notifications"
     ]
 }

@@ -1,20 +1,104 @@
 ---
 title: Checklists
-description: Danh sách công việc con
+description: Break tasks into sub-items with progress tracking
 ---
 
 # Checklists
 
-## Mô tả
+Checklists allow you to break down card tasks into smaller, actionable items and track progress toward completion.
 
-Checklists giúp chia nhỏ công việc thành các bước nhỏ hơn.
+## Creating a Checklist
 
-## Tính năng
+1. Open a card
+2. Click **Checklist** in the sidebar
+3. Enter a title (e.g., "Tasks", "Requirements")
+4. Click **Add**
 
-- Tạo nhiều checklists trong một card
-- Thêm/xóa checklist items
-- Toggle trạng thái hoàn thành
-- Đặt due date cho items
-- **Convert to Card**: Chuyển item thành card mới
+A card can have **multiple checklists**, each with its own items.
 
-*Chi tiết sẽ được bổ sung...*
+## Checklist Items
+
+### Adding Items
+
+1. Click **Add an item** at the bottom of the checklist
+2. Enter the item description
+3. Press Enter to add more items
+
+### Completing Items
+
+- Click the checkbox to mark an item complete
+- Click again to uncheck
+- Progress bar updates automatically
+
+### Item Properties
+
+Each item can have:
+
+| Property | Description |
+|----------|-------------|
+| **Content** | Item description |
+| **Completed** | Checkbox state |
+| **Due Date** | Optional deadline |
+| **Assignees** | Members responsible |
+
+### Setting Due Dates
+
+1. Hover over an item
+2. Click the calendar icon
+3. Select date and time
+4. Due date appears next to the item
+
+### Assigning Members
+
+1. Hover over an item
+2. Click the member icon
+3. Select workspace members
+4. Avatars appear next to the item
+
+## Progress Tracking
+
+The checklist shows progress:
+- Progress bar fills as items are completed
+- Shows "X of Y" completed count
+- Card front shows combined checklist progress
+
+## Convert to Card
+
+Transform a checklist item into a new card:
+
+1. Click the item menu (⋯)
+2. Select **Convert to Card**
+3. Choose the target list
+4. The new card is created with:
+   - Item content as title
+   - Due date transferred
+   - Assignees as members
+
+## Managing Checklists
+
+### Rename Checklist
+- Click the checklist title
+- Edit the name
+- Click outside to save
+
+### Delete Checklist
+- Click the checklist menu
+- Select **Delete**
+- Confirms deletion with all items
+
+### Reorder Items
+- Drag items to reorder within the checklist
+
+## Best Practices
+
+**Checklist ideas:**
+- **Tasks** - Steps to complete the card
+- **Requirements** - Must-have items before done
+- **Review Points** - Items to verify
+- **Meeting Agenda** - Discussion topics
+
+## Related
+
+- [Checklists API](/docs/api-reference/checklists) - API endpoints
+- [Cards](/docs/features/cards) - Card details
+

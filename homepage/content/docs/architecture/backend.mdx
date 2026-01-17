@@ -1,34 +1,209 @@
 ---
-title: Backend
-description: Kiến trúc Backend với Go Fiber
+title: Backend Architecture
+description: Backend architecture with Go Fiber
 ---
 
 # Backend Architecture
 
+The backend is built with Go using the Fiber framework, following a clean architecture pattern with clear separation of concerns.
+
 ## Tech Stack
 
-- **Go Fiber**: HTTP web framework
-- **GORM**: ORM cho PostgreSQL
-- **JWT**: Authentication
-- **Zap**: Structured logging
+| Technology | Purpose |
+|------------|---------|
+| **Go 1.21+** | Programming language |
+| **Fiber v2** | HTTP web framework (Express-like) |
+| **GORM** | ORM for PostgreSQL |
+| **JWT** | Stateless authentication |
+| **Zap** | Structured, leveled logging |
+| **Air** | Hot reload for development |
+| **WebSocket** | Real-time communication |
 
-## Cấu trúc thư mục
+## Project Structure
 
 ```
 backend/
-├── cmd/server/         # Entry point
+├── cmd/
+│   └── server/
+│       └── main.go           # Application entry point
 ├── internal/
-│   ├── config/         # Configuration
-│   ├── database/       # Database connection
-│   ├── handlers/       # HTTP handlers
-│   ├── middleware/     # Auth, Logger
-│   ├── models/         # GORM models
-│   ├── repository/     # Data access layer
-│   ├── router/         # Route definitions
-│   ├── services/       # Business logic
-│   ├── storage/        # File storage
-│   └── websocket/      # WebSocket handler
-└── pkg/                # Shared utilities
+│   ├── config/
+│   │   └── config.go         # Environment configuration
+│   ├── database/
+│   │   └── database.go       # Database connection & migrations
+│   ├── handlers/             # HTTP request handlers
+│   │   ├── auth.go           # Authentication endpoints
+│   │   ├── board.go          # Board CRUD
+│   │   ├── card.go           # Card operations
+│   │   ├── checklist.go      # Checklist management
+│   │   ├── comment.go        # Comments
+│   │   ├── custom_field.go   # Custom fields
+│   │   ├── label.go          # Label management
+│   │   ├── list.go           # List operations
+│   │   ├── notification.go   # Notifications
+│   │   ├── user.go           # User profile
+│   │   ├── websocket.go      # WebSocket handler
+│   │   └── workspace.go      # Workspace management
+│   ├── middleware/
+│   │   ├── auth.go           # JWT authentication
+│   │   └── logger.go         # Request logging
+│   ├── models/               # GORM models & DTOs
+│   │   ├── user.go
+│   │   ├── workspace.go
+│   │   ├── board.go
+│   │   ├── list.go
+│   │   ├── card.go
+│   │   ├── label.go
+│   │   ├── checklist.go
+│   │   ├── custom_field.go
+│   │   ├── attachment.go
+│   │   └── notification.go
+│   ├── repository/           # Data access layer
+│   │   ├── user.go
+│   │   ├── workspace.go
+│   │   ├── board.go
+│   │   ├── list.go
+│   │   ├── card.go
+│   │   └── ...
+│   ├── router/
+│   │   └── router.go         # Route definitions
+│   ├── services/             # Business logic
+│   │   ├── auth.go
+│   │   ├── board.go
+│   │   ├── card.go
+│   │   ├── notification.go
+│   │   └── ...
+│   ├── storage/
+│   │   └── minio.go          # MinIO file storage
+│   └── websocket/
+│       └── hub.go            # WebSocket connection hub
+└── pkg/
+    ├── logger/
+    │   └── logger.go         # Zap logger configuration
+    └── utils/
+        └── response.go       # Standard response helpers
 ```
 
-*Chi tiết sẽ được bổ sung...*
+## Architecture Layers
+
+### 1. Handlers (Controllers)
+Receive HTTP requests, validate input, and return responses.
+
+```go
+func (h *CardHandler) Create(c *fiber.Ctx) error {
+    userID := middleware.GetUserID(c)
+    var req models.CreateCardRequest
+    if err := c.BodyParser(&req); err != nil {
+        return utils.ValidationErrorResponse(c, "Invalid request body")
+    }
+    card, err := h.service.Create(listID, userID, req)
+    return utils.SuccessResponse(c, card)
+}
+```
+
+### 2. Services (Business Logic)
+Contain business rules and orchestrate between handlers and repositories.
+
+```go
+func (s *CardService) Create(listID, userID uuid.UUID, req models.CreateCardRequest) (*models.Card, error) {
+    // Validate access
+    // Apply business rules
+    // Create card via repository
+    return s.cardRepo.Create(card)
+}
+```
+
+### 3. Repositories (Data Access)
+Handle all database operations using GORM.
+
+```go
+func (r *CardRepository) Create(card *models.Card) error {
+    return r.db.Create(card).Error
+}
+
+func (r *CardRepository) FindByID(id uuid.UUID) (*models.Card, error) {
+    var card models.Card
+    err := r.db.Preload("Labels").Preload("Members").First(&card, id).Error
+    return &card, err
+}
+```
+
+## Authentication Flow
+
+```
+Client                    Backend
+  │                         │
+  │──POST /api/auth/login──▶│
+  │                         │──Validate credentials
+  │                         │──Generate JWT token
+  │◀────── JWT Token ───────│
+  │                         │
+  │──GET /api/boards────────▶│
+  │  (Authorization: Bearer) │
+  │                         │──Middleware validates JWT
+  │                         │──Extract user ID from claims
+  │◀────── Board data ──────│
+```
+
+## Middleware Chain
+
+```go
+// Applied to all protected routes
+app.Use("/api", middleware.Logger())
+app.Use("/api/protected", middleware.Auth(cfg))
+```
+
+| Middleware | Purpose |
+|------------|---------|
+| Logger | Log request method, path, status, duration |
+| Auth | Validate JWT, extract user ID |
+| CORS | Handle cross-origin requests |
+
+## WebSocket Architecture
+
+Real-time notifications are handled through a WebSocket hub:
+
+```go
+type Hub struct {
+    clients    map[uuid.UUID]*Client  // userID -> Client
+    broadcast  chan *Notification
+    register   chan *Client
+    unregister chan *Client
+}
+```
+
+- Clients authenticate via JWT query parameter
+- Hub maintains connected clients per user
+- Notifications are pushed when relevant events occur
+
+## Error Handling
+
+Standardized error responses:
+
+```go
+// Success
+utils.SuccessResponse(c, data)
+// { "success": true, "data": {...} }
+
+// Error
+utils.ErrorResponse(c, 400, "Error message")
+// { "success": false, "error": "Error message" }
+```
+
+## Configuration
+
+Environment variables loaded via `.env`:
+
+| Variable | Description |
+|----------|-------------|
+| `DB_HOST` | PostgreSQL host |
+| `DB_PORT` | PostgreSQL port |
+| `DB_NAME` | Database name |
+| `DB_USER` | Database user |
+| `DB_PASSWORD` | Database password |
+| `JWT_SECRET` | Secret key for JWT signing |
+| `JWT_EXPIRY` | Token expiration (e.g., `24h`) |
+| `MINIO_ENDPOINT` | MinIO server URL |
+| `MINIO_ACCESS_KEY` | MinIO access key |
+| `MINIO_SECRET_KEY` | MinIO secret key |
+

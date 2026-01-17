@@ -1,24 +1,75 @@
 ---
 title: Workspaces
-description: Quản lý Workspaces
+description: Organize boards and collaborate with teams
 ---
 
 # Workspaces
 
-## Tạo Workspace
+Workspaces are the top-level containers that group boards and team members together. They provide a way to organize projects and control access.
 
-- Đặt tên và mô tả
-- Workspace visibility
+## Creating a Workspace
 
-## Quản lý thành viên
+1. Click **Create Workspace** from the sidebar
+2. Enter a name and optional description
+3. The creator automatically becomes the workspace owner
 
-- Mời thành viên qua email
-- Phân quyền (Admin, Member)
-- Xóa thành viên
+**Workspace properties:**
+- **Name** - Display name for the workspace
+- **Description** - Optional description of the workspace purpose
 
-## Các thao tác
+## Workspace Roles
 
-- Cập nhật thông tin workspace
-- Xóa workspace
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full access: manage members, settings, delete workspace |
+| **Member** | View and edit boards, cannot manage workspace settings |
 
-*Chi tiết sẽ được bổ sung...*
+The workspace creator is automatically an Admin.
+
+## Managing Members
+
+### Inviting Members
+
+1. Open workspace settings
+2. Click **Invite Member**
+3. Enter the user's email address
+4. The user will be added if they have an account
+
+### Changing Roles
+
+Admins can promote members to Admin or demote Admins to Member.
+
+### Removing Members
+
+Admins can remove any member (except themselves as the last admin).
+
+## Workspace Operations
+
+### Update Workspace
+- Change name and description
+- Only admins can modify settings
+
+### Delete Workspace
+- Permanently removes the workspace and all boards
+- Only the owner can delete the workspace
+- ⚠️ This action cannot be undone
+
+## Workspace Dashboard
+
+The workspace view shows:
+- All boards in the workspace
+- Quick access to recent boards
+- Starred boards at the top
+- Member list
+
+## Access Control
+
+- Only workspace members can view boards
+- New boards are created within a workspace
+- Members can access all boards in the workspace
+
+## Related
+
+- [Workspaces API](/docs/api-reference/workspaces) - API endpoints
+- [Boards](/docs/features/boards) - Creating boards in workspaces
+

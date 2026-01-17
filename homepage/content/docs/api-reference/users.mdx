@@ -1,24 +1,125 @@
 ---
 title: Users API
-description: User API Endpoints
+description: API endpoints for user management
 ---
 
 # Users API
 
+All user endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
 ## GET /api/users/me
 
-Lấy thông tin user hiện tại.
+Get the current authenticated user's profile.
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "full_name": "John Doe",
+    "bio": "Software developer",
+    "avatar_url": "https://example.com/avatar.jpg"
+  }
+}
+```
+
+---
 
 ## GET /api/users/search
 
-Tìm kiếm users.
+Search for users by email.
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email` | string | Yes | Email address to search |
+
+### Example
+
+```
+GET /api/users/search?email=user@example.com
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "full_name": "John Doe"
+  }
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Email query is required |
+| 404 | User not found |
+
+---
 
 ## GET /api/users/:id
 
-Lấy user theo ID.
+Get a user's public profile by ID.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | User ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "full_name": "John Doe",
+    "bio": "Software developer",
+    "avatar_url": "https://example.com/avatar.jpg"
+  }
+}
+```
+
+---
 
 ## PUT /api/users/:id
 
-Cập nhật user.
+Update user profile. Users can only update their own profile.
 
-*Chi tiết sẽ được bổ sung...*
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | User ID |
+
+### Request Body
+
+All fields are optional:
+
+```json
+{
+  "full_name": "John Smith",
+  "bio": "Full-stack developer",
+  "avatar_url": "https://example.com/new-avatar.jpg"
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 401 | Can only update your own profile |
+| 404 | User not found |

@@ -1,34 +1,123 @@
 ---
 title: Cards
-description: Quản lý Cards
+description: Task cards with rich details and collaboration
 ---
 
 # Cards
 
-## Tạo Card
+Cards are the fundamental units of work in Mello. Each card represents a task, idea, or item that can be enriched with details, assigned to members, and tracked through your workflow.
 
-- Thêm card vào list
-- Quick add từ Kanban view
+## Creating a Card
+
+1. Click **Add a card** at the bottom of any list
+2. Enter a title
+3. Press Enter or click outside to save
+
+Cards appear at the bottom of the list by default.
 
 ## Card Details
 
-- **Title & Description**: Tiêu đề và mô tả chi tiết
-- **Members**: Gán thành viên
-- **Labels**: Gắn nhãn màu
-- **Due Date**: Đặt thời hạn hoàn thành
-- **Checklists**: Danh sách công việc con
-- **Attachments**: Đính kèm file
-- **Comments**: Bình luận và thảo luận
-- **Custom Fields**: Các trường tùy chỉnh
+Click any card to open the detail modal with these sections:
 
-## Drag & Drop
+### Title & Description
 
-- Di chuyển card giữa các lists
-- Sắp xếp lại thứ tự trong list
+- **Title** - Concise name for the task
+- **Description** - Rich text area for detailed information, notes, or instructions
+
+### Members
+
+Assign team members to the card:
+- Click **Members** in the sidebar
+- Select users from workspace members
+- Assigned members appear on the card front
+- Members receive notifications about card updates
+
+### Labels
+
+Categorize cards with colored labels:
+- Click **Labels** to add/remove
+- Labels are defined at the board level
+- Multiple labels can be applied to one card
+
+### Due Date
+
+Set deadlines for cards:
+- Click **Due Date** to open date picker
+- Select date and time
+- Mark as complete when done
+- Overdue dates show in red
+
+### Checklists
+
+Break down tasks into subtasks:
+- Add multiple checklists per card
+- Each checklist has its own items
+- Track progress with completion percentage
+
+### Attachments
+
+Attach files to cards:
+- Upload images, documents, PDFs
+- Files stored in MinIO/S3
+- Preview images inline
+
+### Comments
+
+Collaborate through discussion:
+- Add comments to discuss the card
+- Edit or delete your own comments
+- Members receive notifications
+
+### Custom Fields
+
+Add structured data:
+- Fill in custom fields defined on the board
+- Supports text, number, date, checkbox, dropdown
+
+## Drag and Drop
+
+Cards support intuitive drag-and-drop:
+
+### Move Between Lists
+- Drag card to another list
+- Drop at specific position
+
+### Reorder Within List
+- Drag card up or down
+- New position saves automatically
+
+### Multi-user Sync
+- Changes appear in real-time for all viewers
+
+## Card Front
+
+The card preview on the board shows:
+- Title
+- Labels (colored bars)
+- Due date badge
+- Member avatars
+- Checklist progress
+- Comment/attachment counts
 
 ## Archive & Restore
 
-- Lưu trữ cards không còn cần thiết
-- Khôi phục cards đã lưu trữ
+### Archive a Card
+- Open card → **Archive**
+- Removes from board view
+- Data is preserved
 
-*Chi tiết sẽ được bổ sung...*
+### Restore a Card
+- Access archived cards from board menu
+- Click **Send to Board** to restore
+
+### Delete Permanently
+- Archived cards can be permanently deleted
+- ⚠️ This action cannot be undone
+
+## Related
+
+- [Cards API](/docs/api-reference/cards) - API endpoints
+- [Checklists](/docs/features/checklists) - Task breakdown
+- [Labels](/docs/features/labels) - Card categorization
+- [Comments](/docs/features/comments) - Collaboration
+

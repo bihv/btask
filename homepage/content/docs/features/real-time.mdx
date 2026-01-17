@@ -1,23 +1,103 @@
 ---
 title: Real-time Updates
-description: Cập nhật theo thời gian thực
+description: Live synchronization across all users
 ---
 
 # Real-time Updates
 
-## Mô tả
+Mello uses WebSocket connections to deliver instant updates, keeping all users synchronized without manual refreshes.
 
-WebSocket cho phép cập nhật giao diện theo thời gian thực.
+## How It Works
 
-## Tính năng
+```
+User A makes change → Backend processes → WebSocket broadcasts → User B sees update
+```
 
-- Cập nhật board khi có thay đổi
-- Thông báo real-time
-- Đồng bộ nhiều người dùng cùng lúc
+1. **Action**: User performs an action (create card, add comment, etc.)
+2. **Processing**: Backend saves the change
+3. **Broadcast**: WebSocket hub sends update to relevant clients
+4. **Update**: All viewing users see the change instantly
 
-## Technical
+## Real-time Features
 
-- WebSocket connection với Go Fiber
-- Client reconnection handling
+| Feature | What Updates |
+|---------|--------------|
+| Card creation | New cards appear on board |
+| Card movement | Cards move between lists live |
+| Card updates | Title, description, due date changes |
+| Comments | New comments appear instantly |
+| Notifications | Badge updates in real-time |
+| Member changes | Avatars update on cards |
+| List changes | New lists, reordering, archiving |
 
-*Chi tiết sẽ được bổ sung...*
+## WebSocket Connection
+
+### Authentication
+- Token passed via query parameter
+- Connection established on page load
+- Automatic reconnection on disconnect
+
+### Connection Flow
+```
+1. Client connects: ws://server/ws?token=<jwt>
+2. Server validates token
+3. Connection established
+4. User subscribes to relevant channels
+5. Updates flow bidirectionally
+```
+
+## Multi-user Collaboration
+
+When multiple users work on the same board:
+- All see the same current state
+- Changes appear for everyone simultaneously
+- No conflicts or overwrites
+- Drag-and-drop syncs across sessions
+
+## Notification Delivery
+
+Real-time notifications:
+- Bell icon badge updates live
+- New notifications push instantly
+- No polling or refresh required
+
+## Connection Status
+
+The UI indicates connection state:
+- 🟢 **Connected** - Updates flowing normally
+- 🟡 **Reconnecting** - Attempting to restore connection
+- 🔴 **Disconnected** - Updates paused, refresh may be needed
+
+## Automatic Reconnection
+
+If the connection drops:
+1. Client detects disconnection
+2. Automatic reconnection attempts begin
+3. Exponential backoff prevents overload
+4. On reconnect, state is synchronized
+
+## Technical Details
+
+### Backend
+- Go Fiber WebSocket handler
+- Hub pattern for connection management
+- Per-user message routing
+
+### Frontend
+- Native WebSocket API
+- Zustand store integration
+- React Query cache invalidation
+
+## Browser Support
+
+WebSocket is supported in all modern browsers:
+- Chrome 16+
+- Firefox 11+
+- Safari 6+
+- Edge 12+
+
+## Related
+
+- [Notifications](/docs/features/notifications) - Notification system
+- [Backend Architecture](/docs/architecture/backend) - WebSocket implementation
+

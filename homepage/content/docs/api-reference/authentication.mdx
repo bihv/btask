@@ -1,16 +1,107 @@
 ---
-title: Auth API
-description: Authentication API Endpoints
+title: Authentication API
+description: API endpoints for user registration and login
 ---
 
 # Authentication API
 
+All authentication endpoints are public and do not require a JWT token.
+
 ## POST /api/auth/register
 
-Đăng ký tài khoản mới.
+Register a new user account.
+
+### Request Body
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "full_name": "John Doe"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | User's email address |
+| `password` | string | Yes | Password (minimum 6 characters) |
+| `full_name` | string | Yes | User's full name |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "email": "user@example.com",
+      "full_name": "John Doe",
+      "avatar": null
+    }
+  }
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Email, password, and full name are required |
+| 400 | Password must be at least 6 characters |
+| 409 | Email already exists |
+
+---
 
 ## POST /api/auth/login
 
-Đăng nhập.
+Authenticate an existing user.
 
-*Chi tiết sẽ được bổ sung...*
+### Request Body
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | User's email address |
+| `password` | string | Yes | User's password |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "email": "user@example.com",
+      "full_name": "John Doe",
+      "avatar": null
+    }
+  }
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Email and password are required |
+| 401 | Invalid email or password |
+
+---
+
+## Using the Token
+
+Include the JWT token in the `Authorization` header for protected endpoints:
+
+```
+Authorization: Bearer <token>
+```

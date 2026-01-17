@@ -1,9 +1,11 @@
 ---
 title: API Overview
-description: Tổng quan về API
+description: Overview of the Mello REST API
 ---
 
 # API Overview
+
+This document provides an overview of the Mello REST API.
 
 ## Base URL
 
@@ -11,30 +13,81 @@ description: Tổng quan về API
 http://localhost:8080/api
 ```
 
+In production, replace `localhost:8080` with your server domain.
+
 ## Authentication
 
-API sử dụng JWT Bearer token:
+The API uses JWT (JSON Web Token) for authentication. After logging in, include the token in the `Authorization` header:
 
 ```
 Authorization: Bearer <token>
 ```
 
+Most endpoints require authentication. Public endpoints (register, login) do not require a token.
+
+## Request Format
+
+- All request bodies should be JSON
+- Set `Content-Type: application/json` header
+
 ## Response Format
 
-```json
-{
-  "data": { ... },
-  "message": "Success"
-}
-```
-
-## Error Handling
+### Success Response
 
 ```json
 {
-  "error": "Error message",
-  "code": 400
+  "success": true,
+  "data": { ... }
 }
 ```
 
-*Chi tiết từng endpoint xem ở các trang tương ứng...*
+### Success with Message
+
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "error": "Error message description"
+}
+```
+
+## HTTP Status Codes
+
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 400 | Bad Request - Invalid input |
+| 401 | Unauthorized - Invalid or missing token |
+| 403 | Forbidden - Access denied |
+| 404 | Not Found - Resource not found |
+| 409 | Conflict - Resource already exists |
+| 500 | Internal Server Error |
+
+## Rate Limiting
+
+Currently, no rate limiting is implemented. This may change in future versions.
+
+## API Sections
+
+<Cards>
+  <Card title="Authentication" href="/docs/api-reference/authentication" />
+  <Card title="Users" href="/docs/api-reference/users" />
+  <Card title="Workspaces" href="/docs/api-reference/workspaces" />
+  <Card title="Boards" href="/docs/api-reference/boards" />
+  <Card title="Lists" href="/docs/api-reference/lists" />
+  <Card title="Cards" href="/docs/api-reference/cards" />
+  <Card title="Labels" href="/docs/api-reference/labels" />
+  <Card title="Comments" href="/docs/api-reference/comments" />
+  <Card title="Checklists" href="/docs/api-reference/checklists" />
+  <Card title="Custom Fields" href="/docs/api-reference/custom-fields" />
+  <Card title="Attachments" href="/docs/api-reference/attachments" />
+  <Card title="Notifications" href="/docs/api-reference/notifications" />
+</Cards>

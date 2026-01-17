@@ -1,32 +1,238 @@
 ---
 title: Boards API
-description: Board API Endpoints
+description: API endpoints for board management
 ---
 
 # Boards API
 
+All board endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
 ## GET /api/workspaces/:workspaceId/boards
-Lấy boards trong workspace.
+
+Get all boards in a workspace.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `workspaceId` | UUID | Workspace ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "workspace_id": "uuid",
+      "title": "Project Board",
+      "description": "Main project board",
+      "background_color": "#0079bf",
+      "background_image": null,
+      "is_starred": false,
+      "show_card_covers": true,
+      "position": 0,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
 
 ## POST /api/workspaces/:workspaceId/boards
-Tạo board.
+
+Create a new board in a workspace.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `workspaceId` | UUID | Workspace ID |
+
+### Request Body
+
+```json
+{
+  "title": "New Board",
+  "description": "Optional description",
+  "background_color": "#0079bf"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | Board title (1-100 characters) |
+| `description` | string | No | Board description (max 500 characters) |
+| `background_color` | string | No | Hex color code (default: `#0079bf`) |
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Title is required |
+| 403 | Access denied |
+
+---
 
 ## GET /api/boards/:id
-Lấy board chi tiết.
+
+Get board details with lists, cards, and labels.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Board ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "workspace_id": "uuid",
+    "title": "Project Board",
+    "description": "Main project board",
+    "background_color": "#0079bf",
+    "background_image": null,
+    "is_starred": false,
+    "show_card_covers": true,
+    "is_watching": false,
+    "position": 0,
+    "lists": [...],
+    "labels": [...],
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
 
 ## PUT /api/boards/:id
-Cập nhật board.
+
+Update board properties.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Board ID |
+
+### Request Body
+
+All fields are optional:
+
+```json
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "background_color": "#00aecc",
+  "background_image": "https://example.com/image.jpg",
+  "is_starred": true,
+  "show_card_covers": false,
+  "position": 1
+}
+```
+
+---
 
 ## DELETE /api/boards/:id
-Xóa board.
 
-## POST /api/boards/:id/watch
-Theo dõi board.
+Delete a board and all its contents.
 
-## DELETE /api/boards/:id/watch
-Bỏ theo dõi.
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Board ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Board deleted successfully"
+}
+```
+
+---
 
 ## POST /api/boards/:id/copy
-Sao chép board.
 
-*Chi tiết sẽ được bổ sung...*
+Copy a board to the same or different workspace.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Source board ID |
+
+### Request Body
+
+```json
+{
+  "title": "Board Copy",
+  "workspace_id": "uuid"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | Title for the new board |
+| `workspace_id` | string | No | Target workspace (defaults to same workspace) |
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Title is required |
+| 403 | Access denied |
+
+---
+
+## POST /api/boards/:id/watch
+
+Subscribe to board notifications.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Board ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Board watched successfully"
+}
+```
+
+---
+
+## DELETE /api/boards/:id/watch
+
+Unsubscribe from board notifications.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Board ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Board unwatched successfully"
+}
+```

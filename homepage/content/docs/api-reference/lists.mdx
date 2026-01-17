@@ -1,35 +1,282 @@
 ---
 title: Lists API
-description: List API Endpoints
+description: API endpoints for list (Kanban column) management
 ---
 
 # Lists API
 
+All list endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
 ## POST /api/boards/:boardId/lists
-Tạo list.
+
+Create a new list in a board.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `boardId` | UUID | Board ID |
+
+### Request Body
+
+```json
+{
+  "title": "To Do",
+  "position": 0
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | List title |
+| `position` | integer | No | Position in board |
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | Title is required |
+| 403 | Access denied |
+
+---
 
 ## PUT /api/lists/:id
-Cập nhật list.
+
+Update list properties.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Request Body
+
+```json
+{
+  "title": "In Progress",
+  "is_collapsed": false
+}
+```
+
+---
 
 ## DELETE /api/lists/:id
-Xóa list.
+
+Delete a list and all its cards.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "List deleted successfully"
+}
+```
+
+---
 
 ## PUT /api/lists/:id/move
-Di chuyển list.
+
+Reorder a list within the board.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Request Body
+
+```json
+{
+  "position": 2
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "List moved successfully"
+}
+```
+
+---
 
 ## POST /api/lists/:id/copy
-Sao chép list.
+
+Copy a list with all its cards.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Source list ID |
+
+### Request Body
+
+```json
+{
+  "title": "Copy of To Do"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | No | Title for copied list (defaults to original) |
+
+---
 
 ## POST /api/lists/:id/move-all-cards
-Di chuyển tất cả cards.
+
+Move all cards from one list to another.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Source list ID |
+
+### Request Body
+
+```json
+{
+  "target_list_id": "uuid"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "All cards moved successfully"
+}
+```
+
+---
 
 ## POST /api/lists/:id/sort-cards
-Sắp xếp cards.
+
+Sort cards in a list by a specific criteria.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Request Body
+
+```json
+{
+  "sort_by": "created_at"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `sort_by` | string | Yes | Sort criteria (e.g., `created_at`, `title`, `due_date`) |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "Cards sorted successfully"
+}
+```
+
+---
 
 ## PUT /api/lists/:id/archive
-Lưu trữ list.
+
+Archive a list (soft delete).
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "List archived successfully"
+}
+```
+
+---
 
 ## PUT /api/lists/:id/unarchive
-Khôi phục list.
 
-*Chi tiết sẽ được bổ sung...*
+Restore an archived list.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "List restored successfully"
+}
+```
+
+---
+
+## POST /api/lists/:id/archive-all-cards
+
+Archive all cards in a list.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | List ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "message": "All cards archived successfully"
+}
+```
+
+---
+
+## GET /api/boards/:id/archived-lists
+
+Get all archived lists for a board.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Board ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [...]
+}
+```

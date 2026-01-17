@@ -1,0 +1,183 @@
+---
+title: Attachments API
+description: API endpoints for managing card attachments
+---
+
+# Attachments API
+
+Attachments allow uploading files to cards. Files are stored in MinIO/S3-compatible storage.
+
+All endpoints require authentication. Include the JWT token in the `Authorization` header.
+
+---
+
+## Upload Flow
+
+1. First, upload the file to `/api/upload` to get a file URL
+2. Then, create an attachment record using the URL
+
+---
+
+## POST /api/upload
+
+Upload a file to storage.
+
+### Request
+
+Send a `multipart/form-data` request with the file:
+
+```
+Content-Type: multipart/form-data
+
+file: <binary file data>
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "url": "https://storage.example.com/uploads/filename.pdf",
+    "filename": "document.pdf",
+    "size": 102400,
+    "content_type": "application/pdf"
+  }
+}
+```
+
+### Errors
+
+| Status | Message |
+|--------|---------|
+| 400 | No file provided |
+| 400 | File too large (max 10MB) |
+| 500 | Failed to upload file |
+
+---
+
+## GET /api/cards/:cardId/attachments
+
+Get all attachments for a card.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cardId` | UUID | Card ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "card_id": "uuid",
+      "file_name": "document.pdf",
+      "file_url": "https://storage.example.com/uploads/document.pdf",
+      "file_type": "application/pdf",
+      "file_size": 102400,
+      "uploaded_by": "uuid",
+      "uploader": {
+        "id": "uuid",
+        "email": "user@example.com",
+        "full_name": "John Doe"
+      },
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## POST /api/cards/:cardId/attachments
+
+Create an attachment record after uploading a file.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cardId` | UUID | Card ID |
+
+### Request Body
+
+```json
+{
+  "file_name": "document.pdf",
+  "file_url": "https://storage.example.com/uploads/document.pdf",
+  "file_type": "application/pdf",
+  "file_size": 102400
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file_name` | string | Yes | Original filename |
+| `file_url` | string | Yes | URL from upload endpoint |
+| `file_type` | string | Yes | MIME type |
+| `file_size` | integer | Yes | File size in bytes |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "card_id": "uuid",
+    "file_name": "document.pdf",
+    "file_url": "https://storage.example.com/uploads/document.pdf",
+    "file_type": "application/pdf",
+    "file_size": 102400,
+    "uploaded_by": "uuid",
+    "uploader": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "full_name": "John Doe"
+    },
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+## DELETE /api/attachments/:id
+
+Delete an attachment. This also removes the file from storage.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | UUID | Attachment ID |
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Attachment deleted"
+  }
+}
+```
+
+---
+
+## Supported File Types
+
+The following file types are commonly supported:
+
+| Category | Extensions |
+|----------|------------|
+| Images | `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.svg` |
+| Documents | `.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx` |
+| Text | `.txt`, `.md`, `.csv`, `.json` |
+| Archives | `.zip`, `.rar`, `.7z` |
+
+Maximum file size: **10 MB**

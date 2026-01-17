@@ -1,21 +1,209 @@
 ---
 title: Docker Deployment
-description: Triển khai với Docker
+description: Deploy Mello with Docker Compose
 ---
 
 # Docker Deployment
 
-## Docker Compose
+This guide covers how to run Mello locally using Docker Compose. All services are configured to work together out of the box.
+
+## Prerequisites
+
+- Docker Desktop 4.0+ or Docker Engine 20.10+
+- Docker Compose v2.0+
+- 4GB RAM minimum
+- Ports 3000, 5432, 5050, 8080, 9000, 9001 available
+
+## Quick Start
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-org/mello.git
+cd mello
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+The application will be available at:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **pgAdmin**: http://localhost:5050
+- **MinIO Console**: http://localhost:9001
+
+## Services Overview
+
+| Service | Image | Port | Description |
+|---------|-------|------|-------------|
+| `postgres` | postgres:16-alpine | 5432 | PostgreSQL database |
+| `pgadmin` | dpage/pgadmin4 | 5050 | Database admin UI |
+| `minio` | minio/minio | 9000, 9001 | File storage (S3-compatible) |
+| `minio-init` | minio/mc | - | Creates initial bucket |
+| `backend` | Dockerfile.dev | 8080 | Go Fiber API server |
+| `frontend` | Dockerfile.dev | 3000 | Next.js application |
+
+## Service Details
+
+### PostgreSQL
+
+```yaml
+postgres:
+  image: postgres:16-alpine
+  environment:
+    POSTGRES_DB: mello
+    POSTGRES_USER: mello
+    POSTGRES_PASSWORD: mello123
+  ports:
+    - "5432:5432"
+```
+
+**Default credentials:**
+- Database: `mello`
+- User: `mello`
+- Password: `mello123`
+
+### pgAdmin (Database UI)
+
+Access at http://localhost:5050
+
+**Default login:**
+- Email: `admin@admin.com`
+- Password: `admin123`
+
+To connect to PostgreSQL:
+1. Add New Server
+2. Host: `postgres` (container name)
+3. Port: `5432`
+4. Database: `mello`
+5. Username: `mello`
+6. Password: `mello123`
+
+### MinIO (File Storage)
+
+S3-compatible storage for file uploads.
+
+**Console access:** http://localhost:9001
+- Username: `minioadmin`
+- Password: `minioadmin`
+
+**API endpoint:** http://localhost:9000
+- Bucket: `mello-uploads` (auto-created on startup)
+
+### Backend
+
+Go Fiber application with hot-reload via Air.
+
+```yaml
+backend:
+  environment:
+    - DATABASE_URL=postgres://mello:mello123@postgres:5432/mello?sslmode=disable
+    - JWT_SECRET=your-super-secret-key-change-in-production
+    - JWT_EXPIRY=24h
+    - MINIO_ENDPOINT=minio:9000
+    - MINIO_ACCESS_KEY=minioadmin
+    - MINIO_SECRET_KEY=minioadmin
+    - MINIO_BUCKET=mello-uploads
+```
+
+### Frontend
+
+Next.js application with fast refresh.
+
+```yaml
+frontend:
+  environment:
+    - NEXT_PUBLIC_API_URL=http://localhost:8080/api
+```
+
+## Common Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (reset data)
+docker-compose down -v
+
+# Rebuild specific service
+docker-compose up -d --build backend
+
+# View logs for specific service
+docker-compose logs -f backend
+
+# Execute command in container
+docker-compose exec backend sh
+
+# Check service status
+docker-compose ps
+```
+
+## Volume Management
+
+Data is persisted in Docker volumes:
+
+| Volume | Purpose |
+|--------|---------|
+| `postgres_data` | PostgreSQL database files |
+| `minio_data` | Uploaded files and attachments |
+
+To backup data:
+```bash
+# Backup PostgreSQL
+docker-compose exec postgres pg_dump -U mello mello > backup.sql
+
+# Restore PostgreSQL
+docker-compose exec -T postgres psql -U mello mello < backup.sql
+```
+
+## Troubleshooting
+
+### Port already in use
+```bash
+# Find process using the port
+lsof -i :3000
+
+# Kill the process or change port in docker-compose.yml
+```
+
+### Container won't start
+```bash
+# Check logs
+docker-compose logs backend
+
+# Rebuild the image
+docker-compose up -d --build --force-recreate backend
+```
+
+### Database connection failed
+```bash
+# Check if postgres is healthy
+docker-compose ps postgres
+
+# Wait for postgres healthcheck
+docker-compose up -d --wait
+```
+
+### Reset everything
+```bash
+# Remove all containers, volumes, and networks
+docker-compose down -v --remove-orphans
+
+# Start fresh
 docker-compose up -d
 ```
 
-## Services
+## Hot Reload
 
-- PostgreSQL
-- Backend
-- Frontend
-- MinIO
+Both backend and frontend support hot reload in development:
 
-*Chi tiết sẽ được bổ sung...*
+- **Backend**: Uses [Air](https://github.com/cosmtrek/air) to watch for file changes
+- **Frontend**: Uses Next.js Fast Refresh
+
+Source code is mounted as volumes, so changes are reflected immediately.
+

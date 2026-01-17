@@ -1,22 +1,272 @@
 ---
 title: Testing
-description: Hướng dẫn testing
+description: Testing guidelines and commands
 ---
 
 # Testing
 
-## Backend Testing
+This guide covers testing practices for the Mello codebase.
+
+## Backend Testing (Go)
+
+### Running Tests
 
 ```bash
 cd backend
+
+# Run all tests
 go test ./...
+
+# Run with verbose output
+go test -v ./...
+
+# Run specific package
+go test -v ./internal/services/...
+
+# Run specific test
+go test -v -run TestBoardService_Create ./internal/services/...
+
+# Run with coverage
+go test -cover ./...
+
+# Generate coverage report
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
 ```
 
-## Frontend Testing
+### Test Structure
+
+Tests are located alongside the code they test:
+
+```
+internal/
+├── services/
+│   ├── board.go
+│   └── board_test.go
+├── handlers/
+│   ├── board.go
+│   └── board_test.go
+```
+
+### Writing Tests
+
+**Example unit test:**
+
+```go
+package services
+
+import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/mock"
+)
+
+func TestBoardService_Create(t *testing.T) {
+    // Arrange
+    mockRepo := new(MockBoardRepository)
+    service := NewBoardService(mockRepo)
+    
+    mockRepo.On("Create", mock.Anything).Return(&Board{ID: "123"}, nil)
+    
+    // Act
+    board, err := service.Create(CreateBoardRequest{Title: "Test Board"})
+    
+    // Assert
+    assert.NoError(t, err)
+    assert.Equal(t, "123", board.ID)
+    mockRepo.AssertExpectations(t)
+}
+```
+
+### Test Database
+
+For integration tests, use a test database:
+
+```bash
+# Create test database
+createdb mello_test
+
+# Run tests with test database
+DATABASE_URL=postgres://localhost/mello_test go test ./...
+```
+
+## Frontend Testing (TypeScript/React)
+
+### Running Tests
 
 ```bash
 cd frontend
+
+# Run all tests
 npm run test
+
+# Run in watch mode
+npm run test:watch
+
+# Run with coverage
+npm run test:coverage
+
+# Run specific test file
+npm run test -- src/components/Board.test.tsx
 ```
 
-*Chi tiết sẽ được bổ sung...*
+### Test Structure
+
+Tests use the `__tests__` folder or `.test.tsx` suffix:
+
+```
+src/
+├── components/
+│   ├── board/
+│   │   ├── BoardCard.tsx
+│   │   └── BoardCard.test.tsx
+```
+
+### Writing Tests
+
+**Example component test:**
+
+```typescript
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BoardCard } from './BoardCard';
+
+describe('BoardCard', () => {
+  const mockBoard = {
+    id: '1',
+    title: 'Test Board',
+    description: 'Description',
+  };
+
+  it('renders board title', () => {
+    render(<BoardCard board={mockBoard} />);
+    
+    expect(screen.getByText('Test Board')).toBeInTheDocument();
+  });
+
+  it('calls onDelete when delete button clicked', () => {
+    const onDelete = jest.fn();
+    render(<BoardCard board={mockBoard} onDelete={onDelete} />);
+    
+    fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+    
+    expect(onDelete).toHaveBeenCalledWith('1');
+  });
+});
+```
+
+**Example hook test:**
+
+```typescript
+import { renderHook, waitFor } from '@testing-library/react';
+import { useBoards } from './useBoards';
+
+describe('useBoards', () => {
+  it('fetches boards successfully', async () => {
+    const { result } = renderHook(() => useBoards('workspace-1'));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.boards).toHaveLength(3);
+  });
+});
+```
+
+### Mocking API Calls
+
+Use MSW (Mock Service Worker) for API mocking:
+
+```typescript
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+
+const server = setupServer(
+  rest.get('/api/boards', (req, res, ctx) => {
+    return res(ctx.json({ success: true, data: [] }));
+  })
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+## End-to-End Testing
+
+### Using Playwright/Cypress
+
+```bash
+# Install Playwright
+npm init playwright@latest
+
+# Run E2E tests
+npx playwright test
+```
+
+**Example E2E test:**
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('user can create a board', async ({ page }) => {
+  // Login
+  await page.goto('/login');
+  await page.fill('[name="email"]', 'test@example.com');
+  await page.fill('[name="password"]', 'password');
+  await page.click('button[type="submit"]');
+  
+  // Create board
+  await page.click('text=Create Board');
+  await page.fill('[name="title"]', 'New Board');
+  await page.click('text=Create');
+  
+  // Verify
+  await expect(page.locator('text=New Board')).toBeVisible();
+});
+```
+
+## CI/CD Integration
+
+Tests run automatically on:
+- Push to any branch
+- Pull request creation
+- Before deployment
+
+Example GitHub Actions:
+
+```yaml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - run: cd backend && go test -v ./...
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: cd frontend && npm ci && npm test
+```
+
+## Test Coverage Goals
+
+| Component | Target |
+|-----------|--------|
+| Services (Backend) | 80%+ |
+| Handlers (Backend) | 70%+ |
+| Components (Frontend) | 70%+ |
+| Hooks (Frontend) | 80%+ |
+| E2E Critical Paths | 100% |
+
