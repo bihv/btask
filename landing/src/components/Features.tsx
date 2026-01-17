@@ -88,9 +88,9 @@ export default function Features() {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className="card group cursor-pointer"
+                            className="card group cursor-pointer text-center"
                         >
-                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 mx-auto`}>
                                 {feature.icon}
                             </div>
                             <h3 className="text-xl font-bold mb-3">{feature.title}</h3>

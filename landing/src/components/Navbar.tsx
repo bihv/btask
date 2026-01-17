@@ -24,7 +24,7 @@ export default function Navbar() {
     const navLinks = [
         { href: "#features", label: "Features" },
         { href: "#open-source", label: "Open Source" },
-        { href: "#testimonials", label: "Testimonials" },
+        { href: "#how-it-works", label: "How It Works" },
         { href: "#faq", label: "FAQ" },
     ];
 
@@ -78,12 +78,28 @@ export default function Navbar() {
                             </svg>
                             GitHub
                         </a>
-                        <Link href="/login" className="btn-secondary py-2 px-4 text-sm">
-                            Sign In
-                        </Link>
-                        <Link href="/register" className="btn-primary py-2 px-4 text-sm">
-                            Get Started Free
-                        </Link>
+                        <a
+                            href="https://docs.mello.app"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-secondary py-2 px-4 text-sm inline-flex items-center gap-1.5"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            Docs
+                        </a>
+                        <a
+                            href="https://github.com/mello-app/mello/releases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-primary py-2 px-4 text-sm inline-flex items-center gap-1.5"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                        </a>
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -135,12 +151,28 @@ export default function Navbar() {
                                 GitHub
                             </a>
                             <div className="flex flex-col gap-2 pt-2">
-                                <Link href="/login" className="btn-secondary text-center">
-                                    Sign In
-                                </Link>
-                                <Link href="/register" className="btn-primary text-center">
-                                    Get Started Free
-                                </Link>
+                                <a
+                                    href="https://docs.mello.app"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn-secondary text-center inline-flex items-center justify-center gap-1.5"
+                                >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    Docs
+                                </a>
+                                <a
+                                    href="https://github.com/mello-app/mello/releases"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn-primary text-center inline-flex items-center justify-center gap-1.5"
+                                >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Download
+                                </a>
                             </div>
                         </div>
                     </div>

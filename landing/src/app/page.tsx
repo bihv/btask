@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
 import OpenSource from "@/components/OpenSource";
-import Testimonials from "@/components/Testimonials";
+import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 
@@ -14,7 +14,7 @@ export default function Home() {
         <Hero />
         <Features />
         <OpenSource />
-        <Testimonials />
+        <HowItWorks />
         <FAQ />
       </main>
       <Footer />
