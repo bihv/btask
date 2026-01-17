@@ -1,0 +1,40 @@
+---
+title: API Overview
+description: Tổng quan về API
+---
+
+# API Overview
+
+## Base URL
+
+```
+http://localhost:8080/api
+```
+
+## Authentication
+
+API sử dụng JWT Bearer token:
+
+```
+Authorization: Bearer <token>
+```
+
+## Response Format
+
+```json
+{
+  "data": { ... },
+  "message": "Success"
+}
+```
+
+## Error Handling
+
+```json
+{
+  "error": "Error message",
+  "code": 400
+}
+```
+
+*Chi tiết từng endpoint xem ở các trang tương ứng...*

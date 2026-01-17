@@ -1,0 +1,30 @@
+---
+title: Tổng quan kiến trúc
+description: Tổng quan về kiến trúc hệ thống Mello
+---
+
+# Tổng quan kiến trúc
+
+## Sơ đồ hệ thống
+
+```
+┌─────────────────┐     ┌─────────────────┐
+│    Frontend     │────▶│     Backend     │
+│   (Next.js)     │     │   (Go Fiber)    │
+└─────────────────┘     └─────────────────┘
+                              │
+                              ▼
+                ┌─────────────────────────┐
+                │      PostgreSQL         │
+                └─────────────────────────┘
+```
+
+## Các thành phần
+
+- **Frontend**: Next.js 14 với App Router
+- **Backend**: Go Fiber HTTP framework
+- **Database**: PostgreSQL với GORM ORM
+- **Real-time**: WebSocket connections
+- **Storage**: MinIO cho file uploads
+
+*Chi tiết sẽ được bổ sung...*

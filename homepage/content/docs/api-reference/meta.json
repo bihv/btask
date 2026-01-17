@@ -1,0 +1,13 @@
+{
+    "title": "API Reference",
+    "pages": [
+        "overview",
+        "authentication",
+        "users",
+        "workspaces",
+        "boards",
+        "lists",
+        "cards",
+        "other"
+    ]
+}

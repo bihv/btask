@@ -1,0 +1,17 @@
+{
+    "title": "Features",
+    "pages": [
+        "authentication",
+        "workspaces",
+        "boards",
+        "lists",
+        "cards",
+        "labels",
+        "checklists",
+        "custom-fields",
+        "comments",
+        "attachments",
+        "notifications",
+        "real-time"
+    ]
+}

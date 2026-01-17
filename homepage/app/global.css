@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/* Disable overscroll bounce effect - minimal version that doesn't break sticky */
+html,
+body {
+    overscroll-behavior: none;
+}

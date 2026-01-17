@@ -1,0 +1,11 @@
+{
+    "title": "Mello Docs",
+    "pages": [
+        "getting-started",
+        "architecture",
+        "features",
+        "api-reference",
+        "development",
+        "deployment"
+    ]
+}

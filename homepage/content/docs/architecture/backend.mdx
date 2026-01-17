@@ -1,0 +1,34 @@
+---
+title: Backend
+description: Kiến trúc Backend với Go Fiber
+---
+
+# Backend Architecture
+
+## Tech Stack
+
+- **Go Fiber**: HTTP web framework
+- **GORM**: ORM cho PostgreSQL
+- **JWT**: Authentication
+- **Zap**: Structured logging
+
+## Cấu trúc thư mục
+
+```
+backend/
+├── cmd/server/         # Entry point
+├── internal/
+│   ├── config/         # Configuration
+│   ├── database/       # Database connection
+│   ├── handlers/       # HTTP handlers
+│   ├── middleware/     # Auth, Logger
+│   ├── models/         # GORM models
+│   ├── repository/     # Data access layer
+│   ├── router/         # Route definitions
+│   ├── services/       # Business logic
+│   ├── storage/        # File storage
+│   └── websocket/      # WebSocket handler
+└── pkg/                # Shared utilities
+```
+
+*Chi tiết sẽ được bổ sung...*

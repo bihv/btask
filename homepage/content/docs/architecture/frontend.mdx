@@ -1,0 +1,38 @@
+---
+title: Frontend
+description: Kiến trúc Frontend với Next.js
+---
+
+# Frontend Architecture
+
+## Tech Stack
+
+- **Next.js 14**: React framework với App Router
+- **Ant Design 5**: UI component library
+- **Zustand**: State management
+- **React Query**: Data fetching & caching
+- **dnd-kit**: Drag and drop
+
+## Cấu trúc thư mục
+
+```
+frontend/src/
+├── app/                # Next.js pages (App Router)
+│   ├── (auth)/         # Auth pages (login, register)
+│   ├── (dashboard)/    # Dashboard pages
+│   ├── workspace/      # Workspace pages
+│   └── me/             # Profile pages
+├── components/         # React components
+│   ├── board/          # Board components
+│   ├── card/           # Card modal & components
+│   ├── kanban/         # Kanban board
+│   ├── settings/       # Settings components
+│   └── notification/   # Notification components
+├── hooks/              # Custom React hooks
+├── lib/                # API client
+├── providers/          # Context providers
+├── stores/             # Zustand stores
+└── types/              # TypeScript types
+```
+
+*Chi tiết sẽ được bổ sung...*
