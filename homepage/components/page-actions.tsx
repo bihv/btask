@@ -1,10 +1,11 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { Check, ChevronDown, Copy, ExternalLinkIcon, MessageCircleIcon } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import { cn } from '../lib/cn';
 import { useCopyButton } from 'fumadocs-ui/utils/use-copy-button';
-import { buttonVariants } from 'fumadocs-ui/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from 'fumadocs-ui/components/ui/popover';
+import { buttonVariants } from './ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { cva } from 'class-variance-authority';
 
 const cache = new Map<string, string>();
 
@@ -56,6 +57,10 @@ export function LLMCopyButton({
     </button>
   );
 }
+
+const optionVariants = cva(
+  'text-sm p-2 rounded-lg inline-flex items-center gap-2 hover:text-fd-accent-foreground hover:bg-fd-accent [&_svg]:size-4',
+);
 
 export function ViewOptions({
   markdownUrl,
@@ -217,7 +222,7 @@ export function ViewOptions({
             href={item.href}
             rel="noreferrer noopener"
             target="_blank"
-            className="text-sm p-2 rounded-lg inline-flex items-center gap-2 hover:text-fd-accent-foreground hover:bg-fd-accent [&_svg]:size-4"
+            className={cn(optionVariants())}
           >
             {item.icon}
             {item.title}
