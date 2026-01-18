@@ -21,6 +21,7 @@ import type { z } from 'zod';
 import { DefaultChatTransport } from 'ai';
 import { Markdown } from './markdown';
 import { Presence } from '@radix-ui/react-presence';
+import styles from './search.module.css';
 
 // Helper to normalize doc URLs - convert absolute URLs to relative paths
 function normalizeDocsUrl(url: string): string {
@@ -116,7 +117,13 @@ function EmptyState() {
           <button
             key={i}
             onClick={() => sendMessage({ parts: [{ type: 'text', text: q }] })}
-            className="w-full text-left text-sm p-3 rounded-lg border border-fd-border hover:bg-fd-accent hover:border-fd-primary/30 transition-colors"
+            className={cn(
+              styles.animatedBorder,
+              'w-full text-left text-sm p-3 rounded-xl border border-fd-border/50',
+              'bg-gradient-to-br from-fd-card to-fd-background',
+              'hover:border-transparent hover:shadow-lg hover:shadow-blue-500/10',
+              'hover:scale-[1.01] transition-all duration-300'
+            )}
           >
             {q}
           </button>
@@ -378,23 +385,25 @@ function Message({ message, ...props }: { message: UIMessage } & ComponentProps<
         </div>
 
         {/* Row 2: Message content - full width */}
-        <div className={cn(
-          'w-full',
-          isUser && 'flex justify-end'
-        )}>
+        {markdown.trim() && (
           <div className={cn(
-            'prose prose-sm max-w-none text-fd-foreground rounded-2xl px-4 py-3',
-            isUser
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white prose-invert rounded-tr-sm inline-block max-w-[90%]'
-              : 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-fd-border rounded-tl-sm'
+            'w-full',
+            isUser && 'flex justify-end'
           )}>
-            {isUser ? (
-              <p>{markdown}</p>
-            ) : (
-              <Markdown text={markdown} />
-            )}
+            <div className={cn(
+              'prose prose-sm max-w-none text-fd-foreground rounded-2xl px-4 py-3',
+              isUser
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white prose-invert rounded-tr-sm inline-block max-w-[90%]'
+                : 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-fd-border rounded-tl-sm'
+            )}>
+              {isUser ? (
+                <p>{markdown}</p>
+              ) : (
+                <Markdown text={markdown} />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Reference links - only for AI */}
         {!isUser && links && links.length > 0 && (
@@ -408,21 +417,19 @@ function Message({ message, ...props }: { message: UIMessage } & ComponentProps<
                   key={i}
                   href={item.url}
                   className={cn(
-                    'group/link relative block text-xs rounded-xl border border-fd-border/50 p-3',
+                    styles.animatedBorder,
+                    'relative block text-xs rounded-xl border border-fd-border/50 p-3',
                     'bg-gradient-to-br from-fd-card to-fd-background',
-                    'hover:border-fd-primary/50 hover:shadow-md hover:shadow-fd-primary/5',
-                    'transition-all duration-200 ease-out',
+                    'hover:border-transparent transition-all duration-300',
                   )}
                 >
                   <div className="flex items-center gap-2">
                     <span className="flex-shrink-0 w-5 h-5 rounded-full bg-fd-primary/10 text-fd-primary flex items-center justify-center text-[10px] font-bold">
                       {item.label}
                     </span>
-                    <div>
-                      <p className="font-medium text-fd-foreground group-hover/link:text-fd-primary transition-colors">
-                        {item.title}
-                      </p>
-                    </div>
+                    <p className="font-medium text-fd-foreground">
+                      {item.title}
+                    </p>
                   </div>
                 </Link>
               ))}
