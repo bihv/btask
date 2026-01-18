@@ -18,6 +18,11 @@ type User struct {
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 
+	// Email verification for changing email
+	PendingEmail      string     `json:"-"`
+	EmailVerifyToken  string     `json:"-"`
+	EmailVerifyExpiry *time.Time `json:"-"`
+
 	// Notification preferences
 	NotifyCardAssigned bool `json:"notify_card_assigned" gorm:"default:true"`
 	NotifyDueDate      bool `json:"notify_due_date" gorm:"default:true"`

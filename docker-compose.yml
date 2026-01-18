@@ -91,6 +91,13 @@ services:
       - MINIO_BUCKET=mello-uploads
       - MINIO_USE_SSL=false
       - MINIO_PUBLIC_URL=http://localhost:9000
+      # SMTP Config (set your own values)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - APP_URL=${APP_URL:-http://localhost:3000}
     depends_on:
       postgres:
         condition: service_healthy

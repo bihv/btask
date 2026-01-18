@@ -1,13 +1,18 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/config"
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/repository"
+	"github.com/mello/backend/internal/services"
 	"github.com/mello/backend/internal/storage"
 	"github.com/mello/backend/pkg/utils"
 )
@@ -18,12 +23,14 @@ func isEmojiAvatar(avatarURL string) bool {
 }
 
 type UserHandler struct {
-	userRepo *repository.UserRepository
+	userRepo     *repository.UserRepository
+	emailService *services.EmailService
 }
 
 func NewUserHandler() *UserHandler {
 	return &UserHandler{
-		userRepo: repository.NewUserRepository(),
+		userRepo:     repository.NewUserRepository(),
+		emailService: services.NewEmailService(config.GetConfig()),
 	}
 }
 
@@ -170,7 +177,7 @@ func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
 	return utils.SuccessResponse(c, fiber.Map{"message": "Password changed successfully"})
 }
 
-// ChangeEmail changes the user's email
+// ChangeEmail initiates email change by sending verification email
 func (h *UserHandler) ChangeEmail(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 
@@ -192,6 +199,11 @@ func (h *UserHandler) ChangeEmail(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "New email and password are required")
 	}
 
+	// Validate new email is different from current email
+	if strings.EqualFold(req.NewEmail, user.Email) {
+		return utils.ValidationErrorResponse(c, "New email must be different from current email")
+	}
+
 	// Verify password
 	if !user.CheckPassword(req.Password) {
 		return utils.ValidationErrorResponse(c, "Password is incorrect")
@@ -203,13 +215,80 @@ func (h *UserHandler) ChangeEmail(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "Email is already in use")
 	}
 
-	user.Email = req.NewEmail
+	// Generate verification token
+	tokenBytes := make([]byte, 32)
+	if _, err := rand.Read(tokenBytes); err != nil {
+		return utils.InternalErrorResponse(c, "Failed to generate verification token")
+	}
+	token := hex.EncodeToString(tokenBytes)
+
+	// Set pending email and token (expires in 24h)
+	expiry := time.Now().Add(24 * time.Hour)
+	user.PendingEmail = req.NewEmail
+	user.EmailVerifyToken = token
+	user.EmailVerifyExpiry = &expiry
+
+	if err := h.userRepo.Update(user); err != nil {
+		return utils.InternalErrorResponse(c, "Failed to save verification request")
+	}
+
+	// Send verification email
+	if err := h.emailService.SendEmailVerification(req.NewEmail, token); err != nil {
+		return utils.InternalErrorResponse(c, "Failed to send verification email")
+	}
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "Verification email sent. Please check your inbox to confirm the email change.",
+	})
+}
+
+// VerifyEmailChange verifies the email change token and updates the email
+func (h *UserHandler) VerifyEmailChange(c *fiber.Ctx) error {
+	token := c.Query("token")
+	if token == "" {
+		return utils.ValidationErrorResponse(c, "Verification token is required")
+	}
+
+	user, err := h.userRepo.FindByEmailVerifyToken(token)
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid or expired verification token")
+	}
+
+	// Check if token is expired
+	if user.EmailVerifyExpiry == nil || time.Now().After(*user.EmailVerifyExpiry) {
+		// Clear expired token
+		user.PendingEmail = ""
+		user.EmailVerifyToken = ""
+		user.EmailVerifyExpiry = nil
+		h.userRepo.Update(user)
+		return utils.ValidationErrorResponse(c, "Verification token has expired")
+	}
+
+	// Check if pending email is not empty
+	if user.PendingEmail == "" {
+		return utils.ValidationErrorResponse(c, "No pending email change found")
+	}
+
+	// Check if new email is still available
+	existingUser, _ := h.userRepo.FindByEmail(user.PendingEmail)
+	if existingUser != nil && existingUser.ID != user.ID {
+		return utils.ValidationErrorResponse(c, "Email is already in use")
+	}
+
+	// Update email
+	user.Email = user.PendingEmail
+	user.PendingEmail = ""
+	user.EmailVerifyToken = ""
+	user.EmailVerifyExpiry = nil
 
 	if err := h.userRepo.Update(user); err != nil {
 		return utils.InternalErrorResponse(c, "Failed to update email")
 	}
 
-	return utils.SuccessResponse(c, user.ToResponse())
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "Email changed successfully",
+		"email":   user.Email,
+	})
 }
 
 // UpdatePreferences updates user preferences (notifications, language, timezone)

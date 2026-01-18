@@ -30,16 +30,19 @@ func Setup(app *fiber.App, cfg *config.Config) {
 
 	// Auth routes (public)
 	authHandler := handlers.NewAuthHandler(cfg)
+	userHandler := handlers.NewUserHandler()
 	auth := api.Group("/auth")
 	auth.Post("/register", authHandler.Register)
 	auth.Post("/login", authHandler.Login)
+
+	// Email verification (public - user clicks link from email)
+	api.Get("/users/verify-email", userHandler.VerifyEmailChange)
 
 	// Protected routes
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(cfg))
 
 	// User routes
-	userHandler := handlers.NewUserHandler()
 	cardHandler := handlers.NewCardHandler()
 	users := protected.Group("/users")
 	users.Get("/me", userHandler.GetMe)

@@ -51,17 +51,10 @@ interface ChangeEmailRequest {
 }
 
 export function useChangeEmail() {
-    const { setUser } = useAuthStore();
-    const queryClient = useQueryClient();
-
     return useMutation({
-        mutationFn: async (data: ChangeEmailRequest): Promise<User> => {
+        mutationFn: async (data: ChangeEmailRequest): Promise<{ message: string }> => {
             const response = await api.put('/users/me/email', data);
             return response.data.data;
-        },
-        onSuccess: (updatedUser) => {
-            setUser(updatedUser);
-            queryClient.invalidateQueries({ queryKey: ['user'] });
         },
     });
 }

@@ -52,9 +52,15 @@ export default function AccountSettingsSection({
     };
 
     const handleEmailChange = async (values: { new_email: string; password: string }) => {
+        // Frontend validation: new email must differ from current email
+        if (user?.email && values.new_email.toLowerCase() === user.email.toLowerCase()) {
+            message.error('New email must be different from current email');
+            return;
+        }
+
         try {
-            await changeEmail.mutateAsync(values);
-            message.success('Email changed successfully');
+            const response = await changeEmail.mutateAsync(values);
+            message.success(response.message || 'Verification email sent. Please check your inbox.');
             emailForm.resetFields();
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };

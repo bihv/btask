@@ -21,6 +21,14 @@ type Config struct {
 	MinioBucket    string
 	MinioUseSSL    bool
 	MinioPublicURL string
+
+	// Email config (SMTP)
+	SMTPHost     string
+	SMTPPort     string
+	SMTPUser     string
+	SMTPPassword string
+	SMTPFrom     string
+	AppURL       string
 }
 
 func Load() (*Config, error) {
@@ -45,6 +53,14 @@ func Load() (*Config, error) {
 		MinioBucket:    getEnv("MINIO_BUCKET", "mello-uploads"),
 		MinioUseSSL:    getEnv("MINIO_USE_SSL", "false") == "true",
 		MinioPublicURL: getEnv("MINIO_PUBLIC_URL", "http://localhost:9000"),
+
+		// SMTP config
+		SMTPHost:     getEnv("SMTP_HOST", ""),
+		SMTPPort:     getEnv("SMTP_PORT", "587"),
+		SMTPUser:     getEnv("SMTP_USER", ""),
+		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
+		SMTPFrom:     getEnv("SMTP_FROM", ""),
+		AppURL:       getEnv("APP_URL", "http://localhost:3000"),
 	}, nil
 }
 
