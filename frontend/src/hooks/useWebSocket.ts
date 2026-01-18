@@ -3,12 +3,14 @@
 import { useEffect, useRef, useCallback } from 'react';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import { useNotificationStore, Notification } from '@/stores/notificationStore';
-import { useLabelStore } from '@/stores/labelStore';
+import { useQueryClient } from '@tanstack/react-query';
+import { labelKeys } from '@/hooks/useLabels';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
 
 export function useWebSocket(token: string | null) {
     const wsRef = useRef<ReconnectingWebSocket | null>(null);
+    const queryClient = useQueryClient();
 
     const connect = useCallback(() => {
         if (!token || wsRef.current) return;
@@ -40,8 +42,7 @@ export function useWebSocket(token: string | null) {
                 // Handle labels update broadcast
                 if (message.type === 'broadcast' && message.data?.type === 'LABELS_UPDATED') {
                     console.log('Labels updated, refreshing...');
-                    useLabelStore.getState().clearCache();
-                    useLabelStore.getState().fetchLabels();
+                    queryClient.invalidateQueries({ queryKey: labelKeys.all });
                 }
             } catch (error) {
                 console.error('Failed to parse WebSocket message:', error);
@@ -55,7 +56,7 @@ export function useWebSocket(token: string | null) {
         wsRef.current.onerror = (error) => {
             console.error('WebSocket error:', error);
         };
-    }, [token]);
+    }, [token, queryClient]);
 
     const disconnect = useCallback(() => {
         if (wsRef.current) {

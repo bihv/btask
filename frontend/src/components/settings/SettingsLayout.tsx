@@ -20,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useLabels } from '@/hooks/useLabels';
 import type { MenuProps } from 'antd';
 
 const { Sider, Content } = Layout;
@@ -62,6 +63,9 @@ export default function SettingsLayout({
     const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
     const [mounted, setMounted] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>(workspaceId || '');
+
+    // Labels loading with React Query (auto-deduplication)
+    const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
 
     // No need for userId since personal settings always use /me/
 
@@ -142,7 +146,8 @@ export default function SettingsLayout({
         }
     };
 
-    if (!mounted || !isAuthenticated) {
+    // Show loading until mounted, authenticated, AND labels are loaded
+    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Spin size="large" />

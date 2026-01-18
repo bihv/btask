@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Typography, Card, Form, Input, Button, Space, message, Modal } from 'antd';
+import { Typography, Card, Form, Input, Button, Space, Modal, App } from 'antd';
 import {
     LockOutlined,
     MailOutlined,
@@ -10,7 +10,7 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useChangePassword, useChangeEmail, useDeleteAccount } from '@/hooks/useUser';
-import { useLabel } from '@/stores/labelStore';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -24,7 +24,8 @@ export default function AccountSettingsSection({
     setDeleteModalOpen,
 }: AccountSettingsSectionProps) {
     const { user } = useAuthStore();
-    const t = useLabel();
+    const t = useTranslation();
+    const { message } = App.useApp();
 
     const changePassword = useChangePassword();
     const changeEmail = useChangeEmail();

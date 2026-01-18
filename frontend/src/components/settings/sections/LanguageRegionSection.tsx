@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Card, Form, Select, message } from 'antd';
+import { Card, Form, Select, App } from 'antd';
 import { useAuthStore } from '@/stores/authStore';
 import { useUpdatePreferences } from '@/hooks/useUser';
-import { useLabelStore } from '@/stores/labelStore';
+import { useTranslation, useInvalidateLabels } from '@/hooks/useLabels';
 
 const TIMEZONES = [
     { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
@@ -32,27 +32,31 @@ const LANGUAGES = [
 export default function LanguageRegionSection() {
     const { user } = useAuthStore();
     const updatePreferences = useUpdatePreferences();
-    const { clearCache, fetchLabels } = useLabelStore();
+    const t = useTranslation();
+    const invalidateLabels = useInvalidateLabels();
+    const { message } = App.useApp();
 
     const handlePreferenceChange = async (key: string, value: string) => {
         try {
             await updatePreferences.mutateAsync({ [key]: value });
-            message.success('Preference saved');
 
-            // Refresh labels when language changes
+            // Refresh labels when language changes, then show message in new language
             if (key === 'language') {
-                clearCache();
-                fetchLabels();
+                // Invalidate will trigger refetch and return fresh translation function
+                const freshT = await invalidateLabels();
+                message.success(freshT('SUCCESS_PREFERENCE_SAVED'));
+            } else {
+                message.success(t('SUCCESS_PREFERENCE_SAVED'));
             }
         } catch {
-            message.error('Failed to save preference');
+            message.error(t('ERROR_SAVE_PREFERENCE_FAILED'));
         }
     };
 
     return (
         <Card size="small">
             <Form layout="vertical">
-                <Form.Item label="Language">
+                <Form.Item label={t('UI_LANGUAGE')}>
                     <Select
                         value={user?.language || 'en'}
                         onChange={(value) => handlePreferenceChange('language', value)}
@@ -61,7 +65,7 @@ export default function LanguageRegionSection() {
                     />
                 </Form.Item>
 
-                <Form.Item label="Timezone">
+                <Form.Item label={t('UI_TIMEZONE')}>
                     <Select
                         value={user?.timezone || 'UTC'}
                         onChange={(value) => handlePreferenceChange('timezone', value)}
@@ -74,7 +78,7 @@ export default function LanguageRegionSection() {
                     />
                 </Form.Item>
 
-                <Form.Item label="Date Format" style={{ marginBottom: 0 }}>
+                <Form.Item label={t('UI_DATE_FORMAT')} style={{ marginBottom: 0 }}>
                     <Select
                         value={user?.date_format || 'DD/MM/YYYY'}
                         onChange={(value) => handlePreferenceChange('date_format', value)}

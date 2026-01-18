@@ -171,6 +171,12 @@ var DefaultLabels = []LabelSeed{
 		DefaultValue: "Failed to delete account",
 		Translations: map[string]string{"vi": "Xóa tài khoản thất bại"},
 	},
+	{
+		Key:          "ERROR_SAVE_PREFERENCE_FAILED",
+		Category:     "error",
+		DefaultValue: "Failed to save preference",
+		Translations: map[string]string{"vi": "Lưu tùy chọn thất bại"},
+	},
 	// ============ Success Messages ============
 	{
 		Key:          "SUCCESS_PASSWORD_CHANGED",
@@ -195,6 +201,12 @@ var DefaultLabels = []LabelSeed{
 		Category:     "notification",
 		DefaultValue: "Account deleted successfully",
 		Translations: map[string]string{"vi": "Tài khoản đã được xóa thành công"},
+	},
+	{
+		Key:          "SUCCESS_PREFERENCE_SAVED",
+		Category:     "notification",
+		DefaultValue: "Preference saved",
+		Translations: map[string]string{"vi": "Đã lưu tùy chọn"},
 	},
 	// ============ Frontend-only Labels ============
 	{
@@ -365,6 +377,25 @@ var DefaultLabels = []LabelSeed{
 		Category:     "ui",
 		DefaultValue: "Cancel",
 		Translations: map[string]string{"vi": "Hủy"},
+	},
+	// Form labels (Settings)
+	{
+		Key:          "UI_LANGUAGE",
+		Category:     "ui",
+		DefaultValue: "Language",
+		Translations: map[string]string{"vi": "Ngôn Ngữ"},
+	},
+	{
+		Key:          "UI_TIMEZONE",
+		Category:     "ui",
+		DefaultValue: "Timezone",
+		Translations: map[string]string{"vi": "Múi Giờ"},
+	},
+	{
+		Key:          "UI_DATE_FORMAT",
+		Category:     "ui",
+		DefaultValue: "Date Format",
+		Translations: map[string]string{"vi": "Định Dạng Ngày"},
 	},
 }
 
