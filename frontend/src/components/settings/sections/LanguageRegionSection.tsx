@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, Form, Select, message } from 'antd';
 import { useAuthStore } from '@/stores/authStore';
 import { useUpdatePreferences } from '@/hooks/useUser';
+import { useLabelStore } from '@/stores/labelStore';
 
 const TIMEZONES = [
     { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
@@ -31,11 +32,18 @@ const LANGUAGES = [
 export default function LanguageRegionSection() {
     const { user } = useAuthStore();
     const updatePreferences = useUpdatePreferences();
+    const { clearCache, fetchLabels } = useLabelStore();
 
     const handlePreferenceChange = async (key: string, value: string) => {
         try {
             await updatePreferences.mutateAsync({ [key]: value });
             message.success('Preference saved');
+
+            // Refresh labels when language changes
+            if (key === 'language') {
+                clearCache();
+                fetchLabels();
+            }
         } catch {
             message.error('Failed to save preference');
         }

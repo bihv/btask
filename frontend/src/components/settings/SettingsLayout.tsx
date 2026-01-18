@@ -15,6 +15,8 @@ import {
     ExportOutlined,
     CloseOutlined,
     DownOutlined,
+    CrownOutlined,
+    TranslationOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
@@ -103,6 +105,11 @@ export default function SettingsLayout({
         { key: 'ws-export', icon: <ExportOutlined />, label: 'Export' },
     ];
 
+    const adminMenuItems: MenuItem[] = [
+        { key: 'admin-users', icon: <CrownOutlined />, label: 'User Management' },
+        { key: 'admin-labels', icon: <TranslationOutlined />, label: 'System Labels' },
+    ];
+
     const handlePersonalMenuClick: MenuProps['onClick'] = (e) => {
         router.push(`/me/${e.key}`);
     };
@@ -111,6 +118,14 @@ export default function SettingsLayout({
         if (e.key.startsWith('ws-') && selectedWorkspaceId) {
             const tab = e.key.replace('ws-', '');
             router.push(`/workspace/${selectedWorkspaceId}/${tab}`);
+        }
+    };
+
+    const handleAdminMenuClick: MenuProps['onClick'] = (e) => {
+        if (e.key === 'admin-users') {
+            router.push('/admin/users');
+        } else if (e.key === 'admin-labels') {
+            router.push('/admin/labels');
         }
     };
 
@@ -270,6 +285,30 @@ export default function SettingsLayout({
                         style={{ border: 'none' }}
                     />
                 </div>
+
+                {/* Admin Section - only visible to admins */}
+                {user?.is_admin && (
+                    <div style={{ padding: '16px 8px 0' }}>
+                        <div style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: 'var(--text-secondary)',
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5,
+                            padding: '8px 12px',
+                            marginBottom: 4,
+                        }}>
+                            Admin
+                        </div>
+                        <Menu
+                            mode="inline"
+                            selectedKeys={[]}
+                            items={adminMenuItems}
+                            onClick={handleAdminMenuClick}
+                            style={{ border: 'none' }}
+                        />
+                    </div>
+                )}
             </Sider>
 
             <Layout style={{ marginLeft: 240 }}>

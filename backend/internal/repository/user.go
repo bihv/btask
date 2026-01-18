@@ -57,3 +57,10 @@ func (r *UserRepository) FindByEmailVerifyToken(token string) (*models.User, err
 	}
 	return &user, nil
 }
+
+// FindAll returns all users
+func (r *UserRepository) FindAll() ([]models.User, error) {
+	var users []models.User
+	err := database.DB.Order("created_at DESC").Find(&users).Error
+	return users, err
+}

@@ -42,6 +42,37 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(cfg))
 
+	// Load user and set isAdmin in context for all protected routes
+	userRepo := handlers.NewUserHandler().GetUserRepo()
+	protected.Use(func(c *fiber.Ctx) error {
+		userID := middleware.GetUserID(c)
+		user, err := userRepo.FindByID(userID)
+		if err == nil {
+			middleware.SetIsAdmin(c, user.IsAdmin)
+		}
+		return c.Next()
+	})
+
+	// Admin routes (requires admin middleware)
+	adminHandler := handlers.NewAdminHandler()
+	systemLabelHandler := handlers.NewSystemLabelHandler()
+	admin := protected.Group("/admin")
+	admin.Use(middleware.AdminMiddleware())
+	admin.Get("/users", adminHandler.ListUsers)
+	admin.Put("/users/:id/role", adminHandler.UpdateUserRole)
+
+	// Admin label routes
+	admin.Get("/labels", systemLabelHandler.GetAllLabels)
+	admin.Post("/labels", systemLabelHandler.CreateLabel)
+	admin.Put("/labels/:id", systemLabelHandler.UpdateLabel)
+	admin.Delete("/labels/:id", systemLabelHandler.DeleteLabel)
+	admin.Post("/translations", systemLabelHandler.CreateTranslation)
+	admin.Put("/translations/:id", systemLabelHandler.UpdateTranslation)
+	admin.Delete("/translations/:id", systemLabelHandler.DeleteTranslation)
+
+	// Labels endpoint for i18n (protected to access user language preference)
+	protected.Get("/labels", systemLabelHandler.GetLabels)
+
 	// User routes
 	cardHandler := handlers.NewCardHandler()
 	users := protected.Group("/users")

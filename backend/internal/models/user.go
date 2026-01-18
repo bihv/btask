@@ -34,6 +34,9 @@ type User struct {
 	Timezone   string `json:"timezone" gorm:"default:'UTC'"`
 	DateFormat string `json:"date_format" gorm:"default:'DD/MM/YYYY'"`
 
+	// Admin role
+	IsAdmin bool `json:"is_admin" gorm:"default:false"`
+
 	// Relations
 	OwnedWorkspaces []Workspace       `json:"owned_workspaces,omitempty" gorm:"foreignKey:OwnerID"`
 	Memberships     []WorkspaceMember `json:"memberships,omitempty" gorm:"foreignKey:UserID"`
@@ -78,6 +81,9 @@ type UserResponse struct {
 	Language   string `json:"language"`
 	Timezone   string `json:"timezone"`
 	DateFormat string `json:"date_format"`
+
+	// Admin
+	IsAdmin bool `json:"is_admin"`
 }
 
 func (u *User) ToResponse() UserResponse {
@@ -95,5 +101,6 @@ func (u *User) ToResponse() UserResponse {
 		Language:           u.Language,
 		Timezone:           u.Timezone,
 		DateFormat:         u.DateFormat,
+		IsAdmin:            u.IsAdmin,
 	}
 }

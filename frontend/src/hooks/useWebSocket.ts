@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import { useNotificationStore, Notification } from '@/stores/notificationStore';
+import { useLabelStore } from '@/stores/labelStore';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
 
@@ -29,10 +30,18 @@ export function useWebSocket(token: string | null) {
             try {
                 const message = JSON.parse(event.data);
                 console.log('WebSocket message received:', message);
+
                 if (message.type === 'notification') {
                     // Use getState() to always get fresh store actions
                     useNotificationStore.getState().addNotification(message.data as Notification);
                     console.log('Notification added, new count:', useNotificationStore.getState().unreadCount);
+                }
+
+                // Handle labels update broadcast
+                if (message.type === 'broadcast' && message.data?.type === 'LABELS_UPDATED') {
+                    console.log('Labels updated, refreshing...');
+                    useLabelStore.getState().clearCache();
+                    useLabelStore.getState().fetchLabels();
                 }
             } catch (error) {
                 console.error('Failed to parse WebSocket message:', error);

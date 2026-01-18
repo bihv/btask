@@ -343,7 +343,7 @@ export default function DashboardLayout({
                                     avatarUrl={user?.avatar_url}
                                     name={user?.full_name}
                                     size={32}
-                                style={{ cursor: 'pointer' }}
+                                    style={{ cursor: 'pointer' }}
                                 />
                             </div>
                         </Dropdown>

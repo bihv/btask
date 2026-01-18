@@ -17,7 +17,7 @@ export default function ThemeAppearanceSection() {
                 onChange={(e) => setTheme(e.target.value)}
                 style={{ width: '100%' }}
             >
-                <Space direction="vertical" style={{ width: '100%' }}>
+                <Space orientation="vertical" style={{ width: '100%' }}>
                     <Radio.Button
                         value="light"
                         style={{

@@ -29,6 +29,9 @@ type Config struct {
 	SMTPPassword string
 	SMTPFrom     string
 	AppURL       string
+
+	// Admin
+	InitialAdminEmail string
 }
 
 func Load() (*Config, error) {
@@ -61,6 +64,9 @@ func Load() (*Config, error) {
 		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
 		SMTPFrom:     getEnv("SMTP_FROM", ""),
 		AppURL:       getEnv("APP_URL", "http://localhost:3000"),
+
+		// Admin
+		InitialAdminEmail: getEnv("INITIAL_ADMIN_EMAIL", ""),
 	}, nil
 }
 

@@ -126,3 +126,28 @@ func InitGlobalHub() {
 func (h *Hub) RegisterClient(client *Client) {
 	h.register <- client
 }
+
+// BroadcastToAll sends a message to all connected clients
+func (h *Hub) BroadcastToAll(data interface{}) {
+	message := WSMessage{
+		Type: "broadcast",
+		Data: data,
+	}
+
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		logger.Error("Failed to marshal broadcast message", zap.Error(err))
+		return
+	}
+
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	for _, client := range h.clients {
+		select {
+		case client.send <- jsonData:
+		default:
+			// Client buffer full, skip
+		}
+	}
+}

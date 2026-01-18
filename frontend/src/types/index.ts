@@ -17,6 +17,9 @@ export interface User {
     language?: string;
     timezone?: string;
     date_format?: string;
+
+    // Admin
+    is_admin?: boolean;
 }
 
 // Workspace types
