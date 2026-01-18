@@ -62,24 +62,66 @@ function Header() {
   const { setOpen } = use(Context)!;
 
   return (
-    <div className="sticky top-0 flex items-start gap-2">
-      <div className="flex-1 p-3 border rounded-xl bg-fd-card text-fd-card-foreground">
-        <p className="text-sm font-medium">Ask AI</p>
+    <div className="sticky top-0 z-10">
+      <div className="p-3 border rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-fd-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/favicon.svg" alt="Mello" className="w-5 h-5" />
+            <p className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Mello AI Assistant
+            </p>
+          </div>
+          <button
+            aria-label="Close"
+            tabIndex={-1}
+            className={cn(
+              buttonVariants({
+                size: 'icon-sm',
+                color: 'ghost',
+                className: 'rounded-full hover:bg-fd-muted',
+              }),
+            )}
+            onClick={() => setOpen(false)}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-xs text-fd-muted-foreground mt-1">Ask anything about Mello documentation</p>
       </div>
-      <button
-        aria-label="Close"
-        tabIndex={-1}
-        className={cn(
-          buttonVariants({
-            size: 'icon-sm',
-            color: 'secondary',
-            className: 'rounded-full',
-          }),
-        )}
-        onClick={() => setOpen(false)}
-      >
-        <X />
-      </button>
+    </div>
+  );
+}
+
+// Suggested questions for empty state
+const suggestedQuestions = [
+  'How do I get started with Mello?',
+  'How to deploy Mello with Docker?',
+  'How can I contribute to the project?',
+];
+
+function EmptyState() {
+  const { sendMessage } = useChatContext();
+
+  return (
+    <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-4">
+        <img src="/favicon.svg" alt="Mello" className="w-6 h-6" />
+      </div>
+      <h3 className="text-lg font-semibold mb-1">Welcome to Mello AI</h3>
+      <p className="text-sm text-fd-muted-foreground mb-4">Ask me anything about Mello documentation</p>
+
+      <div className="w-full space-y-2">
+        <p className="text-xs text-fd-muted-foreground uppercase tracking-wide">Suggested questions</p>
+        {suggestedQuestions.map((q, i) => (
+          <button
+            key={i}
+            onClick={() => sendMessage({ parts: [{ type: 'text', text: q }] })}
+            className="w-full text-left text-sm p-3 rounded-lg border border-fd-border hover:bg-fd-accent hover:border-fd-primary/30 transition-colors"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -143,12 +185,12 @@ function SearchAIInput(props: ComponentProps<'form'>) {
   }, [isLoading]);
 
   return (
-    <form {...props} className={cn('flex items-start pe-2', props.className)} onSubmit={onStart}>
+    <form {...props} className={cn('flex items-center gap-2 pe-2', props.className)} onSubmit={onStart}>
       <Input
         value={input}
-        placeholder={isLoading ? 'AI is answering...' : 'Ask a question'}
+        placeholder={isLoading ? 'AI is answering...' : 'Ask anything about Mello...'}
         autoFocus
-        className="p-3"
+        className="p-3 bg-transparent"
         disabled={status === 'streaming' || status === 'submitted'}
         onChange={(e) => {
           setInput(e.target.value);
@@ -179,10 +221,10 @@ function SearchAIInput(props: ComponentProps<'form'>) {
           key="bn"
           type="submit"
           className={cn(
-            buttonVariants({
-              color: 'secondary',
-              className: 'transition-all rounded-full mt-2',
-            }),
+            'p-2 rounded-full transition-all',
+            input.length > 0
+              ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:opacity-90'
+              : 'bg-fd-muted text-fd-muted-foreground'
           )}
           disabled={input.length === 0}
         >
@@ -305,81 +347,88 @@ function Message({ message, ...props }: { message: UIMessage } & ComponentProps<
   return (
     <div {...props} className={cn('group', props.className)}>
       <div className={cn(
-        'flex items-start gap-3',
-        isUser && 'flex-row-reverse'
+        'flex flex-col gap-2',
+        isUser && 'items-end'
       )}>
-        {/* Avatar */}
+        {/* Row 1: Avatar + Role name */}
         <div className={cn(
-          'flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium',
-          isUser
-            ? 'bg-fd-primary text-fd-primary-foreground'
-            : 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+          'flex items-center gap-2',
+          isUser && 'flex-row-reverse'
         )}>
-          {isUser ? (
-            <User className="w-4 h-4" />
-          ) : (
-            <img src="/favicon.svg" alt="Mello" className="w-4 h-4" />
-          )}
-        </div>
-
-        <div className={cn(
-          'flex-1 min-w-0 max-w-[85%]',
-          isUser && 'flex flex-col items-end'
-        )}>
-          {/* Role name */}
+          <div className={cn(
+            'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium',
+            isUser
+              ? 'bg-fd-primary text-fd-primary-foreground'
+              : 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+          )}>
+            {isUser ? (
+              <User className="w-3.5 h-3.5" />
+            ) : (
+              <img src="/favicon.svg" alt="Mello" className="w-3.5 h-3.5" />
+            )}
+          </div>
           <p className={cn(
-            'text-xs font-semibold mb-1.5 uppercase tracking-wide',
+            'text-xs font-semibold uppercase tracking-wide',
             isUser
               ? 'text-fd-muted-foreground'
               : 'text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600',
           )}>
             {roleName[message.role] ?? 'unknown'}
           </p>
+        </div>
 
-          {/* Message content */}
+        {/* Row 2: Message content - full width */}
+        <div className={cn(
+          'w-full',
+          isUser && 'flex justify-end'
+        )}>
           <div className={cn(
             'prose prose-sm max-w-none text-fd-foreground rounded-2xl px-4 py-3',
             isUser
-              ? 'bg-fd-primary text-fd-primary-foreground prose-invert rounded-tr-sm'
-              : 'bg-fd-muted/50 rounded-tl-sm'
+              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white prose-invert rounded-tr-sm inline-block max-w-[90%]'
+              : 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-fd-border rounded-tl-sm'
           )}>
-            <Markdown text={markdown} />
+            {isUser ? (
+              <p>{markdown}</p>
+            ) : (
+              <Markdown text={markdown} />
+            )}
           </div>
-
-          {/* Reference links - only for AI */}
-          {!isUser && links && links.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-fd-border/50 w-full">
-              <p className="text-xs font-medium text-fd-muted-foreground mb-2 flex items-center gap-1.5">
-                <span>📚</span> References
-              </p>
-              <div className="flex flex-row flex-wrap gap-2">
-                {links.map((item, i) => (
-                  <Link
-                    key={i}
-                    href={item.url}
-                    className={cn(
-                      'group/link relative block text-xs rounded-xl border border-fd-border/50 p-3',
-                      'bg-gradient-to-br from-fd-card to-fd-background',
-                      'hover:border-fd-primary/50 hover:shadow-md hover:shadow-fd-primary/5',
-                      'transition-all duration-200 ease-out',
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-fd-primary/10 text-fd-primary flex items-center justify-center text-[10px] font-bold">
-                        {item.label}
-                      </span>
-                      <div>
-                        <p className="font-medium text-fd-foreground group-hover/link:text-fd-primary transition-colors">
-                          {item.title}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Reference links - only for AI */}
+        {!isUser && links && links.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-fd-border/50 w-full">
+            <p className="text-xs font-medium text-fd-muted-foreground mb-2 flex items-center gap-1.5">
+              <span>📚</span> References
+            </p>
+            <div className="flex flex-row flex-wrap gap-2">
+              {links.map((item, i) => (
+                <Link
+                  key={i}
+                  href={item.url}
+                  className={cn(
+                    'group/link relative block text-xs rounded-xl border border-fd-border/50 p-3',
+                    'bg-gradient-to-br from-fd-card to-fd-background',
+                    'hover:border-fd-primary/50 hover:shadow-md hover:shadow-fd-primary/5',
+                    'transition-all duration-200 ease-out',
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-fd-primary/10 text-fd-primary flex items-center justify-center text-[10px] font-bold">
+                      {item.label}
+                    </span>
+                    <div>
+                      <p className="font-medium text-fd-foreground group-hover/link:text-fd-primary transition-colors">
+                        {item.title}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -408,13 +457,16 @@ export function AISearchTrigger() {
         buttonVariants({
           variant: 'secondary',
         }),
-        'fixed bottom-4 gap-3 w-24 end-[calc(--spacing(4)+var(--removed-body-scroll-bar-size,0px))] text-fd-muted-foreground rounded-2xl shadow-lg z-20 transition-[translate,opacity]',
+        'fixed bottom-4 gap-2 end-[calc(--spacing(4)+var(--removed-body-scroll-bar-size,0px))] text-fd-muted-foreground rounded-2xl shadow-lg z-20 transition-[translate,opacity]',
         open && 'translate-y-10 opacity-0',
       )}
       onClick={() => setOpen(true)}
     >
       <MessageCircleIcon className="size-4.5" />
-      Ask AI
+      <span>Ask AI</span>
+      <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-fd-muted rounded border border-fd-border">
+        <span className="text-xs">⌘</span>/
+      </kbd>
     </button>
   );
 }
@@ -489,16 +541,45 @@ export function AISearchPanel() {
               }}
             >
               <div className="flex flex-col gap-4">
+                {/* Empty state */}
+                {chat.messages.filter((msg) => msg.role !== 'system').length === 0 && chat.status === 'ready' && (
+                  <EmptyState />
+                )}
+
+                {/* Error state */}
+                {chat.status === 'error' && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400">
+                    <span className="text-lg">⚠️</span>
+                    <div>
+                      <p className="font-medium text-sm">Something went wrong</p>
+                      <p className="text-xs opacity-80">Please try again or check your connection</p>
+                    </div>
+                  </div>
+                )}
+
                 {chat.messages
                   .filter((msg) => msg.role !== 'system')
                   .map((item) => (
                     <Message key={item.id} message={item} />
                   ))}
+                {/* Typing indicator */}
+                {(chat.status === 'submitted' || (chat.status === 'streaming' && chat.messages.length === 0)) && (
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                      <img src="/favicon.svg" alt="Mello" className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center gap-1 px-4 py-3 rounded-2xl rounded-tl-sm bg-fd-card border border-fd-border">
+                      <span className="w-2 h-2 bg-fd-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-2 h-2 bg-fd-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-2 h-2 bg-fd-muted-foreground rounded-full animate-bounce" />
+                    </div>
+                  </div>
+                )}
               </div>
             </List>
-            <div className="rounded-xl border bg-fd-card text-fd-card-foreground has-focus-visible:ring-2 has-focus-visible:ring-fd-ring">
+            <div className="rounded-xl border border-fd-border bg-gradient-to-r from-blue-500/5 to-purple-500/5 has-focus-within:border-fd-primary/50 has-focus-within:ring-1 has-focus-within:ring-fd-primary/20 transition-all">
               <SearchAIInput />
-              <div className="flex items-center gap-1.5 p-1 empty:hidden">
+              <div className="flex items-center gap-1.5 px-2 pb-2 empty:hidden">
                 <SearchAIActions />
               </div>
             </div>
