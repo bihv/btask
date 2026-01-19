@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Typography, Card, Form, Input, Button, Space, Modal, App } from 'antd';
 import {
     LockOutlined,
@@ -14,15 +14,8 @@ import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
-interface AccountSettingsSectionProps {
-    deleteModalOpen: boolean;
-    setDeleteModalOpen: (open: boolean) => void;
-}
-
-export default function AccountSettingsSection({
-    deleteModalOpen,
-    setDeleteModalOpen,
-}: AccountSettingsSectionProps) {
+export default function AccountSettingsSection() {
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const { user } = useAuthStore();
     const t = useTranslation();
     const { message } = App.useApp();
@@ -49,8 +42,8 @@ export default function AccountSettingsSection({
             message.success(response.message);
             passwordForm.resetFields();
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
-            message.error(err.response?.data?.message || t('ERROR_PASSWORD_CHANGE_FAILED'));
+            const err = error as { response?: { data?: { error?: string } } };
+            message.error(err.response?.data?.error || t('ERROR_PASSWORD_CHANGE_FAILED'));
         }
     };
 
@@ -66,8 +59,8 @@ export default function AccountSettingsSection({
             message.success(response.message || t('SUCCESS_EMAIL_VERIFICATION_SENT'));
             emailForm.resetFields();
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
-            message.error(err.response?.data?.message || t('ERROR_EMAIL_CHANGE_FAILED'));
+            const err = error as { response?: { data?: { error?: string } } };
+            message.error(err.response?.data?.error || t('ERROR_EMAIL_CHANGE_FAILED'));
         }
     };
 
@@ -77,8 +70,8 @@ export default function AccountSettingsSection({
             message.success(response.message);
             setDeleteModalOpen(false);
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
-            message.error(err.response?.data?.message || t('ERROR_DELETE_ACCOUNT_FAILED'));
+            const err = error as { response?: { data?: { error?: string } } };
+            message.error(err.response?.data?.error || t('ERROR_DELETE_ACCOUNT_FAILED'));
         }
     };
 

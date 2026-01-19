@@ -17,6 +17,10 @@ import {
     DownOutlined,
     CrownOutlined,
     TranslationOutlined,
+    BellOutlined,
+    GlobalOutlined,
+    BgColorsOutlined,
+    SafetyOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
@@ -97,7 +101,18 @@ export default function SettingsLayout({
         { key: 'profile', icon: <UserOutlined />, label: 'Profile and Visibility' },
         { key: 'activity', icon: <HistoryOutlined />, label: 'Activity' },
         { key: 'cards', icon: <CreditCardOutlined />, label: 'Cards' },
-        { key: 'settings', icon: <SettingOutlined />, label: 'Settings' },
+        {
+            key: 'settings',
+            icon: <SettingOutlined />,
+            label: 'Settings',
+            children: [
+                { key: 'settings/account', icon: <UserOutlined />, label: 'Account' },
+                { key: 'settings/notifications', icon: <BellOutlined />, label: 'Notifications' },
+                { key: 'settings/language', icon: <GlobalOutlined />, label: 'Language & Region' },
+                { key: 'settings/appearance', icon: <BgColorsOutlined />, label: 'Appearance' },
+                { key: 'settings/security', icon: <SafetyOutlined />, label: 'Security' },
+            ],
+        },
     ];
 
     const workspaceMenuItems: MenuItem[] = [
