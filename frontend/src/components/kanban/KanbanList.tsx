@@ -410,18 +410,19 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
     return (
         <div
             ref={setNodeRef}
-            style={style}
+            style={{
+                ...style,
+                ...(list.color ? { background: `${list.color}a6` } : {}), // a6 = 65% opacity
+            }}
             className={styles.list}
         >
-            {/* Color Bar - Trello style accent */}
-            {list.color && (
-                <div
-                    className={styles.listColorBar}
-                    style={{ backgroundColor: list.color }}
-                />
-            )}
             {/* List Header */}
-            <div className={styles.listHeader} {...attributes} {...listeners}>
+            <div
+                className={styles.listHeader}
+                {...attributes}
+                {...listeners}
+                style={list.color ? { color: '#fff' } : undefined}
+            >
                 {isEditing ? (
                     <Input
                         value={title}
@@ -455,6 +456,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     icon={<ColumnWidthOutlined />}
                     onClick={handleToggleCollapse}
                     title="Collapse list"
+                    style={list.color ? { color: '#fff' } : undefined}
                 />
                 <Dropdown
                     menu={{ items: menuItems }}
@@ -462,7 +464,12 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     open={menuOpen}
                     onOpenChange={setMenuOpen}
                 >
-                    <Button type="text" size="small" icon={<MoreOutlined />} />
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={<MoreOutlined />}
+                        style={list.color ? { color: '#fff' } : undefined}
+                    />
                 </Dropdown>
             </div>
 
@@ -523,7 +530,11 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     type="text"
                     icon={<PlusOutlined />}
                     onClick={() => setIsAddingCard(true)}
-                    style={{ width: '100%', textAlign: 'left' }}
+                    style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        ...(list.color ? { color: '#fff' } : {}),
+                    }}
                 >
                     Add a card
                 </Button>
