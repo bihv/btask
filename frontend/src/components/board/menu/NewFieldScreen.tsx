@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Select, Button, Checkbox, message, Space, Tag } from 'antd';
+import { Input, Select, Button, Checkbox, Space, Tag, App } from 'antd';
 import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { CustomField, CustomFieldType } from '@/types';
 import { customFieldApi } from '@/lib/api';
@@ -24,6 +24,7 @@ interface NewFieldScreenProps {
 }
 
 export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldScreenProps) {
+    const { message } = App.useApp();
     const [name, setName] = useState('');
     const [type, setType] = useState<CustomFieldType>('text');
     const [showOnCard, setShowOnCard] = useState(true);

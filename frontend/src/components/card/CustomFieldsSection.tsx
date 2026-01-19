@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Typography, Select, Checkbox, Input, DatePicker, InputNumber, Spin, message } from 'antd';
+import { Typography, Select, Checkbox, Input, DatePicker, InputNumber, Spin, App } from 'antd';
 import {
     ThunderboltOutlined,
     FlagOutlined,
@@ -49,6 +49,7 @@ const getFieldIcon = (field: CustomField) => {
 
 export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSectionProps) {
     const queryClient = useQueryClient();
+    const { message } = App.useApp();
     const [fields, setFields] = useState<CustomField[]>([]);
     const [values, setValues] = useState<CardCustomFieldValue[]>([]);
     const [loading, setLoading] = useState(true);

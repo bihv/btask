@@ -12,12 +12,10 @@ import {
     DatePicker,
     Checkbox,
     Tooltip,
-    message,
     Spin,
     Popover,
     Tag,
     List as AntList,
-    Modal,
     Upload,
     App,
 } from 'antd';
@@ -76,7 +74,7 @@ export default function CardPage() {
     const { user } = useAuthStore();
     const { setHeaderContent } = useHeader();
     const queryClient = useQueryClient();
-    const { modal } = App.useApp();
+    const { modal, message } = App.useApp();
 
     // Helper to invalidate board cache after card updates
     const invalidateBoardCache = () => {

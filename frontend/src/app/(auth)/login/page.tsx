@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Form, Input, Button, message, Typography } from 'antd';
+import { Form, Input, Button, Typography, App } from 'antd';
 import { useAuthStore } from '@/stores/authStore';
 import styles from '../auth.module.css';
 
@@ -12,6 +12,7 @@ const { Title } = Typography;
 export default function LoginPage() {
     const router = useRouter();
     const { login, isLoading } = useAuthStore();
+    const { message } = App.useApp();
     const [form] = Form.useForm();
 
     const onFinish = async (values: { email: string; password: string }) => {

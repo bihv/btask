@@ -11,9 +11,9 @@ import {
     Modal,
     Form,
     Input,
-    message,
     Empty,
     Spin,
+    App,
 } from 'antd';
 import { PlusOutlined, StarOutlined, StarFilled, ArrowLeftOutlined } from '@ant-design/icons';
 import { useHeader } from '@/providers/HeaderProvider';
@@ -35,6 +35,7 @@ export default function WorkspaceDetailPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedBackground, setSelectedBackground] = useState(DEFAULT_BACKGROUND);
     const [selectedImage, setSelectedImage] = useState('');
+    const { message } = App.useApp();
     const [form] = Form.useForm();
 
     // React Query hooks - workspace already includes boards

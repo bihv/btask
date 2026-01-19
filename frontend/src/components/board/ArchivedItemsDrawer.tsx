@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Drawer, Tabs, List, Button, Empty, Spin, message, Typography } from 'antd';
+import { Drawer, Tabs, List, Button, Empty, Spin, Typography, App } from 'antd';
 import { UndoOutlined, InboxOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import { List as ListType, Card } from '@/types';
@@ -18,6 +18,7 @@ interface ArchivedItemsDrawerProps {
 
 export default function ArchivedItemsDrawer({ open, onClose, boardId }: ArchivedItemsDrawerProps) {
     const router = useRouter();
+    const { message } = App.useApp();
     const [activeTab, setActiveTab] = useState('cards');
     const [archivedLists, setArchivedLists] = useState<ListType[]>([]);
     const [archivedCards, setArchivedCards] = useState<Card[]>([]);

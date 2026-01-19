@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Typography, Divider, message } from 'antd';
+import { Input, Button, Typography, Divider, App } from 'antd';
 import { CheckOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Label } from '@/types';
 import api from '@/lib/api';
@@ -33,6 +33,7 @@ export default function LabelPicker({
     onCardRefresh,
 }: LabelPickerProps) {
     const [view, setView] = useState<View>('list');
+    const { message } = App.useApp();
     const [editingLabel, setEditingLabel] = useState<Label | null>(null);
     
     // Form states

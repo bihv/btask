@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Typography, Card, Switch, Divider, Select, Tag, message } from 'antd';
+import { Typography, Card, Switch, Divider, Select, Tag, App } from 'antd';
 import { useAuthStore } from '@/stores/authStore';
 import { useUpdatePreferences } from '@/hooks/useUser';
 
@@ -10,6 +10,7 @@ const { Title, Text } = Typography;
 export default function NotificationsSection() {
     const { user } = useAuthStore();
     const updatePreferences = useUpdatePreferences();
+    const { message } = App.useApp();
 
     const handlePreferenceChange = async (key: string, value: boolean) => {
         try {

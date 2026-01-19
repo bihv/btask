@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, theme, App } from 'antd';
 import styles from './auth.module.css';
 
 export default function AuthLayout({
@@ -28,21 +28,23 @@ export default function AuthLayout({
                 }
             }}
         >
-            <div className={styles.container}>
-                {/* Background Layer with Illustration/Image */}
-                <div className={styles.backgroundLayer}>
-                    <img
-                        src="/images/background.webp"
-                        alt="Background"
-                        className={styles.backgroundImage}
-                    />
-                </div>
+            <App>
+                <div className={styles.container}>
+                    {/* Background Layer with Illustration/Image */}
+                    <div className={styles.backgroundLayer}>
+                        <img
+                            src="/images/background.webp"
+                            alt="Background"
+                            className={styles.backgroundImage}
+                        />
+                    </div>
 
-                {/* Form Section Floating on top */}
-                <div className={styles.formWrapper}>
-                    {children}
+                    {/* Form Section Floating on top */}
+                    <div className={styles.formWrapper}>
+                        {children}
+                    </div>
                 </div>
-            </div>
+            </App>
         </ConfigProvider>
     );
 }

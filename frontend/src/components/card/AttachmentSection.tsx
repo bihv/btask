@@ -6,10 +6,10 @@ import {
     Button,
     Upload,
     List,
-    message,
     Popconfirm,
     Image,
     Space,
+    App,
 } from 'antd';
 import {
     PaperClipOutlined,
@@ -67,6 +67,7 @@ const formatFileSize = (bytes: number) => {
 
 export default function AttachmentSection({ cardId, attachments, onUpdate, currentCover, onSetCover }: AttachmentSectionProps) {
     const [uploading, setUploading] = useState(false);
+    const { message } = App.useApp();
 
     const handleUpload = async (file: File) => {
         setUploading(true);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Typography, Button, Input, Spin, message } from 'antd';
+import { Typography, Button, Input, Spin, App } from 'antd';
 import { MoreOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
 import KanbanBoard from '@/components/kanban/KanbanBoard';
@@ -20,6 +20,7 @@ export default function BoardPage() {
     const router = useRouter();
     const params = useParams();
     const boardId = params.id as string;
+    const { message } = App.useApp();
 
     // React Query for fetching board data
     const { data: board, isLoading, refetch } = useBoard(boardId);

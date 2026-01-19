@@ -11,8 +11,8 @@ import {
     Popover,
     DatePicker,
     Tag,
-    message,
     Modal,
+    App,
 } from 'antd';
 import {
     UserOutlined,
@@ -66,6 +66,7 @@ function MemberPickerContent({
     mode: 'dark' | 'light';
     onUpdate: () => void;
 }) {
+    const { message } = App.useApp();
     const [selectedIds, setSelectedIds] = useState<string[]>(
         item.assignees?.map(a => a.user_id) || []
     );
@@ -132,6 +133,7 @@ function DueDatePickerContent({
     onUpdate: () => void;
     onClose: () => void;
 }) {
+    const { message } = App.useApp();
     const handleDateChange = async (date: dayjs.Dayjs | null) => {
         try {
             await checklistApi.updateItem(checklistId, item.id, {

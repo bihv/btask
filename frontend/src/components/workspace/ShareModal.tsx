@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Input, Button, List, Typography, message, Spin, Select } from 'antd';
+import { Modal, Input, Button, List, Typography, Spin, Select, App } from 'antd';
 import { UserAddOutlined, DeleteOutlined, CrownOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
@@ -34,6 +34,7 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
     const [members, setMembers] = useState<Member[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isInviting, setIsInviting] = useState(false);
+    const { message } = App.useApp();
 
     const fetchMembers = async () => {
         setIsLoading(true);

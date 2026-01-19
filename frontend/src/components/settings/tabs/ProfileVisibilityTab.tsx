@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Typography, Form, Input, Button, Card, Space, Flex, message, Upload, Modal, Tabs } from 'antd';
+import { Typography, Form, Input, Button, Card, Space, Flex, Upload, Modal, Tabs, App } from 'antd';
 import { EyeOutlined, CameraOutlined, LoadingOutlined, CheckOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { useAuthStore } from '@/stores/authStore';
@@ -20,6 +20,7 @@ interface ProfileFormValues {
 
 export default function ProfileVisibilityTab() {
     const [form] = Form.useForm<ProfileFormValues>();
+    const { message } = App.useApp();
     const { user } = useAuthStore();
     const updateUser = useUpdateUser();
     const [avatarUrl, setAvatarUrl] = useState<string | undefined>(user?.avatar_url);

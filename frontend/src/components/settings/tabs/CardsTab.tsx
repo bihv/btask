@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Typography, Table, Tag, Empty, Spin, Button, message, Drawer, Input, Checkbox, Select, Divider, Badge } from 'antd';
+import { Typography, Table, Tag, Empty, Spin, Button, Drawer, Input, Checkbox, Select, Divider, Badge, App } from 'antd';
 import { CreditCardOutlined, ClockCircleOutlined, CheckCircleFilled, FilterOutlined, CalendarOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useMyCards, useUpdateCard, CardFilters as ApiCardFilters } from '@/hooks/useCards';
@@ -72,6 +72,7 @@ function toApiFilters(filters: UICardFilters): ApiCardFilters {
 export default function CardsTab() {
     const router = useRouter();
     const updateCard = useUpdateCard();
+    const { message } = App.useApp();
     const [filterOpen, setFilterOpen] = useState(false);
     
     // Separate pending filters (UI state in drawer) from applied filters (sent to API)
