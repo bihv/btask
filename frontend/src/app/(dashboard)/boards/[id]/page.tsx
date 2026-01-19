@@ -1,11 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Typography, Button, Input, Spin, App } from 'antd';
 import { MoreOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
-import KanbanBoard from '@/components/kanban/KanbanBoard';
+import {
+    KanbanView as KanbanBoard,
+    BoardViewSwitcher,
+    TableView,
+    CalendarView,
+    DashboardView,
+    type BoardViewMode,
+} from '@/components/board/views';
 import { useHeader } from '@/providers/HeaderProvider';
 import { useBoard, useUpdateBoard, useDeleteBoard } from '@/hooks/useBoards';
 import { useWorkspaceMembers } from '@/hooks/useCards';
@@ -40,6 +47,26 @@ export default function BoardPage() {
     const [title, setTitle] = useState('');
     const [shareOpen, setShareOpen] = useState(false);
     const [filters, setFilters] = useState<FilterState>(defaultFilters);
+    
+    // View mode from URL query param
+    const searchParams = useSearchParams();
+    const viewParam = searchParams.get('view') as BoardViewMode | null;
+    const [viewMode, setViewMode] = useState<BoardViewMode>(viewParam || 'board');
+    
+    const handleViewChange = (mode: BoardViewMode) => {
+        setViewMode(mode);
+        const url = new URL(window.location.href);
+        if (mode === 'board') {
+            url.searchParams.delete('view');
+        } else {
+            url.searchParams.set('view', mode);
+        }
+        router.replace(url.pathname + url.search);
+    };
+    
+    const handleCardClick = (cardId: string) => {
+        router.push(`/boards/${boardId}/cards/${cardId}`);
+    };
 
     // Sync React Query data to Zustand store for KanbanBoard
     useEffect(() => {
@@ -189,19 +216,23 @@ export default function BoardPage() {
                     : board.background_color || '#0079bf',
             }}
         >
-            {/* Filter Bar */}
-            <div style={{ padding: '8px 16px 0' }}>
+            {/* Filter Bar and View Switcher */}
+            <div style={{ padding: '8px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
                 <CardFilterBar
                     labels={board.labels || []}
                     members={workspaceMembers}
                     filters={filters}
                     onChange={setFilters}
                 />
+                <BoardViewSwitcher value={viewMode} onChange={handleViewChange} />
             </div>
 
-            {/* Kanban Board */}
+            {/* Board Views */}
             <div style={{ flex: 1, overflow: 'hidden' }}>
-                <KanbanBoard filters={filters} />
+                {viewMode === 'board' && <KanbanBoard filters={filters} />}
+                {viewMode === 'table' && <TableView onCardClick={handleCardClick} />}
+                {viewMode === 'calendar' && <CalendarView onCardClick={handleCardClick} />}
+                {viewMode === 'dashboard' && <DashboardView onCardClick={handleCardClick} />}
             </div>
 
             {/* Share Modal */}
