@@ -47,7 +47,7 @@ export default function ChecklistSection({
     const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
     const [modalLists, setModalLists] = useState<List[]>(lists);
 
-    const { mode } = useTheme();
+    const { resolvedTheme } = useTheme();
 
     // API Handlers
     const handleAddChecklist = async () => {
@@ -216,7 +216,7 @@ export default function ChecklistSection({
                                     key={item.id}
                                     item={item}
                                     checklistId={checklist.id}
-                                    mode={mode}
+                                    mode={resolvedTheme}
                                     workspaceMembers={workspaceMembers}
                                     isHovered={hoveredItemId === item.id}
                                     isEditing={editingItem === item.id}
@@ -245,7 +245,7 @@ export default function ChecklistSection({
 
                             <NewChecklistItemForm
                                 checklistId={checklist.id}
-                                mode={mode}
+                                mode={resolvedTheme}
                                 workspaceMembers={workspaceMembers}
                                 isActive={addingItemToChecklist === checklist.id}
                                 content={newItemContent[checklist.id] || ''}

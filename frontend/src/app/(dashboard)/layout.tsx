@@ -42,7 +42,7 @@ export default function DashboardLayout({
     const router = useRouter();
     const pathname = usePathname();
     const { user, isAuthenticated, logout } = useAuthStore();
-    const { mode, toggleTheme } = useTheme();
+    const { preference, resolvedTheme, setTheme } = useTheme();
     const { headerContent } = useHeader();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -138,10 +138,16 @@ export default function DashboardLayout({
                     <SettingOutlined />
                     <span>Settings</span>
                 </div>
-                <div className="dropdown-menu-item theme-item" onClick={toggleTheme}>
-                    {mode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+                <div className="dropdown-menu-item theme-item" onClick={() => {
+                    // Cycle: light -> dark -> system -> light
+                    const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
+                    setTheme(nextTheme);
+                }}>
+                    {resolvedTheme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
                     <span>Theme</span>
-                    <span className="theme-value">{mode === 'dark' ? 'Dark' : 'Light'}</span>
+                    <span className="theme-value">
+                        {preference === 'system' ? 'System' : preference === 'dark' ? 'Dark' : 'Light'}
+                    </span>
                 </div>
             </div>
 
@@ -334,8 +340,11 @@ export default function DashboardLayout({
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Button
                             type="text"
-                            icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
-                            onClick={toggleTheme}
+                            icon={resolvedTheme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+                            onClick={() => {
+                                const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
+                                setTheme(nextTheme);
+                            }}
                         />
                         <NotificationDropdown />
                         <Dropdown

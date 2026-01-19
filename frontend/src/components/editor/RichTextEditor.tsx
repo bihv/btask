@@ -58,7 +58,7 @@ export default function RichTextEditor({
     editable = true,
     placeholder = 'Start typing...',
 }: RichTextEditorProps) {
-    const { mode } = useTheme();
+    const { resolvedTheme } = useTheme();
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxSlide, setLightboxSlide] = useState<(SlideImage | SlideVideo)[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -175,7 +175,7 @@ export default function RichTextEditor({
                 <BlockNoteView
                     editor={editor}
                     editable={editable}
-                    theme={mode}
+                    theme={resolvedTheme}
                 />
             </div>
             <Lightbox

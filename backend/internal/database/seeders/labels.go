@@ -397,6 +397,201 @@ var DefaultLabels = []LabelSeed{
 		DefaultValue: "Date Format",
 		Translations: map[string]string{"vi": "Định Dạng Ngày"},
 	},
+	// ============ Notifications Section ============
+	// Titles
+	{
+		Key:          "UI_EMAIL_NOTIFICATIONS",
+		Category:     "ui",
+		DefaultValue: "Email Notifications",
+		Translations: map[string]string{"vi": "Thông Báo Email"},
+	},
+	// Toggle options
+	{
+		Key:          "UI_NOTIFY_WHEN_ASSIGNED",
+		Category:     "ui",
+		DefaultValue: "When assigned to a card",
+		Translations: map[string]string{"vi": "Khi được giao thẻ"},
+	},
+	{
+		Key:          "UI_NOTIFY_WHEN_ASSIGNED_DESC",
+		Category:     "ui",
+		DefaultValue: "Get notified when someone assigns you to a card",
+		Translations: map[string]string{"vi": "Nhận thông báo khi ai đó giao thẻ cho bạn"},
+	},
+	{
+		Key:          "UI_NOTIFY_DUE_DATE",
+		Category:     "ui",
+		DefaultValue: "Due date reminders",
+		Translations: map[string]string{"vi": "Nhắc nhở ngày hết hạn"},
+	},
+	{
+		Key:          "UI_NOTIFY_DUE_DATE_DESC",
+		Category:     "ui",
+		DefaultValue: "Get notified when a card's due date is approaching",
+		Translations: map[string]string{"vi": "Nhận thông báo khi thẻ sắp hết hạn"},
+	},
+	{
+		Key:          "UI_NOTIFY_NEW_COMMENTS",
+		Category:     "ui",
+		DefaultValue: "New comments",
+		Translations: map[string]string{"vi": "Bình luận mới"},
+	},
+	{
+		Key:          "UI_NOTIFY_NEW_COMMENTS_DESC",
+		Category:     "ui",
+		DefaultValue: "Get notified when someone comments on your cards",
+		Translations: map[string]string{"vi": "Nhận thông báo khi ai đó bình luận trên thẻ của bạn"},
+	},
+	{
+		Key:          "UI_NOTIFY_MENTIONS",
+		Category:     "ui",
+		DefaultValue: "Mentions",
+		Translations: map[string]string{"vi": "Đề cập"},
+	},
+	{
+		Key:          "UI_NOTIFY_MENTIONS_DESC",
+		Category:     "ui",
+		DefaultValue: "Get notified when someone mentions you",
+		Translations: map[string]string{"vi": "Nhận thông báo khi ai đó đề cập đến bạn"},
+	},
+	// Coming soon features
+	{
+		Key:          "UI_COMING_SOON",
+		Category:     "ui",
+		DefaultValue: "Coming soon",
+		Translations: map[string]string{"vi": "Sắp ra mắt"},
+	},
+	{
+		Key:          "UI_NOTIFY_PUSH",
+		Category:     "ui",
+		DefaultValue: "Push notifications",
+		Translations: map[string]string{"vi": "Thông báo đẩy"},
+	},
+	{
+		Key:          "UI_NOTIFY_PUSH_DESC",
+		Category:     "ui",
+		DefaultValue: "Receive push notifications in your browser",
+		Translations: map[string]string{"vi": "Nhận thông báo đẩy trong trình duyệt"},
+	},
+	{
+		Key:          "UI_EMAIL_DIGEST_FREQUENCY",
+		Category:     "ui",
+		DefaultValue: "Email digest frequency",
+		Translations: map[string]string{"vi": "Tần suất email tổng hợp"},
+	},
+	{
+		Key:          "UI_EMAIL_DIGEST_FREQUENCY_DESC",
+		Category:     "ui",
+		DefaultValue: "How often to receive email summaries",
+		Translations: map[string]string{"vi": "Tần suất nhận email tổng hợp"},
+	},
+	{
+		Key:          "UI_IMMEDIATELY",
+		Category:     "ui",
+		DefaultValue: "Immediately",
+		Translations: map[string]string{"vi": "Ngay lập tức"},
+	},
+	// ============ Theme & Appearance Section ============
+	// Titles
+	{
+		Key:          "UI_COLOR_MODE",
+		Category:     "ui",
+		DefaultValue: "Color Mode",
+		Translations: map[string]string{"vi": "Chế Độ Màu"},
+	},
+	{
+		Key:          "UI_COLOR_SCHEME",
+		Category:     "ui",
+		DefaultValue: "Color Scheme",
+		Translations: map[string]string{"vi": "Bảng Màu"},
+	},
+	{
+		Key:          "UI_COLOR_SCHEME_DESC",
+		Category:     "ui",
+		DefaultValue: "Customize your primary color theme",
+		Translations: map[string]string{"vi": "Tùy chỉnh màu chủ đạo của bạn"},
+	},
+	// Theme options
+	{
+		Key:          "UI_THEME_LIGHT",
+		Category:     "ui",
+		DefaultValue: "Light",
+		Translations: map[string]string{"vi": "Sáng"},
+	},
+	{
+		Key:          "UI_THEME_LIGHT_DESC",
+		Category:     "ui",
+		DefaultValue: "Clean & bright",
+		Translations: map[string]string{"vi": "Gọn gàng & sáng sủa"},
+	},
+	{
+		Key:          "UI_THEME_DARK",
+		Category:     "ui",
+		DefaultValue: "Dark",
+		Translations: map[string]string{"vi": "Tối"},
+	},
+	{
+		Key:          "UI_THEME_DARK_DESC",
+		Category:     "ui",
+		DefaultValue: "Easy on the eyes",
+		Translations: map[string]string{"vi": "Dễ chịu cho mắt"},
+	},
+	{
+		Key:          "UI_THEME_SYSTEM",
+		Category:     "ui",
+		DefaultValue: "System",
+		Translations: map[string]string{"vi": "Hệ thống"},
+	},
+	{
+		Key:          "UI_THEME_SYSTEM_DESC",
+		Category:     "ui",
+		DefaultValue: "Match OS setting",
+		Translations: map[string]string{"vi": "Theo cài đặt hệ điều hành"},
+	},
+	// ============ Sessions & Security Section ============
+	// Titles
+	{
+		Key:          "UI_ACTIVE_SESSIONS",
+		Category:     "ui",
+		DefaultValue: "Active Sessions",
+		Translations: map[string]string{"vi": "Phiên Hoạt Động"},
+	},
+	{
+		Key:          "UI_ACTIVE_SESSIONS_DESC",
+		Category:     "ui",
+		DefaultValue: "View and manage your active sessions",
+		Translations: map[string]string{"vi": "Xem và quản lý các phiên hoạt động của bạn"},
+	},
+	{
+		Key:          "UI_TWO_FACTOR_AUTH",
+		Category:     "ui",
+		DefaultValue: "Two-Factor Authentication",
+		Translations: map[string]string{"vi": "Xác Thực Hai Yếu Tố"},
+	},
+	{
+		Key:          "UI_TWO_FACTOR_AUTH_DESC",
+		Category:     "ui",
+		DefaultValue: "Add an extra layer of security to your account",
+		Translations: map[string]string{"vi": "Thêm một lớp bảo mật cho tài khoản của bạn"},
+	},
+	{
+		Key:          "UI_LOGOUT_ALL_DEVICES",
+		Category:     "ui",
+		DefaultValue: "Logout from all devices",
+		Translations: map[string]string{"vi": "Đăng xuất khỏi tất cả thiết bị"},
+	},
+	{
+		Key:          "UI_LOGOUT_ALL_DEVICES_DESC",
+		Category:     "ui",
+		DefaultValue: "This will log you out from all devices except this one",
+		Translations: map[string]string{"vi": "Thao tác này sẽ đăng xuất khỏi tất cả thiết bị ngoại trừ thiết bị hiện tại"},
+	},
+	{
+		Key:          "UI_LOGOUT_EVERYWHERE",
+		Category:     "ui",
+		DefaultValue: "Logout Everywhere",
+		Translations: map[string]string{"vi": "Đăng Xuất Mọi Nơi"},
+	},
 }
 
 // SeedLabels seeds the default labels into the database using batch operations
