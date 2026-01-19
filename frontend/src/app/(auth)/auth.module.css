@@ -1,36 +1,189 @@
-/* Auth Pages Styles */
+/* Auth Pages - Glassmorphism Design */
+
+/* Container: Full-screen background layout */
 .container {
     min-height: 100vh;
+    width: 100%;
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    padding: 20px;
+    justify-content: flex-end;
+    /* Align form to the right */
+    padding: 0 10%;
+    /* Spacing from the right edge */
+    background: #0d1b2a;
+    /* Fallback color */
+    overflow: hidden;
 }
 
+/* Background Layer */
+.backgroundLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.backgroundImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Gradient placeholder - matching the design's dark teal/navy vibe */
+    background: radial-gradient(circle at 30% 50%, #1b3a4b 0%, #0d1b2a 60%, #050a10 100%);
+}
+
+
+/* Form Wrapper - Floats over background */
+.formWrapper {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Glassmorphism Card */
 .card {
     width: 100%;
-    max-width: 420px;
     padding: 48px 40px;
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid var(--border-color);
+    background: rgba(13, 27, 42, 0.85);
+    /* High opacity for readability */
+    backdrop-filter: blur(40px);
+    /* Increased blur */
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 
+/* Logo/Title Section */
 .logo {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
 }
 
-.logo h2 {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--primary-color);
+.logo h2,
+.logo .ant-typography {
+    color: #ffffff !important;
     margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.logo span {
-    color: var(--text-secondary);
+.subtitle {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 15px;
+    font-weight: 300;
+}
+
+/* Form Labels */
+.formLabel {
+    color: rgba(255, 255, 255, 0.9) !important;
     font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+
+
+/* Forgot Password Link */
+.forgotPassword {
+    text-align: right;
+    margin-bottom: 24px;
+}
+
+.forgotPassword a {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.forgotPassword a:hover {
+    color: #7dd3c0;
+    text-shadow: 0 0 8px rgba(125, 211, 192, 0.5);
+}
+
+/* Login Button - Mint/Teal */
+.loginButton {
+    width: 100%;
+    height: 50px !important;
+    background: linear-gradient(135deg, #7dd3c0 0%, #5fb3a1 100%) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #0f2a33 !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(125, 211, 192, 0.25);
+    margin-top: 8px;
+}
+
+.loginButton:hover {
+    background: linear-gradient(135deg, #95e6d3 0%, #70c4b1 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(125, 211, 192, 0.4) !important;
+}
+
+.loginButton:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(125, 211, 192, 0.2) !important;
+}
+
+/* Footer Links */
+.footer {
+    text-align: center;
+    margin-top: 32px;
+}
+
+.footer span {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+}
+
+.footer a {
+    color: #7dd3c0;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-left: 5px;
+}
+
+.footer a:hover {
+    color: #95e6d3;
+    text-shadow: 0 0 10px rgba(125, 211, 192, 0.4);
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .container {
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .card {
+        padding: 40px 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 16px;
+    }
+
+    .card {
+        padding: 32px 24px;
+    }
+
+    .logo h2 {
+        font-size: 28px !important;
+    }
 }

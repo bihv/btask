@@ -4,11 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Form, Input, Button, message, Typography } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import styles from '../auth.module.css';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function LoginPage() {
     const router = useRouter();
@@ -28,8 +27,10 @@ export default function LoginPage() {
     return (
         <div className={styles.card}>
             <div className={styles.logo}>
-                <Title level={2} style={{ marginBottom: 8 }}>Mello</Title>
-                <Text type="secondary">Task Management Made Simple</Text>
+                <Title level={2} style={{ color: '#ffffff', marginBottom: 8 }}>
+                    Login
+                </Title>
+                <p className={styles.subtitle}>Welcome onboard with us!</p>
             </div>
 
             <Form
@@ -41,48 +42,50 @@ export default function LoginPage() {
             >
                 <Form.Item
                     name="email"
+                    label="Email"
                     rules={[
                         { required: true, message: 'Please enter your email' },
                         { type: 'email', message: 'Please enter a valid email' },
                     ]}
                 >
                     <Input
-                        prefix={<MailOutlined />}
-                        placeholder="Email"
+
+                        placeholder="Enter your email"
                         autoComplete="email"
                     />
                 </Form.Item>
 
                 <Form.Item
                     name="password"
+                    label="Password"
                     rules={[{ required: true, message: 'Please enter your password' }]}
                 >
                     <Input.Password
-                        prefix={<LockOutlined />}
-                        placeholder="Password"
+
+                        placeholder="Enter your password"
                         autoComplete="current-password"
                     />
                 </Form.Item>
 
-                <Form.Item>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={isLoading}
-                        block
-                        style={{ height: 44 }}
+                <div className={styles.forgotPassword}>
+                    <Link href="/forgot-password">Forgot Password?</Link>
+                </div>
+
+                <Form.Item style={{ marginBottom: 0 }}>
+                    <button
+                        type="submit"
+                        className={styles.loginButton}
+                        disabled={isLoading}
                     >
-                        Log in
-                    </Button>
+                        {isLoading ? 'Logging in...' : 'LOGIN'}
+                    </button>
                 </Form.Item>
 
-                <div style={{ textAlign: 'center' }}>
-                    <Text type="secondary">
-                        Don't have an account?{' '}
-                        <Link href="/register" style={{ fontWeight: 500 }}>
-                            Sign up
-                        </Link>
-                    </Text>
+                <div className={styles.footer}>
+                    <span>
+                        New to Mello?{' '}
+                        <Link href="/register">Register Here</Link>
+                    </span>
                 </div>
             </Form>
         </div>

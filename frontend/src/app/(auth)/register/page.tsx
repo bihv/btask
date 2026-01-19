@@ -3,11 +3,10 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Form, Input, Button, message, Typography } from 'antd';
-import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import styles from '../auth.module.css';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -31,8 +30,10 @@ export default function RegisterPage() {
     return (
         <div className={styles.card}>
             <div className={styles.logo}>
-                <Title level={2} style={{ marginBottom: 8 }}>Mello</Title>
-                <Text type="secondary">Create your account</Text>
+                <Title level={2} style={{ color: '#ffffff', marginBottom: 8 }}>
+                    Create Account
+                </Title>
+                <p className={styles.subtitle}>Join us and start organizing!</p>
             </div>
 
             <Form
@@ -44,45 +45,49 @@ export default function RegisterPage() {
             >
                 <Form.Item
                     name="fullName"
+                    label="Full Name"
                     rules={[{ required: true, message: 'Please enter your full name' }]}
                 >
                     <Input
-                        prefix={<UserOutlined />}
-                        placeholder="Full Name"
+
+                        placeholder="Enter your full name"
                         autoComplete="name"
                     />
                 </Form.Item>
 
                 <Form.Item
                     name="email"
+                    label="Email"
                     rules={[
                         { required: true, message: 'Please enter your email' },
                         { type: 'email', message: 'Please enter a valid email' },
                     ]}
                 >
                     <Input
-                        prefix={<MailOutlined />}
-                        placeholder="Email"
+
+                        placeholder="Enter your email"
                         autoComplete="email"
                     />
                 </Form.Item>
 
                 <Form.Item
                     name="password"
+                    label="Password"
                     rules={[
                         { required: true, message: 'Please enter your password' },
                         { min: 6, message: 'Password must be at least 6 characters' },
                     ]}
                 >
                     <Input.Password
-                        prefix={<LockOutlined />}
-                        placeholder="Password"
+
+                        placeholder="Enter your password"
                         autoComplete="new-password"
                     />
                 </Form.Item>
 
                 <Form.Item
                     name="confirmPassword"
+                    label="Confirm Password"
                     dependencies={['password']}
                     rules={[
                         { required: true, message: 'Please confirm your password' },
@@ -97,31 +102,27 @@ export default function RegisterPage() {
                     ]}
                 >
                     <Input.Password
-                        prefix={<LockOutlined />}
-                        placeholder="Confirm Password"
+
+                        placeholder="Confirm your password"
                         autoComplete="new-password"
                     />
                 </Form.Item>
 
-                <Form.Item>
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={isLoading}
-                        block
-                        style={{ height: 44 }}
+                <Form.Item style={{ marginBottom: 0 }}>
+                    <button
+                        type="submit"
+                        className={styles.loginButton}
+                        disabled={isLoading}
                     >
-                        Create Account
-                    </Button>
+                        {isLoading ? 'Creating...' : 'CREATE ACCOUNT'}
+                    </button>
                 </Form.Item>
 
-                <div style={{ textAlign: 'center' }}>
-                    <Text type="secondary">
+                <div className={styles.footer}>
+                    <span>
                         Already have an account?{' '}
-                        <Link href="/login" style={{ fontWeight: 500 }}>
-                            Log in
-                        </Link>
-                    </Text>
+                        <Link href="/login">Log in</Link>
+                    </span>
                 </div>
             </Form>
         </div>
