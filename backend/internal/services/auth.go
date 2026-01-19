@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -47,6 +48,11 @@ func (s *AuthService) Register(req RegisterRequest) (*AuthResponse, error) {
 	user := &models.User{
 		Email:    req.Email,
 		FullName: req.FullName,
+	}
+
+	// Set as admin if email matches InitialAdminEmail
+	if s.config.InitialAdminEmail != "" && strings.EqualFold(req.Email, s.config.InitialAdminEmail) {
+		user.IsAdmin = true
 	}
 
 	if err := user.SetPassword(req.Password); err != nil {

@@ -47,3 +47,20 @@ func (r *UserRepository) EmailExists(email string) bool {
 	database.DB.Model(&models.User{}).Where("email = ?", email).Count(&count)
 	return count > 0
 }
+
+// FindByEmailVerifyToken finds a user by their email verification token
+func (r *UserRepository) FindByEmailVerifyToken(token string) (*models.User, error) {
+	var user models.User
+	err := database.DB.First(&user, "email_verify_token = ?", token).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// FindAll returns all users
+func (r *UserRepository) FindAll() ([]models.User, error) {
+	var users []models.User
+	err := database.DB.Order("created_at DESC").Find(&users).Error
+	return users, err
+}

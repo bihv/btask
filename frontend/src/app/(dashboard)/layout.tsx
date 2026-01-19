@@ -29,6 +29,7 @@ import NotificationDropdown from '@/components/notification/NotificationDropdown
 import { useWebSocket } from '@/hooks/useWebSocket';
 import type { MenuProps } from 'antd';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useLabels } from '@/hooks/useLabels';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -46,6 +47,9 @@ export default function DashboardLayout({
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
 
+    // Labels loading with React Query (auto-deduplication)
+    const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
+
     // Get auth token for WebSocket
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     useWebSocket(token);
@@ -57,7 +61,8 @@ export default function DashboardLayout({
         }
     }, [isAuthenticated, router]);
 
-    if (!mounted || !isAuthenticated) {
+    // Show loading until mounted, authenticated, AND labels are loaded
+    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Spin size="large" />
@@ -343,7 +348,7 @@ export default function DashboardLayout({
                                     avatarUrl={user?.avatar_url}
                                     name={user?.full_name}
                                     size={32}
-                                style={{ cursor: 'pointer' }}
+                                    style={{ cursor: 'pointer' }}
                                 />
                             </div>
                         </Dropdown>

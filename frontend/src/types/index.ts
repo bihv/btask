@@ -6,6 +6,20 @@ export interface User {
     bio?: string;
     avatar_url?: string;
     created_at: string;
+
+    // Notification preferences
+    notify_card_assigned?: boolean;
+    notify_due_date?: boolean;
+    notify_comment?: boolean;
+    notify_mention?: boolean;
+
+    // Language & Region
+    language?: string;
+    timezone?: string;
+    date_format?: string;
+
+    // Admin
+    is_admin?: boolean;
 }
 
 // Workspace types

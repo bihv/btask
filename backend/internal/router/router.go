@@ -30,20 +30,58 @@ func Setup(app *fiber.App, cfg *config.Config) {
 
 	// Auth routes (public)
 	authHandler := handlers.NewAuthHandler(cfg)
+	userHandler := handlers.NewUserHandler()
 	auth := api.Group("/auth")
 	auth.Post("/register", authHandler.Register)
 	auth.Post("/login", authHandler.Login)
+
+	// Email verification (public - user clicks link from email)
+	api.Get("/users/verify-email", userHandler.VerifyEmailChange)
 
 	// Protected routes
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(cfg))
 
+	// Load user and set isAdmin in context for all protected routes
+	userRepo := handlers.NewUserHandler().GetUserRepo()
+	protected.Use(func(c *fiber.Ctx) error {
+		userID := middleware.GetUserID(c)
+		user, err := userRepo.FindByID(userID)
+		if err == nil {
+			middleware.SetIsAdmin(c, user.IsAdmin)
+		}
+		return c.Next()
+	})
+
+	// Admin routes (requires admin middleware)
+	adminHandler := handlers.NewAdminHandler()
+	systemLabelHandler := handlers.NewSystemLabelHandler()
+	admin := protected.Group("/admin")
+	admin.Use(middleware.AdminMiddleware())
+	admin.Get("/users", adminHandler.ListUsers)
+	admin.Put("/users/:id/role", adminHandler.UpdateUserRole)
+
+	// Admin label routes
+	admin.Get("/labels", systemLabelHandler.GetAllLabels)
+	admin.Post("/labels", systemLabelHandler.CreateLabel)
+	admin.Put("/labels/:id", systemLabelHandler.UpdateLabel)
+	admin.Delete("/labels/:id", systemLabelHandler.DeleteLabel)
+	admin.Post("/translations", systemLabelHandler.CreateTranslation)
+	admin.Put("/translations/:id", systemLabelHandler.UpdateTranslation)
+	admin.Delete("/translations/:id", systemLabelHandler.DeleteTranslation)
+
+	// Labels endpoint for i18n (protected to access user language preference)
+	protected.Get("/labels", systemLabelHandler.GetLabels)
+
 	// User routes
-	userHandler := handlers.NewUserHandler()
 	cardHandler := handlers.NewCardHandler()
 	users := protected.Group("/users")
 	users.Get("/me", userHandler.GetMe)
 	users.Get("/me/cards", cardHandler.GetMyCards)
+	users.Put("/me/email", userHandler.ChangeEmail)
+	users.Put("/me/password", userHandler.ChangePassword)
+	users.Put("/me/preferences", userHandler.UpdatePreferences)
+	users.Delete("/me", userHandler.DeleteAccount)
 	users.Get("/search", userHandler.Search)
 	users.Get("/:id", userHandler.GetByID)
 	users.Put("/:id", userHandler.Update)

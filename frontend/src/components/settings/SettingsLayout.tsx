@@ -15,9 +15,12 @@ import {
     ExportOutlined,
     CloseOutlined,
     DownOutlined,
+    CrownOutlined,
+    TranslationOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useLabels } from '@/hooks/useLabels';
 import type { MenuProps } from 'antd';
 
 const { Sider, Content } = Layout;
@@ -61,6 +64,9 @@ export default function SettingsLayout({
     const [mounted, setMounted] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>(workspaceId || '');
 
+    // Labels loading with React Query (auto-deduplication)
+    const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
+
     // No need for userId since personal settings always use /me/
 
     // Extract active tab from pathname (last segment)
@@ -103,6 +109,11 @@ export default function SettingsLayout({
         { key: 'ws-export', icon: <ExportOutlined />, label: 'Export' },
     ];
 
+    const adminMenuItems: MenuItem[] = [
+        { key: 'admin-users', icon: <CrownOutlined />, label: 'User Management' },
+        { key: 'admin-labels', icon: <TranslationOutlined />, label: 'System Labels' },
+    ];
+
     const handlePersonalMenuClick: MenuProps['onClick'] = (e) => {
         router.push(`/me/${e.key}`);
     };
@@ -111,6 +122,14 @@ export default function SettingsLayout({
         if (e.key.startsWith('ws-') && selectedWorkspaceId) {
             const tab = e.key.replace('ws-', '');
             router.push(`/workspace/${selectedWorkspaceId}/${tab}`);
+        }
+    };
+
+    const handleAdminMenuClick: MenuProps['onClick'] = (e) => {
+        if (e.key === 'admin-users') {
+            router.push('/admin/users');
+        } else if (e.key === 'admin-labels') {
+            router.push('/admin/labels');
         }
     };
 
@@ -127,7 +146,8 @@ export default function SettingsLayout({
         }
     };
 
-    if (!mounted || !isAuthenticated) {
+    // Show loading until mounted, authenticated, AND labels are loaded
+    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Spin size="large" />
@@ -270,6 +290,30 @@ export default function SettingsLayout({
                         style={{ border: 'none' }}
                     />
                 </div>
+
+                {/* Admin Section - only visible to admins */}
+                {user?.is_admin && (
+                    <div style={{ padding: '16px 8px 0' }}>
+                        <div style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: 'var(--text-secondary)',
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.5,
+                            padding: '8px 12px',
+                            marginBottom: 4,
+                        }}>
+                            Admin
+                        </div>
+                        <Menu
+                            mode="inline"
+                            selectedKeys={[]}
+                            items={adminMenuItems}
+                            onClick={handleAdminMenuClick}
+                            style={{ border: 'none' }}
+                        />
+                    </div>
+                )}
             </Sider>
 
             <Layout style={{ marginLeft: 240 }}>

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/mello/backend/internal/database/seeders"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/pkg/logger"
 	"go.uber.org/zap"
@@ -52,6 +53,8 @@ func Migrate() error {
 		&models.CustomField{},
 		&models.CustomFieldOption{},
 		&models.CardCustomFieldValue{},
+		&models.SystemLabel{},
+		&models.SystemTranslation{},
 	)
 
 	if err != nil {
@@ -60,5 +63,12 @@ func Migrate() error {
 	}
 
 	logger.Info("Database migrations completed")
+
+	// Seed default labels
+	if err := seeders.SeedLabels(DB); err != nil {
+		logger.Error("Failed to seed labels", zap.Error(err))
+		// Don't return error - seeding failure shouldn't stop the app
+	}
+
 	return nil
 }

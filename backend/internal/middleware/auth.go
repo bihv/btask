@@ -91,3 +91,26 @@ func GetUserIDFromWS(c interface {
 
 	return claims.UserID
 }
+
+// AdminMiddleware checks if the user is an admin
+// Note: Must be called after AuthMiddleware
+func AdminMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		isAdmin, ok := c.Locals("isAdmin").(bool)
+		if !ok || !isAdmin {
+			return utils.ErrorResponse(c, fiber.StatusForbidden, "Admin access required")
+		}
+		return c.Next()
+	}
+}
+
+// SetIsAdmin stores admin status in context (call after loading user from DB)
+func SetIsAdmin(c *fiber.Ctx, isAdmin bool) {
+	c.Locals("isAdmin", isAdmin)
+}
+
+// IsAdmin returns the admin status from context
+func IsAdmin(c *fiber.Ctx) bool {
+	isAdmin, ok := c.Locals("isAdmin").(bool)
+	return ok && isAdmin
+}
