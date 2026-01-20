@@ -73,6 +73,9 @@ func (h *BoardHandler) GetByID(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
 	}
 
+	// Record board view (async to not block response)
+	go h.service.RecordBoardView(id, userID)
+
 	// Add is_watching to response
 	isWatching := h.service.IsWatching(id, userID)
 
@@ -196,4 +199,21 @@ func (h *BoardHandler) IsWatching(c *fiber.Ctx) error {
 	isWatching := h.service.IsWatching(id, userID)
 
 	return utils.SuccessResponse(c, fiber.Map{"is_watching": isWatching})
+}
+
+func (h *BoardHandler) GetRecentlyViewed(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	// Default limit to 4, max 10
+	limit := c.QueryInt("limit", 4)
+	if limit > 10 {
+		limit = 10
+	}
+
+	boards, err := h.service.GetRecentlyViewed(userID, limit)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	return utils.SuccessResponse(c, boards)
 }

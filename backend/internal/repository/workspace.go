@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/database"
 	"github.com/mello/backend/internal/models"
+	"gorm.io/gorm"
 )
 
 type WorkspaceRepository struct{}
@@ -36,17 +37,18 @@ func (r *WorkspaceRepository) FindByUserID(userID uuid.UUID) ([]models.Workspace
 		Where("workspaces.owner_id = ? OR workspace_members.user_id = ?", userID, userID).
 		Distinct().
 		Preload("Owner").
+		Preload("Boards", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position ASC")
+		}).
 		Find(&workspaces).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	// Count boards for each workspace
+	// Set BoardCount from preloaded Boards
 	for i := range workspaces {
-		var count int64
-		database.DB.Model(&models.Board{}).Where("workspace_id = ?", workspaces[i].ID).Count(&count)
-		workspaces[i].BoardCount = int(count)
+		workspaces[i].BoardCount = len(workspaces[i].Boards)
 	}
 
 	return workspaces, nil

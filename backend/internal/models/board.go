@@ -38,6 +38,7 @@ type CreateBoardRequest struct {
 	Title           string `json:"title" validate:"required,min=1,max=100"`
 	Description     string `json:"description" validate:"max=500"`
 	BackgroundColor string `json:"background_color"`
+	BackgroundImage string `json:"background_image"`
 }
 
 type UpdateBoardRequest struct {

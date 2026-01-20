@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Dropdown, Modal, Input, App } from 'antd';
+import { Button, Dropdown, Modal, Input, App, Form } from 'antd';
 import { PlusOutlined, ProjectOutlined, TeamOutlined, AppstoreOutlined, FileOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import type { MenuProps } from 'antd';
-import api from '@/lib/api';
+import { useCreateWorkspace } from '@/hooks/useWorkspaces';
+import { CreateWorkspaceRequest } from '@/types';
 
 export default function CreateDropdown() {
     const router = useRouter();
@@ -13,38 +14,27 @@ export default function CreateDropdown() {
     const [createBoardOpen, setCreateBoardOpen] = useState(false);
     const [createWorkspaceOpen, setCreateWorkspaceOpen] = useState(false);
     const [newBoardTitle, setNewBoardTitle] = useState('');
-    const [newWorkspaceName, setNewWorkspaceName] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [workspaceForm] = Form.useForm();
+    const createWorkspaceMutation = useCreateWorkspace();
 
     const handleCreateBoard = async () => {
         if (!newBoardTitle.trim()) return;
-        setLoading(true);
-        try {
-            // For quick create, we'll need to select a workspace first
-            // For now, show a message to use workspace page
-            message.info('Please create boards from within a workspace');
-            setCreateBoardOpen(false);
-            setNewBoardTitle('');
-        } catch (error) {
-            message.error('Failed to create board');
-        } finally {
-            setLoading(false);
-        }
+        // For quick create, we'll need to select a workspace first
+        // For now, show a message to use workspace page
+        message.info('Please create boards from within a workspace');
+        setCreateBoardOpen(false);
+        setNewBoardTitle('');
     };
 
-    const handleCreateWorkspace = async () => {
-        if (!newWorkspaceName.trim()) return;
-        setLoading(true);
+    const handleCreateWorkspace = async (values: CreateWorkspaceRequest) => {
         try {
-            const res = await api.post('/workspaces', { name: newWorkspaceName.trim() });
+            const workspace = await createWorkspaceMutation.mutateAsync(values);
             message.success('Workspace created');
             setCreateWorkspaceOpen(false);
-            setNewWorkspaceName('');
-            router.push(`/workspaces/${res.data.data.id}`);
-        } catch (error) {
-            message.error('Failed to create workspace');
-        } finally {
-            setLoading(false);
+            workspaceForm.resetFields();
+            router.push(`/workspaces/${workspace.id}`);
+        } catch (error: any) {
+            message.error(error.response?.data?.error || 'Failed to create workspace');
         }
     };
 
@@ -96,7 +86,6 @@ export default function CreateDropdown() {
                     setNewBoardTitle('');
                 }}
                 okText="Create"
-                confirmLoading={loading}
             >
                 <p style={{ marginBottom: 8, color: 'var(--text-secondary)' }}>
                     To create a board, please go to a workspace first.
@@ -113,21 +102,42 @@ export default function CreateDropdown() {
             <Modal
                 title="Create Workspace"
                 open={createWorkspaceOpen}
-                onOk={handleCreateWorkspace}
                 onCancel={() => {
                     setCreateWorkspaceOpen(false);
-                    setNewWorkspaceName('');
+                    workspaceForm.resetFields();
                 }}
-                okText="Create"
-                confirmLoading={loading}
+                footer={null}
             >
-                <Input
-                    placeholder="Workspace name"
-                    value={newWorkspaceName}
-                    onChange={(e) => setNewWorkspaceName(e.target.value)}
-                    onPressEnter={handleCreateWorkspace}
-                    autoFocus
-                />
+                <Form form={workspaceForm} layout="vertical" onFinish={handleCreateWorkspace}>
+                    <Form.Item
+                        name="name"
+                        label="Workspace Name"
+                        rules={[{ required: true, message: 'Please enter a workspace name' }]}
+                    >
+                        <Input placeholder="e.g., My Team" autoFocus />
+                    </Form.Item>
+                    <Form.Item name="description" label="Description">
+                        <Input.TextArea placeholder="Optional description" rows={3} />
+                    </Form.Item>
+                    <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                        <Button
+                            onClick={() => {
+                                setCreateWorkspaceOpen(false);
+                                workspaceForm.resetFields();
+                            }}
+                            style={{ marginRight: 8 }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            loading={createWorkspaceMutation.isPending}
+                        >
+                            Create
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Modal>
         </>
     );

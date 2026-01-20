@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Typography, Empty } from 'antd';
+import { Typography, Spin, Empty } from 'antd';
 import {
     AppstoreOutlined,
     TeamOutlined,
@@ -10,25 +10,14 @@ import {
     DollarOutlined,
     ExportOutlined,
 } from '@ant-design/icons';
+import { useWorkspace } from '@/hooks/useWorkspaces';
+import WorkspaceBoards from '@/components/workspace/WorkspaceBoards';
+import WorkspaceMembers from '@/components/workspace/WorkspaceMembers';
+import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
 
 const { Title } = Typography;
 
 const tabConfig: Record<string, { title: string; icon: React.ReactNode; description: string }> = {
-    boards: {
-        title: 'Boards',
-        icon: <AppstoreOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
-        description: 'View and manage all boards in this workspace.',
-    },
-    members: {
-        title: 'Members',
-        icon: <TeamOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
-        description: 'Manage workspace members and their permissions.',
-    },
-    settings: {
-        title: 'Workspace Settings',
-        icon: <SettingOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
-        description: 'Configure workspace settings and preferences.',
-    },
     powerups: {
         title: 'Power-Ups',
         icon: <ThunderboltOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
@@ -48,8 +37,44 @@ const tabConfig: Record<string, { title: string; icon: React.ReactNode; descript
 
 export default function WorkspaceSettingsTabPage() {
     const params = useParams();
+    const workspaceId = params.workspaceId as string;
     const tab = params.tab as string;
-    const config = tabConfig[tab] || tabConfig.boards;
+
+    const { data: workspace, isLoading } = useWorkspace(workspaceId);
+
+    if (isLoading) {
+        return (
+            <div className="loading-container">
+                <Spin size="large" />
+            </div>
+        );
+    }
+
+    if (!workspace) {
+        return (
+            <Empty description="Workspace not found" />
+        );
+    }
+
+    // Render specific components for implemented tabs
+    if (tab === 'boards') {
+        return <WorkspaceBoards workspace={workspace} />;
+    }
+
+    if (tab === 'members') {
+        return <WorkspaceMembers workspace={workspace} />;
+    }
+
+    if (tab === 'settings') {
+        return <WorkspaceSettings workspace={workspace} />;
+    }
+
+    // Render placeholder for other tabs
+    const config = tabConfig[tab];
+    
+    if (!config) {
+        return <Empty description="Page not found" />;
+    }
 
     return (
         <div>

@@ -108,6 +108,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	workspaces.Post("/:workspaceId/boards", boardHandler.Create)
 
 	boards := protected.Group("/boards")
+	boards.Get("/recently-viewed", boardHandler.GetRecentlyViewed)
 	boards.Get("/:id", boardHandler.GetByID)
 	boards.Put("/:id", boardHandler.Update)
 	boards.Delete("/:id", boardHandler.Delete)
@@ -234,5 +235,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 
 	// WebSocket route (without auth middleware, uses token query param)
 	app.Use("/ws", handlers.WebSocketUpgrade)
-	app.Get("/ws", websocket.New(handlers.WebSocketHandler))
+	app.Get("/ws", websocket.New(handlers.WebSocketHandler, websocket.Config{
+		Origins: []string{"*"},
+	}))
 }

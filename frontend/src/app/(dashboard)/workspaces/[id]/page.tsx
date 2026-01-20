@@ -20,6 +20,7 @@ import { useHeader } from '@/providers/HeaderProvider';
 import { useWorkspace } from '@/hooks/useWorkspaces';
 import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
 import BackgroundPicker, { GRADIENT_BACKGROUNDS, SOLID_COLORS } from '@/components/board/BackgroundPicker';
+import BoardCard from '@/components/board/BoardCard';
 
 const { Title, Text } = Typography;
 
@@ -113,50 +114,12 @@ export default function WorkspaceDetailPage() {
                 <Row gutter={[16, 16]}>
                     {boards.map((board) => (
                         <Col xs={24} sm={12} md={8} lg={6} key={board.id}>
-                            <Card
-                                hoverable
-                                style={{
-                                    background: board.background_image 
-                                        ? `url(${board.background_image}) center/cover`
-                                        : board.background_color,
-                                    minHeight: 100,
-                                    position: 'relative',
-                                }}
-                                styles={{
-                                    body: { padding: 12 },
-                                }}
+                            <BoardCard
+                                board={board}
+                                style={{ minHeight: 100 }}
                                 onClick={() => router.push(`/boards/${board.id}`)}
-                            >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'flex-start',
-                                    }}
-                                >
-                                    <Text
-                                        strong
-                                        style={{ color: 'white', fontSize: 16 }}
-                                    >
-                                        {board.title}
-                                    </Text>
-                                    <Button
-                                        type="text"
-                                        size="small"
-                                        icon={
-                                            board.is_starred ? (
-                                                <StarFilled style={{ color: '#f5cd47' }} />
-                                            ) : (
-                                                <StarOutlined style={{ color: 'rgba(255,255,255,0.7)' }} />
-                                            )
-                                        }
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleStar(board.id, board.is_starred);
-                                        }}
-                                    />
-                                </div>
-                            </Card>
+                                onToggleStar={toggleStar}
+                            />
                         </Col>
                     ))}
                 </Row>

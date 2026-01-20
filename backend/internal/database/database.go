@@ -37,6 +37,7 @@ func Migrate() error {
 		&models.Workspace{},
 		&models.WorkspaceMember{},
 		&models.Board{},
+		&models.BoardView{},
 		&models.List{},
 		&models.Card{},
 		&models.Label{},

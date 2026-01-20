@@ -8,6 +8,7 @@ import { Board, CreateBoardRequest } from '@/types';
 export const boardKeys = {
     all: ['boards'] as const,
     starred: ['boards', 'starred'] as const,
+    recentlyViewed: ['boards', 'recentlyViewed'] as const,
     detail: (id: string) => ['boards', id] as const,
 };
 
@@ -20,6 +21,17 @@ export function useBoard(id: string) {
             return response.data.data;
         },
         enabled: !!id,
+    });
+}
+
+// Fetch recently viewed boards for the current user
+export function useRecentlyViewedBoards(limit: number = 4) {
+    return useQuery({
+        queryKey: boardKeys.recentlyViewed,
+        queryFn: async (): Promise<Board[]> => {
+            const response = await api.get(`/boards/recently-viewed?limit=${limit}`);
+            return response.data.data || [];
+        },
     });
 }
 

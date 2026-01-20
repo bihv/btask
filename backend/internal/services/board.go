@@ -38,6 +38,7 @@ func (s *BoardService) Create(workspaceID uuid.UUID, userID uuid.UUID, req model
 		Title:           req.Title,
 		Description:     req.Description,
 		BackgroundColor: req.BackgroundColor,
+		BackgroundImage: req.BackgroundImage,
 		Position:        maxPos + 1,
 	}
 
@@ -241,4 +242,17 @@ func (s *BoardService) Unwatch(boardID uuid.UUID, userID uuid.UUID) error {
 
 func (s *BoardService) IsWatching(boardID uuid.UUID, userID uuid.UUID) bool {
 	return s.boardRepo.IsWatching(boardID, userID)
+}
+
+// RecordBoardView records that a user viewed a board
+func (s *BoardService) RecordBoardView(boardID uuid.UUID, userID uuid.UUID) error {
+	return s.boardRepo.RecordView(boardID, userID)
+}
+
+// GetRecentlyViewed returns recently viewed boards for a user
+func (s *BoardService) GetRecentlyViewed(userID uuid.UUID, limit int) ([]models.Board, error) {
+	if limit <= 0 {
+		limit = 4
+	}
+	return s.boardRepo.GetRecentlyViewed(userID, limit)
 }

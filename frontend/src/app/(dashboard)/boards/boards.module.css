@@ -1,0 +1,219 @@
+.container {
+    padding: 24px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.section {
+    margin-bottom: 32px;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.sectionHeader h5 {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary) !important;
+}
+
+/* Workspace Section */
+.workspaceSection {
+    margin-bottom: 24px;
+}
+
+.workspaceHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.workspaceInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.workspaceInfo:hover {
+    opacity: 0.8;
+}
+
+.workspaceIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.workspaceName {
+    font-size: 16px !important;
+}
+
+.workspaceActions {
+    display: flex;
+    gap: 4px;
+}
+
+.workspaceActions button {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.workspaceActions button:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+/* Boards Grid */
+.boardsGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Board Card */
+.boardCard {
+    width: 180px;
+    height: 96px;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.2s;
+}
+
+.boardCard:hover {
+    opacity: 0.9;
+}
+
+.boardCardOverlay {
+    position: absolute;
+    inset: 0;
+    padding: 8px;
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.2) 0%,
+            rgba(0, 0, 0, 0.05) 100%);
+    border-radius: 4px;
+}
+
+.boardCardTitle {
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Create Board Card */
+.createBoardCard {
+    width: 180px;
+    height: 96px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.createBoardCard:hover {
+    background: var(--bg-quaternary, rgba(0, 0, 0, 0.1));
+}
+
+/* Color Picker */
+.colorPicker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.colorOption {
+    width: 48px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.colorOption:hover {
+    transform: scale(1.05);
+}
+
+.colorOptionSelected {
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8),
+        0 0 0 2px var(--primary-color, #1890ff);
+}
+
+/* Workspace Label in Modal */
+.workspaceLabel {
+    margin-top: -8px;
+}
+
+/* View Closed Boards Link */
+.viewClosedLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.viewClosedLink:hover {
+    background: var(--bg-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .workspaceHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .boardCard,
+    .createBoardCard {
+        width: calc(50% - 6px);
+    }
+}
+
+@media (max-width: 480px) {
+
+    .boardCard,
+    .createBoardCard {
+        width: 100%;
+    }
+}

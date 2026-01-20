@@ -82,19 +82,19 @@ export default function BoardsLayout({
             {/* Account Section */}
             <div className="dropdown-section">
                 <div className="dropdown-section-label">Account</div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/settings')}>
+                <div className="dropdown-menu-item" onClick={() => router.push('/me/profile')}>
                     <UserOutlined />
                     <span>Profile and visibility</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/activity')}>
+                <div className="dropdown-menu-item" onClick={() => router.push('/me/activity')}>
                     <HistoryOutlined />
                     <span>Activity</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/settings')}>
+                <div className="dropdown-menu-item" onClick={() => router.push('/me/cards')}>
                     <CreditCardOutlined />
                     <span>Cards</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/settings')}>
+                <div className="dropdown-menu-item" onClick={() => router.push('/me/settings')}>
                     <SettingOutlined />
                     <span>Settings</span>
                 </div>

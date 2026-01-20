@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/database"
 	"github.com/mello/backend/internal/models"
@@ -142,4 +144,65 @@ func (r *BoardRepository) SearchByTitle(userID uuid.UUID, query string, limit in
 		return nil, err
 	}
 	return boards, nil
+}
+
+// RecordView records or updates when a user views a board
+func (r *BoardRepository) RecordView(boardID uuid.UUID, userID uuid.UUID) error {
+	view := &models.BoardView{
+		BoardID:  boardID,
+		UserID:   userID,
+		ViewedAt: time.Now(),
+	}
+	// Upsert: update viewed_at if exists, otherwise create
+	return database.DB.Where("board_id = ? AND user_id = ?", boardID, userID).
+		Assign(models.BoardView{ViewedAt: time.Now()}).
+		FirstOrCreate(view).Error
+}
+
+// GetRecentlyViewed returns recently viewed boards for a user
+func (r *BoardRepository) GetRecentlyViewed(userID uuid.UUID, limit int) ([]models.Board, error) {
+	var boardViews []models.BoardView
+	err := database.DB.
+		Where("user_id = ?", userID).
+		Order("viewed_at DESC").
+		Limit(limit).
+		Find(&boardViews).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if len(boardViews) == 0 {
+		return []models.Board{}, nil
+	}
+
+	// Get board IDs in order
+	boardIDs := make([]uuid.UUID, len(boardViews))
+	for i, bv := range boardViews {
+		boardIDs[i] = bv.BoardID
+	}
+
+	// Fetch boards
+	var boards []models.Board
+	err = database.DB.
+		Where("id IN ?", boardIDs).
+		Find(&boards).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a map for quick lookup
+	boardMap := make(map[uuid.UUID]models.Board)
+	for _, b := range boards {
+		boardMap[b.ID] = b
+	}
+
+	// Reorder boards to match view order
+	result := make([]models.Board, 0, len(boardViews))
+	for _, bv := range boardViews {
+		if board, ok := boardMap[bv.BoardID]; ok {
+			result = append(result, board)
+		}
+	}
+
+	return result, nil
 }
