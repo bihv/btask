@@ -6,10 +6,10 @@ import { Layout, Menu, Button, Dropdown, Typography, Spin, Divider } from 'antd'
 import {
     HomeOutlined,
     ProjectOutlined,
+    AppstoreOutlined,
     StarOutlined,
     SettingOutlined,
     LogoutOutlined,
-    PlusOutlined,
     SunOutlined,
     MoonOutlined,
     MenuFoldOutlined,
@@ -24,11 +24,11 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/providers/ThemeProvider';
-import { useHeader } from '@/providers/HeaderProvider';
 import NotificationDropdown from '@/components/notification/NotificationDropdown';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import type { MenuProps } from 'antd';
 import UserAvatar from '@/components/common/UserAvatar';
+import GlobalSearch from '@/components/common/GlobalSearch';
+import CreateDropdown from '@/components/common/CreateDropdown';
 import { useLabels } from '@/hooks/useLabels';
 
 const { Header, Sider, Content } = Layout;
@@ -43,7 +43,6 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const { user, isAuthenticated, logout } = useAuthStore();
     const { preference, resolvedTheme, setTheme } = useTheme();
-    const { headerContent } = useHeader();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
 
@@ -77,16 +76,19 @@ export default function DashboardLayout({
             label: 'Home',
         },
         {
-            key: '/starred',
-            icon: <StarOutlined />,
-            label: 'Starred',
+            key: '/boards',
+            icon: <ProjectOutlined />,
+            label: 'Boards',
+        },
+        {
+            key: '/templates',
+            icon: <AppstoreOutlined />,
+            label: 'Templates',
         },
     ];
 
     const handleNavClick = (e: { key: string }) => {
-        if (e.key === 'starred') {
-            router.push('/starred');
-        } else if (e.key.startsWith('/')) {
+        if (e.key.startsWith('/')) {
             router.push(e.key);
         }
     };
@@ -94,9 +96,8 @@ export default function DashboardLayout({
     // Avatar dropdown menu content
     const avatarDropdownContent = (
         <div className="avatar-dropdown-menu">
-            {/* ACCOUNT Section */}
+            {/* User Info */}
             <div className="dropdown-section">
-                <div className="dropdown-section-label">ACCOUNT</div>
                 <div className="dropdown-user-info">
                     <UserAvatar
                         avatarUrl={user?.avatar_url}
@@ -105,28 +106,21 @@ export default function DashboardLayout({
                     />
                     <div className="dropdown-user-details">
                         <div className="dropdown-user-name">{user?.full_name || 'User'}</div>
-                        <div className="dropdown-user-email">{user?.email || ''}</div>
+                        <div className="dropdown-user-email">{user?.email}</div>
                     </div>
-                </div>
-                <div className="dropdown-menu-item" onClick={() => { }}>
-                    <span>Switch accounts</span>
-                </div>
-                <div className="dropdown-menu-item" onClick={() => { }}>
-                    <span>Manage account</span>
-                    <ExportOutlined style={{ fontSize: 12 }} />
                 </div>
             </div>
 
             <Divider style={{ margin: '8px 0' }} />
 
-            {/* MELLO Section */}
+            {/* Account Section */}
             <div className="dropdown-section">
-                <div className="dropdown-section-label">MELLO</div>
+                <div className="dropdown-section-label">Account</div>
                 <div className="dropdown-menu-item" onClick={() => router.push('/me/profile')}>
                     <UserOutlined />
                     <span>Profile and visibility</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/activity')}>
+                <div className="dropdown-menu-item" onClick={() => router.push('/activity')}>
                     <HistoryOutlined />
                     <span>Activity</span>
                 </div>
@@ -138,22 +132,10 @@ export default function DashboardLayout({
                     <SettingOutlined />
                     <span>Settings</span>
                 </div>
-                <div className="dropdown-menu-item theme-item" onClick={() => {
-                    // Cycle: light -> dark -> system -> light
-                    const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
-                    setTheme(nextTheme);
-                }}>
-                    {resolvedTheme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
-                    <span>Theme</span>
-                    <span className="theme-value">
-                        {preference === 'system' ? 'System' : preference === 'dark' ? 'Dark' : 'Light'}
-                    </span>
-                </div>
             </div>
 
             <Divider style={{ margin: '8px 0' }} />
 
-            {/* Actions Section */}
             <div className="dropdown-section">
                 <div className="dropdown-menu-item" onClick={() => router.push('/workspaces')}>
                     <TeamOutlined />
@@ -243,128 +225,127 @@ export default function DashboardLayout({
                     align-items: center;
                     gap: 12px;
                     padding: 8px 12px;
-                    cursor: pointer;
                     border-radius: 4px;
-                    font-size: 14px;
+                    cursor: pointer;
+                    transition: background 0.2s;
                     color: var(--text-primary);
-                    transition: background 0.15s ease;
                 }
                 .dropdown-menu-item:hover {
                     background: var(--bg-tertiary);
                 }
-                .dropdown-menu-item.logout-item {
-                    color: #cf1322;
-                }
-                .dropdown-menu-item.theme-item .theme-value {
-                    margin-left: auto;
-                    font-size: 12px;
-                    color: var(--text-secondary);
+                .dropdown-menu-item.logout-item:hover {
+                    background: rgba(255, 77, 79, 0.1);
+                    color: #ff4d4f;
                 }
             `}</style>
-            <Sider
-                trigger={null}
-                collapsible
-                collapsed={collapsed}
-                width={260}
+
+            {/* Row 1: Top Header Bar (same as board layout) */}
+            <Header
                 style={{
-                    borderRight: `1px solid var(--border-color)`,
-                    height: '100vh',
-                    position: 'fixed',
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    overflow: 'auto',
+                    height: 48,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0 16px',
+                    borderBottom: '1px solid var(--border-color)',
+                    background: 'var(--bg-primary)',
+                    lineHeight: '32px',
                 }}
             >
+                {/* Left: Logo + App Name */}
                 <div
-                    style={{
-                        height: 64,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0 16px',
-                        borderBottom: `1px solid var(--border-color)`,
-                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+                    onClick={() => router.push('/workspaces')}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <img
-                            src="/mello-icon-only.svg"
-                            alt="Mello"
-                            style={{ width: 32, height: 32 }}
-                        />
-                        {!collapsed && (
-                            <span style={{
-                                fontSize: 20,
-                                fontWeight: 700,
-                                color: 'var(--text-primary)',
-                                letterSpacing: '-0.5px'
-                            }}>
-                                Mello
-                            </span>
-                        )}
-                    </div>
+                    <img
+                        src="/mello-icon-only.svg"
+                        alt="Mello"
+                        style={{ width: 28, height: 28 }}
+                    />
+                    <span style={{
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                        letterSpacing: '-0.5px'
+                    }}>
+                        Mello
+                    </span>
+                </div>
+
+                {/* Center: Global Search */}
+                <GlobalSearch />
+
+                {/* Right: Create + Theme + Notifications + Avatar */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <CreateDropdown />
                     <Button
                         type="text"
-                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                        onClick={() => setCollapsed(!collapsed)}
-                        size="small"
+                        icon={resolvedTheme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+                        onClick={() => {
+                            const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
+                            setTheme(nextTheme);
+                        }}
                     />
+                    <NotificationDropdown />
+                    <Dropdown
+                        popupRender={() => avatarDropdownContent}
+                        placement="bottomRight"
+                        trigger={['click']}
+                    >
+                        <div style={{ cursor: 'pointer' }}>
+                            <UserAvatar
+                                avatarUrl={user?.avatar_url}
+                                name={user?.full_name}
+                                size={32}
+                                style={{ cursor: 'pointer' }}
+                            />
+                        </div>
+                    </Dropdown>
                 </div>
-                <Menu
-                    mode="inline"
-                    selectedKeys={[pathname]}
-                    items={menuItems}
-                    onClick={handleNavClick}
-                    style={{ border: 'none', marginTop: 8 }}
-                />
-            </Sider>
+            </Header>
 
-            <Layout style={{ marginLeft: collapsed ? 80 : 260, transition: 'margin-left 0.2s' }}>
-                <Header
+            {/* Row 2: Sidebar + Content */}
+            <Layout style={{ height: 'calc(100vh - 48px)' }}>
+                {/* Left: Sidebar */}
+                <Sider
+                    trigger={null}
+                    collapsible
+                    collapsed={collapsed}
+                    width={220}
+                    collapsedWidth={60}
                     style={{
-                        padding: '0 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        borderBottom: `1px solid var(--border-color)`,
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
+                        borderRight: '1px solid var(--border-color)',
+                        background: 'var(--bg-primary)',
+                        overflow: 'auto',
                     }}
                 >
-                    {/* Dynamic header content from child pages */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        {headerContent}
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: collapsed ? 'center' : 'flex-end',
+                            padding: '8px',
+                        }}
+                    >
                         <Button
                             type="text"
-                            icon={resolvedTheme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
-                            onClick={() => {
-                                const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
-                                setTheme(nextTheme);
-                            }}
+                            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                            onClick={() => setCollapsed(!collapsed)}
+                            size="small"
                         />
-                        <NotificationDropdown />
-                        <Dropdown
-                            popupRender={() => avatarDropdownContent}
-                            placement="bottomRight"
-                            trigger={['click']}
-                        >
-                            <div style={{ cursor: 'pointer' }}>
-                                <UserAvatar
-                                    avatarUrl={user?.avatar_url}
-                                    name={user?.full_name}
-                                    size={32}
-                                    style={{ cursor: 'pointer' }}
-                                />
-                            </div>
-                        </Dropdown>
                     </div>
-                </Header>
+                    <Menu
+                        mode="inline"
+                        selectedKeys={[pathname]}
+                        items={menuItems}
+                        onClick={handleNavClick}
+                        style={{ border: 'none' }}
+                    />
+                </Sider>
 
-                <Content style={{ overflow: 'auto', height: 'calc(100vh - 64px)' }}>{children}</Content>
+                {/* Right: Main Content */}
+                <Content style={{ overflow: 'auto', background: 'var(--bg-secondary)' }}>
+                    {children}
+                </Content>
             </Layout>
         </Layout>
     );

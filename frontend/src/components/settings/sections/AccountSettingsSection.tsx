@@ -14,15 +14,6 @@ import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
-interface AccountSettingsSectionProps {
-    deleteModalOpen: boolean;
-    setDeleteModalOpen: (open: boolean) => void;
-}
-
-export default function AccountSettingsSection({
-    deleteModalOpen,
-    setDeleteModalOpen,
-}: AccountSettingsSectionProps) {
 export default function AccountSettingsSection() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const { user } = useAuthStore();
