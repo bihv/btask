@@ -19,6 +19,7 @@ import { Card, CustomField, CardCustomFieldValue } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import styles from './KanbanBoard.module.css';
 import UserAvatar from '@/components/common/UserAvatar';
+import { isDueSoon, isOverdue, formatDueDate } from '@/components/common/DueDateTag';
 
 const { Text } = Typography;
 
@@ -56,23 +57,6 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
         opacity: isDragging ? 0.5 : 1,
     };
 
-    const formatDueDate = (date: string) => {
-        const d = new Date(date);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
-
-    const isDueSoon = (date: string) => {
-        const dueDate = new Date(date);
-        const now = new Date();
-        const diffDays = Math.ceil(
-            (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        return diffDays <= 3 && diffDays >= 0;
-    };
-
-    const isOverdue = (date: string) => {
-        return new Date(date) < new Date();
-    };
 
     const getDueDateStatus = () => {
         if (!card.due_date) return null;

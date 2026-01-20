@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Modal, Input, Button, List, Typography, Spin, Select, App } from 'antd';
+import { Modal, Input, Button, Typography, Spin, Select, App } from 'antd';
 import { UserAddOutlined, DeleteOutlined, CrownOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
@@ -137,49 +137,72 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
                         <Spin />
                     </div>
                 ) : (
-                    <List
-                        dataSource={members}
-                        renderItem={(member) => (
-                            <List.Item
-                                style={{ padding: '8px 0' }}
-                                actions={
-                                    isOwner && member.role !== 'owner'
-                                        ? [
-                                            <Button
-                                                key="remove"
-                                                type="text"
-                                                danger
-                                                icon={<DeleteOutlined />}
-                                                onClick={() => handleRemove(member.user_id)}
-                                            />
-                                        ]
-                                        : undefined
-                                }
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {members.map((member, index) => (
+                            <div
+                                key={member.id}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '8px 0',
+                                    borderBottom: index < members.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                }}
                             >
-                                <List.Item.Meta
-                                    avatar={
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        flex: 1,
+                                        minWidth: 0,
+                                        marginRight: 16,
+                                    }}
+                                >
+                                    <div style={{ marginRight: 16, flexShrink: 0 }}>
                                         <UserAvatar
                                             avatarUrl={member.user?.avatar_url}
                                             name={member.user?.full_name || member.user?.email}
                                             size={32}
                                         />
-                                    }
-                                    title={
-                                        <span>
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontWeight: 500 }}>
                                             {member.user?.full_name || member.user?.email}
                                             {member.role === 'owner' && (
-                                                <CrownOutlined style={{ marginLeft: 8, color: '#faad14' }} />
+                                                <CrownOutlined
+                                                    style={{ marginLeft: 8, color: '#faad14' }}
+                                                />
                                             )}
-                                        </span>
-                                    }
-                                    description={member.user?.email}
-                                />
-                                <Text type="secondary" style={{ fontSize: 12, textTransform: 'capitalize' }}>
-                                    {member.role}
-                                </Text>
-                            </List.Item>
-                        )}
-                    />
+                                        </div>
+                                        <div style={{ fontSize: 14 }}>
+                                            {member.user?.email}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                                    <Text
+                                        type="secondary"
+                                        style={{
+                                            fontSize: 12,
+                                            textTransform: 'capitalize',
+                                            marginRight: isOwner && member.role !== 'owner' ? 16 : 0,
+                                        }}
+                                    >
+                                        {member.role}
+                                    </Text>
+                                    {isOwner && member.role !== 'owner' && (
+                                        <Button
+                                            type="text"
+                                            danger
+                                            icon={<DeleteOutlined />}
+                                            onClick={() => handleRemove(member.user_id)}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )}
             </div>
         </Modal>

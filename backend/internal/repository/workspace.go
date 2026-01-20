@@ -92,3 +92,19 @@ func (r *WorkspaceRepository) GetMembers(workspaceID uuid.UUID) ([]models.Worksp
 	}
 	return members, nil
 }
+
+// SearchByName searches workspaces by name that the user has access to
+func (r *WorkspaceRepository) SearchByName(userID uuid.UUID, query string, limit int) ([]models.Workspace, error) {
+	var workspaces []models.Workspace
+	err := database.DB.
+		Joins("LEFT JOIN workspace_members ON workspace_members.workspace_id = workspaces.id").
+		Where("(workspaces.owner_id = ? OR workspace_members.user_id = ?) AND LOWER(workspaces.name) LIKE LOWER(?)",
+			userID, userID, "%"+query+"%").
+		Distinct().
+		Limit(limit).
+		Find(&workspaces).Error
+	if err != nil {
+		return nil, err
+	}
+	return workspaces, nil
+}

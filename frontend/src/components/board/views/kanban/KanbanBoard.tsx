@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card, List } from '@/types';
-import { FilterState } from '@/components/board/CardFilterBar';
+import { FilterState } from '@/components/board/BoardFilterPopover';
 import KanbanList from './KanbanList';
 import KanbanCard from './KanbanCard';
 import AddList from './AddList';
