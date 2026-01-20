@@ -88,7 +88,6 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
     const completionPercent = stats.total > 0 ? Math.round((stats.complete / stats.total) * 100) : 0;
 
     const cardStyle = {
-        background: 'rgba(255, 255, 255, 0.9)',
         borderRadius: 8,
         height: '100%',
     };

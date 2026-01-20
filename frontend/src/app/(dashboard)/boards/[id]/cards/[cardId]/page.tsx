@@ -135,7 +135,7 @@ export default function CardPage() {
     }, [cardData]);
 
     const handleBack = () => {
-        router.push(`/boards/${boardId}`);
+        router.back();
     };
 
     // Set dynamic header content

@@ -8,6 +8,7 @@ import {
     CalendarOutlined,
     DashboardOutlined,
 } from '@ant-design/icons';
+import styles from './BoardViewSwitcher.module.css';
 
 export type BoardViewMode = 'board' | 'table' | 'calendar' | 'dashboard';
 
@@ -31,14 +32,21 @@ export default function BoardViewSwitcher({ value, onChange }: BoardViewSwitcher
             options={viewOptions.map((opt) => ({
                 value: opt.value,
                 label: (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 4px' }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 6, 
+                        padding: '0 4px',
+                        color: 'inherit',
+                    }}>
                         {opt.icon}
                         <span>{opt.label}</span>
                     </div>
                 ),
             }))}
+            className={styles.switcher}
             style={{
-                background: 'rgba(255, 255, 255, 0.15)',
+                background: 'rgba(0, 0, 0, 0.25)',
                 backdropFilter: 'blur(8px)',
             }}
         />

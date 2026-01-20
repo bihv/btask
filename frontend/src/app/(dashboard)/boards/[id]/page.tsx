@@ -218,20 +218,25 @@ export default function BoardPage() {
         >
             {/* Filter Bar and View Switcher */}
             <div style={{ padding: '8px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-                <CardFilterBar
-                    labels={board.labels || []}
-                    members={workspaceMembers}
-                    filters={filters}
-                    onChange={setFilters}
-                />
+                {viewMode !== 'dashboard' ? (
+                    <CardFilterBar
+                        labels={board.labels || []}
+                        members={workspaceMembers}
+                        filters={filters}
+                        onChange={setFilters}
+                        hideNoDateOption={viewMode === 'calendar'}
+                    />
+                ) : (
+                    <div />
+                )}
                 <BoardViewSwitcher value={viewMode} onChange={handleViewChange} />
             </div>
 
             {/* Board Views */}
             <div style={{ flex: 1, overflow: 'hidden' }}>
                 {viewMode === 'board' && <KanbanBoard filters={filters} />}
-                {viewMode === 'table' && <TableView onCardClick={handleCardClick} />}
-                {viewMode === 'calendar' && <CalendarView onCardClick={handleCardClick} />}
+                {viewMode === 'table' && <TableView filters={filters} onCardClick={handleCardClick} />}
+                {viewMode === 'calendar' && <CalendarView filters={filters} onCardClick={handleCardClick} />}
                 {viewMode === 'dashboard' && <DashboardView onCardClick={handleCardClick} />}
             </div>
 

@@ -5,22 +5,64 @@ import { Table, Tag, Avatar, Typography, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card } from '@/types';
+import { FilterState } from '@/components/board/CardFilterBar';
+import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
 import dayjs from 'dayjs';
 
 const { Text } = Typography;
 
 interface TableViewProps {
+    filters?: FilterState;
     onCardClick?: (cardId: string) => void;
 }
 
-export default function TableView({ onCardClick }: TableViewProps) {
+export default function TableView({ filters, onCardClick }: TableViewProps) {
     const { lists, currentBoard } = useBoardStore();
 
-    // Flatten all cards with list info
+    // Flatten all cards with list info and apply filters
     const cards = useMemo(() => {
         const allCards: (Card & { listTitle: string; listId: string })[] = [];
         lists.forEach((list) => {
             (list.cards || []).forEach((card) => {
+                // Apply filters
+                if (filters) {
+                    // Search filter
+                    if (filters.search && !card.title.toLowerCase().includes(filters.search.toLowerCase())) {
+                        return;
+                    }
+                    // Label filter
+                    if (filters.labelIds.length > 0) {
+                        const cardLabelIds = card.labels?.map(l => l.label_id) || [];
+                        if (!filters.labelIds.some(id => cardLabelIds.includes(id))) {
+                            return;
+                        }
+                    }
+                    // Member filter
+                    if (filters.memberIds.length > 0) {
+                        const cardMemberIds = card.members?.map(m => m.user_id) || [];
+                        if (!filters.memberIds.some(id => cardMemberIds.includes(id))) {
+                            return;
+                        }
+                    }
+                    // Due date filter
+                    if (filters.dueDate) {
+                        const now = dayjs();
+                        const dueDate = card.due_date ? dayjs(card.due_date) : null;
+                        if (filters.dueDate === 'overdue' && (!dueDate || !dueDate.isBefore(now))) {
+                            return;
+                        }
+                        if (filters.dueDate === 'due_soon' && (!card.due_date || !isDueSoon(card.due_date))) {
+                            return;
+                        }
+                        if (filters.dueDate === 'due_later' && (!card.due_date || !isDueLater(card.due_date))) {
+                            return;
+                        }
+                        if (filters.dueDate === 'no_date' && card.due_date) {
+                            return;
+                        }
+                    }
+                }
+                
                 allCards.push({
                     ...card,
                     listTitle: list.title,
@@ -29,7 +71,7 @@ export default function TableView({ onCardClick }: TableViewProps) {
             });
         });
         return allCards;
-    }, [lists]);
+    }, [lists, filters]);
 
     const columns: ColumnsType<Card & { listTitle: string; listId: string }> = [
         {
@@ -106,15 +148,13 @@ export default function TableView({ onCardClick }: TableViewProps) {
                 if (!b.due_date) return -1;
                 return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
             },
-            render: (dueDate: string) => {
+            render: (dueDate: string, record) => {
                 if (!dueDate) return <Text type="secondary">-</Text>;
-                const date = dayjs(dueDate);
-                const isOverdue = date.isBefore(dayjs(), 'day');
-                const isDueSoon = date.isBefore(dayjs().add(2, 'day'), 'day');
                 return (
-                    <Tag color={isOverdue ? 'red' : isDueSoon ? 'orange' : 'default'}>
-                        {date.format('MMM D')}
-                    </Tag>
+                    <DueDateTag
+                        dueDate={dueDate}
+                        isCompleted={record.is_completed}
+                    />
                 );
             },
         },
@@ -133,17 +173,13 @@ export default function TableView({ onCardClick }: TableViewProps) {
     ];
 
     return (
-        <div style={{ padding: 16, height: '100%', overflow: 'auto' }}>
+        <div className="table-view-container" style={{ padding: 16, height: '100%', overflow: 'auto' }}>
             <Table
                 dataSource={cards}
                 columns={columns}
                 rowKey="id"
                 pagination={{ pageSize: 50, showSizeChanger: true }}
                 size="small"
-                style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: 8,
-                }}
                 onRow={(record) => ({
                     onClick: () => onCardClick?.(record.id),
                     style: { cursor: 'pointer' },
