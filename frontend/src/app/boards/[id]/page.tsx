@@ -2,8 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Typography, Button, Input, Spin, App } from 'antd';
-import { MoreOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Typography, Button, Input, Spin, App, Tooltip } from 'antd';
+import { 
+    MoreOutlined, 
+    ArrowLeftOutlined,
+    StarOutlined,
+    StarFilled,
+    ShareAltOutlined,
+    FilterOutlined,
+    ThunderboltOutlined,
+    RobotOutlined,
+} from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
 import {
     KanbanView as KanbanBoard,
@@ -13,10 +22,9 @@ import {
     DashboardView,
     type BoardViewMode,
 } from '@/components/board/views';
-import { useHeader } from '@/providers/HeaderProvider';
 import { useBoard, useUpdateBoard, useDeleteBoard } from '@/hooks/useBoards';
 import { useWorkspaceMembers } from '@/hooks/useCards';
-import CardFilterBar, { FilterState, defaultFilters } from '@/components/board/CardFilterBar';
+import BoardFilterPopover, { FilterState, defaultFilters, hasActiveFilters } from '@/components/board/BoardFilterPopover';
 import ShareModal from '@/components/workspace/ShareModal';
 import BoardMenuPopover from '@/components/board/BoardMenuPopover';
 import api from '@/lib/api';
@@ -42,11 +50,11 @@ export default function BoardPage() {
     // Fetch workspace members for filter
     const { data: workspaceMembers = [] } = useWorkspaceMembers(board?.workspace_id || '');
 
-    const { setHeaderContent } = useHeader();
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState('');
     const [shareOpen, setShareOpen] = useState(false);
     const [filters, setFilters] = useState<FilterState>(defaultFilters);
+    const [showFilters, setShowFilters] = useState(false);
     
     // View mode from URL query param
     const searchParams = useSearchParams();
@@ -72,7 +80,6 @@ export default function BoardPage() {
     useEffect(() => {
         if (board) {
             setLists(board.lists || []);
-            // Also update currentBoard in store for compatibility
             useBoardStore.setState({
                 currentBoard: board,
                 showCardCovers: board.show_card_covers ?? true,
@@ -128,75 +135,6 @@ export default function BoardPage() {
         }
     };
 
-    // Set dynamic header
-    useEffect(() => {
-        if (board) {
-            setHeaderContent(
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Button
-                        type="text"
-                        icon={<ArrowLeftOutlined />}
-                        onClick={() => router.back()}
-                    />
-                    {isEditing ? (
-                        <Input
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            onBlur={handleTitleSave}
-                            onPressEnter={handleTitleSave}
-                            autoFocus
-                            style={{
-                                width: 200,
-                                fontWeight: 700,
-                                fontSize: 16,
-                            }}
-                        />
-                    ) : (
-                        <Text
-                            strong
-                            style={{ fontSize: 16, cursor: 'pointer' }}
-                            onClick={() => setIsEditing(true)}
-                        >
-                            {board.title}
-                        </Text>
-                    )}
-                    <BoardMenuPopover
-                        board={board}
-                        workspaceMembers={workspaceMembers}
-                        onShareClick={() => setShareOpen(true)}
-                        onToggleStar={toggleStar}
-                        onToggleWatch={toggleWatch}
-                        onExpandAllLists={async () => {
-                            await api.put(`/boards/${boardId}/expand-all-lists`);
-                            refetch();
-                        }}
-                        onCollapseAllLists={async () => {
-                            await api.put(`/boards/${boardId}/collapse-all-lists`);
-                            refetch();
-                        }}
-                        onCopyBoard={async (title) => {
-                            const response = await api.post(`/boards/${boardId}/copy`, { title });
-                            const newBoard = response.data.data;
-                            router.push(`/boards/${newBoard.id}`);
-                        }}
-                        onUpdateBoard={async (data) => {
-                            await updateMutation.mutateAsync({ id: boardId, data });
-                        }}
-                        onDeleteBoard={async () => {
-                            await deleteMutation.mutateAsync(boardId);
-                            message.success('Board deleted');
-                            router.push('/workspaces');
-                        }}
-                        onCardClick={(cardId) => router.push(`/boards/${boardId}/cards/${cardId}`)}
-                    >
-                        <Button type="text" icon={<MoreOutlined />} />
-                    </BoardMenuPopover>
-                </div>
-            );
-        }
-        return () => setHeaderContent(null);
-    }, [board, isEditing, title, workspaceMembers.length]);
-
     if (isLoading || !board) {
         return (
             <div className="loading-container" style={{ minHeight: '100%' }}>
@@ -216,21 +154,148 @@ export default function BoardPage() {
                     : board.background_color || '#0079bf',
             }}
         >
-            {/* Filter Bar and View Switcher */}
-            <div style={{ padding: '8px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-                {viewMode !== 'dashboard' ? (
-                    <CardFilterBar
-                        labels={board.labels || []}
-                        members={workspaceMembers}
-                        filters={filters}
-                        onChange={setFilters}
-                        hideNoDateOption={viewMode === 'calendar'}
+            {/* Row 2: Board Toolbar */}
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 16px',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                }}
+            >
+                {/* Left: Back + Board Name + View Switcher */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <Button
+                        type="text"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => router.back()}
+                        style={{ color: 'white' }}
                     />
-                ) : (
-                    <div />
-                )}
-                <BoardViewSwitcher value={viewMode} onChange={handleViewChange} />
+                    {isEditing ? (
+                        <Input
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            onBlur={handleTitleSave}
+                            onPressEnter={handleTitleSave}
+                            autoFocus
+                            style={{
+                                width: 200,
+                                fontWeight: 700,
+                                fontSize: 16,
+                            }}
+                        />
+                    ) : (
+                        <Text
+                            strong
+                            style={{ fontSize: 16, cursor: 'pointer', color: 'white' }}
+                            onClick={() => setIsEditing(true)}
+                        >
+                            {board.title}
+                        </Text>
+                    )}
+                    <BoardViewSwitcher value={viewMode} onChange={handleViewChange} />
+                </div>
+
+                {/* Right: Placeholders + Actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {/* Placeholder buttons */}
+                    <Tooltip title="Power-Ups (coming soon)">
+                        <Button
+                            type="text"
+                            icon={<ThunderboltOutlined />}
+                            disabled
+                            style={{ color: 'rgba(255,255,255,0.6)' }}
+                        />
+                    </Tooltip>
+                    <Tooltip title="Automation (coming soon)">
+                        <Button
+                            type="text"
+                            icon={<RobotOutlined />}
+                            disabled
+                            style={{ color: 'rgba(255,255,255,0.6)' }}
+                        />
+                    </Tooltip>
+
+                    {/* Filter button */}
+                    {viewMode !== 'dashboard' && (
+                        <BoardFilterPopover
+                            labels={board.labels || []}
+                            members={workspaceMembers}
+                            filters={filters}
+                            onChange={setFilters}
+                            hideNoDateOption={viewMode === 'calendar'}
+                        >
+                            <Tooltip title="Filter cards">
+                                <Button
+                                    type={hasActiveFilters(filters) ? 'primary' : 'text'}
+                                    icon={<FilterOutlined />}
+                                    style={!hasActiveFilters(filters) ? { color: 'white' } : {}}
+                                >
+                                    {hasActiveFilters(filters) ? 'Filters' : 'Filter'}
+                                </Button>
+                            </Tooltip>
+                        </BoardFilterPopover>
+                    )}
+
+                    {/* Star */}
+                    <Tooltip title={board.is_starred ? 'Unstar' : 'Star'}>
+                        <Button
+                            type="text"
+                            icon={board.is_starred ? <StarFilled style={{ color: '#f5c542' }} /> : <StarOutlined />}
+                            onClick={toggleStar}
+                            style={{ color: 'white' }}
+                        />
+                    </Tooltip>
+
+                    {/* Share */}
+                    <Button
+                        type="text"
+                        icon={<ShareAltOutlined />}
+                        onClick={() => setShareOpen(true)}
+                        style={{ color: 'white' }}
+                    >
+                        Share
+                    </Button>
+
+                    {/* Menu */}
+                    <BoardMenuPopover
+                        board={board}
+                        workspaceMembers={workspaceMembers}
+                        onShareClick={() => setShareOpen(true)}
+                        onToggleStar={toggleStar}
+                        onToggleWatch={toggleWatch}
+                        onExpandAllLists={async () => {
+                            await api.put(`/boards/${boardId}/expand-all-lists`);
+                            refetch();
+                        }}
+                        onCollapseAllLists={async () => {
+                            await api.put(`/boards/${boardId}/collapse-all-lists`);
+                            refetch();
+                        }}
+                        onCopyBoard={async (copyTitle) => {
+                            const response = await api.post(`/boards/${boardId}/copy`, { title: copyTitle });
+                            const newBoard = response.data.data;
+                            router.push(`/boards/${newBoard.id}`);
+                        }}
+                        onUpdateBoard={async (data) => {
+                            await updateMutation.mutateAsync({ id: boardId, data });
+                        }}
+                        onDeleteBoard={async () => {
+                            await deleteMutation.mutateAsync(boardId);
+                            message.success('Board deleted');
+                            router.push('/workspaces');
+                        }}
+                        onCardClick={(cardId) => router.push(`/boards/${boardId}/cards/${cardId}`)}
+                    >
+                        <Button type="text" icon={<MoreOutlined />} style={{ color: 'white' }} />
+                    </BoardMenuPopover>
+                </div>
             </div>
+
+
 
             {/* Board Views */}
             <div style={{ flex: 1, overflow: 'hidden' }}>

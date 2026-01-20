@@ -108,7 +108,7 @@ export default function BoardMenuPopover({
 
     // Main menu screen
     const renderMainScreen = () => (
-        <div style={{ width: 280 }}>
+        <div style={{ width: 280, maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }}>
             <MenuTitle title="Menu" />
 
             {/* Section 1 */}

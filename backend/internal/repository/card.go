@@ -260,3 +260,29 @@ func (r *CardRepository) FindByAssignedUserID(userID uuid.UUID, filter models.Ca
 	}
 	return cards, nil
 }
+
+// Search searches cards by title, description, or label names that the user has access to
+func (r *CardRepository) Search(userID uuid.UUID, query string, limit int) ([]models.Card, error) {
+	var cards []models.Card
+	searchPattern := "%" + query + "%"
+
+	err := database.DB.
+		Joins("JOIN lists ON lists.id = cards.list_id").
+		Joins("JOIN boards ON boards.id = lists.board_id").
+		Joins("JOIN workspaces ON workspaces.id = boards.workspace_id").
+		Joins("LEFT JOIN workspace_members ON workspace_members.workspace_id = workspaces.id").
+		Joins("LEFT JOIN card_labels ON card_labels.card_id = cards.id").
+		Joins("LEFT JOIN labels ON labels.id = card_labels.label_id").
+		Where("(workspaces.owner_id = ? OR workspace_members.user_id = ?)", userID, userID).
+		Where("cards.is_archived = ?", false).
+		Where("(LOWER(cards.title) LIKE LOWER(?) OR LOWER(cards.description) LIKE LOWER(?) OR LOWER(labels.name) LIKE LOWER(?))",
+			searchPattern, searchPattern, searchPattern).
+		Distinct().
+		Preload("List.Board").
+		Limit(limit).
+		Find(&cards).Error
+	if err != nil {
+		return nil, err
+	}
+	return cards, nil
+}

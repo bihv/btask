@@ -125,3 +125,21 @@ func (r *BoardRepository) GetWatchers(boardID uuid.UUID) ([]uuid.UUID, error) {
 	}
 	return userIDs, nil
 }
+
+// SearchByTitle searches boards by title that the user has access to
+func (r *BoardRepository) SearchByTitle(userID uuid.UUID, query string, limit int) ([]models.Board, error) {
+	var boards []models.Board
+	err := database.DB.
+		Joins("JOIN workspaces ON workspaces.id = boards.workspace_id").
+		Joins("LEFT JOIN workspace_members ON workspace_members.workspace_id = workspaces.id").
+		Where("(workspaces.owner_id = ? OR workspace_members.user_id = ?) AND LOWER(boards.title) LIKE LOWER(?)",
+			userID, userID, "%"+query+"%").
+		Distinct().
+		Preload("Workspace").
+		Limit(limit).
+		Find(&boards).Error
+	if err != nil {
+		return nil, err
+	}
+	return boards, nil
+}

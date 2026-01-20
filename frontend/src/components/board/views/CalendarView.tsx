@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Calendar, Badge, Popover, List, Typography, Tag, Empty, Button, Tooltip } from 'antd';
+import { Calendar, Badge, Popover, Typography, Tag, Empty, Button, Tooltip } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import type { CalendarMode } from 'antd/es/calendar/generateCalendar';
 import dayjs from 'dayjs';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card } from '@/types';
-import { FilterState } from '@/components/board/CardFilterBar';
+import { FilterState } from '@/components/board/BoardFilterPopover';
 import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
 
 const { Text } = Typography;
@@ -106,12 +106,14 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
         return (
             <Popover
                 content={
-                    <List
-                        size="small"
-                        dataSource={cards}
-                        renderItem={(card) => (
-                            <List.Item
-                                style={{ cursor: 'pointer', padding: '4px 0' }}
+                    <div style={{ maxHeight: 200, overflow: 'auto', minWidth: 200, display: 'flex', flexDirection: 'column' }}>
+                        {cards.map((card) => (
+                            <div
+                                key={card.id}
+                                style={{
+                                    cursor: 'pointer',
+                                    padding: '4px 0',
+                                }}
                                 onClick={() => onCardClick?.(card.id)}
                             >
                                 <div>
@@ -130,10 +132,9 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                                         {card.is_completed && <Tag color="green" style={{ fontSize: 10 }}>Done</Tag>}
                                     </div>
                                 </div>
-                            </List.Item>
-                        )}
-                        style={{ maxHeight: 200, overflow: 'auto', minWidth: 200 }}
-                    />
+                            </div>
+                        ))}
+                    </div>
                 }
                 title={`Cards due ${value.format('MMM D')}`}
                 trigger="hover"
@@ -296,12 +297,14 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                         <Empty description="No cards due" image={Empty.PRESENTED_IMAGE_SIMPLE} />
                     ) : (
                         <div style={{ flex: 1, overflow: 'auto' }}>
-                            <List
-                                size="small"
-                                dataSource={displayCards}
-                                renderItem={(card) => (
-                                    <List.Item
-                                        style={{ cursor: 'pointer' }}
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {displayCards.map((card) => (
+                                    <div
+                                        key={card.id}
+                                        style={{
+                                            cursor: 'pointer',
+                                            padding: '8px 0',
+                                        }}
                                         onClick={() => onCardClick?.(card.id)}
                                     >
                                         <div>
@@ -323,9 +326,9 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                                                 />
                                             </div>
                                         </div>
-                                    </List.Item>
-                                )}
-                            />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

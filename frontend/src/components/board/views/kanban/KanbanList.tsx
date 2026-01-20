@@ -9,7 +9,7 @@ import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutl
 import { List, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import api from '@/lib/api';
-import { FilterState } from '@/components/board/CardFilterBar';
+import { FilterState } from '@/components/board/BoardFilterPopover';
 import { isDueSoon, isDueLater, isOverdue } from '@/components/common/DueDateTag';
 import KanbanCard from './KanbanCard';
 import styles from './KanbanBoard.module.css';

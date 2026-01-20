@@ -406,7 +406,7 @@ export default function ChecklistItemRow({
                 onCancel={closeDueDateModal}
                 footer={null}
                 width={300}
-                destroyOnClose
+                destroyOnHidden
             >
                 <DueDatePickerContent
                     checklistId={checklistId}
@@ -423,7 +423,7 @@ export default function ChecklistItemRow({
                 onCancel={closeMemberModal}
                 footer={null}
                 width={320}
-                destroyOnClose
+                destroyOnHidden
             >
                 {renderMemberPicker()}
             </Modal>

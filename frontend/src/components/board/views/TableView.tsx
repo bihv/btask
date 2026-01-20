@@ -5,7 +5,7 @@ import { Table, Tag, Avatar, Typography, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card } from '@/types';
-import { FilterState } from '@/components/board/CardFilterBar';
+import { FilterState } from '@/components/board/BoardFilterPopover';
 import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
 import dayjs from 'dayjs';
 

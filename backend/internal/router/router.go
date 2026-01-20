@@ -73,6 +73,10 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Labels endpoint for i18n (protected to access user language preference)
 	protected.Get("/labels", systemLabelHandler.GetLabels)
 
+	// Global search endpoint
+	searchHandler := handlers.NewSearchHandler()
+	protected.Get("/search", searchHandler.Search)
+
 	// User routes
 	cardHandler := handlers.NewCardHandler()
 	users := protected.Group("/users")

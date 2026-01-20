@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Dropdown, Badge, Button, List, Typography, Spin, Empty, Switch, Tooltip } from 'antd';
+import { Dropdown, Badge, Button, Typography, Spin, Empty, Switch, Tooltip } from 'antd';
 import { BellOutlined, CheckOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useNotificationStore, Notification } from '@/stores/notificationStore';
 import dayjs from 'dayjs';
@@ -132,15 +132,14 @@ export default function NotificationDropdown() {
                     />
                 ) : (
                     <>
-                        <List
-                            dataSource={notifications}
-                            renderItem={(notification) => (
-                                <List.Item
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {notifications.map((notification) => (
+                                <div
+                                    key={notification.id}
                                     style={{
                                         padding: '12px 16px',
                                         cursor: 'pointer',
                                         background: notification.is_read ? 'transparent' : 'rgba(24, 144, 255, 0.1)',
-                                        borderBottom: '1px solid var(--border-color)',
                                         display: 'flex',
                                         alignItems: 'flex-start'
                                     }}
@@ -192,9 +191,9 @@ export default function NotificationDropdown() {
                                             }}
                                         />
                                     </Tooltip>
-                                </List.Item>
-                            )}
-                        />
+                                </div>
+                            ))}
+                        </div>
                         {isLoading && (
                             <div style={{ padding: 16, textAlign: 'center' }}>
                                 <Spin size="small" />

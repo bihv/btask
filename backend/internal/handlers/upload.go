@@ -7,7 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/storage"
+	"github.com/mello/backend/pkg/logger"
 	"github.com/mello/backend/pkg/utils"
+	"go.uber.org/zap"
 )
 
 type UploadHandler struct{}
@@ -54,12 +56,14 @@ func (h *UploadHandler) UploadFile(c *fiber.Ctx) error {
 	// Upload to MinIO
 	minioStorage := storage.GetMinioStorage()
 	if minioStorage == nil {
+		logger.Error("Upload failed: MinIO storage not initialized")
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Storage not initialized")
 	}
 
 	// Upload with user ID prefix for organization
 	url, err := minioStorage.UploadFileWithPrefix(context.Background(), src, file.Filename, contentType, file.Size, fmt.Sprintf("users/%s", userID.String()))
 	if err != nil {
+		logger.Error("Upload failed: MinIO upload error", zap.Error(err))
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to upload file: "+err.Error())
 	}
 

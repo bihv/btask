@@ -15,7 +15,6 @@ import {
     Spin,
     Popover,
     Tag,
-    List as AntList,
     Upload,
     App,
 } from 'antd';
@@ -375,29 +374,33 @@ export default function CardPage() {
     const membersContent = (
         <div style={{ width: 250 }}>
             <Text strong style={{ display: 'block', marginBottom: 8 }}>Members</Text>
-            <AntList
-                size="small"
-                dataSource={workspaceMembers}
-                renderItem={(member) => {
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {workspaceMembers.map((member) => {
                     const isAssigned = card.members?.some((cm) => cm.user_id === member.id);
                     return (
-                        <AntList.Item
-                            style={{ cursor: 'pointer', padding: '8px 0' }}
+                        <div
+                            key={member.id}
+                            style={{ 
+                                cursor: 'pointer', 
+                                padding: '8px 0',
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: 8, 
+                                width: '100%' 
+                            }}
                             onClick={() => handleToggleMember(member.id)}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
-                                <UserAvatar
-                                    avatarUrl={member.avatar_url}
-                                    name={member.full_name}
-                                    size="small"
-                                />
-                                <span style={{ flex: 1 }}>{member.full_name}</span>
-                                {isAssigned && <CheckOutlined style={{ color: '#52c41a' }} />}
-                            </div>
-                        </AntList.Item>
+                            <UserAvatar
+                                avatarUrl={member.avatar_url}
+                                name={member.full_name}
+                                size="small"
+                            />
+                            <span style={{ flex: 1 }}>{member.full_name}</span>
+                            {isAssigned && <CheckOutlined style={{ color: '#52c41a' }} />}
+                        </div>
                     );
-                }}
-            />
+                })}
+            </div>
         </div>
     );
 
@@ -443,9 +446,59 @@ export default function CardPage() {
                 height: 'calc(100vh - 64px)',
                 background: 'var(--bg-secondary)',
                 display: 'flex',
+                flexDirection: 'column',
                 overflow: 'hidden',
             }}
         >
+            {/* Header with Back Button and Card Title */}
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '5px 10px',
+                    background: 'var(--bg-primary)',
+                }}
+            >
+                <Button
+                    type="text"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => router.push(`/boards/${boardId}`)}
+                ></Button>
+                {isEditingTitle ? (
+                    <Input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        onBlur={handleTitleSave}
+                        onPressEnter={handleTitleSave}
+                        autoFocus
+                        style={{
+                            flex: 1,
+                            fontSize: 20,
+                            fontWeight: 600,
+                            padding: '4px 8px',
+                        }}
+                    />
+                ) : (
+                    <Title
+                        level={4}
+                        style={{ margin: 0, flex: 1, cursor: 'pointer' }}
+                        ellipsis
+                        onClick={() => setIsEditingTitle(true)}
+                    >
+                        {card.title}
+                    </Title>
+                )}
+            </div>
+
+            {/* Main Content */}
+            <div
+                style={{
+                    flex: 1,
+                    display: 'flex',
+                    overflow: 'hidden',
+                }}
+            >
             {/* Left Column - Description Only */}
             <div
                 style={{
@@ -905,6 +958,7 @@ export default function CardPage() {
                         </Button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

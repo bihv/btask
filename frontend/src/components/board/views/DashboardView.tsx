@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Card, Row, Col, Typography, Progress, Statistic, List, Tag, Avatar, Empty } from 'antd';
+import { Card, Row, Col, Typography, Progress, Statistic, Tag, Avatar, Empty } from 'antd';
 import {
     CheckCircleOutlined,
     ClockCircleOutlined,
@@ -111,7 +111,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                             title="Completed"
                             value={stats.complete}
                             suffix={`/ ${stats.total}`}
-                            valueStyle={{ color: '#52c41a' }}
+                            styles={{ content: { color: '#52c41a' } }}
                         />
                         <Progress percent={completionPercent} size="small" />
                     </Card>
@@ -121,7 +121,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         <Statistic
                             title="Overdue"
                             value={stats.overdue}
-                            valueStyle={{ color: stats.overdue > 0 ? '#ff4d4f' : undefined }}
+                            styles={{ content: { color: stats.overdue > 0 ? '#ff4d4f' : undefined } }}
                             prefix={<ExclamationCircleOutlined />}
                         />
                     </Card>
@@ -131,7 +131,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         <Statistic
                             title="Due Soon"
                             value={stats.dueSoon}
-                            valueStyle={{ color: stats.dueSoon > 0 ? '#faad14' : undefined }}
+                            styles={{ content: { color: stats.dueSoon > 0 ? '#faad14' : undefined } }}
                             prefix={<ClockCircleOutlined />}
                         />
                     </Card>
@@ -167,15 +167,22 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         {stats.byLabel.length === 0 ? (
                             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No labels used" />
                         ) : (
-                            <List
-                                size="small"
-                                dataSource={stats.byLabel}
-                                renderItem={(item) => (
-                                    <List.Item extra={<Text strong>{item.count}</Text>}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {stats.byLabel.map((item, index) => (
+                                    <div
+                                        key={item.name}
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '8px 0',
+                                        }}
+                                    >
                                         <Tag color={item.color}>{item.name}</Tag>
-                                    </List.Item>
-                                )}
-                            />
+                                        <Text strong>{item.count}</Text>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </Card>
                 </Col>
@@ -186,20 +193,25 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         {stats.byMember.length === 0 ? (
                             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No members assigned" />
                         ) : (
-                            <List
-                                size="small"
-                                dataSource={stats.byMember}
-                                renderItem={(item) => (
-                                    <List.Item extra={<Text strong>{item.count} cards</Text>}>
-                                        <List.Item.Meta
-                                            avatar={
-                                                <Avatar src={item.avatar} icon={<UserOutlined />} />
-                                            }
-                                            title={item.name}
-                                        />
-                                    </List.Item>
-                                )}
-                            />
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {stats.byMember.map((item, index) => (
+                                    <div
+                                        key={item.name}
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '8px 0',
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <Avatar src={item.avatar} icon={<UserOutlined />} />
+                                            <Text>{item.name}</Text>
+                                        </div>
+                                        <Text strong>{item.count} cards</Text>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </Card>
                 </Col>
@@ -213,28 +225,26 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         {stats.overdueCards.length === 0 ? (
                             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No overdue cards" />
                         ) : (
-                            <List
-                                size="small"
-                                dataSource={stats.overdueCards}
-                                renderItem={(card) => (
-                                    <List.Item
-                                        style={{ cursor: 'pointer' }}
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                {stats.overdueCards.map((card, index) => (
+                                    <div
+                                        key={card.id}
+                                        style={{
+                                            cursor: 'pointer',
+                                            padding: '8px 0',
+                                        }}
                                         onClick={() => onCardClick?.(card.id)}
                                     >
-                                        <List.Item.Meta
-                                            title={card.title}
-                                            description={
-                                                <div>
-                                                    <Tag color="blue">{card.listTitle}</Tag>
-                                                    <Tag color="red">
-                                                        Due {dayjs(card.due_date).format('MMM D')}
-                                                    </Tag>
-                                                </div>
-                                            }
-                                        />
-                                    </List.Item>
-                                )}
-                            />
+                                        <div style={{ marginBottom: 4 }}>
+                                            <Text strong>{card.title}</Text>
+                                        </div>
+                                        <div>
+                                            <Tag color="blue">{card.listTitle}</Tag>
+                                            <Tag color="red">Due {dayjs(card.due_date).format('MMM D')}</Tag>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </Card>
                 </Col>
