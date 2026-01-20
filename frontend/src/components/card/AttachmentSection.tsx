@@ -5,11 +5,10 @@ import {
     Typography,
     Button,
     Upload,
-    List,
-    message,
-    Popconfirm,
     Image,
+    Popconfirm,
     Space,
+    App,
 } from 'antd';
 import {
     PaperClipOutlined,
@@ -67,6 +66,7 @@ const formatFileSize = (bytes: number) => {
 
 export default function AttachmentSection({ cardId, attachments, onUpdate, currentCover, onSetCover }: AttachmentSectionProps) {
     const [uploading, setUploading] = useState(false);
+    const { message } = App.useApp();
 
     const handleUpload = async (file: File) => {
         setUploading(true);
@@ -116,45 +116,17 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
             </div>
 
             {attachments.length > 0 && (
-                <List
-                    size="small"
-                    dataSource={attachments}
-                    renderItem={(attachment) => (
-                        <List.Item
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {attachments.map((attachment) => (
+                        <div
+                            key={attachment.id}
                             style={{
                                 padding: '8px 0',
                                 display: 'flex',
                                 alignItems: 'flex-start',
+                                justifyContent: 'space-between',
                                 gap: 12,
                             }}
-                            actions={[
-                                isImageFile(attachment.file_name) && onSetCover && (
-                                    <Button
-                                        key="cover"
-                                        type={currentCover === attachment.file_url ? 'primary' : 'text'}
-                                        size="small"
-                                        icon={currentCover === attachment.file_url ? <CheckCircleFilled /> : <PictureOutlined />}
-                                        onClick={() => onSetCover(attachment.file_url)}
-                                        title={currentCover === attachment.file_url ? 'Current Cover' : 'Set as Cover'}
-                                    />
-                                ),
-                                <Button
-                                    key="download"
-                                    type="text"
-                                    size="small"
-                                    icon={<DownloadOutlined />}
-                                    onClick={() => handleDownload(attachment.file_url, attachment.file_name)}
-                                />,
-                                <Popconfirm
-                                    key="delete"
-                                    title="Delete attachment?"
-                                    onConfirm={() => handleDelete(attachment.id)}
-                                    okText="Yes"
-                                    cancelText="No"
-                                >
-                                    <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-                                </Popconfirm>,
-                            ].filter(Boolean)}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
                                 {isImageFile(attachment.file_name) ? (
@@ -187,9 +159,37 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                                     </Text>
                                 </div>
                             </div>
-                        </List.Item>
-                    )}
-                />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                {isImageFile(attachment.file_name) && onSetCover && (
+                                    <Button
+                                        key="cover"
+                                        type={currentCover === attachment.file_url ? 'primary' : 'text'}
+                                        size="small"
+                                        icon={currentCover === attachment.file_url ? <CheckCircleFilled /> : <PictureOutlined />}
+                                        onClick={() => onSetCover(attachment.file_url)}
+                                        title={currentCover === attachment.file_url ? 'Current Cover' : 'Set as Cover'}
+                                    />
+                                )}
+                                <Button
+                                    key="download"
+                                    type="text"
+                                    size="small"
+                                    icon={<DownloadOutlined />}
+                                    onClick={() => handleDownload(attachment.file_url, attachment.file_name)}
+                                />
+                                <Popconfirm
+                                    key="delete"
+                                    title="Delete attachment?"
+                                    onConfirm={() => handleDelete(attachment.id)}
+                                    okText="Yes"
+                                    cancelText="No"
+                                >
+                                    <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                                </Popconfirm>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
 
             <Upload

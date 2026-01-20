@@ -9,7 +9,8 @@ import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutl
 import { List, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import api from '@/lib/api';
-import { FilterState } from '@/components/board/CardFilterBar';
+import { FilterState } from '@/components/board/BoardFilterPopover';
+import { isDueSoon, isDueLater, isOverdue } from '@/components/common/DueDateTag';
 import KanbanCard from './KanbanCard';
 import styles from './KanbanBoard.module.css';
 
@@ -48,20 +49,18 @@ function matchesFilters(card: Card, filters: FilterState): boolean {
 
     // Due date filter
     if (filters.dueDate) {
-        const now = new Date();
-        const dueDate = card.due_date ? new Date(card.due_date) : null;
-
         switch (filters.dueDate) {
             case 'overdue':
-                if (!dueDate || dueDate >= now) return false;
+                if (!card.due_date || !isOverdue(card.due_date)) return false;
                 break;
-            case 'due_soon': {
-                const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-                if (!dueDate || dueDate < now || dueDate > sevenDaysLater) return false;
+            case 'due_soon':
+                if (!card.due_date || !isDueSoon(card.due_date)) return false;
                 break;
-            }
+            case 'due_later':
+                if (!card.due_date || !isDueLater(card.due_date)) return false;
+                break;
             case 'no_date':
-                if (dueDate) return false;
+                if (card.due_date) return false;
                 break;
         }
     }
@@ -410,18 +409,19 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
     return (
         <div
             ref={setNodeRef}
-            style={style}
+            style={{
+                ...style,
+                ...(list.color ? { background: `${list.color}a6` } : {}), // a6 = 65% opacity
+            }}
             className={styles.list}
         >
-            {/* Color Bar - Trello style accent */}
-            {list.color && (
-                <div
-                    className={styles.listColorBar}
-                    style={{ backgroundColor: list.color }}
-                />
-            )}
             {/* List Header */}
-            <div className={styles.listHeader} {...attributes} {...listeners}>
+            <div
+                className={styles.listHeader}
+                {...attributes}
+                {...listeners}
+                style={list.color ? { color: '#fff' } : undefined}
+            >
                 {isEditing ? (
                     <Input
                         value={title}
@@ -455,6 +455,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     icon={<ColumnWidthOutlined />}
                     onClick={handleToggleCollapse}
                     title="Collapse list"
+                    style={list.color ? { color: '#fff' } : undefined}
                 />
                 <Dropdown
                     menu={{ items: menuItems }}
@@ -462,7 +463,12 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     open={menuOpen}
                     onOpenChange={setMenuOpen}
                 >
-                    <Button type="text" size="small" icon={<MoreOutlined />} />
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={<MoreOutlined />}
+                        style={list.color ? { color: '#fff' } : undefined}
+                    />
                 </Dropdown>
             </div>
 
@@ -523,7 +529,11 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     type="text"
                     icon={<PlusOutlined />}
                     onClick={() => setIsAddingCard(true)}
-                    style={{ width: '100%', textAlign: 'left' }}
+                    style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        ...(list.color ? { color: '#fff' } : {}),
+                    }}
                 >
                     Add a card
                 </Button>

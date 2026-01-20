@@ -11,9 +11,9 @@ import {
     Modal,
     Form,
     Input,
-    message,
     Empty,
     Spin,
+    App,
 } from 'antd';
 import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import { CreateWorkspaceRequest } from '@/types';
@@ -26,6 +26,7 @@ export default function WorkspacesPage() {
     const router = useRouter();
     const { setHeaderContent } = useHeader();
     const [modalOpen, setModalOpen] = useState(false);
+    const { message } = App.useApp();
     const [form] = Form.useForm();
 
     // React Query hooks

@@ -2,41 +2,44 @@
 
 import React from 'react';
 import { Typography, Card, Divider, Button, Tag } from 'antd';
+import { useTranslation } from '@/hooks/useLabels';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export default function SessionsSecuritySection() {
+    const t = useTranslation();
+
     return (
         <Card size="small">
             <div style={{ opacity: 0.5, marginBottom: 16 }}>
-                <Title level={5} style={{ marginTop: 0 }}>
-                    Active Sessions
-                    <Tag color="blue" style={{ marginLeft: 8 }}>Coming soon</Tag>
-                </Title>
-                <Text type="secondary">View and manage your active sessions</Text>
+                <Text style={{ marginTop: 0, display: 'block' }}>
+                    {t('UI_ACTIVE_SESSIONS')}
+                    <Tag color="blue" style={{ marginLeft: 8 }}>{t('UI_COMING_SOON')}</Tag>
+                </Text>
+                <Text type="secondary">{t('UI_ACTIVE_SESSIONS_DESC')}</Text>
             </div>
 
             <Divider />
 
             <div style={{ opacity: 0.5, marginBottom: 16 }}>
-                <Title level={5} style={{ marginTop: 0 }}>
-                    Two-Factor Authentication
-                    <Tag color="blue" style={{ marginLeft: 8 }}>Coming soon</Tag>
-                </Title>
-                <Text type="secondary">Add an extra layer of security to your account</Text>
+                <Text style={{ marginTop: 0, display: 'block' }}>
+                    {t('UI_TWO_FACTOR_AUTH')}
+                    <Tag color="blue" style={{ marginLeft: 8 }}>{t('UI_COMING_SOON')}</Tag>
+                </Text>
+                <Text type="secondary">{t('UI_TWO_FACTOR_AUTH_DESC')}</Text>
             </div>
 
             <Divider />
 
             <div>
-                <Title level={5} style={{ marginTop: 0 }}>Logout from all devices</Title>
+                <Text style={{ marginTop: 0, display: 'block' }}>{t('UI_LOGOUT_ALL_DEVICES')}</Text>
                 <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-                    This will log you out from all devices except this one
+                    {t('UI_LOGOUT_ALL_DEVICES_DESC')}
                 </Text>
                 <Button disabled>
-                    Logout Everywhere
+                    {t('UI_LOGOUT_EVERYWHERE')}
                 </Button>
-                <Tag color="blue" style={{ marginLeft: 8 }}>Coming soon</Tag>
+                <Tag color="blue" style={{ marginLeft: 8 }}>{t('UI_COMING_SOON')}</Tag>
             </div>
         </Card>
     );

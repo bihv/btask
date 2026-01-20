@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTheme } from '@/providers/ThemeProvider';
-import { Input, Button, Space, message } from 'antd';
+import { Input, Button, Space, App } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { Checklist, ChecklistItem, User, List } from '@/types';
 import { checklistApi } from '@/lib/api';
@@ -33,6 +33,7 @@ export default function ChecklistSection({
     lists = [],
 }: ChecklistSectionProps) {
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
+    const { message } = App.useApp();
     const [showAddChecklist, setShowAddChecklist] = useState(false);
     const [newItemContent, setNewItemContent] = useState<Record<string, string>>({});
     const [newItemAssignees, setNewItemAssignees] = useState<Record<string, string[]>>({});
@@ -46,7 +47,7 @@ export default function ChecklistSection({
     const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
     const [modalLists, setModalLists] = useState<List[]>(lists);
 
-    const { mode } = useTheme();
+    const { resolvedTheme } = useTheme();
 
     // API Handlers
     const handleAddChecklist = async () => {
@@ -215,7 +216,7 @@ export default function ChecklistSection({
                                     key={item.id}
                                     item={item}
                                     checklistId={checklist.id}
-                                    mode={mode}
+                                    mode={resolvedTheme}
                                     workspaceMembers={workspaceMembers}
                                     isHovered={hoveredItemId === item.id}
                                     isEditing={editingItem === item.id}
@@ -244,7 +245,7 @@ export default function ChecklistSection({
 
                             <NewChecklistItemForm
                                 checklistId={checklist.id}
-                                mode={mode}
+                                mode={resolvedTheme}
                                 workspaceMembers={workspaceMembers}
                                 isActive={addingItemToChecklist === checklist.id}
                                 content={newItemContent[checklist.id] || ''}

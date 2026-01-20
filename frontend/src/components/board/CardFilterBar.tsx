@@ -11,7 +11,7 @@ export interface FilterState {
     search: string;
     labelIds: string[];
     memberIds: string[];
-    dueDate: 'overdue' | 'due_soon' | 'no_date' | null;
+    dueDate: 'overdue' | 'due_soon' | 'due_later' | 'no_date' | null;
 }
 
 interface CardFilterBarProps {
@@ -19,6 +19,7 @@ interface CardFilterBarProps {
     members: User[];
     filters: FilterState;
     onChange: (filters: FilterState) => void;
+    hideNoDateOption?: boolean;
 }
 
 export const defaultFilters: FilterState = {
@@ -42,6 +43,7 @@ export default function CardFilterBar({
     members,
     filters,
     onChange,
+    hideNoDateOption,
 }: CardFilterBarProps) {
     const activeCount = [
         filters.search ? 1 : 0,
@@ -121,7 +123,8 @@ export default function CardFilterBar({
             >
                 <Option value="overdue">Overdue</Option>
                 <Option value="due_soon">Due Soon</Option>
-                <Option value="no_date">No Date</Option>
+                <Option value="due_later">Due Later</Option>
+                {!hideNoDateOption && <Option value="no_date">No Date</Option>}
             </Select>
 
             {activeCount > 0 && (

@@ -1,14 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ConfigProvider, theme as antTheme, App } from 'antd';
 
-type ThemeMode = 'light' | 'dark';
+type ThemePreference = 'light' | 'dark' | 'system';
+type ResolvedTheme = 'light' | 'dark';
 
 interface ThemeContextType {
-    mode: ThemeMode;
-    toggleTheme: () => void;
-    setTheme: (mode: ThemeMode) => void;
+    preference: ThemePreference;
+    resolvedTheme: ResolvedTheme;
+    setTheme: (mode: ThemePreference) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -43,58 +44,77 @@ const darkTheme = {
     borderRadius: 8,
 };
 
+const getSystemTheme = (): ResolvedTheme => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+    }
+    return 'light';
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [mode, setMode] = useState<ThemeMode>('light');
+    const [preference, setPreference] = useState<ThemePreference>('system');
+    const [systemTheme, setSystemTheme] = useState<ResolvedTheme>('light');
     const [mounted, setMounted] = useState(false);
 
+    // Resolve the actual theme based on preference
+    const resolvedTheme: ResolvedTheme = preference === 'system' ? systemTheme : preference;
+
+    // Initialize on mount
     useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') as ThemeMode;
-        if (savedTheme) {
-            setMode(savedTheme);
-        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            setMode('dark');
+        const savedTheme = localStorage.getItem('theme') as ThemePreference;
+        if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
+            setPreference(savedTheme);
         }
+        setSystemTheme(getSystemTheme());
         setMounted(true);
     }, []);
 
+    // Listen for system theme changes
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (e: MediaQueryListEvent) => {
+            setSystemTheme(e.matches ? 'dark' : 'light');
+        };
+
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
+
+    // Persist preference and update document attribute
     useEffect(() => {
         if (mounted) {
-            localStorage.setItem('theme', mode);
-            document.documentElement.setAttribute('data-theme', mode);
+            localStorage.setItem('theme', preference);
+            document.documentElement.setAttribute('data-theme', resolvedTheme);
         }
-    }, [mode, mounted]);
+    }, [preference, resolvedTheme, mounted]);
 
-    const toggleTheme = () => {
-        setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+    const setTheme = (newMode: ThemePreference) => {
+        setPreference(newMode);
     };
 
-    const setTheme = (newMode: ThemeMode) => {
-        setMode(newMode);
-    };
-
-    const themeConfig = mode === 'dark' ? darkTheme : lightTheme;
+    const themeConfig = resolvedTheme === 'dark' ? darkTheme : lightTheme;
 
     if (!mounted) {
         return null;
     }
 
     return (
-        <ThemeContext.Provider value={{ mode, toggleTheme, setTheme }}>
+        <ThemeContext.Provider value={{ preference, resolvedTheme, setTheme }}>
             <ConfigProvider
                 theme={{
-                    algorithm: mode === 'dark' ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
+                    algorithm: resolvedTheme === 'dark' ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
                     token: themeConfig,
                     components: {
                         Layout: {
-                            headerBg: mode === 'dark' ? '#1d2125' : '#ffffff',
-                            siderBg: mode === 'dark' ? '#1d2125' : '#ffffff',
-                            bodyBg: mode === 'dark' ? '#161a1d' : '#f4f5f7',
+                            headerBg: resolvedTheme === 'dark' ? '#1d2125' : '#ffffff',
+                            siderBg: resolvedTheme === 'dark' ? '#1d2125' : '#ffffff',
+                            bodyBg: resolvedTheme === 'dark' ? '#161a1d' : '#f4f5f7',
                         },
                         Menu: {
                             itemBg: 'transparent',
                         },
                         Card: {
-                            boxShadow: mode === 'dark'
+                            boxShadow: resolvedTheme === 'dark'
                                 ? '0 1px 1px rgba(0,0,0,0.25)'
                                 : '0 1px 1px rgba(9,30,66,0.25)',
                         },

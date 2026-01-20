@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Checkbox, message, Space, Tag, Modal, Typography, Divider, App } from 'antd';
+import { Input, Button, Checkbox, Space, Tag, Modal, Typography, Divider, App } from 'antd';
 import { DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { CustomField, CustomFieldOption } from '@/types';
 import { customFieldApi } from '@/lib/api';
@@ -17,7 +17,7 @@ interface EditFieldScreenProps {
 }
 
 export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: EditFieldScreenProps) {
-    const { modal } = App.useApp();
+    const { modal, message } = App.useApp();
     const [name, setName] = useState(field.name);
     const [showOnCard, setShowOnCard] = useState(field.show_on_card);
     const [options, setOptions] = useState<CustomFieldOption[]>(field.options || []);

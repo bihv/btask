@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Spin, message, Divider, Tooltip } from 'antd';
+import { Typography, Button, Spin, Divider, Tooltip, App } from 'antd';
 import {
     CheckSquareOutlined,
     FlagOutlined,
@@ -163,6 +163,7 @@ function SortableFieldItem({ field, onEditField }: SortableFieldItemProps) {
 
 export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEditField }: CustomFieldsScreenProps) {
     const [fields, setFields] = useState<CustomField[]>([]);
+    const { message } = App.useApp();
     const [loading, setLoading] = useState(true);
     const [addingDefault, setAddingDefault] = useState<string | null>(null);
 

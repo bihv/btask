@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Tabs, Divider, Typography, Input, Button, message, Spin, Empty } from 'antd';
+import { Tabs, Divider, Typography, Input, Button, Spin, Empty, App } from 'antd';
 import { CheckOutlined, UploadOutlined, SearchOutlined, PictureOutlined, BgColorsOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
@@ -116,6 +116,7 @@ export default function BackgroundPicker({
     const [isSearching, setIsSearching] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [activeTab, setActiveTab] = useState(imageValue ? 'photos' : 'colors');
+    const { message } = App.useApp();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;

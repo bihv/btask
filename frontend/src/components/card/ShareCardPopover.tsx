@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Popover, Button, Input, Typography, Divider, message, QRCode } from 'antd';
+import { Popover, Button, Input, Typography, Divider, QRCode, App } from 'antd';
 import { ShareAltOutlined, CopyOutlined, QrcodeOutlined, PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
 import { Card } from '@/types';
 
@@ -17,6 +17,7 @@ interface ShareCardPopoverProps {
 export default function ShareCardPopover({ cardId, cardTitle, boardId, cardData }: ShareCardPopoverProps) {
     const [open, setOpen] = useState(false);
     const [showQR, setShowQR] = useState(false);
+    const { message } = App.useApp();
 
     // Generate card URL
     const cardUrl = typeof window !== 'undefined'
