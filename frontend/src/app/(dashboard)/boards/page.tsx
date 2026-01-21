@@ -42,6 +42,15 @@ function CreateBoardCard({ onClick }: { onClick: () => void }) {
     );
 }
 
+// View more boards card
+function ViewMoreCard({ hiddenCount, onClick }: { hiddenCount: number; onClick: () => void }) {
+    return (
+        <div className={styles.createBoardCard} onClick={onClick}>
+            <span>+ {hiddenCount} more boards</span>
+        </div>
+    );
+}
+
 // Workspace section component
 function WorkspaceSection({
     workspace,
@@ -56,6 +65,18 @@ function WorkspaceSection({
 }) {
     const boards = workspace.boards || [];
     const initial = workspace.name.charAt(0).toUpperCase();
+
+    // Limit displayed boards logic
+    const MAX_DISPLAY = 8;
+    const totalBoards = boards.length;
+    const showViewMore = totalBoards > MAX_DISPLAY;
+    // If showing "View More", we use one slot for it, so we show MAX_DISPLAY - 1 boards.
+    // Wait, if MAX_DISPLAY is 8, and we have 9 boards.
+    // We show 7 boards + 1 ViewMore + 1 Create = 9 cards.
+    // If we just sliced to 8, we would show 8 boards + 1 Create = 9 cards.
+    // So visual balance is kept.
+    const displayedBoards = showViewMore ? boards.slice(0, MAX_DISPLAY - 1) : boards.slice(0, MAX_DISPLAY);
+    const hiddenCount = totalBoards - displayedBoards.length;
 
     // Generate gradient based on workspace name
     const getGradient = (name: string) => {
@@ -116,7 +137,7 @@ function WorkspaceSection({
                 </div>
             </div>
             <div className={styles.boardsGrid}>
-                {boards.map((board) => (
+                {displayedBoards.map((board) => (
                     <BoardCard
                         key={board.id}
                         board={board}
@@ -125,6 +146,12 @@ function WorkspaceSection({
                         onToggleStar={onToggleStar}
                     />
                 ))}
+                {showViewMore && (
+                    <ViewMoreCard 
+                        hiddenCount={hiddenCount} 
+                        onClick={() => router.push(`/workspace/${workspace.id}/boards`)} 
+                    />
+                )}
                 <CreateBoardCard onClick={() => onCreateBoard(workspace.id)} />
             </div>
         </div>
