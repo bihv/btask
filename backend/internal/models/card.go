@@ -13,6 +13,7 @@ type Card struct {
 	Title       string     `json:"title" gorm:"not null"`
 	Description string     `json:"description"`
 	CoverImage  string     `json:"cover_image"`
+	CoverImageY int        `json:"cover_image_y" gorm:"default:50"` // percentage 0-100
 	Position    int        `json:"position" gorm:"default:0"`
 	DueDate     *time.Time `json:"due_date"`
 	IsCompleted bool       `json:"is_completed" gorm:"default:false"`
@@ -64,7 +65,8 @@ type CreateCardRequest struct {
 type UpdateCardRequest struct {
 	Title       string     `json:"title" validate:"omitempty,min=1,max=200"`
 	Description string     `json:"description"`
-	CoverImage  string     `json:"cover_image"`
+	CoverImage  *string    `json:"cover_image"`
+	CoverImageY *int       `json:"cover_image_y"`
 	Position    *int       `json:"position"`
 	DueDate     *time.Time `json:"due_date"`
 	IsCompleted *bool      `json:"is_completed"`

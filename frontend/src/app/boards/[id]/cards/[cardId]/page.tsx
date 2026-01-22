@@ -17,6 +17,7 @@ import {
     Tag,
     Upload,
     App,
+    Slider,
 } from 'antd';
 import {
     AlignLeftOutlined,
@@ -103,6 +104,7 @@ export default function CardPage() {
     const [labelsOpen, setLabelsOpen] = useState(false);
     const [dueDateOpen, setDueDateOpen] = useState(false);
     const [coverOpen, setCoverOpen] = useState(false);
+    const [coverPosition, setCoverPosition] = useState(50);
 
     // Comments from card data
     const comments = card?.comments || [];
@@ -130,6 +132,7 @@ export default function CardPage() {
             setCard(cardData);
             setTitle(cardData.title);
             setDescription(cardData.description || '');
+            setCoverPosition(cardData.cover_image_y ?? 50);
         }
     }, [cardData]);
 
@@ -508,6 +511,28 @@ export default function CardPage() {
                     padding: 24,
                 }}
             >
+                {card.cover_image && (
+                    <div
+                        style={{
+                            margin: '-24px -24px 24px -24px',
+                            width: 'calc(100% + 48px)',
+                            height: 200,
+                            overflow: 'hidden',
+                            position: 'relative',
+                        }}
+                    >
+                        <img
+                            src={card.cover_image}
+                            alt="Cover"
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                objectPosition: `center ${card.cover_image_y ?? 50}%`,
+                            }}
+                        />
+                    </div>
+                )}
                 {/* Description */}
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -740,38 +765,7 @@ export default function CardPage() {
                     <div style={{ marginBottom: 16 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                             <Text type="secondary" style={{ fontSize: 12 }}>Cover</Text>
-                            {card.cover_image && (
-                                <Button
-                                    type="text"
-                                    size="small"
-                                    danger
-                                    icon={<CloseCircleOutlined />}
-                                    onClick={() => handleSetCover('')}
-                                    title="Remove cover"
-                                />
-                            )}
                         </div>
-                        {card.cover_image && (
-                            <div
-                                style={{
-                                    width: '100%',
-                                    height: 120,
-                                    borderRadius: 8,
-                                    overflow: 'hidden',
-                                    marginBottom: 8,
-                                }}
-                            >
-                                <img
-                                    src={card.cover_image}
-                                    alt="Cover"
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                    }}
-                                />
-                            </div>
-                        )}
                         <Popover
                             trigger="click"
                             placement="bottomLeft"
@@ -852,6 +846,42 @@ export default function CardPage() {
                                             Upload Image
                                         </Button>
                                     </Upload>
+                                    {card.cover_image && (
+                                        <>
+                                            <Divider style={{ margin: '12px 0' }} />
+                                            <div>
+                                                <Text strong style={{ display: 'block', marginBottom: 8 }}>Position</Text>
+                                                <Slider
+                                                    min={0}
+                                                    max={100}
+                                                    value={coverPosition}
+                                                    onChange={(value) => {
+                                                        setCoverPosition(value);
+                                                    }}
+                                                    onChangeComplete={async (value) => {
+                                                        try {
+                                                            await api.put(`/cards/${card.id}`, { cover_image_y: value });
+                                                            setCard({ ...card, cover_image_y: value });
+                                                            queryClient.invalidateQueries({ queryKey: ['card', cardId] });
+                                                            message.success('Position updated');
+                                                        } catch (error) {
+                                                            message.error('Failed to update position');
+                                                        }
+                                                    }}
+                                                    tooltip={{ formatter: (value) => `${value}%` }}
+                                                />
+                                            </div>
+                                            <Divider style={{ margin: '12px 0' }} />
+                                            <Button 
+                                                type="text" 
+                                                danger 
+                                                block
+                                                onClick={() => handleSetCover('')}
+                                            >
+                                                Remove Cover
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             }
                         >

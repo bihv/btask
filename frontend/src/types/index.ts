@@ -84,6 +84,7 @@ export interface Card {
     title: string;
     description?: string;
     cover_image?: string;
+    cover_image_y?: number; // percentage 0-100
     position: number;
     due_date?: string;
     is_completed: boolean;

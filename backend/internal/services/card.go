@@ -118,8 +118,11 @@ func (s *CardService) Update(cardID uuid.UUID, userID uuid.UUID, req models.Upda
 	if req.IsCompleted != nil {
 		card.IsCompleted = *req.IsCompleted
 	}
-	if req.CoverImage != "" || req.CoverImage == "" {
-		card.CoverImage = req.CoverImage
+	if req.CoverImage != nil {
+		card.CoverImage = *req.CoverImage
+	}
+	if req.CoverImageY != nil {
+		card.CoverImageY = *req.CoverImageY
 	}
 	if req.IsArchived != nil {
 		card.IsArchived = *req.IsArchived

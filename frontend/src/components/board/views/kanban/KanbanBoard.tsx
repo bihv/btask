@@ -26,11 +26,16 @@ import styles from './KanbanBoard.module.css';
 
 interface KanbanBoardProps {
     filters?: FilterState;
+    readOnly?: boolean;
+    listsData?: List[]; // Optional: use this instead of store lists when provided
+    onCardClick?: (card: Card) => void; // Custom click handler for cards
+    showCovers?: boolean; // Force show covers
 }
 
-export default function KanbanBoard({ filters }: KanbanBoardProps) {
-    const { lists, currentBoard, moveCard, moveList, optimisticMoveCard } =
+export default function KanbanBoard({ filters, readOnly = false, listsData, onCardClick, showCovers }: KanbanBoardProps) {
+    const { lists: storeLists, currentBoard, moveCard, moveList, optimisticMoveCard } =
         useBoardStore();
+    const lists = listsData ?? storeLists;
     const [activeCard, setActiveCard] = useState<Card | null>(null);
     const [activeList, setActiveList] = useState<List | null>(null);
 
@@ -127,11 +132,11 @@ export default function KanbanBoard({ filters }: KanbanBoardProps) {
 
     return (
         <DndContext
-            sensors={sensors}
+            sensors={readOnly ? [] : sensors}
             collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
+            onDragStart={readOnly ? undefined : handleDragStart}
+            onDragOver={readOnly ? undefined : handleDragOver}
+            onDragEnd={readOnly ? undefined : handleDragEnd}
         >
             <div className={styles.board}>
                 <SortableContext
@@ -139,11 +144,18 @@ export default function KanbanBoard({ filters }: KanbanBoardProps) {
                     strategy={horizontalListSortingStrategy}
                 >
                     {lists.map((list) => (
-                        <KanbanList key={list.id} list={list} filters={filters} />
+                        <KanbanList 
+                            key={list.id} 
+                            list={list} 
+                            filters={filters} 
+                            readOnly={readOnly} 
+                            onCardClick={onCardClick} 
+                            showCovers={showCovers}
+                        />
                     ))}
                 </SortableContext>
 
-                <AddList boardId={currentBoard?.id || ''} />
+                {!readOnly && <AddList boardId={currentBoard?.id || ''} />}
             </div>
 
             <DragOverlay>

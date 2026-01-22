@@ -22,6 +22,9 @@ const LIST_COLORS = [
 interface KanbanListProps {
     list: List;
     filters?: FilterState;
+    readOnly?: boolean;
+    onCardClick?: (card: Card) => void;
+    showCovers?: boolean;
 }
 
 function matchesFilters(card: Card, filters: FilterState): boolean {
@@ -68,7 +71,7 @@ function matchesFilters(card: Card, filters: FilterState): boolean {
     return true;
 }
 
-export default function KanbanList({ list, filters }: KanbanListProps) {
+export default function KanbanList({ list, filters, readOnly = false, onCardClick, showCovers }: KanbanListProps) {
     const { modal } = App.useApp();
     const { updateList, updateListColor, deleteList, copyList, moveAllCards, sortCards, createCard, lists } = useBoardStore();
     const [isEditing, setIsEditing] = useState(false);
@@ -142,6 +145,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             type: 'list',
             list,
         },
+        disabled: readOnly,
     });
 
     const style = {
@@ -408,9 +412,9 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
 
     return (
         <div
-            ref={setNodeRef}
+            ref={readOnly ? undefined : setNodeRef}
             style={{
-                ...style,
+                ...(readOnly ? {} : style),
                 ...(list.color ? { background: `${list.color}a6` } : {}), // a6 = 65% opacity
             }}
             className={styles.list}
@@ -418,8 +422,8 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
             {/* List Header */}
             <div
                 className={styles.listHeader}
-                {...attributes}
-                {...listeners}
+                {...(readOnly ? {} : attributes)}
+                {...(readOnly ? {} : listeners)}
                 style={list.color ? { color: '#fff' } : undefined}
             >
                 {isEditing ? (
@@ -433,8 +437,8 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     />
                 ) : (
                     <span
-                        onClick={() => setIsEditing(true)}
-                        style={{ cursor: 'pointer', flex: 1 }}
+                        onClick={readOnly ? undefined : () => setIsEditing(true)}
+                        style={{ cursor: readOnly ? 'default' : 'pointer', flex: 1 }}
                     >
                         {list.title}
                     </span>
@@ -449,27 +453,31 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                 >
                     <span />
                 </Popover>
-                <Button
-                    type="text"
-                    size="small"
-                    icon={<ColumnWidthOutlined />}
-                    onClick={handleToggleCollapse}
-                    title="Collapse list"
-                    style={list.color ? { color: '#fff' } : undefined}
-                />
-                <Dropdown
-                    menu={{ items: menuItems }}
-                    trigger={['click']}
-                    open={menuOpen}
-                    onOpenChange={setMenuOpen}
-                >
-                    <Button
-                        type="text"
-                        size="small"
-                        icon={<MoreOutlined />}
-                        style={list.color ? { color: '#fff' } : undefined}
-                    />
-                </Dropdown>
+                {!readOnly && (
+                    <>
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<ColumnWidthOutlined />}
+                            onClick={handleToggleCollapse}
+                            title="Collapse list"
+                            style={list.color ? { color: '#fff' } : undefined}
+                        />
+                        <Dropdown
+                            menu={{ items: menuItems }}
+                            trigger={['click']}
+                            open={menuOpen}
+                            onOpenChange={setMenuOpen}
+                        >
+                            <Button
+                                type="text"
+                                size="small"
+                                icon={<MoreOutlined />}
+                                style={list.color ? { color: '#fff' } : undefined}
+                            />
+                        </Dropdown>
+                    </>
+                )}
             </div>
 
             {/* Cards */}
@@ -479,13 +487,13 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                     strategy={verticalListSortingStrategy}
                 >
                     {filteredCards.map((card) => (
-                        <KanbanCard key={card.id} card={card} listId={list.id} />
+                        <KanbanCard key={card.id} card={card} listId={list.id} readOnly={readOnly} onCardClick={onCardClick} showCovers={showCovers} />
                     ))}
-                </SortableContext>
+            </SortableContext>
             </div>
 
-            {/* Add Card */}
-            {isAddingCard ? (
+            {/* Add Card - only show when not readOnly */}
+            {!readOnly && (isAddingCard ? (
                 <div style={{ padding: '4px 0' }}>
                     <Input.TextArea
                         value={newCardTitle}
@@ -537,7 +545,7 @@ export default function KanbanList({ list, filters }: KanbanListProps) {
                 >
                     Add a card
                 </Button>
-            )}
+            ))}
 
             {/* Copy List Modal */}
             <Modal

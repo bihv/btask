@@ -56,6 +56,9 @@ func Migrate() error {
 		&models.CardCustomFieldValue{},
 		&models.SystemLabel{},
 		&models.SystemTranslation{},
+		&models.Template{},
+		&models.TemplateList{},
+		&models.TemplateCard{},
 	)
 
 	if err != nil {

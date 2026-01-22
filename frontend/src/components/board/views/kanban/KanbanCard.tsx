@@ -26,14 +26,18 @@ const { Text } = Typography;
 interface KanbanCardProps {
     card: Card;
     listId: string;
+    readOnly?: boolean;
+    showCovers?: boolean; // Optional override for showCardCovers
+    onCardClick?: (card: Card) => void; // Custom click handler for readOnly mode
 }
 
-export default function KanbanCard({ card, listId }: KanbanCardProps) {
+export default function KanbanCard({ card, listId, readOnly = false, showCovers, onCardClick }: KanbanCardProps) {
     const router = useRouter();
     const params = useParams();
     const boardId = params.id as string;
-    const showCardCovers = useBoardStore((state) => state.showCardCovers);
+    const showCardCoversFromStore = useBoardStore((state) => state.showCardCovers);
     const currentBoard = useBoardStore((state) => state.currentBoard);
+    const showCardCovers = showCovers ?? showCardCoversFromStore;
 
     const {
         attributes,
@@ -49,6 +53,7 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
             card,
             listId,
         },
+        disabled: readOnly,
     });
 
     const style = {
@@ -69,6 +74,11 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
     const dueDateStatus = getDueDateStatus();
 
     const handleCardClick = () => {
+        if (readOnly && onCardClick) {
+            onCardClick(card);
+            return;
+        }
+        if (readOnly) return;
         // Navigate to separate card page
         router.push(`/boards/${boardId}/cards/${card.id}`);
     };
@@ -188,12 +198,12 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
 
     return (
         <div
-            ref={setNodeRef}
-            style={style}
+            ref={readOnly ? undefined : setNodeRef}
+            style={readOnly ? { cursor: 'default' } : style}
             className={styles.card}
             onClick={handleCardClick}
-            {...attributes}
-            {...listeners}
+            {...(readOnly ? {} : attributes)}
+            {...(readOnly ? {} : listeners)}
         >
             {/* Cover Image */}
             {showCardCovers && card.cover_image && (
@@ -216,6 +226,7 @@ export default function KanbanCard({ card, listId }: KanbanCardProps) {
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
+                            objectPosition: `center ${card.cover_image_y ?? 50}%`,
                         }}
                     />
                 </div>

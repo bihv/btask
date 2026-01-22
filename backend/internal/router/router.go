@@ -5,8 +5,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/mello/backend/internal/config"
+	"github.com/mello/backend/internal/database"
 	"github.com/mello/backend/internal/handlers"
 	"github.com/mello/backend/internal/middleware"
+	"github.com/mello/backend/internal/repository"
+	"github.com/mello/backend/internal/services"
 )
 
 func Setup(app *fiber.App, cfg *config.Config) {
@@ -69,6 +72,22 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	admin.Post("/translations", systemLabelHandler.CreateTranslation)
 	admin.Put("/translations/:id", systemLabelHandler.UpdateTranslation)
 	admin.Delete("/translations/:id", systemLabelHandler.DeleteTranslation)
+
+	// Admin template routes
+	templateRepo := repository.NewTemplateRepository(database.DB)
+	templateService := services.NewTemplateService(templateRepo)
+	templateHandler := handlers.NewTemplateHandler(templateService)
+	admin.Get("/templates", templateHandler.AdminGetAll)
+	admin.Post("/templates", templateHandler.Create)
+	admin.Put("/templates/:id", templateHandler.Update)
+	admin.Delete("/templates/:id", templateHandler.Delete)
+	admin.Put("/templates/:id/lists", templateHandler.UpdateLists)
+
+	// Public template routes (authenticated users can view)
+	templates := protected.Group("/templates")
+	templates.Get("/", templateHandler.GetAll)
+	templates.Get("/:id", templateHandler.GetByID)
+	templates.Post("/:id/copy", templateHandler.IncrementCopies)
 
 	// Labels endpoint for i18n (protected to access user language preference)
 	protected.Get("/labels", systemLabelHandler.GetLabels)
