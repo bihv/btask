@@ -101,14 +101,18 @@ export default function TemplateDetailPage() {
                         style={{
                             width: '48px',
                             height: '48px',
-                            backgroundColor: template.cover_color || '#0079bf',
+                            background: template.cover_url 
+                                ? `url(${template.cover_url}) center/cover`
+                                : template.cover_color || '#0079bf',
                             borderRadius: '8px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}
                     >
-                        <img src="/mello-icon-only.svg" alt="Mello" style={{ width: '28px', height: '28px', filter: 'brightness(0) invert(1)' }} />
+                        {!template.cover_url && (
+                            <img src="/mello-icon-only.svg" alt="Mello" style={{ width: '28px', height: '28px', filter: 'brightness(0) invert(1)' }} />
+                        )}
                     </div>
 
                     <div>
@@ -154,7 +158,12 @@ export default function TemplateDetailPage() {
             {/* Board Preview */}
             {previewLists.length > 0 && (
                 <div style={{ marginBottom: '32px' }}>
-                    <BoardPreview lists={previewLists} title={template.title} />
+                    <BoardPreview 
+                        lists={previewLists} 
+                        title={template.title} 
+                        backgroundColor={template.cover_color}
+                        backgroundImage={template.cover_url}
+                    />
                     <div style={{ textAlign: 'right', marginTop: '8px' }}>
                         <Button type="link" style={{ padding: 0 }}>
                             View template →
@@ -187,6 +196,7 @@ export default function TemplateDetailPage() {
                                             description: t.description || '',
                                             category: t.category || 'Other',
                                             coverColor: t.cover_color,
+                                            coverUrl: t.cover_url,
                                             copies: t.copies,
                                             views: t.views,
                                         }} 

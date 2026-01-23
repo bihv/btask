@@ -76,7 +76,9 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                         style={{
                             width: '40px',
                             height: '40px',
-                            backgroundColor: template.cover_color || '#0079bf',
+                            background: template.cover_url 
+                                ? `url(${template.cover_url}) center/cover` 
+                                : template.cover_color || '#0079bf',
                             borderRadius: '6px',
                             display: 'flex',
                             alignItems: 'center',
@@ -84,11 +86,13 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                             flexShrink: 0,
                         }}
                     >
-                        <img 
-                            src="/mello-icon-only.svg" 
-                            alt="Template" 
-                            style={{ width: '24px', height: '24px', filter: 'brightness(0) invert(1)' }} 
-                        />
+                        {!template.cover_url && (
+                            <img 
+                                src="/mello-icon-only.svg" 
+                                alt="Template" 
+                                style={{ width: '24px', height: '24px', filter: 'brightness(0) invert(1)' }} 
+                            />
+                        )}
                     </div>
                     <div>
                         <div style={{ fontWeight: 600, fontSize: '15px' }}>{template.title}</div>

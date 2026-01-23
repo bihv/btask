@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Table, Button, Input, Modal, Form, Typography, Card, Spin, Tag, Space, App, Switch, Select, ColorPicker, Tabs } from 'antd';
+import { Table, Button, Input, Modal, Form, Typography, Card, Spin, Tag, Space, App, Switch, Select, Tabs } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useAdminTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, Template, TemplateList as TemplateListType, TemplateCard as TemplateCardType, useUpdateTemplateLists } from '@/hooks/useTemplates';
 import TemplateBoardEditor, { TemplateListInput } from '@/components/admin/TemplateBoardEditor';
+import BackgroundPicker from '@/components/board/BackgroundPicker';
 import dynamic from 'next/dynamic';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
@@ -27,6 +28,8 @@ export default function AdminTemplatesPage() {
     const [templateForm] = Form.useForm();
     const [templateLists, setTemplateLists] = useState<TemplateListInput[]>([]);
     const [fullDescription, setFullDescription] = useState('');
+    const [coverColor, setCoverColor] = useState('#0079bf');
+    const [coverImage, setCoverImage] = useState('');
 
     // Pagination state
     const [page, setPage] = useState(1);
@@ -63,14 +66,12 @@ export default function AdminTemplatesPage() {
         }
     }, [user, router]);
 
-    const handleCreate = async (values: { title: string; author?: string; description?: string; category?: string; cover_color?: unknown; is_featured?: boolean }) => {
+    const handleCreate = async (values: { title: string; author?: string; description?: string; category?: string; is_featured?: boolean }) => {
         try {
-            const coverColor = typeof values.cover_color === 'string' 
-                ? values.cover_color 
-                : (values.cover_color as { toHexString?: () => string } | undefined)?.toHexString?.() || '#0079bf';
             await createTemplate.mutateAsync({
                 ...values,
                 cover_color: coverColor,
+                cover_url: coverImage,
                 full_description: fullDescription,
                 lists: templateLists.map((list, i) => ({
                     title: list.title,
@@ -90,22 +91,22 @@ export default function AdminTemplatesPage() {
             templateForm.resetFields();
             setTemplateLists([]);
             setFullDescription('');
+            setCoverColor('#0079bf');
+            setCoverImage('');
         } catch {
             message.error('Failed to create template');
         }
     };
 
-    const handleUpdate = async (values: { title?: string; author?: string; description?: string; category?: string; cover_color?: unknown; is_featured?: boolean; is_active?: boolean }) => {
+    const handleUpdate = async (values: { title?: string; author?: string; description?: string; category?: string; is_featured?: boolean; is_active?: boolean }) => {
         if (!editingTemplate) return;
         try {
-            const coverColor = typeof values.cover_color === 'string' 
-                ? values.cover_color 
-                : (values.cover_color as { toHexString?: () => string } | undefined)?.toHexString?.();
             await updateTemplate.mutateAsync({ 
                 id: editingTemplate.id, 
                 data: {
                     ...values,
                     cover_color: coverColor,
+                    cover_url: coverImage,
                     full_description: fullDescription,
                 } 
             });
@@ -133,6 +134,8 @@ export default function AdminTemplatesPage() {
             templateForm.resetFields();
             setTemplateLists([]);
             setFullDescription('');
+            setCoverColor('#0079bf');
+            setCoverImage('');
         } catch {
             message.error('Failed to update template');
         }
@@ -159,7 +162,9 @@ export default function AdminTemplatesPage() {
                             width: 32,
                             height: 24,
                             borderRadius: 4,
-                            background: record.cover_color || '#0079bf',
+                            background: record.cover_url 
+                                ? `url(${record.cover_url}) center/cover`
+                                : record.cover_color || '#0079bf',
                         }}
                     />
                     <span>{title}</span>
@@ -217,8 +222,10 @@ export default function AdminTemplatesPage() {
                             setEditingTemplate(record);
                             templateForm.setFieldsValue({
                                 ...record,
-                                cover_color: record.cover_color,
                             });
+                            // Set cover states
+                            setCoverColor(record.cover_color || '#0079bf');
+                            setCoverImage(record.cover_url || '');
                             // Load existing lists
                             if (record.lists) {
                                 setTemplateLists(record.lists.map((list: TemplateListType) => ({
@@ -274,6 +281,10 @@ export default function AdminTemplatesPage() {
                     onClick={() => {
                         setEditingTemplate(null);
                         templateForm.resetFields();
+                        setTemplateLists([]);
+                        setFullDescription('');
+                        setCoverColor('#0079bf');
+                        setCoverImage('');
                         setTemplateModalOpen(true);
                     }}
                 >
@@ -334,6 +345,8 @@ export default function AdminTemplatesPage() {
                     templateForm.resetFields();
                     setTemplateLists([]);
                     setFullDescription('');
+                    setCoverColor('#0079bf');
+                    setCoverImage('');
                 }}
                 footer={null}
                 width={900}
@@ -377,9 +390,6 @@ export default function AdminTemplatesPage() {
                                             />
                                         </div>
                                         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
-                                            <Form.Item name="cover_color" label="Cover Color">
-                                                <ColorPicker defaultValue="#0079bf" />
-                                            </Form.Item>
                                             <Form.Item name="is_featured" label="Featured" valuePropName="checked">
                                                 <Switch />
                                             </Form.Item>
@@ -390,6 +400,23 @@ export default function AdminTemplatesPage() {
                                             )}
                                         </div>
                                     </>
+                                ),
+                            },
+                            {
+                                key: 'cover',
+                                label: 'Cover',
+                                children: (
+                                    <div>
+                                        <Text type="secondary" style={{ marginBottom: 12, display: 'block' }}>
+                                            Choose a cover color or image for your template:
+                                        </Text>
+                                        <BackgroundPicker
+                                            value={coverColor}
+                                            imageValue={coverImage}
+                                            onChange={setCoverColor}
+                                            onImageChange={setCoverImage}
+                                        />
+                                    </div>
                                 ),
                             },
                             {

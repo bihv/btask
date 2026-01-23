@@ -35,6 +35,7 @@ export default function CategoryPage() {
         description: t.description || '',
         category: t.category || 'Other',
         coverColor: t.cover_color,
+        coverUrl: t.cover_url,
         copies: t.copies,
         views: t.views,
     });
