@@ -3,7 +3,7 @@
 import React from 'react';
 import { Typography, Modal, Select, Tag } from 'antd';
 import { UserOutlined, CalendarOutlined } from '@ant-design/icons';
-import { ChecklistItem, List } from '@/types';
+import { ChecklistItem, BoardList } from '@/types';
 import dayjs from 'dayjs';
 
 const { Text } = Typography;
@@ -11,7 +11,7 @@ const { Text } = Typography;
 interface ConvertToCardModalProps {
     visible: boolean;
     item: ChecklistItem | null;
-    lists: List[];
+    lists: BoardList[];
     selectedListId: string;
     onListChange: (listId: string) => void;
     onConvert: () => void;

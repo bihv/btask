@@ -2,67 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import {
-    Input,
-    Button,
-    Typography,
-    Space,
-    Divider,
-    DatePicker,
-    Checkbox,
-    Tooltip,
-    Spin,
-    Popover,
-    Tag,
-    Upload,
-    App,
-} from 'antd';
-import {
-    AlignLeftOutlined,
-    ClockCircleOutlined,
-    TagOutlined,
-    UserOutlined,
-    DeleteOutlined,
-    CommentOutlined,
-    EditOutlined,
-    CheckOutlined,
-    ArrowLeftOutlined,
-    InboxOutlined,
-    UndoOutlined,
-    PictureOutlined,
-    CloseCircleOutlined,
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { Card, Comment, Label, User } from '@/types';
+import { Spin, Typography, Button, App } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
-import api, { cardArchiveApi, uploadFile } from '@/lib/api';
+import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useHeader } from '@/providers/HeaderProvider';
-import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useChecklists, useInvalidateChecklists, useAttachments } from '@/hooks/useCards';
+import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useChecklists, useAttachments } from '@/hooks/useCards';
 import { useQueryClient } from '@tanstack/react-query';
-import ChecklistSection from '@/components/card/ChecklistSection';
-import AttachmentSection from '@/components/card/AttachmentSection';
-import ShareCardPopover from '@/components/card/ShareCardPopover';
-import LabelPicker from '@/components/card/LabelPicker';
-import CustomFieldsSection from '@/components/card/CustomFieldsSection';
-import UserAvatar from '@/components/common/UserAvatar';
-import DraggableCoverImage from '@/components/card/DraggableCoverImage';
 
+// Card components
+import CardHeader from '@/components/card/CardHeader';
+import CardMainContent from '@/components/card/CardMainContent';
+import CardSidebar from '@/components/card/CardSidebar';
+import MembersPickerModal from '@/components/card/MembersPickerModal';
+import DueDatePickerModal from '@/components/card/DueDatePickerModal';
+import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
 
-// Dynamic import to avoid SSR issues with BlockNote
-const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
-    ssr: false,
-    loading: () => <Spin size="small" />,
-});
-
-const { Title, Text } = Typography;
-const { TextArea } = Input;
-
-const LABEL_COLORS = [
-    '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
-    '#0079bf', '#00c2e0', '#51e898', '#ff78cb', '#344563',
-];
+const { Text } = Typography;
 
 export default function CardPage() {
     const router = useRouter();
@@ -70,44 +28,38 @@ export default function CardPage() {
     const boardId = params.id as string;
     const cardId = params.cardId as string;
 
-    const { updateCard, deleteCard, currentBoard, fetchBoard } = useBoardStore();
+    const { updateCard, currentBoard, fetchBoard } = useBoardStore();
     const { user } = useAuthStore();
     const { setHeaderContent } = useHeader();
     const queryClient = useQueryClient();
-    const { modal, message } = App.useApp();
+    const { message } = App.useApp();
 
-    // Helper to invalidate board cache after card updates
     const invalidateBoardCache = () => {
         queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
     };
 
     // React Query hooks
-    const { data: cardData, isLoading: cardLoading, refetch: refetchCard } = useCard(cardId);
+    const { data: cardData, isLoading: isCardLoading, refetch: refetchCard } = useCard(cardId);
     const { data: boardLabels = [], refetch: refetchLabels } = useBoardLabels(boardId);
     const { data: workspaceMembers = [] } = useWorkspaceMembers(currentBoard?.workspace_id || '');
     const { data: checklists = [], refetch: refetchChecklists } = useChecklists(cardId);
     const { data: attachments = [], refetch: refetchAttachments } = useAttachments(cardId);
-
     const addCommentMutation = useAddComment(cardId);
 
-    // Local card state for optimistic updates
+    // Local state
     const [card, setCard] = useState<Card | null>(null);
     const [loading, setLoading] = useState(true);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [isEditingDesc, setIsEditingDesc] = useState(false);
-    const [newComment, setNewComment] = useState('');
 
-    // Popover states
+    // Modal states
     const [membersOpen, setMembersOpen] = useState(false);
     const [labelsOpen, setLabelsOpen] = useState(false);
     const [dueDateOpen, setDueDateOpen] = useState(false);
     const [coverOpen, setCoverOpen] = useState(false);
     const [coverPosition, setCoverPosition] = useState(50);
-
-    // Comments from card data
-    const comments = card?.comments || [];
 
     // Fetch board for workspace context
     useEffect(() => {
@@ -136,51 +88,25 @@ export default function CardPage() {
         }
     }, [cardData]);
 
-    const handleBack = () => {
-        router.back();
-    };
+    const handleBack = () => router.push(`/boards/${boardId}`);
 
-    // Set dynamic header content
+    // Dynamic header
     useEffect(() => {
         if (card) {
             setHeaderContent(
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Button
-                        type="text"
-                        icon={<ArrowLeftOutlined />}
-                        onClick={handleBack}
-                    />
-                    {isEditingTitle ? (
-                        <Input
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            onBlur={handleTitleSave}
-                            onPressEnter={handleTitleSave}
-                            autoFocus
-                            style={{ fontSize: 16, fontWeight: 600, maxWidth: 400 }}
-                        />
-                    ) : (
-                        <Text
-                            strong
-                            style={{ fontSize: 16, cursor: 'pointer' }}
-                            onClick={() => setIsEditingTitle(true)}
-                        >
-                            {card.title}
-                        </Text>
-                    )}
+                    <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => router.back()} />
+                    <Text strong style={{ fontSize: 16 }}>{card.title}</Text>
                 </div>
             );
         }
+        return () => setHeaderContent(null);
+    }, [card]);
 
-        return () => {
-            setHeaderContent(null);
-        };
-    }, [card, isEditingTitle, title]);
-
+    // Handlers
     const handleTitleSave = () => {
         if (!card) return;
         if (title.trim() && title !== card.title) {
-            // Optimistic update
             setCard({ ...card, title: title.trim() });
             updateCard(card.id, { title: title.trim() });
             invalidateBoardCache();
@@ -196,107 +122,15 @@ export default function CardPage() {
         setIsEditingDesc(false);
     };
 
-    const handleDueDateChange = (date: dayjs.Dayjs | null) => {
-        if (!card) return;
-
-        // Optimistic update - update local state immediately
-        setCard({
-            ...card,
-            due_date: date ? date.toISOString() : undefined,
-        });
-
-        // Update on server
-        updateCard(card.id, {
-            due_date: date ? date.toISOString() : undefined,
-        });
-        invalidateBoardCache();
-        setDueDateOpen(false);
-    };
-
-    const handleCompletedChange = (checked: boolean) => {
-        if (!card) return;
-
-        // Optimistic update
-        setCard({
-            ...card,
-            is_completed: checked,
-        });
-
-        updateCard(card.id, { is_completed: checked });
-        invalidateBoardCache();
-    };
-
-    const handleDelete = () => {
-        if (!card) return;
-        modal.confirm({
-            title: 'Delete card?',
-            content: 'This action cannot be undone.',
-            okText: 'Delete',
-            okType: 'danger',
-            onOk: () => {
-                deleteCard(card.id);
-                router.push(`/boards/${boardId}`);
-            },
-        });
-    };
-
-    const handleArchive = async () => {
-        if (!card) return;
-        try {
-            if (card.is_archived) {
-                await cardArchiveApi.unarchive(card.id);
-                setCard({ ...card, is_archived: false });
-                message.success('Card restored');
-            } else {
-                await cardArchiveApi.archive(card.id);
-                setCard({ ...card, is_archived: true });
-                message.success('Card archived');
-            }
-        } catch (error) {
-            message.error('Failed to update card');
-        }
-    };
-
-    const handleSetCover = async (imageUrl: string) => {
-        if (!card) return;
-        try {
-            // If same cover, remove it
-            const newCover = card.cover_image === imageUrl ? '' : imageUrl;
-            await api.put(`/cards/${card.id}`, { cover_image: newCover });
-            setCard({ ...card, cover_image: newCover });
-            setCoverOpen(false);  // Close the popover
-            message.success(newCover ? 'Cover image set' : 'Cover image removed');
-        } catch (error) {
-            message.error('Failed to update cover image');
-        }
-    };
-
-    const handleAddComment = async () => {
-        if (!card || !newComment.trim()) return;
-        try {
-            await addCommentMutation.mutateAsync(newComment.trim());
-            setNewComment('');
-        } catch (error) {
-            message.error('Failed to add comment');
-        }
-    };
-
     const handleToggleLabel = async (labelId: string) => {
         if (!card) return;
         const hasLabel = card.labels?.some((cl) => cl.label_id === labelId);
-
-        // Optimistic update
         const label = boardLabels.find((l) => l.id === labelId);
+
         if (hasLabel) {
-            setCard({
-                ...card,
-                labels: card.labels?.filter((cl) => cl.label_id !== labelId) || [],
-            });
+            setCard({ ...card, labels: card.labels?.filter((cl) => cl.label_id !== labelId) || [] });
         } else if (label) {
-            setCard({
-                ...card,
-                labels: [...(card.labels || []), { id: `temp-${Date.now()}`, label_id: labelId, card_id: card.id, label }],
-            });
+            setCard({ ...card, labels: [...(card.labels || []), { id: `temp-${Date.now()}`, label_id: labelId, card_id: card.id, label }] });
         }
 
         try {
@@ -309,54 +143,24 @@ export default function CardPage() {
             refetchCard();
         } catch (error) {
             message.error('Failed to update label');
-            refetchCard(); // Revert on error
-        }
-    };
-
-
-
-    const handleToggleMember = async (userId: string) => {
-        if (!card) return;
-        const hasMember = card.members?.some((cm) => cm.user_id === userId);
-
-        // Optimistic update
-        const member = workspaceMembers.find((m) => m.id === userId);
-        if (hasMember) {
-            setCard({
-                ...card,
-                members: card.members?.filter((cm) => cm.user_id !== userId) || [],
-            });
-        } else if (member) {
-            setCard({
-                ...card,
-                members: [...(card.members || []), { id: `temp-${Date.now()}`, user_id: userId, card_id: card.id, user: member }],
-            });
-        }
-
-        try {
-            if (hasMember) {
-                await api.delete(`/cards/${card.id}/members/${userId}`);
-            } else {
-                await api.post(`/cards/${card.id}/members`, { user_id: userId });
-            }
-            invalidateBoardCache();
             refetchCard();
-        } catch (error) {
-            message.error('Failed to update member');
-            refetchCard(); // Revert on error
         }
     };
 
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+    const handleCoverPositionSave = async (value: number) => {
+        if (!card) return;
+        try {
+            await api.put(`/cards/${card.id}`, { cover_image_y: value });
+            setCard({ ...card, cover_image_y: value });
+            queryClient.invalidateQueries({ queryKey: ['card', cardId] });
+            message.success('Position updated');
+        } catch (error) {
+            message.error('Failed to update position');
+        }
     };
 
-    if (loading) {
+    // Loading states - show loading while fetching board or card
+    if (loading || isCardLoading) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Spin size="large" />
@@ -373,76 +177,6 @@ export default function CardPage() {
         );
     }
 
-    // Popover content for Members
-    const membersContent = (
-        <div style={{ width: 250 }}>
-            <Text strong style={{ display: 'block', marginBottom: 8 }}>Members</Text>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {workspaceMembers.map((member) => {
-                    const isAssigned = card.members?.some((cm) => cm.user_id === member.id);
-                    return (
-                        <div
-                            key={member.id}
-                            style={{ 
-                                cursor: 'pointer', 
-                                padding: '8px 0',
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: 8, 
-                                width: '100%' 
-                            }}
-                            onClick={() => handleToggleMember(member.id)}
-                        >
-                            <UserAvatar
-                                avatarUrl={member.avatar_url}
-                                name={member.full_name}
-                                size="small"
-                            />
-                            <span style={{ flex: 1 }}>{member.full_name}</span>
-                            {isAssigned && <CheckOutlined style={{ color: '#52c41a' }} />}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-
-    // Popover content for Labels - using LabelPicker component
-    const labelsContent = (
-        <LabelPicker
-            boardId={boardId}
-            labels={boardLabels}
-            selectedLabelIds={card.labels?.map((cl) => cl.label_id) || []}
-            onToggle={handleToggleLabel}
-            onRefresh={refetchLabels}
-            onCardRefresh={refetchCard}
-        />
-    );
-
-    // Popover content for Due Date
-    const dueDateContent = (
-        <div style={{ width: 280 }}>
-            <Text strong style={{ display: 'block', marginBottom: 8 }}>Due Date</Text>
-            <DatePicker
-                showTime
-                value={card.due_date ? dayjs(card.due_date) : null}
-                onChange={handleDueDateChange}
-                style={{ width: '100%' }}
-            />
-            {card.due_date && (
-                <Button
-                    type="link"
-                    danger
-                    size="small"
-                    style={{ marginTop: 8, padding: 0 }}
-                    onClick={() => handleDueDateChange(null)}
-                >
-                    Remove due date
-                </Button>
-            )}
-        </div>
-    );
-
     return (
         <div
             style={{
@@ -453,522 +187,94 @@ export default function CardPage() {
                 overflow: 'hidden',
             }}
         >
-            {/* Header with Back Button and Card Title */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    padding: '5px 10px',
-                    background: 'var(--bg-primary)',
-                }}
-            >
-                <Button
-                    type="text"
-                    icon={<ArrowLeftOutlined />}
-                    onClick={() => router.push(`/boards/${boardId}`)}
-                ></Button>
-                {isEditingTitle ? (
-                    <Input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        onBlur={handleTitleSave}
-                        onPressEnter={handleTitleSave}
-                        autoFocus
-                        style={{
-                            flex: 1,
-                            fontSize: 20,
-                            fontWeight: 600,
-                            padding: '4px 8px',
-                        }}
-                    />
-                ) : (
-                    <Title
-                        level={4}
-                        style={{ margin: 0, flex: 1, cursor: 'pointer' }}
-                        ellipsis
-                        onClick={() => setIsEditingTitle(true)}
-                    >
-                        {card.title}
-                    </Title>
-                )}
+            <CardHeader
+                title={isEditingTitle ? title : card.title}
+                isEditing={isEditingTitle}
+                onTitleChange={setTitle}
+                onTitleSave={handleTitleSave}
+                onEditStart={() => setIsEditingTitle(true)}
+                onBack={handleBack}
+            />
+
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+                <CardMainContent
+                    card={card}
+                    cardId={cardId}
+                    boardId={boardId}
+                    coverPosition={coverPosition}
+                    description={description}
+                    isEditingDesc={isEditingDesc}
+                    checklists={checklists}
+                    attachments={attachments}
+                    workspaceMembers={workspaceMembers}
+                    lists={currentBoard?.lists || []}
+                    onCoverPositionChange={setCoverPosition}
+                    onCoverPositionSave={handleCoverPositionSave}
+                    onDescriptionChange={setDescription}
+                    onDescriptionSave={handleDescSave}
+                    onDescriptionCancel={() => {
+                        setDescription(card.description || '');
+                        setIsEditingDesc(false);
+                    }}
+                    onDescriptionEditStart={() => setIsEditingDesc(true)}
+                    onChecklistUpdate={refetchChecklists}
+                    onAttachmentUpdate={refetchAttachments}
+                    onCoverChange={(url) => setCard({ ...card, cover_image: url })}
+                />
+
+                <CardSidebar
+                    card={card}
+                    cardId={cardId}
+                    boardId={boardId}
+                    currentUser={user}
+                    workspaceMembers={workspaceMembers}
+                    boardLabels={boardLabels}
+                    comments={card?.comments || []}
+                    isAddingComment={addCommentMutation.isPending}
+                    labelsOpen={labelsOpen}
+                    onLabelsOpenChange={setLabelsOpen}
+                    onMembersClick={() => setMembersOpen(true)}
+                    onDueDateClick={() => setDueDateOpen(true)}
+                    onCoverClick={() => setCoverOpen(true)}
+                    onLabelToggle={handleToggleLabel}
+                    onLabelsRefresh={refetchLabels}
+                    onCardRefresh={refetchCard}
+                    onAddComment={(content) => addCommentMutation.mutateAsync(content)}
+                    onArchiveChange={(isArchived) => setCard({ ...card, is_archived: isArchived })}
+                />
             </div>
 
-            {/* Main Content */}
-            <div
-                style={{
-                    flex: 1,
-                    display: 'flex',
-                    overflow: 'hidden',
+            {/* Modals */}
+            <MembersPickerModal
+                open={membersOpen}
+                onClose={() => setMembersOpen(false)}
+                cardId={cardId}
+                cardMembers={card.members || []}
+                workspaceMembers={workspaceMembers}
+                onUpdate={() => {
+                    refetchCard();
+                    invalidateBoardCache();
                 }}
-            >
-            {/* Left Column - Description Only */}
-            <div
-                style={{
-                    flex: 1,
-                    minWidth: 0,
-                    overflowY: 'auto',
-                    padding: 24,
-                }}
-            >
-                {card.cover_image && (
-                    <div
-                        style={{
-                            margin: '-24px -24px 24px -24px',
-                            width: 'calc(100% + 48px)',
-                        }}
-                    >
-                        <DraggableCoverImage
-                            imageUrl={card.cover_image}
-                            position={coverPosition}
-                            onPositionChange={(value) => setCoverPosition(value)}
-                            onPositionChangeComplete={async (value) => {
-                                try {
-                                    await api.put(`/cards/${card.id}`, { cover_image_y: value });
-                                    setCard({ ...card, cover_image_y: value });
-                                    queryClient.invalidateQueries({ queryKey: ['card', cardId] });
-                                    message.success('Position updated');
-                                } catch (error) {
-                                    message.error('Failed to update position');
-                                }
-                            }}
-                        />
-                    </div>
-                )}
-                {/* Description */}
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <AlignLeftOutlined />
-                            <Text strong>Description</Text>
-                        </div>
-                        {!isEditingDesc && description && (
-                            <Button
-                                type="text"
-                                size="small"
-                                icon={<EditOutlined />}
-                                onClick={() => setIsEditingDesc(true)}
-                            >
-                                Edit
-                            </Button>
-                        )}
-                    </div>
-                    {isEditingDesc ? (
-                        <div>
-                            <RichTextEditor
-                                content={description}
-                                onChange={setDescription}
-                                editable={true}
-                                placeholder="Add a more detailed description..."
-                            />
-                            <div style={{ marginTop: 8 }}>
-                                <Button type="primary" size="small" onClick={handleDescSave}>
-                                    Save
-                                </Button>
-                                <Button
-                                    size="small"
-                                    style={{ marginLeft: 8 }}
-                                    onClick={() => {
-                                        setDescription(card.description || '');
-                                        setIsEditingDesc(false);
-                                    }}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div
-                            onClick={() => !description && setIsEditingDesc(true)}
-                            style={{
-                                padding: description ? 0 : 12,
-                                background: description ? 'transparent' : 'var(--bg-tertiary)',
-                                borderRadius: 8,
-                                cursor: description ? 'default' : 'pointer',
-                                minHeight: description ? 'auto' : 60,
-                            }}
-                        >
-                            {description ? (
-                                <RichTextEditor
-                                    content={description}
-                                    editable={false}
-                                />
-                            ) : (
-                                <Text type="secondary">Add a more detailed description...</Text>
-                            )}
-                        </div>
-                    )}
-                </div>
+            />
 
-                {/* Checklists */}
-                <div style={{ marginTop: 24 }}>
-                    <ChecklistSection
-                        cardId={cardId}
-                        boardId={boardId}
-                        checklists={checklists}
-                        onUpdate={refetchChecklists}
-                        workspaceMembers={workspaceMembers}
-                        lists={currentBoard?.lists || []}
-                    />
-                </div>
+            <DueDatePickerModal
+                open={dueDateOpen}
+                onClose={() => setDueDateOpen(false)}
+                cardId={cardId}
+                boardId={boardId}
+                dueDate={card.due_date}
+                isCompleted={card.is_completed || false}
+                onUpdate={(updates) => setCard({ ...card, ...updates })}
+            />
 
-                {/* Attachments */}
-                <div style={{ marginTop: 24 }}>
-                    <AttachmentSection
-                        cardId={cardId}
-                        attachments={attachments}
-                        onUpdate={refetchAttachments}
-                        currentCover={card?.cover_image}
-                        onSetCover={handleSetCover}
-                    />
-                </div>
-            </div>
-
-            {/* Right Column - Metadata & Activity */}
-            <div
-                style={{
-                    width: 380,
-                    borderLeft: '1px solid var(--border-color)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                }}
-            >
-                {/* Scrollable content */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
-                    {/* Members Section */}
-                    <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <UserOutlined style={{ color: 'var(--text-secondary)' }} />
-                            <Text type="secondary" style={{ fontSize: 12 }}>Members</Text>
-                        </div>
-                        <Popover
-                            content={membersContent}
-                            trigger="click"
-                            open={membersOpen}
-                            onOpenChange={setMembersOpen}
-                            placement="bottomLeft"
-                        >
-                            <div style={{ cursor: 'pointer' }}>
-                                {card.members && card.members.length > 0 ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                        {card.members.map((cm) => (
-                                            <Tooltip key={cm.id} title={cm.user?.full_name}>
-                                                <div style={{ marginLeft: -4 }}>
-                                                    <UserAvatar
-                                                        avatarUrl={cm.user?.avatar_url}
-                                                        name={cm.user?.full_name}
-                                                        size="small"
-                                                    />
-                                                </div>
-                                            </Tooltip>
-                                        ))}
-                                        <Button type="text" size="small" icon={<span style={{ fontSize: 16 }}>+</span>} />
-                                    </div>
-                                ) : (
-                                    <Button type="dashed" size="small" icon={<span>+</span>}>
-                                        Add member
-                                    </Button>
-                                )}
-                            </div>
-                        </Popover>
-                    </div>
-
-                    {/* Labels Section */}
-                    <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <TagOutlined style={{ color: 'var(--text-secondary)' }} />
-                            <Text type="secondary" style={{ fontSize: 12 }}>Labels</Text>
-                        </div>
-                        <Popover
-                            content={labelsContent}
-                            trigger="click"
-                            open={labelsOpen}
-                            onOpenChange={setLabelsOpen}
-                            placement="bottomLeft"
-                        >
-                            <div style={{ cursor: 'pointer' }}>
-                                {card.labels && card.labels.length > 0 ? (
-                                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                                        {card.labels.map((cl) => (
-                                            <div
-                                                key={cl.id}
-                                                style={{
-                                                    backgroundColor: cl.label?.color,
-                                                    padding: '2px 8px',
-                                                    borderRadius: 4,
-                                                    color: 'white',
-                                                    fontSize: 12,
-                                                }}
-                                            >
-                                                {cl.label?.name || ''}
-                                            </div>
-                                        ))}
-                                        <Button type="text" size="small" icon={<span style={{ fontSize: 16 }}>+</span>} />
-                                    </div>
-                                ) : (
-                                    <Button type="dashed" size="small" icon={<span>+</span>}>
-                                        Add label
-                                    </Button>
-                                )}
-                            </div>
-                        </Popover>
-                    </div>
-
-                    {/* Due Date Section */}
-                    <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <ClockCircleOutlined style={{ color: 'var(--text-secondary)' }} />
-                            <Text type="secondary" style={{ fontSize: 12 }}>Due date</Text>
-                        </div>
-                        <Popover
-                            content={dueDateContent}
-                            trigger="click"
-                            open={dueDateOpen}
-                            onOpenChange={setDueDateOpen}
-                            placement="bottomLeft"
-                        >
-                            <div style={{ cursor: 'pointer' }}>
-                                {card.due_date ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                        <Checkbox
-                                            checked={card.is_completed}
-                                            onChange={(e) => {
-                                                e.stopPropagation();
-                                                handleCompletedChange(e.target.checked);
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                        <Tag
-                                            color={
-                                                card.is_completed
-                                                    ? 'success'
-                                                    : new Date(card.due_date) < new Date()
-                                                        ? 'error'
-                                                        : 'default'
-                                            }
-                                        >
-                                            {formatDate(card.due_date)}
-                                        </Tag>
-                                    </div>
-                                ) : (
-                                    <Button type="dashed" size="small" icon={<span>+</span>}>
-                                        Add due date
-                                    </Button>
-                                )}
-                            </div>
-                        </Popover>
-                    </div>
-
-                    {/* Custom Fields Section */}
-                    <CustomFieldsSection cardId={cardId} boardId={boardId} />
-
-                    {/* Cover Image Section */}
-                    <div style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <Text type="secondary" style={{ fontSize: 12 }}>Cover</Text>
-                        </div>
-                        <Popover
-                            trigger="click"
-                            placement="bottomLeft"
-                            open={coverOpen}
-                            onOpenChange={setCoverOpen}
-                            content={
-                                <div style={{ width: 280 }}>
-                                    <Text strong style={{ display: 'block', marginBottom: 12 }}>Choose Cover</Text>
-
-                                    {/* Image attachments grid */}
-                                    {attachments.filter((a: { file_name: string }) =>
-                                        ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].some(ext =>
-                                            a.file_name.toLowerCase().endsWith(ext)
-                                        )
-                                    ).length > 0 && (
-                                            <>
-                                                <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 8 }}>
-                                                    From attachments
-                                                </Text>
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
-                                                    {attachments
-                                                        .filter((a: { file_name: string }) =>
-                                                            ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].some(ext =>
-                                                                a.file_name.toLowerCase().endsWith(ext)
-                                                            )
-                                                        )
-                                                        .map((a: { file_url: string; file_name: string }) => (
-                                                            <div
-                                                                key={a.file_url}
-                                                                onClick={() => handleSetCover(a.file_url)}
-                                                                style={{
-                                                                    width: '100%',
-                                                                    paddingBottom: '75%',
-                                                                    position: 'relative',
-                                                                    borderRadius: 4,
-                                                                    overflow: 'hidden',
-                                                                    cursor: 'pointer',
-                                                                    border: card.cover_image === a.file_url ? '2px solid #1890ff' : '1px solid #d9d9d9',
-                                                                }}
-                                                            >
-                                                                <img
-                                                                    src={a.file_url}
-                                                                    alt={a.file_name}
-                                                                    style={{
-                                                                        position: 'absolute',
-                                                                        top: 0,
-                                                                        left: 0,
-                                                                        width: '100%',
-                                                                        height: '100%',
-                                                                        objectFit: 'cover',
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        ))
-                                                    }
-                                                </div>
-                                            </>
-                                        )}
-
-                                    {/* Upload new image */}
-                                    <Upload
-                                        accept="image/*"
-                                        showUploadList={false}
-                                        beforeUpload={async (file) => {
-                                            try {
-                                                message.loading('Uploading...', 0);
-                                                const url = await uploadFile(file);
-                                                message.destroy();
-                                                handleSetCover(url);
-                                            } catch {
-                                                message.destroy();
-                                                message.error('Upload failed');
-                                            }
-                                            return false;
-                                        }}
-                                    >
-                                        <Button type="dashed" block icon={<PictureOutlined />}>
-                                            Upload Image
-                                        </Button>
-                                    </Upload>
-                                    {card.cover_image && (
-                                        <>
-                                            <Divider style={{ margin: '12px 0' }} />
-                                            <Button 
-                                                type="text" 
-                                                danger 
-                                                block
-                                                onClick={() => handleSetCover('')}
-                                            >
-                                                Remove Cover
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                            }
-                        >
-                            <Button type="dashed" block icon={<PictureOutlined />}>
-                                {card.cover_image ? 'Change Cover' : 'Set Cover'}
-                            </Button>
-                        </Popover>
-                    </div>
-
-                    <Divider style={{ margin: '16px 0' }} />
-
-                    {/* Activity Section */}
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                            <CommentOutlined />
-                            <Text strong>Activity</Text>
-                        </div>
-
-                        {/* Add Comment */}
-                        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-                            <UserAvatar
-                                avatarUrl={user?.avatar_url}
-                                name={user?.full_name}
-                                size="small"
-                            />
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <TextArea
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    placeholder="Write a comment..."
-                                    rows={2}
-                                />
-                                <Button
-                                    type="primary"
-                                    size="small"
-                                    style={{ marginTop: 8 }}
-                                    onClick={handleAddComment}
-                                    disabled={!newComment.trim()}
-                                >
-                                    Save
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* Comments List */}
-                        {comments.map((comment) => (
-                            <div
-                                key={comment.id}
-                                style={{ display: 'flex', gap: 12, marginBottom: 16 }}
-                            >
-                                <UserAvatar
-                                    avatarUrl={comment.user?.avatar_url}
-                                    name={comment.user?.full_name}
-                                    size="small"
-                                />
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div>
-                                        <Text strong style={{ fontSize: 13 }}>{comment.user?.full_name}</Text>
-                                        <Text type="secondary" style={{ marginLeft: 8, fontSize: 11 }}>
-                                            {formatDate(comment.created_at)}
-                                        </Text>
-                                    </div>
-                                    <div
-                                        style={{
-                                            marginTop: 4,
-                                            padding: '6px 10px',
-                                            background: 'var(--bg-tertiary)',
-                                            borderRadius: 6,
-                                            wordBreak: 'break-word',
-                                            fontSize: 13,
-                                        }}
-                                    >
-                                        {comment.content}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Actions - Fixed at bottom */}
-                <div style={{ padding: 16, borderTop: '1px solid var(--border-color)' }}>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        <ShareCardPopover
-                            cardId={cardId}
-                            cardTitle={card?.title || ''}
-                            boardId={boardId}
-                            cardData={card || undefined}
-                        />
-                        <Button
-                            icon={card?.is_archived ? <UndoOutlined /> : <InboxOutlined />}
-                            onClick={handleArchive}
-                            style={{ flex: 1 }}
-                        >
-                            {card?.is_archived ? 'Restore' : 'Archive'}
-                        </Button>
-                        <Button
-                            icon={<DeleteOutlined />}
-                            danger
-                            onClick={handleDelete}
-                            style={{ flex: 1 }}
-                        >
-                            Delete
-                        </Button>
-                    </div>
-                </div>
-            </div>
-            </div>
+            <CoverImagePickerModal
+                open={coverOpen}
+                onClose={() => setCoverOpen(false)}
+                cardId={cardId}
+                attachments={attachments}
+                currentCover={card.cover_image}
+                onUpdate={(coverImage) => setCard({ ...card, cover_image: coverImage })}
+            />
         </div>
     );
 }

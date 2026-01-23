@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import { Board, List, Card } from '@/types';
+import { Board, BoardList, Card } from '@/types';
 import api from '@/lib/api';
 
 interface BoardState {
     currentBoard: Board | null;
-    lists: List[];
+    lists: BoardList[];
     isLoading: boolean;
     error: string | null;
     showCardCovers: boolean;
@@ -24,7 +24,7 @@ interface BoardState {
     deleteCard: (cardId: string) => Promise<void>;
     moveCard: (cardId: string, listId: string, position: number) => Promise<void>;
 
-    setLists: (lists: List[]) => void;
+    setLists: (lists: BoardList[]) => void;
     optimisticMoveCard: (cardId: string, sourceListId: string, destListId: string, destIndex: number) => void;
     toggleShowCardCovers: () => void;
 }
@@ -234,7 +234,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         }
     },
 
-    setLists: (lists: List[]) => {
+    setLists: (lists: BoardList[]) => {
         set({ lists });
     },
 

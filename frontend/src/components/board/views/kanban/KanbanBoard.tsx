@@ -17,7 +17,7 @@ import {
     horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useBoardStore } from '@/stores/boardStore';
-import { Card, List } from '@/types';
+import { Card, BoardList } from '@/types';
 import { FilterState } from '@/components/board/BoardFilterPopover';
 import KanbanList from './KanbanList';
 import KanbanCard from './KanbanCard';
@@ -27,7 +27,7 @@ import styles from './KanbanBoard.module.css';
 interface KanbanBoardProps {
     filters?: FilterState;
     readOnly?: boolean;
-    listsData?: List[]; // Optional: use this instead of store lists when provided
+    listsData?: BoardList[]; // Optional: use this instead of store lists when provided
     onCardClick?: (card: Card) => void; // Custom click handler for cards
     showCovers?: boolean; // Force show covers
 }
@@ -37,7 +37,7 @@ export default function KanbanBoard({ filters, readOnly = false, listsData, onCa
         useBoardStore();
     const lists = listsData ?? storeLists;
     const [activeCard, setActiveCard] = useState<Card | null>(null);
-    const [activeList, setActiveList] = useState<List | null>(null);
+    const [activeList, setActiveList] = useState<BoardList | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {

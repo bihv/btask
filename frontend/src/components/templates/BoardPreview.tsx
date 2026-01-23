@@ -5,7 +5,7 @@ import { Typography } from 'antd';
 import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 import TemplateCardModal from './TemplateCardModal';
 import { TemplateList } from '@/app/(dashboard)/templates/data';
-import { List, Card } from '@/types';
+import { BoardList, Card } from '@/types';
 
 const { Text } = Typography;
 
@@ -17,7 +17,7 @@ interface BoardPreviewProps {
 }
 
 // Convert TemplateList to List type for KanbanBoard
-function convertToLists(templateLists: TemplateList[]): List[] {
+function convertToLists(templateLists: TemplateList[]): BoardList[] {
     const now = new Date().toISOString();
     return templateLists.map((list, listIndex) => ({
         id: list.id,

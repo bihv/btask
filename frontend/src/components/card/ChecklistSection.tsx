@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTheme } from '@/providers/ThemeProvider';
 import { Input, Button, Space, App } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { Checklist, ChecklistItem, User, List } from '@/types';
+import { Checklist, ChecklistItem, User, BoardList } from '@/types';
 import { checklistApi } from '@/lib/api';
 import api from '@/lib/api';
 
@@ -21,7 +21,7 @@ interface ChecklistSectionProps {
     checklists: Checklist[];
     onUpdate: () => void;
     workspaceMembers?: User[];
-    lists?: List[];
+    lists?: BoardList[];
 }
 
 export default function ChecklistSection({
@@ -45,7 +45,7 @@ export default function ChecklistSection({
     const [convertingItem, setConvertingItem] = useState<{ checklistId: string; item: ChecklistItem } | null>(null);
     const [selectedListId, setSelectedListId] = useState<string>('');
     const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
-    const [modalLists, setModalLists] = useState<List[]>(lists);
+    const [modalLists, setModalLists] = useState<BoardList[]>(lists);
 
     const { resolvedTheme } = useTheme();
 

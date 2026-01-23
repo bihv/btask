@@ -56,7 +56,7 @@ export interface Board {
     show_card_covers: boolean;
     is_watching?: boolean;
     position: number;
-    lists?: List[];
+    lists?: BoardList[];
     labels?: Label[];
     custom_fields?: CustomField[];
     created_at: string;
@@ -64,7 +64,7 @@ export interface Board {
 }
 
 // List types
-export interface List {
+export interface BoardList {
     id: string;
     board_id: string;
     title: string;
