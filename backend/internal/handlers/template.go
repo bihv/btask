@@ -177,3 +177,49 @@ func (h *TemplateHandler) IncrementCopies(c *fiber.Ctx) error {
 
 	return utils.SuccessResponse(c, fiber.Map{"message": "Copy count incremented"})
 }
+
+// UseTemplate creates a new board from a template
+func (h *TemplateHandler) UseTemplate(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid template ID")
+	}
+
+	var req struct {
+		WorkspaceID string `json:"workspace_id" validate:"required"`
+		BoardTitle  string `json:"board_title"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	if req.WorkspaceID == "" {
+		return utils.ValidationErrorResponse(c, "workspace_id is required")
+	}
+
+	workspaceID, err := uuid.Parse(req.WorkspaceID)
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid workspace ID")
+	}
+
+	userID := middleware.GetUserID(c)
+
+	board, err := h.service.UseTemplate(id, workspaceID, userID, req.BoardTitle)
+	if err != nil {
+		if err.Error() == "access denied to workspace" {
+			return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+		}
+		if err.Error() == "workspace not found" || err.Error() == "template not found" {
+			return utils.NotFoundResponse(c, err.Error())
+		}
+		if err.Error() == "template is not active" {
+			return utils.ValidationErrorResponse(c, err.Error())
+		}
+		return utils.InternalErrorResponse(c, "Failed to create board from template")
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+		"data":    board,
+	})
+}

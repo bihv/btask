@@ -193,3 +193,31 @@ export function useIncrementTemplateCopies() {
         },
     });
 }
+
+interface UseTemplateInput {
+    templateId: string;
+    workspaceId: string;
+    boardTitle?: string;
+}
+
+export function useTemplateToBoard() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ templateId, workspaceId, boardTitle }: UseTemplateInput) => {
+            const response = await api.post(`/templates/${templateId}/use`, {
+                workspace_id: workspaceId,
+                board_title: boardTitle,
+            });
+            return response.data.data;
+        },
+        onSuccess: (_, variables) => {
+            // Invalidate workspaces and boards cache
+            queryClient.invalidateQueries({ queryKey: ['workspaces', variables.workspaceId] });
+            queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+            queryClient.invalidateQueries({ queryKey: ['boards'] });
+            // Invalidate template to update copies count
+            queryClient.invalidateQueries({ queryKey: ['templates', variables.templateId] });
+            queryClient.invalidateQueries({ queryKey: ['templates'] });
+        },
+    });
+}

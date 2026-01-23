@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Typography, Button, Breadcrumb, Row, Col, Divider, App, Spin } from 'antd';
 import { ShareAltOutlined, CopyOutlined, EyeOutlined } from '@ant-design/icons';
 import { useTemplate, useTemplates, Template } from '@/hooks/useTemplates';
 import BoardPreview from '@/components/templates/BoardPreview';
 import TemplateCard from '@/components/templates/TemplateCard';
+import UseTemplateModal from '@/components/templates/UseTemplateModal';
 import dynamic from 'next/dynamic';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
@@ -21,6 +22,8 @@ export default function TemplateDetailPage() {
     const router = useRouter();
     const { message } = App.useApp();
     const id = params.id as string;
+
+    const [showUseTemplateModal, setShowUseTemplateModal] = useState(false);
 
     const { data: template, isLoading, error } = useTemplate(id);
     const { data: templatesData } = useTemplates({ limit: 4 });
@@ -56,8 +59,7 @@ export default function TemplateDetailPage() {
     };
 
     const handleUseTemplate = () => {
-        message.info('Creating board from template...');
-        // TODO: Implement actual template creation
+        setShowUseTemplateModal(true);
     };
 
     const handleShare = () => {
@@ -195,6 +197,15 @@ export default function TemplateDetailPage() {
                         </Row>
                     </div>
                 </div>
+            )}
+
+            {/* Use Template Modal */}
+            {template && (
+                <UseTemplateModal
+                    template={template}
+                    open={showUseTemplateModal}
+                    onClose={() => setShowUseTemplateModal(false)}
+                />
             )}
         </div>
     );

@@ -17,7 +17,6 @@ import {
     Tag,
     Upload,
     App,
-    Slider,
 } from 'antd';
 import {
     AlignLeftOutlined,
@@ -48,6 +47,7 @@ import ShareCardPopover from '@/components/card/ShareCardPopover';
 import LabelPicker from '@/components/card/LabelPicker';
 import CustomFieldsSection from '@/components/card/CustomFieldsSection';
 import UserAvatar from '@/components/common/UserAvatar';
+import DraggableCoverImage from '@/components/card/DraggableCoverImage';
 
 
 // Dynamic import to avoid SSR issues with BlockNote
@@ -516,19 +516,21 @@ export default function CardPage() {
                         style={{
                             margin: '-24px -24px 24px -24px',
                             width: 'calc(100% + 48px)',
-                            height: 200,
-                            overflow: 'hidden',
-                            position: 'relative',
                         }}
                     >
-                        <img
-                            src={card.cover_image}
-                            alt="Cover"
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                objectPosition: `center ${card.cover_image_y ?? 50}%`,
+                        <DraggableCoverImage
+                            imageUrl={card.cover_image}
+                            position={coverPosition}
+                            onPositionChange={(value) => setCoverPosition(value)}
+                            onPositionChangeComplete={async (value) => {
+                                try {
+                                    await api.put(`/cards/${card.id}`, { cover_image_y: value });
+                                    setCard({ ...card, cover_image_y: value });
+                                    queryClient.invalidateQueries({ queryKey: ['card', cardId] });
+                                    message.success('Position updated');
+                                } catch (error) {
+                                    message.error('Failed to update position');
+                                }
                             }}
                         />
                     </div>
@@ -848,29 +850,6 @@ export default function CardPage() {
                                     </Upload>
                                     {card.cover_image && (
                                         <>
-                                            <Divider style={{ margin: '12px 0' }} />
-                                            <div>
-                                                <Text strong style={{ display: 'block', marginBottom: 8 }}>Position</Text>
-                                                <Slider
-                                                    min={0}
-                                                    max={100}
-                                                    value={coverPosition}
-                                                    onChange={(value) => {
-                                                        setCoverPosition(value);
-                                                    }}
-                                                    onChangeComplete={async (value) => {
-                                                        try {
-                                                            await api.put(`/cards/${card.id}`, { cover_image_y: value });
-                                                            setCard({ ...card, cover_image_y: value });
-                                                            queryClient.invalidateQueries({ queryKey: ['card', cardId] });
-                                                            message.success('Position updated');
-                                                        } catch (error) {
-                                                            message.error('Failed to update position');
-                                                        }
-                                                    }}
-                                                    tooltip={{ formatter: (value) => `${value}%` }}
-                                                />
-                                            </div>
                                             <Divider style={{ margin: '12px 0' }} />
                                             <Button 
                                                 type="text" 

@@ -1,17 +1,29 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/repository"
 )
 
 type TemplateService struct {
-	repo *repository.TemplateRepository
+	repo          *repository.TemplateRepository
+	boardRepo     *repository.BoardRepository
+	listRepo      *repository.ListRepository
+	cardRepo      *repository.CardRepository
+	workspaceRepo *repository.WorkspaceRepository
 }
 
 func NewTemplateService(repo *repository.TemplateRepository) *TemplateService {
-	return &TemplateService{repo: repo}
+	return &TemplateService{
+		repo:          repo,
+		boardRepo:     repository.NewBoardRepository(),
+		listRepo:      repository.NewListRepository(),
+		cardRepo:      repository.NewCardRepository(),
+		workspaceRepo: repository.NewWorkspaceRepository(),
+	}
 }
 
 func (s *TemplateService) Create(req models.CreateTemplateRequest, creatorID uuid.UUID) (*models.Template, error) {
@@ -158,4 +170,97 @@ func (s *TemplateService) UpdateLists(templateID uuid.UUID, lists []models.Creat
 	}
 
 	return nil
+}
+
+// UseTemplate creates a new board from a template
+func (s *TemplateService) UseTemplate(templateID uuid.UUID, workspaceID uuid.UUID, userID uuid.UUID, boardTitle string) (*models.Board, error) {
+	// Check workspace access
+	_, err := s.workspaceRepo.FindByID(workspaceID)
+	if err != nil {
+		return nil, errors.New("workspace not found")
+	}
+
+	// Verify user has access to workspace
+	isOwner := s.workspaceRepo.IsOwner(workspaceID, userID)
+	isMember := s.workspaceRepo.IsMember(workspaceID, userID)
+	if !isOwner && !isMember {
+		return nil, errors.New("access denied to workspace")
+	}
+
+	// Fetch template with all relations
+	template, err := s.repo.FindByID(templateID)
+	if err != nil {
+		return nil, errors.New("template not found")
+	}
+
+	if !template.IsActive {
+		return nil, errors.New("template is not active")
+	}
+
+	// Use template title if boardTitle not provided
+	if boardTitle == "" {
+		boardTitle = template.Title
+	}
+
+	// Get max position for board in workspace
+	maxPos := s.boardRepo.GetMaxPosition(workspaceID)
+
+	// Create new board from template
+	board := &models.Board{
+		WorkspaceID:     workspaceID,
+		Title:           boardTitle,
+		Description:     template.Description,
+		BackgroundColor: template.CoverColor,
+		Position:        maxPos + 1,
+	}
+
+	if board.BackgroundColor == "" {
+		board.BackgroundColor = "#0079bf"
+	}
+
+	// Create board
+	if err := s.boardRepo.Create(board); err != nil {
+		return nil, err
+	}
+
+	// Clone lists and cards
+	for _, templateList := range template.Lists {
+		list := &models.List{
+			BoardID:  board.ID,
+			Title:    templateList.Title,
+			Color:    templateList.Color,
+			Position: templateList.Position,
+		}
+
+		if err := s.listRepo.Create(list); err != nil {
+			// Rollback: delete board if list creation fails
+			s.boardRepo.Delete(board.ID)
+			return nil, err
+		}
+
+		// Clone cards for this list
+		for _, templateCard := range templateList.Cards {
+			card := &models.Card{
+				ListID:      list.ID,
+				Title:       templateCard.Title,
+				Description: templateCard.Description,
+				CoverImage:  templateCard.CoverURL,
+				DueDate:     templateCard.DueDate,
+				Position:    templateCard.Position,
+				CreatedBy:   userID,
+			}
+
+			if err := s.cardRepo.Create(card); err != nil {
+				// Rollback: delete board (cascades to lists and cards)
+				s.boardRepo.Delete(board.ID)
+				return nil, err
+			}
+		}
+	}
+
+	// Increment template copies counter
+	go s.IncrementCopies(templateID)
+
+	// Fetch board with relations for response
+	return s.boardRepo.FindByID(board.ID)
 }

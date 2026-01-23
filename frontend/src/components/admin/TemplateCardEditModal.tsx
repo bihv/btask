@@ -143,6 +143,7 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
                 <div>
                     <Text strong style={{ display: 'block', marginBottom: 8 }}>Description</Text>
                     <RichTextEditor
+                        key={card?.id || 'new'} 
                         content={description}
                         onChange={setDescription}
                         editable={true}

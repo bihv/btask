@@ -88,6 +88,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	templates.Get("/", templateHandler.GetAll)
 	templates.Get("/:id", templateHandler.GetByID)
 	templates.Post("/:id/copy", templateHandler.IncrementCopies)
+	templates.Post("/:id/use", templateHandler.UseTemplate)
 
 	// Labels endpoint for i18n (protected to access user language preference)
 	protected.Get("/labels", systemLabelHandler.GetLabels)
