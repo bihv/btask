@@ -11,6 +11,7 @@ import {
 import { useBoardStore } from '@/stores/boardStore';
 import { Card as CardType } from '@/types';
 import dayjs from 'dayjs';
+import { isOverdue, isDueSoon } from '@/components/common/DueDateTag';
 
 const { Title, Text } = Typography;
 
@@ -31,9 +32,6 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
         const byMember: Record<string, { name: string; avatar?: string; count: number }> = {};
         const overdueCards: (CardType & { listTitle: string })[] = [];
 
-        const now = dayjs();
-        const soonThreshold = now.add(2, 'day');
-
         lists.forEach((list) => {
             byList[list.id] = { title: list.title, count: 0, color: list.color };
             
@@ -44,11 +42,10 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                 if (card.is_completed) complete++;
                 
                 if (card.due_date) {
-                    const dueDate = dayjs(card.due_date);
-                    if (dueDate.isBefore(now, 'day') && !card.is_completed) {
+                    if (isOverdue(card.due_date) && !card.is_completed) {
                         overdue++;
                         overdueCards.push({ ...card, listTitle: list.title });
-                    } else if (dueDate.isBefore(soonThreshold, 'day') && !card.is_completed) {
+                    } else if (isDueSoon(card.due_date) && !card.is_completed) {
                         dueSoon++;
                     }
                 }
