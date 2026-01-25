@@ -53,8 +53,6 @@ export default function CardSidebar({
             style={{
                 width: 380,
                 borderLeft: '1px solid var(--border-color)',
-                display: 'flex',
-                flexDirection: 'column',
                 padding: 16,
                 overflowY: 'auto',
                 height: '100%',
@@ -72,7 +70,6 @@ export default function CardSidebar({
                     }
                 }
             `}</style>
-            {/* Scrollable content */}
             <div>
                 {/* Comments and Activity Section */}
                 <ActivitySection

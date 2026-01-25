@@ -78,8 +78,19 @@ export default function CardMainContent({
                 minWidth: 0,
                 padding: 24,
                 paddingTop: 8,
+                overflowY: 'auto',
+                height: '100%',
             }}
+            className="card-main-content"
         >
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    .card-main-content {
+                        overflow-y: visible !important;
+                        height: auto !important;
+                    }
+                }
+            `}</style>
             {!isModal && card.cover_image && (
                 <div
                     style={{

@@ -180,7 +180,7 @@ export default function CardPage({ isModal = false }: { isModal?: boolean }) {
                     flex: 1, 
                     display: 'flex', 
                     flexDirection: 'row',
-                    overflowY: 'auto',
+                    overflow: 'hidden',
                 }}
                 className="card-detail-container"
             >
@@ -188,6 +188,7 @@ export default function CardPage({ isModal = false }: { isModal?: boolean }) {
                     @media (max-width: 768px) {
                         .card-detail-container {
                             flex-direction: column !important;
+                            overflow-y: auto !important;
                         }
                     }
                 `}</style>
