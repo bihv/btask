@@ -5,7 +5,7 @@ import { Modal, Select, Input, Form, App, Spin } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTemplateToBoard } from '@/hooks/useTemplates';
-import type { Template } from '@/hooks/useTemplates';
+import type { Template } from '@/types';
 
 interface UseTemplateModalProps {
     template: Template;

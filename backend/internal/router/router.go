@@ -182,6 +182,11 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	cards.Delete("/:id/members/:userId", cardHandler.RemoveMember)
 	cards.Put("/:id/archive", cardHandler.Archive)
 	cards.Put("/:id/unarchive", cardHandler.Unarchive)
+	cards.Post("/:id/refresh-link-preview", cardHandler.RefreshLinkPreview)
+	cards.Delete("/:id/link-preview", cardHandler.ClearLinkPreview)
+
+	// Link preview utility endpoint
+	protected.Post("/link-preview", cardHandler.FetchLinkPreview)
 
 	// Archived cards by board
 	boards.Get("/:id/archived-cards", cardHandler.GetArchivedCards)

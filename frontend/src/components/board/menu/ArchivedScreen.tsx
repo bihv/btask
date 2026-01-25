@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Tabs, Button, Empty, Spin, Typography, Tooltip, App, Flex } from 'antd';
 import { UndoOutlined, InboxOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
-import { List as ListType, Card } from '@/types';
+import { BoardList as ListType, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import { ScreenHeader } from './MenuShared';
 

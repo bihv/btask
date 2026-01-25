@@ -1,0 +1,7 @@
+.externalLinkButton {
+    transition: all 0.2s;
+}
+
+.externalLinkButton:hover {
+    background-color: var(--bg-hover);
+}

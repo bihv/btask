@@ -6,14 +6,14 @@ import { Typography, Table, Tag, Empty, Spin, Button, Drawer, Input, Checkbox, S
 import { CreditCardOutlined, ClockCircleOutlined, CheckCircleFilled, FilterOutlined, CalendarOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useMyCards, useUpdateCard, CardFilters as ApiCardFilters } from '@/hooks/useCards';
-import { Card, CardLabel, List, Board, Workspace } from '@/types';
+import { Card, CardLabel, BoardList, Board, Workspace } from '@/types';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
 // Extended card type with nested list/board/workspace
 interface AssignedCard extends Card {
-    list?: List & {
+    list?: BoardList & {
         board?: Board & {
             workspace?: Workspace;
         };

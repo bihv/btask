@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button, Input, Card, Typography, Space, Popconfirm, ColorPicker } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import React, { useState, useCallback } from 'react';
+import { Button, Input, App } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import styles from '@/components/board/views/kanban/KanbanBoard.module.css';
 import TemplateCardEditModal from './TemplateCardEditModal';
-
-const { Text } = Typography;
+import api from '@/lib/api';
+import { BoardList, Card } from '@/types';
+import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 
 export interface TemplateCardInput {
     id: string;
@@ -14,6 +15,13 @@ export interface TemplateCardInput {
     description?: string;
     cover_url?: string;
     due_date?: string;
+    // Link preview fields
+    link_url?: string;
+    link_title?: string;
+    link_description?: string;
+    link_image?: string;
+    link_site_name?: string;
+    link_favicon?: string;
 }
 
 export interface TemplateListInput {
@@ -31,14 +39,55 @@ interface TemplateBoardEditorProps {
 let tempIdCounter = 0;
 const generateTempId = () => `temp-${Date.now()}-${tempIdCounter++}`;
 
+// Helper to check if string is a URL
+const isURL = (str: string): boolean => {
+    const trimmed = str.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        return false;
+    }
+    try {
+        new URL(trimmed);
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEditorProps) {
-    const [editingListId, setEditingListId] = useState<string | null>(null);
-    const [editingListTitle, setEditingListTitle] = useState('');
-    const [addingCardToList, setAddingCardToList] = useState<string | null>(null);
-    const [newCardTitle, setNewCardTitle] = useState('');
+    const { message } = App.useApp();
     const [newListTitle, setNewListTitle] = useState('');
     const [isAddingList, setIsAddingList] = useState(false);
-    const [editingCard, setEditingCard] = useState<{ listId: string; card: TemplateCardInput } | null>(null);
+    const [editingCard, setEditingCard] = useState<Card | null>(null);
+
+    // Convert TemplateListInput to BoardList for compatibility
+    const boardLists: BoardList[] = lists.map(list => ({
+        ...list,
+        position: 0,
+        board_id: 'template',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        cards: list.cards.map(card => ({
+            id: card.id,
+            title: card.title,
+            description: card.description,
+            cover_image: card.cover_url?.startsWith('http') ? card.cover_url : undefined,
+            cover_color: card.cover_url && !card.cover_url.startsWith('http') ? card.cover_url : undefined,
+            due_date: card.due_date,
+            link_url: card.link_url,
+            link_title: card.link_title,
+            link_description: card.link_description,
+            link_image: card.link_image,
+            link_site_name: card.link_site_name,
+            link_favicon: card.link_favicon,
+            list_id: list.id,
+            position: 0,
+            board_id: 'template',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_completed: false,
+            created_by: '',
+        }))
+    }));
 
     // Add new list
     const handleAddList = () => {
@@ -54,285 +103,165 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
         setIsAddingList(false);
     };
 
-    // Update list title
-    const handleUpdateListTitle = (listId: string) => {
-        if (!editingListTitle.trim()) {
-            setEditingListId(null);
-            return;
-        }
-        onChange(lists.map(list => 
-            list.id === listId ? { ...list, title: editingListTitle.trim() } : list
-        ));
-        setEditingListId(null);
+    // Delete card from template
+    const handleDeleteCard = (cardId: string) => {
+        onChange(lists.map(list => ({
+            ...list,
+            cards: list.cards.filter(card => card.id !== cardId)
+        })));
     };
 
-    // Update list color
-    const handleUpdateListColor = (listId: string, color: string) => {
-        onChange(lists.map(list => 
-            list.id === listId ? { ...list, color } : list
-        ));
-    };
+    // Add card to list (for template)
+    const handleAddCard = async (listId: string, title: string) => {
+        const trimmed = title.trim();
+        if (!trimmed) return;
 
-    // Delete list
-    const handleDeleteList = (listId: string) => {
-        onChange(lists.filter(list => list.id !== listId));
-    };
-
-    // Add card to list
-    const handleAddCard = (listId: string) => {
-        if (!newCardTitle.trim()) return;
-        const newCard: TemplateCardInput = {
+        let newCard: TemplateCardInput = {
             id: generateTempId(),
-            title: newCardTitle.trim(),
+            title: trimmed,
         };
-        onChange(lists.map(list => 
+
+        // If title is a URL, fetch link preview first
+        if (isURL(trimmed)) {
+            try {
+                const response = await api.post('/link-preview', { url: trimmed });
+                const preview = response.data.data; // Data is nested in response.data.data
+                if (preview) {
+                    newCard.link_url = preview.url || trimmed;
+                    newCard.link_title = preview.title;
+                    newCard.link_description = preview.description;
+                    newCard.link_image = preview.image;
+                    newCard.link_site_name = preview.site_name;
+                    newCard.link_favicon = preview.favicon;
+                }
+            } catch (error) {
+                console.error('Failed to fetch link preview:', error);
+                // Even if fetch fails, still add the card with URL as title
+            }
+        }
+
+        // Add card after preview fetch completes
+        const updatedLists = lists.map(list =>
             list.id === listId ? { ...list, cards: [...list.cards, newCard] } : list
-        ));
-        setNewCardTitle('');
-        setAddingCardToList(null);
+        );
+        onChange(updatedLists);
     };
 
-    // Delete card
-    const handleDeleteCard = (listId: string, cardId: string) => {
-        onChange(lists.map(list => 
-            list.id === listId 
-                ? { ...list, cards: list.cards.filter(card => card.id !== cardId) } 
-                : list
-        ));
+    // Handle lists change from board
+    const handleListsChange = useCallback((updatedBoardLists: BoardList[]) => {
+        const updatedLists: TemplateListInput[] = updatedBoardLists.map(list => ({
+            id: list.id,
+            title: list.title,
+            color: list.color,
+            cards: (list.cards || []).map(card => ({
+                id: card.id,
+                title: card.title,
+                description: card.description,
+                cover_url: card.cover_image || card.cover_color,
+                due_date: card.due_date,
+                link_url: card.link_url,
+                link_title: card.link_title,
+                link_description: card.link_description,
+                link_image: card.link_image,
+                link_site_name: card.link_site_name,
+                link_favicon: card.link_favicon,
+            }))
+        }));
+        onChange(updatedLists);
+    }, [onChange]);
+
+    // Handle card click to open edit modal
+    const handleCardClick = (card: Card) => {
+        setEditingCard(card);
     };
 
-    // Update card (from modal)
+    // Update card from modal
     const handleUpdateCard = (updatedCard: { id: string; title: string; description?: string; cover_url?: string }) => {
         if (!editingCard) return;
-        onChange(lists.map(list => 
-            list.id === editingCard.listId 
-                ? { 
-                    ...list, 
-                    cards: list.cards.map(card => 
-                        card.id === updatedCard.id 
-                            ? { ...card, ...updatedCard } 
-                            : card
-                    ) 
-                } 
-                : list
-        ));
+        
+        onChange(lists.map(list => ({
+            ...list,
+            cards: list.cards.map(card => 
+                card.id === updatedCard.id 
+                    ? { ...card, ...updatedCard } 
+                    : card
+            )
+        })));
         setEditingCard(null);
     };
 
     return (
         <>
-        <div style={{ 
-            background: 'var(--bg-tertiary)', 
-            padding: 16, 
-            borderRadius: 8,
-            overflowX: 'auto',
-        }}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 'max-content' }}>
-                {lists.map((list) => (
-                    <div 
-                        key={list.id} 
-                        className={styles.list}
-                        style={{
-                            minWidth: 250,
-                            maxWidth: 250,
-                            ...(list.color ? { background: `${list.color}a6` } : {}),
-                        }}
-                    >
-                        {/* List Header */}
-                        <div className={styles.listHeader} style={list.color ? { color: '#fff' } : undefined}>
-                            {editingListId === list.id ? (
-                                <div style={{ display: 'flex', gap: 4, flex: 1 }}>
-                                    <Input
-                                        size="small"
-                                        value={editingListTitle}
-                                        onChange={(e) => setEditingListTitle(e.target.value)}
-                                        onPressEnter={() => handleUpdateListTitle(list.id)}
-                                        autoFocus
-                                    />
-                                    <Button size="small" icon={<CheckOutlined />} onClick={() => handleUpdateListTitle(list.id)} />
-                                    <Button size="small" icon={<CloseOutlined />} onClick={() => setEditingListId(null)} />
-                                </div>
-                            ) : (
-                                <>
-                                    <span 
-                                        style={{ flex: 1, cursor: 'pointer' }}
-                                        onClick={() => {
-                                            setEditingListId(list.id);
-                                            setEditingListTitle(list.title);
-                                        }}
-                                    >
-                                        {list.title}
-                                    </span>
-                                    <ColorPicker
-                                        size="small"
-                                        value={list.color || '#ffffff'}
-                                        onChange={(color) => handleUpdateListColor(list.id, color.toHexString())}
-                                    />
-                                    <Popconfirm
-                                        title="Delete this list?"
-                                        onConfirm={() => handleDeleteList(list.id)}
-                                        okText="Delete"
-                                        okType="danger"
-                                    >
-                                        <Button 
-                                            size="small" 
-                                            type="text" 
-                                            danger 
-                                            icon={<DeleteOutlined />}
-                                            style={list.color ? { color: '#fff' } : undefined}
-                                        />
-                                    </Popconfirm>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Cards */}
-                        <div className={styles.listContent}>
-                            {list.cards.map((card) => (
-                                <div 
-                                    key={card.id} 
-                                    className={styles.card}
-                                    style={{ 
-                                        cursor: 'pointer',
-                                    }}
-                                    onClick={() => setEditingCard({ listId: list.id, card })}
-                                >
-                                    {/* Cover preview */}
-                                    {card.cover_url && (
-                                        <div style={{ 
-                                            height: 80, 
-                                            marginBottom: 8,
-                                            borderRadius: 4,
-                                            overflow: 'hidden',
-                                            marginTop: -8,
-                                            marginLeft: -8,
-                                            marginRight: -8,
-                                        }}>
-                                            <img 
-                                                src={card.cover_url} 
-                                                alt="cover" 
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                            />
-                                        </div>
-                                    )}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Text style={{ fontSize: 13 }}>{card.title}</Text>
-                                        <div style={{ display: 'flex', gap: 4 }}>
-                                            <Button 
-                                                size="small" 
-                                                type="text"
-                                                icon={<EditOutlined />}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditingCard({ listId: list.id, card });
-                                                }}
-                                            />
-                                            <Button 
-                                                size="small" 
-                                                type="text" 
-                                                danger 
-                                                icon={<DeleteOutlined />}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteCard(list.id, card.id);
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Add Card */}
-                        {addingCardToList === list.id ? (
-                            <div style={{ padding: '4px 0' }}>
-                                <Input.TextArea
-                                    value={newCardTitle}
-                                    onChange={(e) => setNewCardTitle(e.target.value)}
-                                    placeholder="Enter card title..."
-                                    autoSize={{ minRows: 2, maxRows: 4 }}
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleAddCard(list.id);
-                                        }
-                                        if (e.key === 'Escape') {
-                                            setAddingCardToList(null);
-                                            setNewCardTitle('');
-                                        }
-                                    }}
-                                />
-                                <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                                    <Button type="primary" size="small" onClick={() => handleAddCard(list.id)}>
-                                        Add card
-                                    </Button>
-                                    <Button size="small" onClick={() => { setAddingCardToList(null); setNewCardTitle(''); }}>
-                                        Cancel
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <Button
-                                type="text"
-                                icon={<PlusOutlined />}
-                                onClick={() => setAddingCardToList(list.id)}
-                                style={{
-                                    width: '100%',
-                                    textAlign: 'left',
-                                    ...(list.color ? { color: '#fff' } : {}),
+            <div style={{ 
+                background: 'var(--bg-tertiary)', 
+                padding: 16, 
+                borderRadius: 8,
+            }}>
+                <div style={{ 
+                    display: 'flex', 
+                    gap: 12, 
+                    overflowX: 'auto',
+                    alignItems: 'flex-start' 
+                }}>
+                    <KanbanBoard 
+                        listsData={boardLists}
+                        onListsChange={handleListsChange}
+                        onCardClick={handleCardClick}
+                        onAddCard={handleAddCard}
+                        onDeleteCard={handleDeleteCard}
+                        readOnly={false}
+                        showCovers={true}
+                    />
+                    
+                    {/* Add List Section */}
+                    {isAddingList ? (
+                        <div className={styles.list} style={{ minWidth: 250, maxWidth: 250, flexShrink: 0 }}>
+                            <Input
+                                value={newListTitle}
+                                onChange={(e) => setNewListTitle(e.target.value)}
+                                placeholder="Enter list title..."
+                                onPressEnter={handleAddList}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') {
+                                        setIsAddingList(false);
+                                        setNewListTitle('');
+                                    }
                                 }}
-                            >
-                                Add a card
-                            </Button>
-                        )}
-                    </div>
-                ))}
-
-                {/* Add List */}
-                {isAddingList ? (
-                    <div className={styles.list} style={{ minWidth: 250, maxWidth: 250 }}>
-                        <Input
-                            value={newListTitle}
-                            onChange={(e) => setNewListTitle(e.target.value)}
-                            placeholder="Enter list title..."
-                            onPressEnter={handleAddList}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Escape') {
-                                    setIsAddingList(false);
-                                    setNewListTitle('');
-                                }
-                            }}
-                            autoFocus
-                        />
-                        <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                            <Button type="primary" size="small" onClick={handleAddList}>
-                                Add list
-                            </Button>
-                            <Button size="small" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
-                                Cancel
-                            </Button>
+                                autoFocus
+                            />
+                            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                                <Button type="primary" size="small" onClick={handleAddList}>
+                                    Add list
+                                </Button>
+                                <Button size="small" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
+                                    Cancel
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <Button
-                        type="dashed"
-                        icon={<PlusOutlined />}
-                        onClick={() => setIsAddingList(true)}
-                        style={{ minWidth: 250, height: 48 }}
-                    >
-                        Add another list
-                    </Button>
-                )}
+                    ) : (
+                        <Button
+                            type="dashed"
+                            icon={<PlusOutlined />}
+                            onClick={() => setIsAddingList(true)}
+                            style={{ minWidth: 250, height: 48, flexShrink: 0 }}
+                        >
+                            Add another list
+                        </Button>
+                    )}
+                </div>
             </div>
-        </div>
 
             {/* Card Edit Modal */}
             <TemplateCardEditModal
                 open={!!editingCard}
-                card={editingCard?.card || null}
-                onSave={handleUpdateCard}
+                card={editingCard ? {
+                    id: editingCard.id,
+                    title: editingCard.title,
+                    description: editingCard.description,
+                    cover_url: editingCard.cover_image || editingCard.cover_color || '',
+                } : null}
                 onCancel={() => setEditingCard(null)}
+                onSave={handleUpdateCard}
             />
         </>
     );

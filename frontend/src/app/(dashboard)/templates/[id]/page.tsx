@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Typography, Button, Breadcrumb, Row, Col, Divider, App, Spin } from 'antd';
 import { ShareAltOutlined, CopyOutlined, EyeOutlined } from '@ant-design/icons';
-import { useTemplate, useTemplates, Template } from '@/hooks/useTemplates';
+import { useTemplate, useTemplates } from '@/hooks/useTemplates';
+import { Template } from '@/types';
 import BoardPreview from '@/components/templates/BoardPreview';
 import TemplateCard from '@/components/templates/TemplateCard';
 import UseTemplateModal from '@/components/templates/UseTemplateModal';
@@ -78,6 +79,13 @@ export default function TemplateDetailPage() {
             description: card.description,
             cover_url: card.cover_url,
             due_date: card.due_date,
+            // Link preview fields
+            link_url: card.link_url,
+            link_title: card.link_title,
+            link_description: card.link_description,
+            link_image: card.link_image,
+            link_site_name: card.link_site_name,
+            link_favicon: card.link_favicon,
         })) || [],
     })) || [];
 
@@ -189,17 +197,7 @@ export default function TemplateDetailPage() {
                             {relatedTemplates.map((t: Template) => (
                                 <Col key={t.id} xs={24} sm={12} md={8}>
                                     <TemplateCard 
-                                        template={{
-                                            id: t.id,
-                                            title: t.title,
-                                            author: t.author || 'Mello',
-                                            description: t.description || '',
-                                            category: t.category || 'Other',
-                                            coverColor: t.cover_color,
-                                            coverUrl: t.cover_url,
-                                            copies: t.copies,
-                                            views: t.views,
-                                        }} 
+                                        template={t} 
                                         onClick={() => router.push(`/templates/${t.id}`)} 
                                     />
                                 </Col>

@@ -1,41 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-
-export interface Template {
-    id: string;
-    title: string;
-    author?: string;
-    description?: string;
-    full_description?: string;
-    category?: string;
-    cover_color?: string;
-    cover_url?: string;
-    copies?: number;
-    views?: number;
-    is_featured?: boolean;
-    is_active?: boolean;
-    created_at?: string;
-    lists?: TemplateList[];
-}
-
-export interface TemplateList {
-    id: string;
-    template_id: string;
-    title: string;
-    color?: string;
-    position: number;
-    cards?: TemplateCard[];
-}
-
-export interface TemplateCard {
-    id: string;
-    template_list_id: string;
-    title: string;
-    description?: string;
-    cover_url?: string;
-    due_date?: string;
-    position: number;
-}
+import { Template, TemplateList, TemplateCard } from '@/types';
 
 interface TemplateListParams {
     page?: number;

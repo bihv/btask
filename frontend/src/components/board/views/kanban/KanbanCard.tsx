@@ -1,25 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Typography, Tooltip, Tag } from 'antd';
-import { 
-    ClockCircleOutlined, 
-    CheckCircleOutlined, 
-    CommentOutlined, 
+import { Typography, Tooltip, Tag, message, Dropdown, Popover } from 'antd';
+import type { MenuProps } from 'antd';
+import {
+    ClockCircleOutlined,
+    CheckCircleOutlined,
+    CommentOutlined,
     CheckSquareOutlined,
     CalendarOutlined,
     NumberOutlined,
     FontSizeOutlined,
     AppstoreOutlined,
+    MoreOutlined,
+    FileTextOutlined,
+    LinkOutlined,
+    EditOutlined,
+    UserOutlined,
+    TagOutlined,
+    PictureOutlined,
 } from '@ant-design/icons';
-import { Card, CustomField, CardCustomFieldValue } from '@/types';
+import { Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import styles from './KanbanBoard.module.css';
 import UserAvatar from '@/components/common/UserAvatar';
-import { isDueSoon, isOverdue, formatDueDate } from '@/components/common/DueDateTag';
+import DueDateTag from '@/components/common/DueDateTag';
+import EditableTitle from '@/components/common/EditableTitle';
+import api, { linkPreviewApi } from '@/lib/api';
+import LinkPreviewCard from '@/components/card/LinkPreviewCard';
+import MembersPickerModal from '@/components/card/MembersPickerModal';
+import DueDatePickerModal from '@/components/card/DueDatePickerModal';
+import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
+import LabelPickerModal from '@/components/card/LabelPickerModal';
+import { useAttachments, useWorkspaceMembers, useBoardLabels } from '@/hooks/useCards';
 
 const { Text } = Typography;
 
@@ -29,15 +45,38 @@ interface KanbanCardProps {
     readOnly?: boolean;
     showCovers?: boolean; // Optional override for showCardCovers
     onCardClick?: (card: Card) => void; // Custom click handler for readOnly mode
+    onDeleteCard?: (cardId: string) => void; // Custom delete handler
 }
 
-export default function KanbanCard({ card, listId, readOnly = false, showCovers, onCardClick }: KanbanCardProps) {
+export default function KanbanCard({ card, listId, readOnly = false, showCovers, onCardClick, onDeleteCard }: KanbanCardProps) {
     const router = useRouter();
     const params = useParams();
     const boardId = params.id as string;
     const showCardCoversFromStore = useBoardStore((state) => state.showCardCovers);
     const currentBoard = useBoardStore((state) => state.currentBoard);
+    const fetchBoard = useBoardStore((state) => state.fetchBoard);
+    const updateCard = useBoardStore((state) => state.updateCard);
     const showCardCovers = showCovers ?? showCardCoversFromStore;
+    const [isConverting, setIsConverting] = useState(false);
+
+    // Get workspace members and board labels using hooks
+    const { data: workspaceMembers = [] } = useWorkspaceMembers(currentBoard?.workspace_id || '');
+    const { data: boardLabels = [] } = useBoardLabels(boardId || '');
+
+    // Fetch attachments for cover image picker
+    const { data: attachments = [] } = useAttachments(card.id);
+
+    // Modal states for card editing
+    const [membersModalOpen, setMembersModalOpen] = useState(false);
+    const [labelsModalOpen, setLabelsModalOpen] = useState(false);
+    const [dueDateModalOpen, setDueDateModalOpen] = useState(false);
+    const [coverModalOpen, setCoverModalOpen] = useState(false);
+
+    // Check if title is a valid URL
+    const isTitleURL = () => {
+        const trimmedTitle = card.title.trim();
+        return /^https?:\/\/.+/.test(trimmedTitle);
+    };
 
     const {
         attributes,
@@ -62,23 +101,147 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
         opacity: isDragging ? 0.5 : 1,
     };
 
+    // Check if card has link preview data
+    const hasLinkPreview = Boolean(card.link_url && (card.link_title || card.link_image));
 
-    const getDueDateStatus = () => {
-        if (!card.due_date) return null;
-        if (card.is_completed) return { color: '#61bd4f', text: 'Complete', textColor: 'white' };
-        if (isOverdue(card.due_date)) return { color: '#eb5a46', text: 'Overdue', textColor: 'white' };
-        if (isDueSoon(card.due_date)) return { color: '#f2d600', text: 'Due soon', textColor: '#172b4d' };
-        return { color: 'transparent', text: '', textColor: 'inherit' };
+    // Handle click on external link button
+    const handleExternalLinkClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (card.link_url) {
+            window.open(card.link_url, '_blank', 'noopener,noreferrer');
+        }
     };
 
-    const dueDateStatus = getDueDateStatus();
+    // Handle convert to link card
+    const handleConvertToLinkCard = async () => {
+        if (!isTitleURL()) {
+            message.error('Card title must be a valid URL');
+            return;
+        }
+        setIsConverting(true);
+        try {
+            await linkPreviewApi.refresh(card.id);
+            message.success('Converted to link card');
+            if (boardId) {
+                await fetchBoard(boardId);
+            }
+        } catch (error: any) {
+            message.error(error.response?.data?.message || 'Failed to convert to link card');
+        } finally {
+            setIsConverting(false);
+        }
+    };
+
+    // Handle convert to regular card
+    const handleConvertToRegularCard = async () => {
+        setIsConverting(true);
+        try {
+            await linkPreviewApi.clear(card.id);
+            message.success('Converted to regular card');
+            if (boardId) {
+                await fetchBoard(boardId);
+            }
+        } catch (error: any) {
+            message.error(error.response?.data?.message || 'Failed to convert to regular card');
+        } finally {
+            setIsConverting(false);
+        }
+    };
+
+    // Handle card update
+    const handleCardUpdate = async () => {
+        if (boardId) {
+            await fetchBoard(boardId);
+        }
+    };
+
+    // Handle title save
+    const handleTitleSave = async (newTitle: string) => {
+        await updateCard(card.id, { title: newTitle });
+    };
+
+    // Menu items for dropdown
+    const menuItems: MenuProps['items'] = [
+        {
+            key: 'members',
+            label: 'Members',
+            icon: <UserOutlined />,
+            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
+                info.domEvent.stopPropagation();
+                setMembersModalOpen(true);
+            },
+        },
+        {
+            key: 'labels',
+            label: 'Labels',
+            icon: <TagOutlined />,
+            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
+                info.domEvent.stopPropagation();
+                setLabelsModalOpen(true);
+            },
+        },
+        {
+            key: 'duedate',
+            label: 'Due Date',
+            icon: <ClockCircleOutlined />,
+            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
+                info.domEvent.stopPropagation();
+                setDueDateModalOpen(true);
+            },
+        },
+        {
+            key: 'cover',
+            label: 'Cover',
+            icon: <PictureOutlined />,
+            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
+                info.domEvent.stopPropagation();
+                setCoverModalOpen(true);
+            },
+        },
+        {
+            type: 'divider' as const,
+        },
+        {
+            key: 'convert',
+            label: hasLinkPreview ? 'Convert to Regular Card' : 'Convert to Link Card',
+            icon: hasLinkPreview ? <FileTextOutlined /> : <LinkOutlined />,
+            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
+                info.domEvent.stopPropagation();
+                if (hasLinkPreview) {
+                    handleConvertToRegularCard();
+                } else {
+                    handleConvertToLinkCard();
+                }
+            },
+            disabled: !isTitleURL() || isConverting,
+        },
+        onDeleteCard ? {
+            key: 'delete',
+            label: 'Delete',
+            icon: <EditOutlined />,
+            danger: true,
+            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
+                info.domEvent.stopPropagation();
+                onDeleteCard(card.id);
+            },
+        } : null,
+    ].filter(Boolean);
 
     const handleCardClick = () => {
-        if (readOnly && onCardClick) {
+        // If custom click handler provided, use it
+        if (onCardClick) {
             onCardClick(card);
             return;
         }
+        
         if (readOnly) return;
+        
+        // If link card, open URL in new tab
+        if (hasLinkPreview && card.link_url) {
+            window.open(card.link_url, '_blank', 'noopener,noreferrer');
+            return;
+        }
+        
         // Navigate to separate card page
         router.push(`/boards/${boardId}/cards/${card.id}`);
     };
@@ -197,43 +360,130 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
     const customFieldTags = renderCustomFieldTags();
 
     return (
-        <div
-            ref={readOnly ? undefined : setNodeRef}
-            style={readOnly ? { cursor: 'default' } : style}
-            className={styles.card}
-            onClick={handleCardClick}
-            {...(readOnly ? {} : attributes)}
-            {...(readOnly ? {} : listeners)}
-        >
-            {/* Cover Image */}
-            {showCardCovers && card.cover_image && (
+        <>
+            <div
+                ref={readOnly ? undefined : setNodeRef}
+                style={readOnly ? { cursor: 'default' } : style}
+                className={styles.card}
+                onClick={handleCardClick}
+                {...(readOnly ? {} : attributes)}
+                {...(readOnly ? {} : listeners)}
+            >
+            {/* Card Menu */}
+            {!readOnly && (
                 <div
                     style={{
-                        height: 120,
-                        marginBottom: 8,
-                        borderRadius: 4,
-                        overflow: 'hidden',
-                        marginTop: -8,
-                        marginLeft: -8,
-                        marginRight: -8,
-                        width: 'calc(100% + 16px)',
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        zIndex: 10,
                     }}
                 >
-                    <img
-                        src={card.cover_image}
-                        alt=""
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            objectPosition: `center ${card.cover_image_y ?? 50}%`,
-                        }}
-                    />
+                    <Dropdown
+                        menu={{ items: menuItems }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
+                        <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                cursor: 'pointer',
+                                padding: 8,
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 32,
+                                height: 32,
+                            }}
+                            className={styles.cardMenuButton}
+                        >
+                            <EditOutlined style={{ fontSize: 14, color: '#fff' }} />
+                        </div>
+                    </Dropdown>
                 </div>
             )}
 
-            {/* Labels */}
-            {card.labels && card.labels.length > 0 && (
+            {/* Link Preview or Regular Content */}
+            {hasLinkPreview ? (
+                <LinkPreviewCard
+                    cardId={card.id}
+                    cardTitle={card.title}
+                    linkUrl={card.link_url!}
+                    linkTitle={card.link_title || card.title}
+                    linkDescription={card.link_description}
+                    linkImage={card.link_image}
+                    linkFavicon={card.link_favicon}
+                    linkSiteName={card.link_site_name}
+                    showCardCovers={showCardCovers}
+                    onRefresh={async () => {
+                        if (boardId) {
+                            await fetchBoard(boardId);
+                        }
+                    }}
+                    onExternalClick={handleExternalLinkClick}
+                    onUrlSave={handleTitleSave}
+                    readOnly={readOnly}
+                />
+            ) : (
+                <>
+                    {/* Cover Image */}
+                    {showCardCovers && card.cover_image && (
+                        <div
+                            style={{
+                                height: 120,
+                                marginBottom: 8,
+                                borderRadius: 4,
+                                overflow: 'hidden',
+                                marginTop: -8,
+                                marginLeft: -8,
+                                marginRight: -8,
+                                width: 'calc(100% + 16px)',
+                            }}
+                        >
+                            <img
+                                src={card.cover_image}
+                                alt=""
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    objectPosition: `center ${card.cover_image_y ?? 50}%`,
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Labels */}
+                    {card.labels && card.labels.length > 0 && (
+                        <div className={styles.cardLabels}>
+                            {card.labels.map((cl) => (
+                                <div
+                                    key={cl.id}
+                                    className={styles.cardLabel}
+                                    style={{ backgroundColor: cl.label?.color }}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Title */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <EditableTitle
+                            value={card.title}
+                            onSave={handleTitleSave}
+                            disabled={readOnly}
+                            textStyle={{ fontSize: 14 }}
+                            inputStyle={{ fontSize: 14 }}
+                            size="small"
+                        />
+                    </div>
+                </>
+            )}
+
+            {/* Labels for Link Preview Cards */}
+            {hasLinkPreview && card.labels && card.labels.length > 0 && (
                 <div className={styles.cardLabels}>
                     {card.labels.map((cl) => (
                         <div
@@ -244,9 +494,6 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                     ))}
                 </div>
             )}
-
-            {/* Title */}
-            <Text style={{ fontSize: 14 }}>{card.title}</Text>
 
             {/* Custom Fields */}
             {customFieldTags && customFieldTags.length > 0 && (
@@ -265,28 +512,13 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 }}
             >
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {card.due_date && dueDateStatus && (
-                        <Tooltip title={`${formatDueDate(card.due_date)}${dueDateStatus.text ? ` • ${dueDateStatus.text}` : ''}`}>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                    padding: '2px 6px',
-                                    borderRadius: 4,
-                                    fontSize: 12,
-                                    backgroundColor: dueDateStatus.color,
-                                    color: dueDateStatus.textColor,
-                                }}
-                            >
-                                {card.is_completed ? (
-                                    <CheckCircleOutlined style={{ fontSize: 10 }} />
-                                ) : (
-                                    <ClockCircleOutlined style={{ fontSize: 10 }} />
-                                )}
-                                {formatDueDate(card.due_date)}
-                            </div>
-                        </Tooltip>
+                    {card.due_date && (
+                        <DueDateTag
+                            dueDate={card.due_date}
+                            isCompleted={card.is_completed}
+                            showIcon
+                            size="small"
+                        />
                     )}
 
                     {card.comments && card.comments.length > 0 && (
@@ -338,5 +570,50 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 )}
             </div>
         </div>
+
+            {/* Modals for card editing */}
+            <MembersPickerModal
+                open={membersModalOpen}
+                onClose={() => setMembersModalOpen(false)}
+                cardId={card.id}
+                cardMembers={card.members || []}
+                workspaceMembers={workspaceMembers}
+                onUpdate={handleCardUpdate}
+            />
+
+            <LabelPickerModal
+                open={labelsModalOpen}
+                onClose={() => setLabelsModalOpen(false)}
+                cardId={card.id}
+                boardId={boardId}
+                labels={boardLabels}
+                selectedLabelIds={card.labels?.map((cl) => cl.label_id) || []}
+                onRefresh={handleCardUpdate}
+                onCardRefresh={handleCardUpdate}
+            />
+
+            <DueDatePickerModal
+                open={dueDateModalOpen}
+                onClose={() => setDueDateModalOpen(false)}
+                cardId={card.id}
+                boardId={boardId}
+                dueDate={card.due_date}
+                isCompleted={card.is_completed || false}
+                onUpdate={(updates) => {
+                    handleCardUpdate();
+                }}
+            />
+
+            <CoverImagePickerModal
+                open={coverModalOpen}
+                onClose={() => setCoverModalOpen(false)}
+                cardId={card.id}
+                attachments={attachments}
+                currentCover={card.cover_image}
+                onUpdate={(coverImage) => {
+                    handleCardUpdate();
+                }}
+            />
+        </>
     );
 }

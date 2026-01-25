@@ -17,6 +17,7 @@ type CardHandler struct {
 	service             *services.CardService
 	listService         *services.ListService
 	notificationService *services.NotificationService
+	linkPreviewService  *services.LinkPreviewService
 }
 
 func NewCardHandler() *CardHandler {
@@ -24,6 +25,7 @@ func NewCardHandler() *CardHandler {
 		service:             services.NewCardService(),
 		listService:         services.NewListService(),
 		notificationService: services.NewNotificationService(),
+		linkPreviewService:  services.NewLinkPreviewService(),
 	}
 }
 
@@ -498,4 +500,64 @@ func (h *CardHandler) GetMyCards(c *fiber.Ctx) error {
 	}
 
 	return utils.SuccessResponse(c, cards)
+}
+
+// RefreshLinkPreview refreshes the link preview metadata for a card
+func (h *CardHandler) RefreshLinkPreview(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	cardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid card ID")
+	}
+
+	card, err := h.service.RefreshLinkPreview(cardID, userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, card)
+}
+
+// ClearLinkPreview clears the link preview data for a card
+func (h *CardHandler) ClearLinkPreview(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	cardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid card ID")
+	}
+
+	card, err := h.service.ClearLinkPreview(cardID, userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, card)
+}
+
+// FetchLinkPreview fetches link preview for a given URL (utility endpoint)
+func (h *CardHandler) FetchLinkPreview(c *fiber.Ctx) error {
+	var req struct {
+		URL string `json:"url"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	if req.URL == "" {
+		return utils.ValidationErrorResponse(c, "URL is required")
+	}
+
+	if !h.linkPreviewService.IsURL(req.URL) {
+		return utils.ValidationErrorResponse(c, "Invalid URL")
+	}
+
+	preview, err := h.linkPreviewService.FetchPreview(req.URL)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "Failed to fetch link preview: "+err.Error())
+	}
+
+	return utils.SuccessResponse(c, preview)
 }

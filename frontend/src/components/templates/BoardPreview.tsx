@@ -4,8 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Typography } from 'antd';
 import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 import TemplateCardModal from './TemplateCardModal';
-import { TemplateList } from '@/app/(dashboard)/templates/data';
-import { BoardList, Card } from '@/types';
+import { TemplateList, TemplateCard, BoardList, Card } from '@/types';
 
 const { Text } = Typography;
 
@@ -29,7 +28,7 @@ function convertToLists(templateLists: TemplateList[]): BoardList[] {
         is_collapsed: false,
         created_at: now,
         updated_at: now,
-        cards: list.cards.map((card, cardIndex) => ({
+        cards: (list.cards || []).map((card, cardIndex) => ({
             id: card.id,
             list_id: list.id,
             title: card.title,
@@ -42,8 +41,15 @@ function convertToLists(templateLists: TemplateList[]): BoardList[] {
             created_by: 'template',
             created_at: now,
             updated_at: now,
+            // Link preview fields
+            link_url: card.link_url,
+            link_title: card.link_title,
+            link_description: card.link_description,
+            link_image: card.link_image,
+            link_site_name: card.link_site_name,
+            link_favicon: card.link_favicon,
             // Add some mock labels for visual variety
-            labels: [{ 
+            labels: [{
                 id: `label-${card.id}`,
                 card_id: card.id,
                 label_id: `label-${list.id}`,
@@ -123,8 +129,9 @@ export default function BoardPreview({ lists, title, backgroundColor = '#0079bf'
                     style={{
                         height: 'auto',
                         minHeight: '280px',
-                        maxHeight: '400px',
-                        overflow: 'hidden',
+                        maxHeight: '500px',
+                        overflowX: 'auto',
+                        overflowY: 'auto',
                     }}
                 >
                     <KanbanBoard 

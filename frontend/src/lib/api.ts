@@ -88,6 +88,16 @@ export const cardArchiveApi = {
     getArchivedByBoard: (boardId: string) => api.get(`/boards/${boardId}/archived-cards`),
 };
 
+// Link Preview API functions
+export const linkPreviewApi = {
+    // Fetch link preview for a URL
+    fetch: (url: string) => api.post('/link-preview', { url }),
+    // Refresh link preview for a card
+    refresh: (cardId: string) => api.post(`/cards/${cardId}/refresh-link-preview`),
+    // Clear link preview data for a card
+    clear: (cardId: string) => api.delete(`/cards/${cardId}/link-preview`),
+};
+
 // Custom Field API functions
 export const customFieldApi = {
     // Board-level custom fields

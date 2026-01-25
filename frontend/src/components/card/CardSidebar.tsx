@@ -10,7 +10,8 @@ import {
 } from '@ant-design/icons';
 import { Card, User, CardMember, Label, Comment } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
-import LabelPicker from './LabelPicker';
+import DueDateTag from '@/components/common/DueDateTag';
+import LabelPickerModal from './LabelPickerModal';
 import CustomFieldsSection from './CustomFieldsSection';
 import ActivitySection from './ActivitySection';
 import CardActionsFooter from './CardActionsFooter';
@@ -26,26 +27,15 @@ interface CardSidebarProps {
     boardLabels: Label[];
     comments: Comment[];
     isAddingComment: boolean;
-    labelsOpen: boolean;
-    onLabelsOpenChange: (open: boolean) => void;
     onMembersClick: () => void;
+    onLabelsClick: () => void;
     onDueDateClick: () => void;
     onCoverClick: () => void;
-    onLabelToggle: (labelId: string) => void;
     onLabelsRefresh: () => void;
     onCardRefresh: () => void;
     onAddComment: (content: string) => Promise<Comment>;
     onArchiveChange: (isArchived: boolean) => void;
 }
-
-const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
 
 export default function CardSidebar({
     card,
@@ -56,27 +46,15 @@ export default function CardSidebar({
     boardLabels,
     comments,
     isAddingComment,
-    labelsOpen,
-    onLabelsOpenChange,
     onMembersClick,
+    onLabelsClick,
     onDueDateClick,
     onCoverClick,
-    onLabelToggle,
     onLabelsRefresh,
     onCardRefresh,
     onAddComment,
     onArchiveChange,
 }: CardSidebarProps) {
-    const labelsContent = (
-        <LabelPicker
-            boardId={boardId}
-            labels={boardLabels}
-            selectedLabelIds={card.labels?.map((cl) => cl.label_id) || []}
-            onToggle={onLabelToggle}
-            onRefresh={onLabelsRefresh}
-            onCardRefresh={onCardRefresh}
-        />
-    );
 
     return (
         <div
@@ -129,39 +107,34 @@ export default function CardSidebar({
                         <TagOutlined style={{ color: 'var(--text-secondary)' }} />
                         <Text type="secondary" style={{ fontSize: 12 }}>Labels</Text>
                     </div>
-                    <Popover
-                        content={labelsContent}
-                        trigger="click"
-                        open={labelsOpen}
-                        onOpenChange={onLabelsOpenChange}
-                        placement="bottomLeft"
+                    <div
+                        style={{ cursor: 'pointer' }}
+                        onClick={onLabelsClick}
                     >
-                        <div style={{ cursor: 'pointer' }}>
-                            {card.labels && card.labels.length > 0 ? (
-                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-                                    {card.labels.map((cl) => (
-                                        <div
-                                            key={cl.id}
-                                            style={{
-                                                backgroundColor: cl.label?.color,
-                                                padding: '2px 8px',
-                                                borderRadius: 4,
-                                                color: 'white',
-                                                fontSize: 12,
-                                            }}
-                                        >
-                                            {cl.label?.name || ''}
-                                        </div>
-                                    ))}
-                                    <Button type="text" size="small" icon={<span style={{ fontSize: 16 }}>+</span>} />
-                                </div>
-                            ) : (
-                                <Button type="dashed" size="small" icon={<span>+</span>}>
-                                    Add label
-                                </Button>
-                            )}
-                        </div>
-                    </Popover>
+                        {card.labels && card.labels.length > 0 ? (
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                                {card.labels.map((cl) => (
+                                    <div
+                                        key={cl.id}
+                                        style={{
+                                            backgroundColor: cl.label?.color,
+                                            padding: '2px 8px',
+                                            borderRadius: 4,
+                                            color: 'white',
+                                            fontSize: 12,
+                                        }}
+                                    >
+                                        {cl.label?.name || ''}
+                                    </div>
+                                ))}
+                                <Button type="text" size="small" icon={<span style={{ fontSize: 16 }}>+</span>} />
+                            </div>
+                        ) : (
+                            <Button type="dashed" size="small" icon={<span>+</span>}>
+                                Add label
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Due Date Section */}
@@ -175,19 +148,11 @@ export default function CardSidebar({
                         onClick={onDueDateClick}
                     >
                         {card.due_date ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Tag
-                                    color={
-                                        card.is_completed
-                                            ? 'success'
-                                            : new Date(card.due_date) < new Date()
-                                                ? 'error'
-                                                : 'default'
-                                    }
-                                >
-                                    {card.is_completed && '✓ '}{formatDate(card.due_date)}
-                                </Tag>
-                            </div>
+                            <DueDateTag
+                                dueDate={card.due_date}
+                                isCompleted={card.is_completed || false}
+                                showIcon={false}
+                            />
                         ) : (
                             <Button type="dashed" size="small" icon={<span>+</span>}>
                                 Add due date

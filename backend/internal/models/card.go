@@ -22,6 +22,14 @@ type Card struct {
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 
+	// Link Preview fields (populated when title is a URL)
+	LinkURL         string `json:"link_url,omitempty"`
+	LinkTitle       string `json:"link_title,omitempty"`
+	LinkDescription string `json:"link_description,omitempty"`
+	LinkImage       string `json:"link_image,omitempty"`
+	LinkSiteName    string `json:"link_site_name,omitempty"`
+	LinkFavicon     string `json:"link_favicon,omitempty"`
+
 	// Relations
 	List              List                   `json:"list,omitempty" gorm:"foreignKey:ListID"`
 	Creator           User                   `json:"creator,omitempty" gorm:"foreignKey:CreatedBy"`

@@ -67,6 +67,14 @@ type TemplateCard struct {
 	DueDate        *time.Time `json:"due_date"`
 	Position       int        `json:"position" gorm:"default:0"`
 	CreatedAt      time.Time  `json:"created_at"`
+
+	// Link preview fields (populated when title is a URL)
+	LinkURL         string `json:"link_url"`
+	LinkTitle       string `json:"link_title"`
+	LinkDescription string `json:"link_description"`
+	LinkImage       string `json:"link_image"`
+	LinkSiteName    string `json:"link_site_name"`
+	LinkFavicon     string `json:"link_favicon"`
 }
 
 func (tc *TemplateCard) BeforeCreate(tx *gorm.DB) error {
@@ -102,6 +110,14 @@ type CreateTemplateCardInput struct {
 	CoverURL    string     `json:"cover_url"`
 	DueDate     *time.Time `json:"due_date"`
 	Position    int        `json:"position"`
+
+	// Link preview fields (populated when title is a URL)
+	LinkURL         string `json:"link_url"`
+	LinkTitle       string `json:"link_title"`
+	LinkDescription string `json:"link_description"`
+	LinkImage       string `json:"link_image"`
+	LinkSiteName    string `json:"link_site_name"`
+	LinkFavicon     string `json:"link_favicon"`
 }
 
 type UpdateTemplateRequest struct {

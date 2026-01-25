@@ -1,0 +1,132 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Input, Typography } from 'antd';
+import type { InputProps } from 'antd';
+
+const { Text } = Typography;
+
+interface EditableTitleProps {
+    value: string;
+    onSave: (newValue: string) => Promise<void> | void;
+    placeholder?: string;
+    style?: React.CSSProperties;
+    textStyle?: React.CSSProperties;
+    inputStyle?: React.CSSProperties;
+    size?: InputProps['size'];
+    strong?: boolean;
+    disabled?: boolean;
+    multiline?: boolean;
+}
+
+export default function EditableTitle({
+    value,
+    onSave,
+    placeholder = 'Enter text...',
+    style,
+    textStyle,
+    inputStyle,
+    size,
+    strong = false,
+    disabled = false,
+    multiline = false,
+}: EditableTitleProps) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [text, setText] = useState(value);
+    const [loading, setLoading] = useState(false);
+
+    // Sync with prop changes
+    useEffect(() => {
+        setText(value);
+    }, [value]);
+
+    const handleSave = async () => {
+        const trimmed = text.trim();
+        
+        // Revert if empty
+        if (!trimmed) {
+            setText(value);
+            setIsEditing(false);
+            return;
+        }
+
+        // Only save if changed
+        if (trimmed !== value) {
+            setLoading(true);
+            try {
+                await onSave(trimmed);
+            } catch (error) {
+                // Revert on error
+                setText(value);
+            } finally {
+                setLoading(false);
+            }
+        }
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setText(value);
+        setIsEditing(false);
+    };
+
+    if (isEditing) {
+        if (multiline) {
+            return (
+                <Input.TextArea
+                    autoFocus
+                    autoSize={{ minRows: 1, maxRows: 6 }}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onBlur={handleSave}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSave();
+                        }
+                        if (e.key === 'Escape') {
+                            handleCancel();
+                        }
+                    }}
+                    placeholder={placeholder}
+                    style={{ ...style, ...inputStyle }}
+                    size={size}
+                    disabled={loading}
+                />
+            );
+        }
+
+        return (
+            <Input
+                autoFocus
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onBlur={handleSave}
+                onPressEnter={handleSave}
+                onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                        handleCancel();
+                    }
+                }}
+                placeholder={placeholder}
+                style={{ ...style, ...inputStyle }}
+                size={size}
+                disabled={loading}
+            />
+        );
+    }
+
+    return (
+        <Text
+            strong={strong}
+            onClick={() => !disabled && setIsEditing(true)}
+            style={{
+                cursor: disabled ? 'default' : 'pointer',
+                ...style,
+                ...textStyle,
+            }}
+        >
+            {value || placeholder}
+        </Text>
+    );
+}

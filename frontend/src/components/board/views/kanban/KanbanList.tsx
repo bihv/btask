@@ -2,12 +2,14 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Input, Button, Dropdown, Popover, Space, Divider, Modal, Select, App } from 'antd';
 import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutlined, CopyOutlined, SwapOutlined, SortAscendingOutlined, EyeOutlined, EyeInvisibleOutlined, InboxOutlined, ColumnWidthOutlined } from '@ant-design/icons';
-import { List, Card } from '@/types';
+import { BoardList, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
+import EditableTitle from '@/components/common/EditableTitle';
 import api from '@/lib/api';
 import { FilterState } from '@/components/board/BoardFilterPopover';
 import { isDueSoon, isDueLater, isOverdue } from '@/components/common/DueDateTag';
@@ -20,11 +22,13 @@ const LIST_COLORS = [
 ];
 
 interface KanbanListProps {
-    list: List;
+    list: BoardList;
     filters?: FilterState;
     readOnly?: boolean;
     onCardClick?: (card: Card) => void;
     showCovers?: boolean;
+    onAddCard?: (listId: string, title: string) => void;
+    onDeleteCard?: (cardId: string) => void;
 }
 
 function matchesFilters(card: Card, filters: FilterState): boolean {
@@ -71,11 +75,9 @@ function matchesFilters(card: Card, filters: FilterState): boolean {
     return true;
 }
 
-export default function KanbanList({ list, filters, readOnly = false, onCardClick, showCovers }: KanbanListProps) {
+export default function KanbanList({ list, filters, readOnly = false, onCardClick, showCovers, onAddCard, onDeleteCard }: KanbanListProps) {
     const { modal } = App.useApp();
     const { updateList, updateListColor, deleteList, copyList, moveAllCards, sortCards, createCard, lists } = useBoardStore();
-    const [isEditing, setIsEditing] = useState(false);
-    const [title, setTitle] = useState(list.title);
     const [isAddingCard, setIsAddingCard] = useState(false);
     const [newCardTitle, setNewCardTitle] = useState('');
     const [colorPickerOpen, setColorPickerOpen] = useState(false);
@@ -148,24 +150,33 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         disabled: readOnly,
     });
 
+    // Add droppable for empty space at bottom
+    const { setNodeRef: setDroppableRef } = useDroppable({
+        id: `${list.id}-droppable`,
+        data: {
+            type: 'list',
+            listId: list.id,
+        },
+        disabled: readOnly,
+    });
+
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
     };
 
-    const handleTitleSave = () => {
-        if (title.trim() && title !== list.title) {
-            updateList(list.id, title.trim());
-        } else {
-            setTitle(list.title);
-        }
-        setIsEditing(false);
+    const handleTitleSave = async (newTitle: string) => {
+        await updateList(list.id, newTitle);
     };
 
     const handleAddCard = () => {
         if (newCardTitle.trim()) {
-            createCard(list.id, newCardTitle.trim());
+            if (onAddCard) {
+                onAddCard(list.id, newCardTitle.trim());
+            } else {
+                createCard(list.id, newCardTitle.trim());
+            }
             setNewCardTitle('');
         }
         setIsAddingCard(false);
@@ -426,23 +437,14 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                 {...(readOnly ? {} : listeners)}
                 style={list.color ? { color: '#fff' } : undefined}
             >
-                {isEditing ? (
-                    <Input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        onBlur={handleTitleSave}
-                        onPressEnter={handleTitleSave}
-                        autoFocus
-                        size="small"
-                    />
-                ) : (
-                    <span
-                        onClick={readOnly ? undefined : () => setIsEditing(true)}
-                        style={{ cursor: readOnly ? 'default' : 'pointer', flex: 1 }}
-                    >
-                        {list.title}
-                    </span>
-                )}
+                <EditableTitle
+                    value={list.title}
+                    onSave={handleTitleSave}
+                    disabled={readOnly}
+                    style={{ flex: 1 }}
+                    textStyle={{ color: list.color ? '#fff' : undefined }}
+                    size="small"
+                />
                 <Popover
                     content={colorPickerContent}
                     title="List color"
@@ -487,9 +489,15 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     strategy={verticalListSortingStrategy}
                 >
                     {filteredCards.map((card) => (
-                        <KanbanCard key={card.id} card={card} listId={list.id} readOnly={readOnly} onCardClick={onCardClick} showCovers={showCovers} />
+                        <KanbanCard key={card.id} card={card} listId={list.id} readOnly={readOnly} onCardClick={onCardClick} showCovers={showCovers} onDeleteCard={onDeleteCard} />
                     ))}
-            </SortableContext>
+                </SortableContext>
+                {/* Droppable zone at the bottom */}
+                {!readOnly && (
+                    <div 
+                        ref={setDroppableRef}
+                    />
+                )}
             </div>
 
             {/* Add Card - only show when not readOnly */}

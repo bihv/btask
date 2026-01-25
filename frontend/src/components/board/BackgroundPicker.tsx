@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Tabs, Divider, Typography, Input, Button, Spin, Empty, App } from 'antd';
-import { CheckOutlined, UploadOutlined, SearchOutlined, PictureOutlined, BgColorsOutlined } from '@ant-design/icons';
+import { Tabs, Divider, Typography, Input, Button, Spin, Empty, App, Space } from 'antd';
+import { CheckOutlined, UploadOutlined, SearchOutlined, PictureOutlined, BgColorsOutlined, LinkOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 
@@ -116,6 +116,8 @@ export default function BackgroundPicker({
     const [isSearching, setIsSearching] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [activeTab, setActiveTab] = useState(imageValue ? 'photos' : 'colors');
+    const [urlInput, setUrlInput] = useState('');
+    const [isValidatingUrl, setIsValidatingUrl] = useState(false);
     const { message } = App.useApp();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -237,6 +239,45 @@ export default function BackgroundPicker({
         }
     };
 
+    // Handle URL input
+    const handleUrlSubmit = async () => {
+        const url = urlInput.trim();
+        if (!url) {
+            message.warning('Please enter an image URL');
+            return;
+        }
+
+        // Basic URL validation
+        try {
+            new URL(url);
+        } catch {
+            message.error('Invalid URL format');
+            return;
+        }
+
+        // Check if URL points to an image
+        setIsValidatingUrl(true);
+        try {
+            // Create an image element to validate the URL
+            await new Promise<void>((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve();
+                img.onerror = () => reject(new Error('Failed to load image'));
+                img.src = url;
+                // Timeout after 10 seconds
+                setTimeout(() => reject(new Error('Image load timeout')), 10000);
+            });
+
+            onImageChange?.(url);
+            setUrlInput('');
+            message.success('Image URL applied successfully');
+        } catch (error: any) {
+            message.error('Could not load image from URL. Please check the URL is valid and accessible.');
+        } finally {
+            setIsValidatingUrl(false);
+        }
+    };
+
     const isSelected = (bg: string) => value === bg && !imageValue;
     const isImageSelected = (url: string) => imageValue === url;
 
@@ -351,6 +392,41 @@ export default function BackgroundPicker({
                 >
                     {uploading ? 'Uploading...' : 'Upload from computer'}
                 </Button>
+            </div>
+
+            <Divider style={{ margin: '12px 0' }}>
+                <Text type="secondary" style={{ fontSize: 11 }}>or</Text>
+            </Divider>
+
+            {/* URL Input */}
+            <div>
+                <Text type="secondary" style={{ fontSize: 12, marginBottom: 6, display: 'block' }}>
+                    From URL
+                </Text>
+                <Space.Compact style={{ width: '100%' }}>
+                    <Input
+                        placeholder="Paste image URL here..."
+                        prefix={<LinkOutlined />}
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        onPressEnter={handleUrlSubmit}
+                        size="small"
+                        disabled={isValidatingUrl}
+                        style={{ flex: 1 }}
+                    />
+                    <Button
+                        type="primary"
+                        size="small"
+                        onClick={handleUrlSubmit}
+                        loading={isValidatingUrl}
+                        disabled={!urlInput.trim()}
+                    >
+                        Apply
+                    </Button>
+                </Space.Compact>
+                <Text type="secondary" style={{ fontSize: 10, marginTop: 4, display: 'block' }}>
+                    Supports JPG, PNG, GIF, WebP formats
+                </Text>
             </div>
 
             {/* Current Image Preview */}

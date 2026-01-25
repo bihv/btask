@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Typography, Space, Collapse } from 'antd';
 import type { CollapseProps } from 'antd';
 import {
@@ -21,8 +21,6 @@ import {
 const { Title, Text } = Typography;
 
 export default function SettingsTab() {
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
     const items: CollapseProps['items'] = [
         {
             key: 'account',
@@ -32,12 +30,7 @@ export default function SettingsTab() {
                     <Text strong>Account Settings</Text>
                 </Space>
             ),
-            children: (
-                <AccountSettingsSection
-                    deleteModalOpen={deleteModalOpen}
-                    setDeleteModalOpen={setDeleteModalOpen}
-                />
-            ),
+            children: <AccountSettingsSection />,
             style: { marginBottom: 16 },
         },
         {

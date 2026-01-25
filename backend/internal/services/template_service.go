@@ -9,20 +9,22 @@ import (
 )
 
 type TemplateService struct {
-	repo          *repository.TemplateRepository
-	boardRepo     *repository.BoardRepository
-	listRepo      *repository.ListRepository
-	cardRepo      *repository.CardRepository
-	workspaceRepo *repository.WorkspaceRepository
+	repo               *repository.TemplateRepository
+	boardRepo          *repository.BoardRepository
+	listRepo           *repository.ListRepository
+	cardRepo           *repository.CardRepository
+	workspaceRepo      *repository.WorkspaceRepository
+	linkPreviewService *LinkPreviewService
 }
 
 func NewTemplateService(repo *repository.TemplateRepository) *TemplateService {
 	return &TemplateService{
-		repo:          repo,
-		boardRepo:     repository.NewBoardRepository(),
-		listRepo:      repository.NewListRepository(),
-		cardRepo:      repository.NewCardRepository(),
-		workspaceRepo: repository.NewWorkspaceRepository(),
+		repo:               repo,
+		boardRepo:          repository.NewBoardRepository(),
+		listRepo:           repository.NewListRepository(),
+		cardRepo:           repository.NewCardRepository(),
+		workspaceRepo:      repository.NewWorkspaceRepository(),
+		linkPreviewService: NewLinkPreviewService(),
 	}
 }
 
@@ -58,13 +60,33 @@ func (s *TemplateService) Create(req models.CreateTemplateRequest, creatorID uui
 
 		for j, cardInput := range listInput.Cards {
 			card := &models.TemplateCard{
-				TemplateListID: list.ID,
-				Title:          cardInput.Title,
-				Description:    cardInput.Description,
-				CoverURL:       cardInput.CoverURL,
-				DueDate:        cardInput.DueDate,
-				Position:       j,
+				TemplateListID:  list.ID,
+				Title:           cardInput.Title,
+				Description:     cardInput.Description,
+				CoverURL:        cardInput.CoverURL,
+				DueDate:         cardInput.DueDate,
+				Position:        j,
+				LinkURL:         cardInput.LinkURL,
+				LinkTitle:       cardInput.LinkTitle,
+				LinkDescription: cardInput.LinkDescription,
+				LinkImage:       cardInput.LinkImage,
+				LinkSiteName:    cardInput.LinkSiteName,
+				LinkFavicon:     cardInput.LinkFavicon,
 			}
+
+			// If title is URL and no link preview data provided, fetch it
+			if s.linkPreviewService.IsURL(cardInput.Title) && cardInput.LinkURL == "" {
+				preview, err := s.linkPreviewService.FetchPreview(cardInput.Title)
+				if err == nil && preview != nil {
+					card.LinkURL = preview.URL
+					card.LinkTitle = preview.Title
+					card.LinkDescription = preview.Description
+					card.LinkImage = preview.Image
+					card.LinkSiteName = preview.SiteName
+					card.LinkFavicon = preview.Favicon
+				}
+			}
+
 			if err := s.repo.CreateCard(card); err != nil {
 				return nil, err
 			}
@@ -156,13 +178,33 @@ func (s *TemplateService) UpdateLists(templateID uuid.UUID, lists []models.Creat
 
 		for j, cardInput := range listInput.Cards {
 			card := &models.TemplateCard{
-				TemplateListID: list.ID,
-				Title:          cardInput.Title,
-				Description:    cardInput.Description,
-				CoverURL:       cardInput.CoverURL,
-				DueDate:        cardInput.DueDate,
-				Position:       j,
+				TemplateListID:  list.ID,
+				Title:           cardInput.Title,
+				Description:     cardInput.Description,
+				CoverURL:        cardInput.CoverURL,
+				DueDate:         cardInput.DueDate,
+				Position:        j,
+				LinkURL:         cardInput.LinkURL,
+				LinkTitle:       cardInput.LinkTitle,
+				LinkDescription: cardInput.LinkDescription,
+				LinkImage:       cardInput.LinkImage,
+				LinkSiteName:    cardInput.LinkSiteName,
+				LinkFavicon:     cardInput.LinkFavicon,
 			}
+
+			// If title is URL and no link preview data provided, fetch it
+			if s.linkPreviewService.IsURL(cardInput.Title) && cardInput.LinkURL == "" {
+				preview, err := s.linkPreviewService.FetchPreview(cardInput.Title)
+				if err == nil && preview != nil {
+					card.LinkURL = preview.URL
+					card.LinkTitle = preview.Title
+					card.LinkDescription = preview.Description
+					card.LinkImage = preview.Image
+					card.LinkSiteName = preview.SiteName
+					card.LinkFavicon = preview.Favicon
+				}
+			}
+
 			if err := s.repo.CreateCard(card); err != nil {
 				return err
 			}
@@ -241,13 +283,20 @@ func (s *TemplateService) UseTemplate(templateID uuid.UUID, workspaceID uuid.UUI
 		// Clone cards for this list
 		for _, templateCard := range templateList.Cards {
 			card := &models.Card{
-				ListID:      list.ID,
-				Title:       templateCard.Title,
-				Description: templateCard.Description,
-				CoverImage:  templateCard.CoverURL,
-				DueDate:     templateCard.DueDate,
-				Position:    templateCard.Position,
-				CreatedBy:   userID,
+				ListID:          list.ID,
+				Title:           templateCard.Title,
+				Description:     templateCard.Description,
+				CoverImage:      templateCard.CoverURL,
+				DueDate:         templateCard.DueDate,
+				Position:        templateCard.Position,
+				CreatedBy:       userID,
+				// Copy link preview data from template
+				LinkURL:         templateCard.LinkURL,
+				LinkTitle:       templateCard.LinkTitle,
+				LinkDescription: templateCard.LinkDescription,
+				LinkImage:       templateCard.LinkImage,
+				LinkSiteName:    templateCard.LinkSiteName,
+				LinkFavicon:     templateCard.LinkFavicon,
 			}
 
 			if err := s.cardRepo.Create(card); err != nil {

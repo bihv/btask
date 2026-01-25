@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Table, Button, Input, Modal, Form, Typography, Card, Spin, Tag, Space, App, Switch, Select, Tabs } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
-import { useAdminTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, Template, TemplateList as TemplateListType, TemplateCard as TemplateCardType, useUpdateTemplateLists } from '@/hooks/useTemplates';
+import { useAdminTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useUpdateTemplateLists } from '@/hooks/useTemplates';
+import { Template, TemplateList as TemplateListType, TemplateCard as TemplateCardType } from '@/types';
 import TemplateBoardEditor, { TemplateListInput } from '@/components/admin/TemplateBoardEditor';
 import BackgroundPicker from '@/components/board/BackgroundPicker';
 import dynamic from 'next/dynamic';
@@ -83,6 +84,13 @@ export default function AdminTemplatesPage() {
                         cover_url: card.cover_url,
                         due_date: card.due_date,
                         position: j,
+                        // Link preview fields
+                        link_url: card.link_url,
+                        link_title: card.link_title,
+                        link_description: card.link_description,
+                        link_image: card.link_image,
+                        link_site_name: card.link_site_name,
+                        link_favicon: card.link_favicon,
                     })),
                 })),
             });
@@ -124,6 +132,13 @@ export default function AdminTemplatesPage() {
                             cover_url: card.cover_url,
                             due_date: card.due_date,
                             position: j,
+                            // Link preview fields
+                            link_url: card.link_url,
+                            link_title: card.link_title,
+                            link_description: card.link_description,
+                            link_image: card.link_image,
+                            link_site_name: card.link_site_name,
+                            link_favicon: card.link_favicon,
                         })),
                     })),
                 });
@@ -238,6 +253,13 @@ export default function AdminTemplatesPage() {
                                         description: card.description,
                                         cover_url: card.cover_url,
                                         due_date: card.due_date,
+                                        // Link preview fields
+                                        link_url: card.link_url,
+                                        link_title: card.link_title,
+                                        link_description: card.link_description,
+                                        link_image: card.link_image,
+                                        link_site_name: card.link_site_name,
+                                        link_favicon: card.link_favicon,
                                     })),
                                 })));
                             } else {

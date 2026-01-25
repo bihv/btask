@@ -3,12 +3,31 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input, Typography, Row, Col, Spin, Empty } from 'antd';
-import { SearchOutlined, BankOutlined, FormatPainterOutlined, ReadOutlined } from '@ant-design/icons';
-import { CATEGORIES } from './data';
+import {
+    SearchOutlined,
+    BankOutlined,
+    FormatPainterOutlined,
+    ReadOutlined,
+    CodeOutlined,
+    ShopOutlined,
+    ProjectOutlined,
+    GlobalOutlined,
+} from '@ant-design/icons';
 import CategoryCard from '@/components/templates/CategoryCard';
 import TemplateCard from '@/components/templates/TemplateCard';
 import SectionHeader from '@/components/templates/SectionHeader';
-import { useTemplates, Template } from '@/hooks/useTemplates';
+import { useTemplates } from '@/hooks/useTemplates';
+import { Template } from '@/types';
+
+const CATEGORIES = [
+    { name: 'Business', icon: BankOutlined, color: '#4bce97' },
+    { name: 'Design', icon: FormatPainterOutlined, color: '#e2b203' },
+    { name: 'Education', icon: ReadOutlined, color: '#faa53d' },
+    { name: 'Engineering', icon: CodeOutlined, color: '#f87462' },
+    { name: 'Marketing', icon: ShopOutlined, color: '#9f8fef' },
+    { name: 'Project management', icon: ProjectOutlined, color: '#579dff' },
+    { name: 'Remote work', icon: GlobalOutlined, color: '#60c6d2' },
+];
 
 const { Title } = Typography;
 

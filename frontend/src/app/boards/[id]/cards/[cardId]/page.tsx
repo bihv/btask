@@ -19,6 +19,7 @@ import CardSidebar from '@/components/card/CardSidebar';
 import MembersPickerModal from '@/components/card/MembersPickerModal';
 import DueDatePickerModal from '@/components/card/DueDatePickerModal';
 import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
+import LabelPickerModal from '@/components/card/LabelPickerModal';
 
 const { Text } = Typography;
 
@@ -49,9 +50,7 @@ export default function CardPage() {
     // Local state
     const [card, setCard] = useState<Card | null>(null);
     const [loading, setLoading] = useState(true);
-    const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [isEditingDesc, setIsEditingDesc] = useState(false);
 
     // Modal states
@@ -82,7 +81,6 @@ export default function CardPage() {
     useEffect(() => {
         if (cardData) {
             setCard(cardData);
-            setTitle(cardData.title);
             setDescription(cardData.description || '');
             setCoverPosition(cardData.cover_image_y ?? 50);
         }
@@ -104,14 +102,11 @@ export default function CardPage() {
     }, [card]);
 
     // Handlers
-    const handleTitleSave = () => {
+    const handleTitleSave = async (newTitle: string) => {
         if (!card) return;
-        if (title.trim() && title !== card.title) {
-            setCard({ ...card, title: title.trim() });
-            updateCard(card.id, { title: title.trim() });
-            invalidateBoardCache();
-        }
-        setIsEditingTitle(false);
+        setCard({ ...card, title: newTitle });
+        await updateCard(card.id, { title: newTitle });
+        invalidateBoardCache();
     };
 
     const handleDescSave = () => {
@@ -120,31 +115,6 @@ export default function CardPage() {
             updateCard(card.id, { description });
         }
         setIsEditingDesc(false);
-    };
-
-    const handleToggleLabel = async (labelId: string) => {
-        if (!card) return;
-        const hasLabel = card.labels?.some((cl) => cl.label_id === labelId);
-        const label = boardLabels.find((l) => l.id === labelId);
-
-        if (hasLabel) {
-            setCard({ ...card, labels: card.labels?.filter((cl) => cl.label_id !== labelId) || [] });
-        } else if (label) {
-            setCard({ ...card, labels: [...(card.labels || []), { id: `temp-${Date.now()}`, label_id: labelId, card_id: card.id, label }] });
-        }
-
-        try {
-            if (hasLabel) {
-                await api.delete(`/cards/${card.id}/labels/${labelId}`);
-            } else {
-                await api.post(`/cards/${card.id}/labels`, { label_id: labelId });
-            }
-            invalidateBoardCache();
-            refetchCard();
-        } catch (error) {
-            message.error('Failed to update label');
-            refetchCard();
-        }
     };
 
     const handleCoverPositionSave = async (value: number) => {
@@ -188,11 +158,8 @@ export default function CardPage() {
             }}
         >
             <CardHeader
-                title={isEditingTitle ? title : card.title}
-                isEditing={isEditingTitle}
-                onTitleChange={setTitle}
+                title={card.title}
                 onTitleSave={handleTitleSave}
-                onEditStart={() => setIsEditingTitle(true)}
                 onBack={handleBack}
             />
 
@@ -231,12 +198,10 @@ export default function CardPage() {
                     boardLabels={boardLabels}
                     comments={card?.comments || []}
                     isAddingComment={addCommentMutation.isPending}
-                    labelsOpen={labelsOpen}
-                    onLabelsOpenChange={setLabelsOpen}
                     onMembersClick={() => setMembersOpen(true)}
+                    onLabelsClick={() => setLabelsOpen(true)}
                     onDueDateClick={() => setDueDateOpen(true)}
                     onCoverClick={() => setCoverOpen(true)}
-                    onLabelToggle={handleToggleLabel}
                     onLabelsRefresh={refetchLabels}
                     onCardRefresh={refetchCard}
                     onAddComment={(content) => addCommentMutation.mutateAsync(content)}
@@ -255,6 +220,17 @@ export default function CardPage() {
                     refetchCard();
                     invalidateBoardCache();
                 }}
+            />
+
+            <LabelPickerModal
+                open={labelsOpen}
+                onClose={() => setLabelsOpen(false)}
+                cardId={cardId}
+                boardId={boardId}
+                labels={boardLabels}
+                selectedLabelIds={card.labels?.map((cl) => cl.label_id) || []}
+                onRefresh={refetchLabels}
+                onCardRefresh={refetchCard}
             />
 
             <DueDatePickerModal

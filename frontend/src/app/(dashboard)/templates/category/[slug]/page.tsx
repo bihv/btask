@@ -4,7 +4,8 @@ import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Typography, Row, Col, Spin, Empty, Button, Breadcrumb } from 'antd';
 import { LeftOutlined } from '@ant-design/icons';
-import { useTemplates, Template } from '@/hooks/useTemplates';
+import { useTemplates } from '@/hooks/useTemplates';
+import { Template } from '@/types';
 import TemplateCard from '@/components/templates/TemplateCard';
 
 const { Title, Text } = Typography;

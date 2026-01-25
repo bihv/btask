@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, Typography, Tag } from 'antd';
-import { Template } from '@/app/(dashboard)/templates/data';
+import { Template } from '@/types';
 
 const { Text, Paragraph } = Typography;
 
@@ -21,8 +21,8 @@ export default function TemplateCard({ template, onClick }: TemplateCardProps) {
                 <div
                     style={{
                         height: '140px',
-                        backgroundColor: template.coverColor || '#f4f5f7',
-                        backgroundImage: template.coverUrl ? `url(${template.coverUrl})` : 'none',
+                        backgroundColor: template.cover_color || '#f4f5f7',
+                        backgroundImage: template.cover_url ? `url(${template.cover_url})` : 'none',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         position: 'relative',

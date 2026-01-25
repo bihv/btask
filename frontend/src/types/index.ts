@@ -85,6 +85,7 @@ export interface Card {
     description?: string;
     cover_image?: string;
     cover_image_y?: number; // percentage 0-100
+    cover_color?: string;
     position: number;
     due_date?: string;
     is_completed: boolean;
@@ -97,6 +98,24 @@ export interface Card {
     custom_field_values?: CardCustomFieldValue[];
     created_at: string;
     updated_at: string;
+    
+    // Link preview fields (populated when title is a URL)
+    link_url?: string;
+    link_title?: string;
+    link_description?: string;
+    link_image?: string;
+    link_site_name?: string;
+    link_favicon?: string;
+}
+
+// Link Preview type
+export interface LinkPreview {
+    url: string;
+    title: string;
+    description: string;
+    image: string;
+    site_name: string;
+    favicon: string;
 }
 
 export interface CardLabel {
@@ -290,4 +309,47 @@ export interface CreateLabelRequest {
 
 export interface CreateCommentRequest {
     content: string;
+}
+
+// Template types
+export interface TemplateCard {
+    id: string;
+    title: string;
+    description?: string;
+    cover_url?: string;
+    due_date?: string;
+    position?: number;
+    // Link preview fields
+    link_url?: string;
+    link_title?: string;
+    link_description?: string;
+    link_image?: string;
+    link_site_name?: string;
+    link_favicon?: string;
+}
+
+export interface TemplateList {
+    id: string;
+    title: string;
+    color?: string;
+    position?: number;
+    cards?: TemplateCard[];
+}
+
+export interface Template {
+    id: string;
+    title: string;
+    author?: string;
+    description?: string;
+    full_description?: string;
+    category?: string;
+    cover_color?: string;
+    cover_url?: string;
+    tags?: string[];
+    copies?: number;
+    views?: number;
+    is_featured?: boolean;
+    is_active?: boolean;
+    created_at?: string;
+    lists?: TemplateList[];
 }
