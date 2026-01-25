@@ -23,7 +23,7 @@ import LabelPickerModal from '@/components/card/LabelPickerModal';
 
 const { Text } = Typography;
 
-export default function CardPage() {
+export default function CardPage({ isModal = false }: { isModal?: boolean }) {
     const router = useRouter();
     const params = useParams();
     const boardId = params.id as string;
@@ -58,7 +58,9 @@ export default function CardPage() {
     const [labelsOpen, setLabelsOpen] = useState(false);
     const [dueDateOpen, setDueDateOpen] = useState(false);
     const [coverOpen, setCoverOpen] = useState(false);
+    const [triggerAddChecklist, setTriggerAddChecklist] = useState(false);
     const [coverPosition, setCoverPosition] = useState(50);
+    const attachmentButtonRef = React.useRef<HTMLElement>(null);
 
     // Fetch board for workspace context
     useEffect(() => {
@@ -106,6 +108,13 @@ export default function CardPage() {
         if (!card) return;
         setCard({ ...card, title: newTitle });
         await updateCard(card.id, { title: newTitle });
+        invalidateBoardCache();
+    };
+
+    const handleCompletedChange = async (checked: boolean) => {
+        if (!card) return;
+        setCard({ ...card, is_completed: checked });
+        await updateCard(card.id, { is_completed: checked });
         invalidateBoardCache();
     };
 
@@ -159,11 +168,29 @@ export default function CardPage() {
         >
             <CardHeader
                 title={card.title}
+                isCompleted={card.is_completed || false}
                 onTitleSave={handleTitleSave}
+                onCompletedChange={handleCompletedChange}
                 onBack={handleBack}
+                hideBackButton={isModal}
             />
 
-            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            <div 
+                style={{ 
+                    flex: 1, 
+                    display: 'flex', 
+                    flexDirection: 'row',
+                    overflowY: 'auto',
+                }}
+                className="card-detail-container"
+            >
+                <style jsx>{`
+                    @media (max-width: 768px) {
+                        .card-detail-container {
+                            flex-direction: column !important;
+                        }
+                    }
+                `}</style>
                 <CardMainContent
                     card={card}
                     cardId={cardId}
@@ -187,6 +214,13 @@ export default function CardPage() {
                     onChecklistUpdate={refetchChecklists}
                     onAttachmentUpdate={refetchAttachments}
                     onCoverChange={(url) => setCard({ ...card, cover_image: url })}
+                    onMembersClick={() => setMembersOpen(true)}
+                    onLabelsClick={() => setLabelsOpen(true)}
+                    onDueDateClick={() => setDueDateOpen(true)}
+                    triggerAddChecklist={triggerAddChecklist}
+                    onAddChecklistTriggered={() => setTriggerAddChecklist(!triggerAddChecklist)}
+                    attachmentButtonRef={attachmentButtonRef}
+                    isModal={isModal}
                 />
 
                 <CardSidebar
@@ -205,7 +239,10 @@ export default function CardPage() {
                     onLabelsRefresh={refetchLabels}
                     onCardRefresh={refetchCard}
                     onAddComment={(content) => addCommentMutation.mutateAsync(content)}
-                    onArchiveChange={(isArchived) => setCard({ ...card, is_archived: isArchived })}
+                    onArchiveChange={(isArchived) => {
+                        setCard({ ...card, is_archived: isArchived });
+                        invalidateBoardCache();
+                    }}
                 />
             </div>
 
@@ -216,8 +253,8 @@ export default function CardPage() {
                 cardId={cardId}
                 cardMembers={card.members || []}
                 workspaceMembers={workspaceMembers}
-                onUpdate={() => {
-                    refetchCard();
+                onUpdate={async () => {
+                    await refetchCard();
                     invalidateBoardCache();
                 }}
             />

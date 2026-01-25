@@ -124,11 +124,11 @@ export default function TableView({ filters, onCardClick }: TableViewProps) {
             key: 'members',
             width: 120,
             render: (_, record) => (
-                <Avatar.Group maxCount={3} size="small">
+                <Avatar.Group max={{ count: 3 }} size="small">
                     {(record.members || []).map((member: { user_id: string; user?: { full_name: string; avatar_url?: string } }) => (
                         <Tooltip key={member.user_id} title={member.user?.full_name}>
                             <Avatar
-                                src={member.user?.avatar_url}
+                                src={member.user?.avatar_url || undefined}
                                 style={{ backgroundColor: '#1890ff' }}
                             >
                                 {member.user?.full_name?.[0] || '?'}

@@ -34,6 +34,7 @@ interface AttachmentSectionProps {
     onUpdate: () => void;
     currentCover?: string;
     onSetCover?: (imageUrl: string) => void;
+    buttonRef?: React.RefObject<HTMLElement | null>;
 }
 
 const getFileIcon = (fileName: string, fileType?: string) => {
@@ -64,7 +65,7 @@ const formatFileSize = (bytes: number) => {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
-export default function AttachmentSection({ cardId, attachments, onUpdate, currentCover, onSetCover }: AttachmentSectionProps) {
+export default function AttachmentSection({ cardId, attachments, onUpdate, currentCover, onSetCover, buttonRef }: AttachmentSectionProps) {
     const [uploading, setUploading] = useState(false);
     const { message } = App.useApp();
 
@@ -206,6 +207,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                     icon={<UploadOutlined />}
                     loading={uploading}
                     style={{ marginTop: attachments.length > 0 ? 12 : 0 }}
+                    ref={buttonRef as any}
                 >
                     Add Attachment
                 </Button>

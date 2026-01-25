@@ -15,7 +15,7 @@ interface MembersPickerModalProps {
     cardId: string;
     cardMembers: CardMember[];
     workspaceMembers: User[];
-    onUpdate: () => void;
+    onUpdate: () => Promise<void> | void;
 }
 
 export default function MembersPickerModal({
@@ -37,7 +37,8 @@ export default function MembersPickerModal({
             } else {
                 await api.post(`/cards/${cardId}/members`, { user_id: userId });
             }
-            onUpdate();
+            await onUpdate();
+            message.success(hasMember ? 'Member removed' : 'Member added');
         } catch (error) {
             message.error('Failed to update member');
         }

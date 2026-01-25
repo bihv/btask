@@ -22,6 +22,8 @@ interface ChecklistSectionProps {
     onUpdate: () => void;
     workspaceMembers?: User[];
     lists?: BoardList[];
+    triggerAddChecklist?: boolean;
+    onAddChecklistTriggered?: () => void;
 }
 
 export default function ChecklistSection({
@@ -31,6 +33,8 @@ export default function ChecklistSection({
     onUpdate,
     workspaceMembers = [],
     lists = [],
+    triggerAddChecklist = false,
+    onAddChecklistTriggered,
 }: ChecklistSectionProps) {
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
     const { message } = App.useApp();
@@ -48,6 +52,14 @@ export default function ChecklistSection({
     const [modalLists, setModalLists] = useState<BoardList[]>(lists);
 
     const { resolvedTheme } = useTheme();
+
+    // Handle trigger from parent
+    React.useEffect(() => {
+        if (triggerAddChecklist && !showAddChecklist) {
+            setShowAddChecklist(true);
+            onAddChecklistTriggered?.();
+        }
+    }, [triggerAddChecklist, showAddChecklist, onAddChecklistTriggered]);
 
     // API Handlers
     const handleAddChecklist = async () => {

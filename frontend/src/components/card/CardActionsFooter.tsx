@@ -61,7 +61,7 @@ export default function CardActionsFooter({
 
     return (
         <div style={{ padding: 16, borderTop: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <ShareCardPopover
                     cardId={cardId}
                     cardTitle={cardTitle}

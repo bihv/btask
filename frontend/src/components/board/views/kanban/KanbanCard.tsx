@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Typography, Tooltip, Tag, message, Dropdown, Popover } from 'antd';
@@ -242,7 +243,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
             return;
         }
         
-        // Navigate to separate card page
+        // Navigate to card modal using router for intercepting route
         router.push(`/boards/${boardId}/cards/${card.id}`);
     };
 
@@ -469,16 +470,9 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                     )}
 
                     {/* Title */}
-                    <div onClick={(e) => e.stopPropagation()}>
-                        <EditableTitle
-                            value={card.title}
-                            onSave={handleTitleSave}
-                            disabled={readOnly}
-                            textStyle={{ fontSize: 14 }}
-                            inputStyle={{ fontSize: 14 }}
-                            size="small"
-                        />
-                    </div>
+                    <Text style={{ fontSize: 14 }}>
+                        {card.title}
+                    </Text>
                 </>
             )}
 

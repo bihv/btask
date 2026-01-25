@@ -1,35 +1,49 @@
 'use client';
 
 import React from 'react';
-import { Button } from 'antd';
+import { Button, Checkbox } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import EditableTitle from '@/components/common/EditableTitle';
 
 interface CardHeaderProps {
     title: string;
+    isCompleted?: boolean;
     onTitleSave: (newTitle: string) => Promise<void> | void;
+    onCompletedChange?: (checked: boolean) => Promise<void> | void;
     onBack: () => void;
+    hideBackButton?: boolean;
 }
 
 export default function CardHeader({
     title,
+    isCompleted = false,
     onTitleSave,
+    onCompletedChange,
     onBack,
+    hideBackButton = false,
 }: CardHeaderProps) {
     return (
         <div
             style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '5px 10px',
+                alignItems: 'flex-start',
+                gap: 12,
+                padding: hideBackButton ? '24px 24px 0 24px' : '5px 10px',
                 background: 'var(--bg-primary)',
             }}
         >
-            <Button
-                type="text"
-                icon={<ArrowLeftOutlined />}
-                onClick={onBack}
+            {!hideBackButton && (
+                <Button
+                    type="text"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={onBack}
+                    style={{ marginTop: 4 }}
+                />
+            )}
+            <Checkbox 
+                checked={isCompleted}
+                onChange={(e) => onCompletedChange?.(e.target.checked)}
+                style={{ marginTop: 8 }}
             />
             <EditableTitle
                 value={title}

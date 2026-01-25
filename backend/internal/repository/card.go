@@ -78,23 +78,23 @@ func (r *CardRepository) MoveCard(cardID uuid.UUID, newListID uuid.UUID, newPosi
 		if oldListID == newListID {
 			if oldPosition < newPosition {
 				tx.Model(&models.Card{}).
-					Where("list_id = ? AND position > ? AND position <= ?", oldListID, oldPosition, newPosition).
+					Where("list_id = ? AND is_archived = false AND position > ? AND position <= ?", oldListID, oldPosition, newPosition).
 					Update("position", gorm.Expr("position - 1"))
 			} else if oldPosition > newPosition {
 				tx.Model(&models.Card{}).
-					Where("list_id = ? AND position >= ? AND position < ?", oldListID, newPosition, oldPosition).
+					Where("list_id = ? AND is_archived = false AND position >= ? AND position < ?", oldListID, newPosition, oldPosition).
 					Update("position", gorm.Expr("position + 1"))
 			}
 		} else {
 			// Moving to different list
 			// Decrease positions in old list
 			tx.Model(&models.Card{}).
-				Where("list_id = ? AND position > ?", oldListID, oldPosition).
+				Where("list_id = ? AND is_archived = false AND position > ?", oldListID, oldPosition).
 				Update("position", gorm.Expr("position - 1"))
 
 			// Increase positions in new list
 			tx.Model(&models.Card{}).
-				Where("list_id = ? AND position >= ?", newListID, newPosition).
+				Where("list_id = ? AND is_archived = false AND position >= ?", newListID, newPosition).
 				Update("position", gorm.Expr("position + 1"))
 
 			card.ListID = newListID
