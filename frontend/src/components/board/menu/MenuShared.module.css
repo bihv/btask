@@ -1,0 +1,40 @@
+.menuItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s;
+}
+
+.menuItem:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.menuItemDisabled {
+    cursor: default;
+}
+
+.menuItemDisabled:hover {
+    background-color: transparent;
+}
+
+.menuItemDanger {
+    color: #ff4d4f;
+}
+
+.menuItemIcon {
+    width: 16px;
+    display: inline-flex;
+    justify-content: center;
+    opacity: 0.8;
+}
+
+.menuItemText {
+    font-size: 14px;
+}
+
+.menuItemTextDanger {
+    color: #ff4d4f;
+}

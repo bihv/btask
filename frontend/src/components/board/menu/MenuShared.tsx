@@ -3,6 +3,7 @@
 import React from 'react';
 import { Space, Typography, Button } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import styles from './MenuShared.module.css';
 
 const { Text } = Typography;
 
@@ -16,31 +17,21 @@ interface MenuItemProps {
 }
 
 export function MenuItem({ icon, label, onClick, extra, danger }: MenuItemProps) {
+    const className = [
+        styles.menuItem,
+        !onClick && styles.menuItemDisabled,
+        danger && styles.menuItemDanger,
+    ].filter(Boolean).join(' ');
+
     return (
-        <div
-            onClick={onClick}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                cursor: onClick ? 'pointer' : 'default',
-                borderRadius: 4,
-                transition: 'background-color 0.15s',
-                color: danger ? '#ff4d4f' : 'inherit',
-            }}
-            onMouseEnter={(e) => {
-                if (onClick) e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-        >
+        <div onClick={onClick} className={className}>
             <Space size={8}>
-                <span style={{ width: 16, display: 'inline-flex', justifyContent: 'center', opacity: 0.8 }}>
+                <span className={styles.menuItemIcon}>
                     {icon}
                 </span>
-                <Text style={{ color: danger ? '#ff4d4f' : 'inherit', fontSize: 14 }}>{label}</Text>
+                <Text className={danger ? styles.menuItemTextDanger : styles.menuItemText}>
+                    {label}
+                </Text>
             </Space>
             {extra}
         </div>
