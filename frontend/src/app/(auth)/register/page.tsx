@@ -46,7 +46,7 @@ export default function RegisterPage() {
             >
                 <Form.Item
                     name="fullName"
-                    label="Full Name"
+                    label={<span className={styles.formLabel}>Full Name</span>}
                     rules={[{ required: true, message: 'Please enter your full name' }]}
                 >
                     <Input
@@ -58,7 +58,7 @@ export default function RegisterPage() {
 
                 <Form.Item
                     name="email"
-                    label="Email"
+                    label={<span className={styles.formLabel}>Email</span>}
                     rules={[
                         { required: true, message: 'Please enter your email' },
                         { type: 'email', message: 'Please enter a valid email' },
@@ -73,7 +73,7 @@ export default function RegisterPage() {
 
                 <Form.Item
                     name="password"
-                    label="Password"
+                    label={<span className={styles.formLabel}>Password</span>}
                     rules={[
                         { required: true, message: 'Please enter your password' },
                         { min: 6, message: 'Password must be at least 6 characters' },
@@ -88,7 +88,7 @@ export default function RegisterPage() {
 
                 <Form.Item
                     name="confirmPassword"
-                    label="Confirm Password"
+                    label={<span className={styles.formLabel}>Confirm Password</span>}
                     dependencies={['password']}
                     rules={[
                         { required: true, message: 'Please confirm your password' },

@@ -43,7 +43,7 @@ export default function LoginPage() {
             >
                 <Form.Item
                     name="email"
-                    label="Email"
+                    label={<span className={styles.formLabel}>Email</span>}
                     rules={[
                         { required: true, message: 'Please enter your email' },
                         { type: 'email', message: 'Please enter a valid email' },
@@ -58,7 +58,7 @@ export default function LoginPage() {
 
                 <Form.Item
                     name="password"
-                    label="Password"
+                    label={<span className={styles.formLabel}>Password</span>}
                     rules={[{ required: true, message: 'Please enter your password' }]}
                 >
                     <Input.Password
