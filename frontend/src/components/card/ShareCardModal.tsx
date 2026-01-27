@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Modal, Button, Input, Typography, Divider, QRCode, App } from 'antd';
+import { Modal, Button, Input, Typography, Divider, QRCode, App, Space } from 'antd';
 import { ShareAltOutlined, CopyOutlined, QrcodeOutlined, PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
 import { Card } from '@/types';
 
@@ -94,7 +94,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                     {/* Card Link */}
                     <div style={{ marginBottom: 16 }}>
                         <Text strong>Link to this card</Text>
-                        <Input.Group compact style={{ marginTop: 8 }}>
+                        <Space.Compact style={{ marginTop: 8, width: '100%' }}>
                             <Input
                                 value={cardUrl}
                                 readOnly
@@ -104,7 +104,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                                 icon={<CopyOutlined />}
                                 onClick={() => handleCopy(cardUrl, 'Link')}
                             />
-                        </Input.Group>
+                        </Space.Compact>
                     </div>
 
                     {/* QR Code */}
@@ -129,7 +129,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                     {/* Embed Code */}
                     <div style={{ marginBottom: 16 }}>
                         <Text strong>Embed this card</Text>
-                        <Input.Group compact style={{ marginTop: 8 }}>
+                        <Space.Compact style={{ marginTop: 8, width: '100%' }}>
                             <Input
                                 value={embedCode}
                                 readOnly
@@ -139,7 +139,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                                 icon={<CopyOutlined />}
                                 onClick={() => handleCopy(embedCode, 'Embed code')}
                             />
-                        </Input.Group>
+                        </Space.Compact>
                         <Text type="secondary" style={{ fontSize: 12 }}>
                             Paste this HTML code where you want the card link to appear
                         </Text>
