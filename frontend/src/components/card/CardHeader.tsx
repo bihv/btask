@@ -29,7 +29,7 @@ export default function CardHeader({
                 alignItems: 'flex-start',
                 gap: 12,
                 padding: hideBackButton ? '24px 24px 0 24px' : '5px 10px',
-                background: 'var(--bg-primary)',
+                // background: 'var(--bg-primary)',
             }}
         >
             {!hideBackButton && (
@@ -40,7 +40,7 @@ export default function CardHeader({
                     style={{ marginTop: 4 }}
                 />
             )}
-            <Checkbox 
+            <Checkbox
                 checked={isCompleted}
                 onChange={(e) => onCompletedChange?.(e.target.checked)}
                 style={{ marginTop: 8 }}

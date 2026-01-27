@@ -83,3 +83,8 @@ input:-webkit-autofill:active {
     caret-color: var(--text-primary) !important;
     transition: background-color 5000s ease-in-out 0s;
 }
+
+/* Hide scrollbar for card modal */
+.card-modal-hide-scrollbar .ant-modal-body::-webkit-scrollbar {
+    display: none;
+}

@@ -188,7 +188,8 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 setDueDateModalOpen(true);
             },
         },
-        {
+        // Cover option - not shown for link cards
+        !card.link_url ? {
             key: 'cover',
             label: 'Cover',
             icon: <PictureOutlined />,
@@ -196,7 +197,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 info.domEvent.stopPropagation();
                 setCoverModalOpen(true);
             },
-        },
+        } : null,
         {
             type: 'divider' as const,
         },
@@ -232,15 +233,15 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
             onCardClick(card);
             return;
         }
-        
+
         if (readOnly) return;
-        
+
         // If link card, open URL in new tab
         if (hasLinkPreview && card.link_url) {
             window.open(card.link_url, '_blank', 'noopener,noreferrer');
             return;
         }
-        
+
         // Navigate to card modal using router for intercepting route
         router.push(`/boards/${boardId}/cards/${card.id}`);
     };
@@ -284,23 +285,23 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                     case 'dropdown':
                         if (cfv.option) {
                             return (
-                                <div 
-                                    key={cfv.id} 
+                                <div
+                                    key={cfv.id}
                                     style={{
                                         ...badgeStyle,
                                         backgroundColor: cfv.option.color || 'var(--bg-tertiary)',
                                     }}
                                 >
-                                    <AppstoreOutlined style={{ 
+                                    <AppstoreOutlined style={{
                                         color: cfv.option.color ? 'white' : 'var(--text-secondary)',
                                         fontSize: 12,
                                     }} />
-                                    <span style={{ 
+                                    <span style={{
                                         color: cfv.option.color ? 'white' : 'var(--text-secondary)',
                                     }}>
                                         {field.name}:
                                     </span>
-                                    <span style={{ 
+                                    <span style={{
                                         color: cfv.option.color ? 'white' : 'var(--text-primary)',
                                         fontWeight: 500,
                                     }}>
@@ -368,200 +369,194 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 {...(readOnly ? {} : attributes)}
                 {...(readOnly ? {} : listeners)}
             >
-            {/* Card Menu */}
-            {!readOnly && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        zIndex: 10,
-                    }}
-                >
-                    <Dropdown
-                        menu={{ items: menuItems }}
-                        trigger={['click']}
-                        placement="bottomRight"
+                {/* Card Menu */}
+                {!readOnly && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 4,
+                            right: 4,
+                            zIndex: 10,
+                        }}
                     >
-                        <div
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                                cursor: 'pointer',
-                                padding: 8,
-                                borderRadius: '50%',
-                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: 32,
-                                height: 32,
-                            }}
-                            className={styles.cardMenuButton}
+                        <Dropdown
+                            menu={{ items: menuItems }}
+                            trigger={['click']}
+                            placement="bottomRight"
                         >
-                            <EditOutlined style={{ fontSize: 14, color: '#fff' }} />
-                        </div>
-                    </Dropdown>
-                </div>
-            )}
-
-            {/* Link Preview or Regular Content */}
-            {hasLinkPreview ? (
-                <LinkPreviewCard
-                    cardId={card.id}
-                    cardTitle={card.title}
-                    linkUrl={card.link_url!}
-                    linkTitle={card.link_title || card.title}
-                    linkDescription={card.link_description}
-                    linkImage={card.link_image}
-                    linkFavicon={card.link_favicon}
-                    linkSiteName={card.link_site_name}
-                    showCardCovers={showCardCovers}
-                    onRefresh={async () => {
-                        if (boardId) {
-                            await fetchBoard(boardId);
-                        }
-                    }}
-                    onExternalClick={handleExternalLinkClick}
-                    onUrlSave={handleTitleSave}
-                    readOnly={readOnly}
-                />
-            ) : (
-                <>
-                    {/* Cover Image */}
-                    {showCardCovers && card.cover_image && (
-                        <div
-                            style={{
-                                height: 120,
-                                marginBottom: 8,
-                                borderRadius: 4,
-                                overflow: 'hidden',
-                                marginTop: -8,
-                                marginLeft: -8,
-                                marginRight: -8,
-                                width: 'calc(100% + 16px)',
-                            }}
-                        >
-                            <img
-                                src={card.cover_image}
-                                alt=""
+                            <div
+                                onClick={(e) => e.stopPropagation()}
                                 style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                    objectPosition: `center ${card.cover_image_y ?? 50}%`,
+                                    cursor: 'pointer',
+                                    padding: 8,
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: 32,
+                                    height: 32,
+                                }}
+                                className={styles.cardMenuButton}
+                            >
+                                <EditOutlined style={{ fontSize: 14, color: '#fff' }} />
+                            </div>
+                        </Dropdown>
+                    </div>
+                )}
+
+                {/* Link Preview or Regular Content */}
+                {hasLinkPreview ? (
+                    <LinkPreviewCard
+                        cardId={card.id}
+                        cardTitle={card.title}
+                        linkUrl={card.link_url!}
+                        linkTitle={card.link_title || card.title}
+                        linkDescription={card.link_description}
+                        linkImage={card.link_image}
+                        linkFavicon={card.link_favicon}
+                        linkSiteName={card.link_site_name}
+                        showCardCovers={showCardCovers}
+                        onRefresh={async () => {
+                            if (boardId) {
+                                await fetchBoard(boardId);
+                            }
+                        }}
+                        onExternalClick={handleExternalLinkClick}
+                        onUrlSave={handleTitleSave}
+                        readOnly={readOnly}
+                    />
+                ) : (
+                    <>
+                        {/* Cover Image - not shown for link cards */}
+                        {showCardCovers && card.cover_image && !card.link_url && (
+                            <div
+                                style={{
+                                    height: 120,
+                                    marginBottom: 8,
+                                    borderRadius: 4,
+                                    overflow: 'hidden',
+                                    marginTop: -8,
+                                    marginLeft: -8,
+                                    marginRight: -8,
+                                    width: 'calc(100% + 16px)',
+                                    backgroundColor: card.cover_bg_color || 'var(--bg-tertiary)',
+                                    backgroundImage: `url(${card.cover_image})`,
+                                    backgroundSize: 'contain',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'center',
                                 }}
                             />
-                        </div>
-                    )}
+                        )}
 
-                    {/* Labels */}
-                    {card.labels && card.labels.length > 0 && (
-                        <div className={styles.cardLabels}>
-                            {card.labels.map((cl) => (
-                                <div
-                                    key={cl.id}
-                                    className={styles.cardLabel}
-                                    style={{ backgroundColor: cl.label?.color }}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Title */}
-                    <Text style={{ fontSize: 14 }}>
-                        {card.title}
-                    </Text>
-                </>
-            )}
-
-            {/* Labels for Link Preview Cards */}
-            {hasLinkPreview && card.labels && card.labels.length > 0 && (
-                <div className={styles.cardLabels}>
-                    {card.labels.map((cl) => (
-                        <div
-                            key={cl.id}
-                            className={styles.cardLabel}
-                            style={{ backgroundColor: cl.label?.color }}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {/* Custom Fields */}
-            {customFieldTags && customFieldTags.length > 0 && (
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-                    {customFieldTags}
-                </div>
-            )}
-
-            {/* Footer */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: 8,
-                }}
-            >
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {card.due_date && (
-                        <DueDateTag
-                            dueDate={card.due_date}
-                            isCompleted={card.is_completed}
-                            showIcon
-                            size="small"
-                        />
-                    )}
-
-                    {card.comments && card.comments.length > 0 && (
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                fontSize: 12,
-                            }}
-                        >
-                            <CommentOutlined style={{ fontSize: 12 }} />
-                            {card.comments.length}
-                        </div>
-                    )}
-                </div>
-
-                {/* Members */}
-                {card.members && card.members.length > 0 && (
-                    <div style={{ display: 'flex', marginLeft: 'auto' }}>
-                        {card.members.slice(0, 3).map((cm) => (
-                            <Tooltip key={cm.id} title={cm.user?.full_name}>
-                                <div style={{ marginLeft: -4 }}>
-                                    <UserAvatar
-                                        avatarUrl={cm.user?.avatar_url}
-                                        name={cm.user?.full_name}
-                                        size="small"
+                        {/* Labels */}
+                        {card.labels && card.labels.length > 0 && (
+                            <div className={styles.cardLabels}>
+                                {card.labels.map((cl) => (
+                                    <div
+                                        key={cl.id}
+                                        className={styles.cardLabel}
+                                        style={{ backgroundColor: cl.label?.color }}
                                     />
-                                </div>
-                            </Tooltip>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Title */}
+                        <Text style={{ fontSize: 14, fontWeight: 500 }}>
+                            {card.title}
+                        </Text>
+                    </>
+                )}
+
+                {/* Labels for Link Preview Cards */}
+                {hasLinkPreview && card.labels && card.labels.length > 0 && (
+                    <div className={styles.cardLabels}>
+                        {card.labels.map((cl) => (
+                            <div
+                                key={cl.id}
+                                className={styles.cardLabel}
+                                style={{ backgroundColor: cl.label?.color }}
+                            />
                         ))}
-                        {card.members.length > 3 && (
-                            <div style={{
-                                width: 24,
-                                height: 24,
-                                borderRadius: '50%',
-                                backgroundColor: '#0052cc',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: 10,
-                                color: 'white',
-                                marginLeft: -4,
-                            }}>
-                                +{card.members.length - 3}
+                    </div>
+                )}
+
+                {/* Custom Fields */}
+                {customFieldTags && customFieldTags.length > 0 && (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                        {customFieldTags}
+                    </div>
+                )}
+
+                {/* Footer */}
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginTop: 8,
+                    }}
+                >
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {card.due_date && (
+                            <DueDateTag
+                                dueDate={card.due_date}
+                                isCompleted={card.is_completed}
+                                showIcon
+                                size="small"
+                            />
+                        )}
+
+                        {card.comments && card.comments.length > 0 && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <CommentOutlined style={{ fontSize: 12 }} />
+                                {card.comments.length}
                             </div>
                         )}
                     </div>
-                )}
+
+                    {/* Members */}
+                    {card.members && card.members.length > 0 && (
+                        <div style={{ display: 'flex', marginLeft: 'auto' }}>
+                            {card.members.slice(0, 3).map((cm) => (
+                                <Tooltip key={cm.id} title={cm.user?.full_name}>
+                                    <div style={{ marginLeft: -4 }}>
+                                        <UserAvatar
+                                            avatarUrl={cm.user?.avatar_url}
+                                            name={cm.user?.full_name}
+                                            size="small"
+                                        />
+                                    </div>
+                                </Tooltip>
+                            ))}
+                            {card.members.length > 3 && (
+                                <div style={{
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#0052cc',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: 10,
+                                    color: 'white',
+                                    marginLeft: -4,
+                                }}>
+                                    +{card.members.length - 3}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
 
             {/* Modals for card editing */}
             <MembersPickerModal

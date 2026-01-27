@@ -41,10 +41,6 @@ const editorStyles: React.CSSProperties = {
     overflow: 'hidden',
 };
 
-const editableStyles: React.CSSProperties = {
-    border: '1px solid #d9d9d9',
-};
-
 // Helper to check if URL is a video
 const isVideoUrl = (url: string): boolean => {
     const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
@@ -170,12 +166,22 @@ export default function RichTextEditor({
     }, []);
 
     return (
-        <div style={{ ...editorStyles, ...(editable ? editableStyles : {}) }}>
-            <div ref={containerRef}>
+        <div style={{ ...editorStyles }}>
+            <style>{`
+                .bn-editor {
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                }
+                .bn-block-outer {
+                    margin-left: 0 !important;
+                }
+            `}</style>
+            <div ref={containerRef} className={!editable ? 'bn-readonly-mode' : ''}>
                 <BlockNoteView
                     editor={editor}
                     editable={editable}
                     theme={resolvedTheme}
+                    sideMenu={editable}
                 />
             </div>
             <Lightbox

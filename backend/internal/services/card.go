@@ -139,8 +139,9 @@ func (s *CardService) Update(cardID uuid.UUID, userID uuid.UUID, req models.Upda
 	if req.CoverImage != nil {
 		card.CoverImage = *req.CoverImage
 	}
-	if req.CoverImageY != nil {
-		card.CoverImageY = *req.CoverImageY
+
+	if req.CoverBgColor != nil {
+		card.CoverBgColor = *req.CoverBgColor
 	}
 	if req.IsArchived != nil {
 		card.IsArchived = *req.IsArchived

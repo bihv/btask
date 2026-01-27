@@ -84,7 +84,7 @@ export interface Card {
     title: string;
     description?: string;
     cover_image?: string;
-    cover_image_y?: number; // percentage 0-100
+    cover_bg_color?: string; // auto-extracted dominant color for contain mode
     cover_color?: string;
     position: number;
     due_date?: string;
@@ -98,7 +98,7 @@ export interface Card {
     custom_field_values?: CardCustomFieldValue[];
     created_at: string;
     updated_at: string;
-    
+
     // Link preview fields (populated when title is a URL)
     link_url?: string;
     link_title?: string;

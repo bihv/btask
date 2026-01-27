@@ -8,19 +8,19 @@ import (
 )
 
 type Card struct {
-	ID          uuid.UUID  `json:"id" gorm:"type:uuid;primary_key"`
-	ListID      uuid.UUID  `json:"list_id" gorm:"type:uuid;not null"`
-	Title       string     `json:"title" gorm:"not null"`
-	Description string     `json:"description"`
-	CoverImage  string     `json:"cover_image"`
-	CoverImageY int        `json:"cover_image_y" gorm:"default:50"` // percentage 0-100
-	Position    int        `json:"position" gorm:"default:0"`
-	DueDate     *time.Time `json:"due_date"`
-	IsCompleted bool       `json:"is_completed" gorm:"default:false"`
-	IsArchived  bool       `json:"is_archived" gorm:"default:false"`
-	CreatedBy   uuid.UUID  `json:"created_by" gorm:"type:uuid"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID           uuid.UUID  `json:"id" gorm:"type:uuid;primary_key"`
+	ListID       uuid.UUID  `json:"list_id" gorm:"type:uuid;not null"`
+	Title        string     `json:"title" gorm:"not null"`
+	Description  string     `json:"description"`
+	CoverImage   string     `json:"cover_image"`
+	CoverBgColor string     `json:"cover_bg_color"` // auto-extracted dominant color for contain mode
+	Position     int        `json:"position" gorm:"default:0"`
+	DueDate      *time.Time `json:"due_date"`
+	IsCompleted  bool       `json:"is_completed" gorm:"default:false"`
+	IsArchived   bool       `json:"is_archived" gorm:"default:false"`
+	CreatedBy    uuid.UUID  `json:"created_by" gorm:"type:uuid"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 
 	// Link Preview fields (populated when title is a URL)
 	LinkURL         string `json:"link_url,omitempty"`
@@ -71,14 +71,14 @@ type CreateCardRequest struct {
 }
 
 type UpdateCardRequest struct {
-	Title       string     `json:"title" validate:"omitempty,min=1,max=200"`
-	Description string     `json:"description"`
-	CoverImage  *string    `json:"cover_image"`
-	CoverImageY *int       `json:"cover_image_y"`
-	Position    *int       `json:"position"`
-	DueDate     *time.Time `json:"due_date"`
-	IsCompleted *bool      `json:"is_completed"`
-	IsArchived  *bool      `json:"is_archived"`
+	Title        string     `json:"title" validate:"omitempty,min=1,max=200"`
+	Description  string     `json:"description"`
+	CoverImage   *string    `json:"cover_image"`
+	CoverBgColor *string    `json:"cover_bg_color"`
+	Position     *int       `json:"position"`
+	DueDate      *time.Time `json:"due_date"`
+	IsCompleted  *bool      `json:"is_completed"`
+	IsArchived   *bool      `json:"is_archived"`
 }
 
 type MoveCardRequest struct {

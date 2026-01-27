@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { Button, Typography, Tooltip } from 'antd';
-import { TagOutlined, ClockCircleOutlined, CheckSquareOutlined, UserOutlined, PaperClipOutlined } from '@ant-design/icons';
+import { TagOutlined, ClockCircleOutlined, CheckSquareOutlined, UserOutlined, PaperClipOutlined, PictureOutlined } from '@ant-design/icons';
 import { Card, User, Checklist, Attachment, BoardList } from '@/types';
-import DraggableCoverImage from './DraggableCoverImage';
 import CardDescriptionSection from './CardDescriptionSection';
 import ChecklistSection from './ChecklistSection';
 import AttachmentSection from './AttachmentSection';
@@ -17,15 +16,12 @@ interface CardMainContentProps {
     card: Card;
     cardId: string;
     boardId: string;
-    coverPosition: number;
     description: string;
     isEditingDesc: boolean;
     checklists: Checklist[];
     attachments: Attachment[];
     workspaceMembers: User[];
     lists: BoardList[];
-    onCoverPositionChange: (value: number) => void;
-    onCoverPositionSave: (value: number) => Promise<void>;
     onDescriptionChange: (value: string) => void;
     onDescriptionSave: () => void;
     onDescriptionCancel: () => void;
@@ -39,22 +35,19 @@ interface CardMainContentProps {
     triggerAddChecklist?: boolean;
     onAddChecklistTriggered?: () => void;
     attachmentButtonRef?: React.RefObject<HTMLElement | null>;
-    isModal?: boolean;
+    onCoverClick?: () => void;
 }
 
 export default function CardMainContent({
     card,
     cardId,
     boardId,
-    coverPosition,
     description,
     isEditingDesc,
     checklists,
     attachments,
     workspaceMembers,
     lists,
-    onCoverPositionChange,
-    onCoverPositionSave,
     onDescriptionChange,
     onDescriptionSave,
     onDescriptionCancel,
@@ -68,7 +61,7 @@ export default function CardMainContent({
     triggerAddChecklist,
     onAddChecklistTriggered,
     attachmentButtonRef,
-    isModal = false,
+    onCoverClick,
 }: CardMainContentProps) {
 
     return (
@@ -91,21 +84,6 @@ export default function CardMainContent({
                     }
                 }
             `}</style>
-            {!isModal && card.cover_image && (
-                <div
-                    style={{
-                        margin: '-8px -24px 24px -24px',
-                        width: 'calc(100% + 48px)',
-                    }}
-                >
-                    <DraggableCoverImage
-                        imageUrl={card.cover_image}
-                        position={coverPosition}
-                        onPositionChange={onCoverPositionChange}
-                        onPositionChangeComplete={onCoverPositionSave}
-                    />
-                </div>
-            )}
 
             {/* Data Display Sections - Show when data exists */}
             {(card.members?.length || card.labels?.length || card.due_date) && (
@@ -132,9 +110,9 @@ export default function CardMainContent({
                                             </div>
                                         </Tooltip>
                                     ))}
-                                    <Button 
-                                        type="text" 
-                                        size="small" 
+                                    <Button
+                                        type="text"
+                                        size="small"
                                         icon={<span style={{ fontSize: 16 }}>+</span>}
                                         style={{ width: 32, height: 32, padding: 0 }}
                                     />
@@ -169,9 +147,9 @@ export default function CardMainContent({
                                             {cl.label?.name || ''}
                                         </div>
                                     ))}
-                                    <Button 
-                                        type="text" 
-                                        size="small" 
+                                    <Button
+                                        type="text"
+                                        size="small"
                                         icon={<span style={{ fontSize: 16 }}>+</span>}
                                         style={{ width: 32, height: 32, padding: 0 }}
                                     />
@@ -231,6 +209,16 @@ export default function CardMainContent({
                         onClick={onDueDateClick}
                     >
                         Dates
+                    </Button>
+                )}
+                {/* Show Cover button only when no cover image and not a link card */}
+                {!card.cover_image && !card.link_url && (
+                    <Button
+                        icon={<PictureOutlined />}
+                        size="small"
+                        onClick={onCoverClick}
+                    >
+                        Cover
                     </Button>
                 )}
                 <Button

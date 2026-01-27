@@ -4,6 +4,7 @@ import React from 'react';
 import { Modal, Button, Upload, Typography, Divider, App } from 'antd';
 import { PictureOutlined } from '@ant-design/icons';
 import api, { uploadFile } from '@/lib/api';
+import { extractDominantColor } from '@/utils/extractColor';
 
 const { Text } = Typography;
 
@@ -41,7 +42,21 @@ export default function CoverImagePickerModal({
         try {
             // If same cover, remove it
             const newCover = currentCover === url ? '' : url;
-            await api.put(`/cards/${cardId}`, { cover_image: newCover });
+
+            // Extract dominant color from image for background
+            let bgColor = '';
+            if (newCover) {
+                try {
+                    bgColor = await extractDominantColor(newCover);
+                } catch {
+                    bgColor = 'rgb(128, 128, 128)'; // Default gray
+                }
+            }
+
+            await api.put(`/cards/${cardId}`, {
+                cover_image: newCover,
+                cover_bg_color: bgColor,
+            });
             onUpdate(newCover);
             onClose();
         } catch (error) {
