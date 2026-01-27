@@ -260,7 +260,11 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
                 cardId={cardId}
                 attachments={attachments}
                 currentCover={card.cover_image}
-                onUpdate={(coverImage) => setCard({ ...card, cover_image: coverImage })}
+                onUpdate={(coverImage) => {
+                    setCard({ ...card, cover_image: coverImage });
+                    invalidateBoardCache();
+                    refetchCard();
+                }}
             />
         </div>
     );

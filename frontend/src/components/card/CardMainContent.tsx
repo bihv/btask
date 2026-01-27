@@ -211,8 +211,8 @@ export default function CardMainContent({
                         Dates
                     </Button>
                 )}
-                {/* Show Cover button only when no cover image and not a link card */}
-                {!card.cover_image && !card.link_url && (
+                {/* Show Cover button when not a link card */}
+                {!card.link_url && (
                     <Button
                         icon={<PictureOutlined />}
                         size="small"
