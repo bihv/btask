@@ -18,12 +18,15 @@ export default function AuthLayout({
                     colorBorder: 'rgba(255, 255, 255, 0.15)',
                     borderRadius: 8,
                     colorPrimary: '#7dd3c0',
+                    colorTextBase: '#ffffff',
                 },
                 components: {
                     Input: {
                         colorBgContainer: 'rgba(255, 255, 255, 0.08)',
                         activeBorderColor: '#7dd3c0',
                         hoverBorderColor: '#7dd3c0',
+                        colorText: '#ffffff',
+                        colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
                     },
                 }
             }}

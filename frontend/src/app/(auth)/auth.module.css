@@ -87,7 +87,15 @@
     display: block;
 }
 
-
+/* Override autofill styles */
+.card :global(input:-webkit-autofill),
+.card :global(input:-webkit-autofill:hover),
+.card :global(input:-webkit-autofill:focus),
+.card :global(input:-webkit-autofill:active) {
+    -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.08) inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
 
 /* Forgot Password Link */
 .forgotPassword {
