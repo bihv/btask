@@ -12,7 +12,7 @@ import {
 import { UserOutlined, CalendarOutlined } from '@ant-design/icons';
 import { User } from '@/types';
 import dayjs from 'dayjs';
-import MemberPicker from './MemberPicker';
+import MemberPickerContent from '@/components/common/MemberPickerContent';
 import UserAvatar from '@/components/common/UserAvatar';
 
 interface NewChecklistItemFormProps {
@@ -67,12 +67,11 @@ export default function NewChecklistItemForm({
     };
 
     const renderMemberPicker = () => (
-        <MemberPicker
-            selectedIds={localAssigneeIds}
+        <MemberPickerContent
+            selectedMemberIds={localAssigneeIds}
             workspaceMembers={workspaceMembers}
-            onToggle={handleMemberToggle}
+            onToggleMember={handleMemberToggle}
             onRemoveAll={handleRemoveAllMembers}
-            mode={mode}
         />
     );
 

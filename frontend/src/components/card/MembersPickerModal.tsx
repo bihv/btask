@@ -1,15 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Modal, Typography, App } from 'antd';
-import { CheckOutlined } from '@ant-design/icons';
+import { App } from 'antd';
 import { User, CardMember } from '@/types';
-import UserAvatar from '@/components/common/UserAvatar';
+import MemberPickerModal from '@/components/common/MemberPickerModal';
 import api from '@/lib/api';
 
-const { Text } = Typography;
-
-interface MembersPickerModalProps {
+interface CardMembersPickerModalProps {
     open: boolean;
     onClose: () => void;
     cardId: string;
@@ -25,8 +22,10 @@ export default function MembersPickerModal({
     cardMembers,
     workspaceMembers,
     onUpdate,
-}: MembersPickerModalProps) {
+}: CardMembersPickerModalProps) {
     const { message } = App.useApp();
+
+    const selectedMemberIds = cardMembers?.map((cm) => cm.user_id) || [];
 
     const handleToggleMember = async (userId: string) => {
         const hasMember = cardMembers?.some((cm) => cm.user_id === userId);
@@ -43,53 +42,28 @@ export default function MembersPickerModal({
         }
     };
 
+    const handleRemoveAll = async () => {
+        try {
+            // Remove all members one by one
+            await Promise.all(
+                cardMembers.map((cm) =>
+                    api.delete(`/cards/${cardId}/members/${cm.user_id}`)
+                )
+            );
+            await onUpdate();
+        } catch (error) {
+            message.error('Failed to remove members');
+        }
+    };
+
     return (
-        <Modal
-            title="Members"
+        <MemberPickerModal
             open={open}
-            onCancel={onClose}
-            footer={null}
-            width={320}
-        >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {workspaceMembers.map((member) => {
-                    const isAssigned = cardMembers?.some((cm) => cm.user_id === member.id);
-                    return (
-                        <div
-                            key={member.id}
-                            style={{
-                                cursor: 'pointer',
-                                padding: '8px 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 12,
-                                borderRadius: 6,
-                                transition: 'background 0.2s',
-                            }}
-                            onClick={() => handleToggleMember(member.id)}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'var(--bg-tertiary)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'transparent';
-                            }}
-                        >
-                            <UserAvatar
-                                avatarUrl={member.avatar_url}
-                                name={member.full_name}
-                                size="small"
-                            />
-                            <span style={{ flex: 1 }}>{member.full_name}</span>
-                            {isAssigned && <CheckOutlined style={{ color: '#52c41a' }} />}
-                        </div>
-                    );
-                })}
-                {workspaceMembers.length === 0 && (
-                    <Text type="secondary" style={{ textAlign: 'center', padding: 16 }}>
-                        No members in workspace
-                    </Text>
-                )}
-            </div>
-        </Modal>
+            onClose={onClose}
+            workspaceMembers={workspaceMembers}
+            selectedMemberIds={selectedMemberIds}
+            onToggleMember={handleToggleMember}
+            onRemoveAll={handleRemoveAll}
+        />
     );
 }

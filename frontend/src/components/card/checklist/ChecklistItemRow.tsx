@@ -8,7 +8,6 @@ import {
     Button,
     Space,
     Dropdown,
-    Popover,
     DatePicker,
     Tag,
     Modal,
@@ -23,7 +22,7 @@ import {
 } from '@ant-design/icons';
 import { ChecklistItem as ChecklistItemType, User } from '@/types';
 import dayjs from 'dayjs';
-import MemberPicker from './MemberPicker';
+import MemberPickerModal from '@/components/common/MemberPickerModal';
 import { checklistApi } from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
 
@@ -50,75 +49,6 @@ interface ChecklistItemRowProps {
     onConvertToCard: () => void;
     onDelete: () => void;
     onUpdateData: () => void;
-}
-
-// Component that manages its own state and calls API directly - matching original behavior
-function MemberPickerContent({
-    checklistId,
-    item,
-    workspaceMembers,
-    mode,
-    onUpdate,
-}: {
-    checklistId: string;
-    item: ChecklistItemType;
-    workspaceMembers: User[];
-    mode: 'dark' | 'light';
-    onUpdate: () => void;
-}) {
-    const { message } = App.useApp();
-    const [selectedIds, setSelectedIds] = useState<string[]>(
-        item.assignees?.map(a => a.user_id) || []
-    );
-
-    // Sync with external data when item changes
-    useEffect(() => {
-        setSelectedIds(item.assignees?.map(a => a.user_id) || []);
-    }, [item.assignees]);
-
-    const handleToggle = async (userId: string) => {
-        const isAssigned = selectedIds.includes(userId);
-        const newIds = isAssigned
-            ? selectedIds.filter(id => id !== userId)
-            : [...selectedIds, userId];
-
-        // Optimistic update
-        setSelectedIds(newIds);
-
-        try {
-            await checklistApi.updateItem(checklistId, item.id, { assignee_ids: newIds });
-            onUpdate();
-        } catch (error) {
-            // Rollback on error
-            setSelectedIds(selectedIds);
-            message.error('Failed to update assignees');
-        }
-    };
-
-    const handleRemoveAll = async () => {
-        const previousIds = selectedIds;
-        // Optimistic update
-        setSelectedIds([]);
-
-        try {
-            await checklistApi.updateItem(checklistId, item.id, { assignee_ids: [] });
-            onUpdate();
-        } catch (error) {
-            // Rollback on error
-            setSelectedIds(previousIds);
-            message.error('Failed to remove assignees');
-        }
-    };
-
-    return (
-        <MemberPicker
-            selectedIds={selectedIds}
-            workspaceMembers={workspaceMembers}
-            onToggle={handleToggle}
-            onRemoveAll={handleRemoveAll}
-            mode={mode}
-        />
-    );
 }
 
 // Component for due date picker with proper close handling
@@ -207,8 +137,17 @@ export default function ChecklistItemRow({
     onDelete,
     onUpdateData,
 }: ChecklistItemRowProps) {
+    const { message } = App.useApp();
     const [dueDateModalOpen, setDueDateModalOpen] = useState(false);
     const [memberModalOpen, setMemberModalOpen] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<string[]>(
+        item.assignees?.map(a => a.user_id) || []
+    );
+
+    // Sync with external data when item changes
+    useEffect(() => {
+        setSelectedIds(item.assignees?.map(a => a.user_id) || []);
+    }, [item.assignees]);
 
     const closeDueDateModal = React.useCallback(() => {
         setDueDateModalOpen(false);
@@ -218,6 +157,40 @@ export default function ChecklistItemRow({
         setMemberModalOpen(false);
     }, []);
 
+    const handleToggleMember = async (userId: string) => {
+        const isAssigned = selectedIds.includes(userId);
+        const newIds = isAssigned
+            ? selectedIds.filter(id => id !== userId)
+            : [...selectedIds, userId];
+
+        // Optimistic update
+        setSelectedIds(newIds);
+
+        try {
+            await checklistApi.updateItem(checklistId, item.id, { assignee_ids: newIds });
+            onUpdateData();
+        } catch (error) {
+            // Rollback on error
+            setSelectedIds(selectedIds);
+            message.error('Failed to update assignees');
+        }
+    };
+
+    const handleRemoveAllAssignees = async () => {
+        const previousIds = selectedIds;
+        // Optimistic update
+        setSelectedIds([]);
+
+        try {
+            await checklistApi.updateItem(checklistId, item.id, { assignee_ids: [] });
+            onUpdateData();
+        } catch (error) {
+            // Rollback on error
+            setSelectedIds(previousIds);
+            message.error('Failed to remove assignees');
+        }
+    };
+
     const getDueDateColor = (dueDate: string) => {
         const due = dayjs(dueDate);
         const now = dayjs();
@@ -226,17 +199,6 @@ export default function ChecklistItemRow({
         if (due.diff(now, 'day') <= 2) return 'gold';
         return 'default';
     };
-
-    const renderMemberPicker = () => (
-        <MemberPickerContent
-            checklistId={checklistId}
-            item={item}
-            workspaceMembers={workspaceMembers}
-            mode={mode}
-            onUpdate={onUpdateData}
-        />
-    );
-
 
     const menuItems = [
         {
@@ -417,16 +379,14 @@ export default function ChecklistItemRow({
             </Modal>
 
             {/* Assign Member Modal */}
-            <Modal
-                title="Assign Member"
+            <MemberPickerModal
                 open={memberModalOpen}
-                onCancel={closeMemberModal}
-                footer={null}
-                width={320}
-                destroyOnHidden
-            >
-                {renderMemberPicker()}
-            </Modal>
+                onClose={closeMemberModal}
+                workspaceMembers={workspaceMembers}
+                selectedMemberIds={selectedIds}
+                onToggleMember={handleToggleMember}
+                onRemoveAll={handleRemoveAllAssignees}
+            />
         </div>
     );
 }
