@@ -71,8 +71,6 @@ body {
     min-height: 200px;
 }
 
-
-
 /* Override browser autofill */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

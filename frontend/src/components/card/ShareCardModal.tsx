@@ -12,9 +12,10 @@ interface ShareCardModalProps {
     cardTitle: string;
     boardId: string;
     cardData?: Card;
+    onPrint?: () => void;
 }
 
-export default function ShareCardModal({ cardId, cardTitle, boardId, cardData }: ShareCardModalProps) {
+export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, onPrint }: ShareCardModalProps) {
     const [open, setOpen] = useState(false);
     const [showQR, setShowQR] = useState(false);
     const { message } = App.useApp();
@@ -34,9 +35,11 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData }:
 
     const handlePrint = () => {
         setOpen(false);
-        setTimeout(() => {
+        if (onPrint) {
+            onPrint();
+        } else {
             window.print();
-        }, 100);
+        }
     };
 
     const handleExportJSON = () => {

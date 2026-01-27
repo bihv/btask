@@ -42,6 +42,7 @@ interface CardMainContentProps {
     onCoverClick?: () => void;
     isArchived: boolean;
     onArchiveChange: (isArchived: boolean) => void;
+    onPrint?: () => void;
 }
 
 export default function CardMainContent({
@@ -70,6 +71,7 @@ export default function CardMainContent({
     onCoverClick,
     isArchived,
     onArchiveChange,
+    onPrint,
 }: CardMainContentProps) {
     const router = useRouter();
     const { deleteCard } = useBoardStore();
@@ -278,6 +280,7 @@ export default function CardMainContent({
                     cardTitle={card?.title || ''}
                     boardId={boardId}
                     cardData={card}
+                    onPrint={onPrint}
                 />
                 <Button
                     icon={isArchived ? <UndoOutlined /> : <InboxOutlined />}

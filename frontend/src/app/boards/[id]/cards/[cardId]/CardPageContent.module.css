@@ -1,0 +1,240 @@
+/* Local styles for the component */
+@media (max-width: 768px) {
+    .cardDetailContainer {
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        max-height: none !important;
+    }
+}
+
+/* Global print styles */
+@media print {
+    @page {
+        margin: 15mm;
+        size: auto;
+    }
+
+    /* Force Light Theme Variables */
+    :global(:root),
+    :global(body),
+    :global(html),
+    :global([data-theme='dark']) {
+        --bg-primary: #ffffff !important;
+        --bg-secondary: #ffffff !important;
+        --bg-tertiary: #f4f5f7 !important;
+        --text-primary: #000000 !important;
+        --text-secondary: #000000 !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    /* Hide UI Elements */
+    :global(.ant-btn),
+    :global(button),
+    :global(input),
+    :global(textarea),
+    :global([role="button"]),
+    :global(.no-print) {
+        display: none !important;
+    }
+
+    /* Layout Adjustments for Print */
+    :global(.card-detail-container) {
+        display: block !important;
+    }
+
+    :global(.card-main-content),
+    :global(.card-sidebar) {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        background: white !important;
+    }
+
+    :global(.card-sidebar) {
+        margin-top: 30px !important;
+        border-top: 1px solid #eee;
+        padding-top: 20px !important;
+    }
+
+    /* Content Visibility & Colors */
+    :global(*) {
+        overflow: visible !important;
+        height: auto !important;
+        color: black !important;
+    }
+
+    /* Prevent breaking inside text elements */
+    :global(p),
+    :global(li),
+    :global(h1),
+    :global(h2),
+    :global(h3),
+    :global(h4),
+    :global(h5),
+    :global(h6),
+    :global(.activity-item),
+    :global(.checklist-item) {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    :global(li) {
+        margin-bottom: 4px;
+    }
+
+    /* Fix Avatar Distortion in Flex Containers */
+    :global(.ant-avatar),
+    :global([class*="avatar"]),
+    :global([class*="Avatar"]) {
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        aspect-ratio: 1 / 1 !important;
+        object-fit: cover !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        align-self: flex-start !important;
+        /* Critical fix for vertical stretching */
+        border-radius: 50% !important;
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    :global(.ant-avatar img),
+    :global([class*="avatar"] img) {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 50% !important;
+    }
+
+    :global(.ant-avatar-string) {
+        color: white !important;
+    }
+
+
+    /* Specific Fixes for Editor/BlockNote Content */
+    :global(.bn-editor),
+    :global(.ProseMirror),
+    :global([class*="blocknote"]),
+    :global([data-content-type]),
+    :global(.bn-block-content) {
+        background-color: white !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    /* Fix code blocks in editor to be readable */
+    :global(pre),
+    :global(code),
+    :global(.bn-block-content[data-content-type="codeBlock"]) {
+        background-color: #f5f5f5 !important;
+        color: black !important;
+    }
+
+    /* Ensure Ant Design Tags use Light Theme Colors for Print */
+    :global(.ant-tag) {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        box-shadow: none !important;
+    }
+
+    /* Force specific light colors for standard tag states (Due dates, etc) */
+    :global(.ant-tag-red) {
+        background-color: #fff1f0 !important;
+        border-color: #ffa39e !important;
+        color: #cf1322 !important;
+    }
+
+    :global(.ant-tag-green) {
+        background-color: #f6ffed !important;
+        border-color: #b7eb8f !important;
+        color: #52c41a !important;
+    }
+
+    :global(.ant-tag-orange) {
+        background-color: #fff7e6 !important;
+        border-color: #ffd591 !important;
+        color: #fa8c16 !important;
+    }
+
+    :global(.ant-tag-blue) {
+        background-color: #e6f7ff !important;
+        border-color: #91d5ff !important;
+        color: #1890ff !important;
+    }
+
+    /* Fallback/Default tag to white */
+    :global(.ant-tag:not([class*="ant-tag-red"]):not([class*="ant-tag-green"]):not([class*="ant-tag-orange"]):not([class*="ant-tag-blue"])) {
+        background-color: white !important;
+        border: 1px solid #d9d9d9 !important;
+        color: black !important;
+    }
+
+    /* Colors for labels/covers matching user intent */
+    :global([style*="background-color"]) {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Page Breaks */
+    :global(.checklist-section),
+    :global(.attachment-section),
+    :global(.activity-item) {
+        page-break-inside: avoid;
+    }
+
+    /* Fix Ant Design Checkbox */
+    :global(.ant-checkbox-wrapper) {
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+
+    :global(.ant-checkbox) {
+        top: 0 !important;
+        /* Fix alignment */
+    }
+
+    :global(.ant-checkbox-inner) {
+        width: 18px !important;
+        height: 18px !important;
+        background-color: white !important;
+        /* Force white background for unchecked */
+        border: 1px solid #d9d9d9 !important;
+        /* Standard border */
+        border-radius: 4px !important;
+    }
+
+    /* Checked State */
+    :global(.ant-checkbox-checked .ant-checkbox-inner) {
+        background-color: #1890ff !important;
+        border-color: #1890ff !important;
+    }
+
+    /* Ensure Tick Mark is Visible */
+    :global(.ant-checkbox-checked .ant-checkbox-inner::after) {
+        display: table !important;
+        /* Antd uses table display sometimes, or block */
+        border: 2px solid white !important;
+        /* Thicker tick for print */
+        border-top: 0 !important;
+        border-left: 0 !important;
+        transform: rotate(45deg) scale(1) translate(-50%, -50%) !important;
+        opacity: 1 !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 22% !important;
+        /* Manual adjust for print if needed */
+        width: 5px !important;
+        height: 10px !important;
+    }
+
+    /* Unchecked override to be sure */
+    :global(.ant-checkbox:not(.ant-checkbox-checked) .ant-checkbox-inner) {
+        background-color: white !important;
+    }
+}

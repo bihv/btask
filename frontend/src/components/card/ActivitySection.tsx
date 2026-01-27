@@ -47,7 +47,7 @@ export default function ActivitySection({
             </div>
 
             {/* Add Comment */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }} className="no-print">
                 <UserAvatar
                     avatarUrl={currentUser?.avatar_url}
                     name={currentUser?.full_name}

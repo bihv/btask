@@ -27,6 +27,7 @@
     "next": "^16.1.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-to-print": "^3.2.0",
     "reconnecting-websocket": "^4.4.0",
     "shiki": "^3.21.0",
     "yet-another-react-lightbox": "^3.28.0",

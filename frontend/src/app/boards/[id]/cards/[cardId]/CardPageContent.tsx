@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Spin, Typography, Button, App } from 'antd';
 import { Card } from '@/types';
@@ -9,6 +9,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useChecklists, useAttachments } from '@/hooks/useCards';
 import { useQueryClient } from '@tanstack/react-query';
+import { useReactToPrint } from 'react-to-print';
 
 // Card components
 import CardHeader from '@/components/card/CardHeader';
@@ -18,6 +19,7 @@ import MembersPickerModal from '@/components/card/MembersPickerModal';
 import DueDatePickerModal from '@/components/card/DueDatePickerModal';
 import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
 import LabelPickerModal from '@/components/card/LabelPickerModal';
+import styles from './CardPageContent.module.css';
 
 const { Text } = Typography;
 
@@ -35,6 +37,12 @@ export default function CardPageContent() {
     const invalidateBoardCache = () => {
         queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
     };
+
+    // Print Logic
+    const printContentRef = useRef<HTMLDivElement>(null);
+    const handlePrint = useReactToPrint({
+        contentRef: printContentRef,
+    });
 
     // React Query hooks
     const { data: cardData, isLoading: isCardLoading, refetch: refetchCard } = useCard(cardId);
@@ -57,7 +65,7 @@ export default function CardPageContent() {
     const [coverOpen, setCoverOpen] = useState(false);
     const [triggerAddChecklist, setTriggerAddChecklist] = useState(false);
 
-    const attachmentButtonRef = React.useRef<HTMLElement>(null);
+    const attachmentButtonRef = useRef<HTMLElement>(null);
 
     // Fetch board for workspace context
     useEffect(() => {
@@ -110,8 +118,6 @@ export default function CardPageContent() {
         setIsEditingDesc(false);
     };
 
-
-
     // Loading states
     if (loading || isCardLoading) {
         return (
@@ -132,6 +138,8 @@ export default function CardPageContent() {
 
     return (
         <div
+            ref={printContentRef}
+            className={styles.printableCard}
             style={{
                 height: 'auto',
                 background: 'var(--bg-secondary)',
@@ -157,29 +165,19 @@ export default function CardPageContent() {
                     overflow: 'hidden',
                     maxHeight: 'calc(90vh - 180px)',
                 }}
-                className="card-detail-container"
+                className={`card-detail-container ${styles.cardDetailContainer}`}
             >
-                <style jsx>{`
-                    @media (max-width: 768px) {
-                        .card-detail-container {
-                            flex-direction: column !important;
-                            overflow-y: auto !important;
-                            max-height: none !important;
-                        }
-                    }
-                `}</style>
+
                 <CardMainContent
                     card={card}
                     cardId={cardId}
                     boardId={boardId}
-
                     description={description}
                     isEditingDesc={isEditingDesc}
                     checklists={checklists}
                     attachments={attachments}
                     workspaceMembers={workspaceMembers}
                     lists={currentBoard?.lists || []}
-
                     onDescriptionChange={setDescription}
                     onDescriptionSave={handleDescSave}
                     onDescriptionCancel={() => {
@@ -202,6 +200,7 @@ export default function CardPageContent() {
                         setCard({ ...card, is_archived: isArchived });
                         invalidateBoardCache();
                     }}
+                    onPrint={handlePrint}
                 />
 
                 <CardSidebar
@@ -212,7 +211,9 @@ export default function CardPageContent() {
                 />
             </div>
 
-            {/* Modals */}
+            {/* Modals - Outside of printable content if we wanted, but inside is also fine since we hide them or react-to-print ignores them if we ref specific div */}
+            {/* Wait, modals are portals in Ant Design, so they are OUTSIDE this div by default anyway! */}
+
             <MembersPickerModal
                 open={membersOpen}
                 onClose={() => setMembersOpen(false)}
@@ -258,6 +259,6 @@ export default function CardPageContent() {
                     refetchCard();
                 }}
             />
-        </div>
+        </div >
     );
 }
