@@ -49,7 +49,6 @@ export default function LinkPreviewCard({
         setIsRefreshing(true);
         try {
             await linkPreviewApi.refresh(cardId);
-            message.success('Link preview refreshed');
             // Callback to refresh the board
             if (onRefresh) {
                 await onRefresh();

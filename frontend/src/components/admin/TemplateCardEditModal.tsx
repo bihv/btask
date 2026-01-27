@@ -58,7 +58,6 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
         try {
             const url = await uploadFile(file);
             setCoverUrl(url);
-            message.success('Cover uploaded');
         } catch (error) {
             message.error('Failed to upload cover');
         } finally {

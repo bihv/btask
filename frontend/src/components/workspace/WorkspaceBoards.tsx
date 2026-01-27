@@ -35,7 +35,6 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
     const handleCreateBoard = async (values: CreateBoardRequest) => {
         try {
             const newBoard = await createBoardMutation.mutateAsync(values);
-            message.success('Board created successfully');
             setCreateBoardModalOpen(false);
             boardForm.resetFields();
             router.push(`/boards/${newBoard.id}`);

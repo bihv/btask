@@ -50,7 +50,6 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
     const handleRestoreList = async (listId: string) => {
         try {
             await api.put(`/lists/${listId}/unarchive`);
-            message.success('List restored');
             setArchivedLists(prev => prev.filter(l => l.id !== listId));
             fetchBoard(boardId);
         } catch (error) {
@@ -61,7 +60,6 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
     const handleRestoreCard = async (cardId: string) => {
         try {
             await api.put(`/cards/${cardId}/unarchive`);
-            message.success('Card restored');
             setArchivedCards(prev => prev.filter(c => c.id !== cardId));
             fetchBoard(boardId);
         } catch (error) {
@@ -86,7 +84,6 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             onOk: async () => {
                 try {
                     await api.delete(`/cards/${cardId}`);
-                    message.success('Card deleted');
                     setArchivedCards(prev => prev.filter(c => c.id !== cardId));
                 } catch (error) {
                     message.error('Failed to delete card');
@@ -104,7 +101,6 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             onOk: async () => {
                 try {
                     await api.delete(`/lists/${listId}`);
-                    message.success('List deleted');
                     setArchivedLists(prev => prev.filter(l => l.id !== listId));
                 } catch (error) {
                     message.error('Failed to delete list');

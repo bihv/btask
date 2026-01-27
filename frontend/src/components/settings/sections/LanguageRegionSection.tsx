@@ -40,13 +40,10 @@ export default function LanguageRegionSection() {
         try {
             await updatePreferences.mutateAsync({ [key]: value });
 
-            // Refresh labels when language changes, then show message in new language
+            // Refresh labels when language changes
             if (key === 'language') {
                 // Invalidate will trigger refetch and return fresh translation function
-                const freshT = await invalidateLabels();
-                message.success(freshT('SUCCESS_PREFERENCE_SAVED'));
-            } else {
-                message.success(t('SUCCESS_PREFERENCE_SAVED'));
+                await invalidateLabels();
             }
         } catch {
             message.error(t('ERROR_SAVE_PREFERENCE_FAILED'));

@@ -52,7 +52,6 @@ export default function WorkspaceDetailPage() {
                 background_color: selectedImage ? '' : selectedBackground,
                 background_image: selectedImage,
             });
-            message.success('Board created successfully');
             setModalOpen(false);
             form.resetFields();
             setSelectedBackground(DEFAULT_BACKGROUND);

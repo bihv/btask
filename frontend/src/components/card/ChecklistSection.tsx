@@ -162,7 +162,6 @@ export default function ChecklistSection({
         try {
             await checklistApi.updateItem(checklistId, itemId, { due_date: date });
             onUpdate();
-            message.success(date ? 'Due date set' : 'Due date removed');
         } catch (error) {
             message.error('Failed to update due date');
         }
@@ -172,7 +171,6 @@ export default function ChecklistSection({
         if (!convertingItem || !selectedListId) return;
         try {
             await checklistApi.convertItemToCard(convertingItem.checklistId, convertingItem.item.id, selectedListId);
-            message.success('Item converted to card');
             setConvertModalVisible(false);
             setConvertingItem(null);
             setSelectedListId('');

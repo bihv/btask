@@ -223,7 +223,6 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
         setAddingDefault(fieldKey);
         try {
             await customFieldApi.addDefaultField(boardId, fieldKey);
-            message.success('Field added successfully');
             loadFields();
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to add field');

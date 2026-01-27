@@ -65,7 +65,6 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
                 email: email.trim(),
                 role
             });
-            message.success('Member invited successfully!');
             setEmail('');
             fetchMembers();
         } catch (error: any) {
@@ -77,7 +76,6 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
     const handleRemove = async (userId: string) => {
         try {
             await api.delete(`/workspaces/${workspaceId}/members/${userId}`);
-            message.success('Member removed');
             fetchMembers();
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to remove member');

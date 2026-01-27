@@ -35,11 +35,9 @@ export default function CardActionsFooter({
             if (isArchived) {
                 await cardArchiveApi.unarchive(cardId);
                 onArchiveChange(false);
-                message.success('Card restored');
             } else {
                 await cardArchiveApi.archive(cardId);
                 onArchiveChange(true);
-                message.success('Card archived');
             }
         } catch (error) {
             message.error('Failed to update card');

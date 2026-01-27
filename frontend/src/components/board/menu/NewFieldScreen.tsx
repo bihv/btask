@@ -62,7 +62,6 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                 show_on_card: showOnCard,
                 options: type === 'dropdown' ? options : undefined,
             });
-            message.success('Custom field created');
             onCreate(response.data.data);
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to create field');

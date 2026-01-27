@@ -37,7 +37,6 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                 name: name.trim(),
                 show_on_card: showOnCard,
             });
-            message.success('Field updated');
             onUpdate(response.data.data);
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to update field');
@@ -56,7 +55,6 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
             });
             setOptions([...options, response.data.data]);
             setNewOption('');
-            message.success('Option added');
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to add option');
         } finally {
@@ -68,7 +66,6 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
         try {
             await customFieldApi.deleteOption(optionId);
             setOptions(options.filter(o => o.id !== optionId));
-            message.success('Option deleted');
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to delete option');
         }

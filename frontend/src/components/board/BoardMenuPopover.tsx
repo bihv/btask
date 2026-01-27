@@ -93,17 +93,14 @@ export default function BoardMenuPopover({
 
     const handleUpdateDescription = async (description: string) => {
         await onUpdateBoard({ description });
-        message.success('Description updated');
     };
 
     const handleUpdateBackground = async (color: string, image: string) => {
         await onUpdateBoard({ background_color: color, background_image: image });
-        message.success('Background updated');
     };
 
     const handleToggleCardCovers = async () => {
         await onUpdateBoard({ show_card_covers: !board.show_card_covers });
-        message.success(board.show_card_covers ? 'Card covers hidden' : 'Card covers shown');
     };
 
     // Main menu screen
@@ -158,7 +155,6 @@ export default function BoardMenuPopover({
                 label="Expand all lists"
                 onClick={async () => {
                     await onExpandAllLists();
-                    message.success('All lists expanded');
                 }}
             />
             <MenuItem
@@ -166,7 +162,6 @@ export default function BoardMenuPopover({
                 label="Collapse all lists"
                 onClick={async () => {
                     await onCollapseAllLists();
-                    message.success('All lists collapsed');
                 }}
             />
             <MenuItem
@@ -278,7 +273,6 @@ export default function BoardMenuPopover({
                     if (copyTitle.trim()) {
                         await onCopyBoard(copyTitle.trim());
                         setCopyModalOpen(false);
-                        message.success('Board copied successfully');
                     }
                 }}
                 okText="Create Copy"

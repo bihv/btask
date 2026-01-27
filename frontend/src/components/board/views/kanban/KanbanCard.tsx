@@ -122,7 +122,6 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
         setIsConverting(true);
         try {
             await linkPreviewApi.refresh(card.id);
-            message.success('Converted to link card');
             if (boardId) {
                 await fetchBoard(boardId);
             }
@@ -138,7 +137,6 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
         setIsConverting(true);
         try {
             await linkPreviewApi.clear(card.id);
-            message.success('Converted to regular card');
             if (boardId) {
                 await fetchBoard(boardId);
             }

@@ -17,7 +17,6 @@ export default function NotificationsSection() {
     const handlePreferenceChange = async (key: string, value: boolean) => {
         try {
             await updatePreferences.mutateAsync({ [key]: value });
-            message.success(t('SUCCESS_PREFERENCE_SAVED'));
         } catch {
             message.error(t('ERROR_SAVE_PREFERENCE_FAILED'));
         }

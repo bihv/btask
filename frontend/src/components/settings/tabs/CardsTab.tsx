@@ -143,7 +143,6 @@ export default function CardsTab() {
                 data: { is_completed: !card.is_completed }
             });
             refetch();
-            message.success(card.is_completed ? 'Card marked as incomplete' : 'Card marked as complete');
         } catch {
             message.error('Failed to update card');
         }

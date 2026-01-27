@@ -18,7 +18,6 @@ export default function LoginPage() {
     const onFinish = async (values: { email: string; password: string }) => {
         try {
             await login(values.email, values.password);
-            message.success('Login successful!');
             router.push('/workspaces');
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Login failed');

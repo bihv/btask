@@ -41,7 +41,6 @@ export default function CardModal() {
         try {
             await api.put(`/cards/${cardData.id}`, { cover_image_y: value });
             queryClient.invalidateQueries({ queryKey: ['card', cardId] });
-            message.success('Position updated');
         } catch (error) {
             message.error('Failed to update position');
         }

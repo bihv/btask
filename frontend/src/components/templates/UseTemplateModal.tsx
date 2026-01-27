@@ -38,7 +38,6 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                 },
                 {
                     onSuccess: (board) => {
-                        message.success('Board created successfully from template!');
                         onClose();
                         form.resetFields();
                         // Redirect to the new board

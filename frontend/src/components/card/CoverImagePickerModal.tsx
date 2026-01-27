@@ -44,7 +44,6 @@ export default function CoverImagePickerModal({
             await api.put(`/cards/${cardId}`, { cover_image: newCover });
             onUpdate(newCover);
             onClose();
-            message.success(newCover ? 'Cover image set' : 'Cover image removed');
         } catch (error) {
             message.error('Failed to update cover image');
         }

@@ -21,7 +21,6 @@ export default function RegisterPage() {
     }) => {
         try {
             await register(values.email, values.password, values.fullName);
-            message.success('Registration successful!');
             router.push('/workspaces');
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Registration failed');

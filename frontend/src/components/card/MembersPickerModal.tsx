@@ -38,7 +38,6 @@ export default function MembersPickerModal({
                 await api.post(`/cards/${cardId}/members`, { user_id: userId });
             }
             await onUpdate();
-            message.success(hasMember ? 'Member removed' : 'Member added');
         } catch (error) {
             message.error('Failed to update member');
         }

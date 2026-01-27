@@ -97,7 +97,6 @@ export default function BoardPage() {
         if (title.trim() && title !== board?.title) {
             try {
                 await updateMutation.mutateAsync({ id: boardId, data: { title: title.trim() } });
-                message.success('Board title updated');
                 refetch();
             } catch (error) {
                 message.error('Failed to update title');
@@ -124,10 +123,8 @@ export default function BoardPage() {
         try {
             if (board.is_watching) {
                 await api.delete(`/boards/${boardId}/watch`);
-                message.success('Stopped watching board');
             } else {
                 await api.post(`/boards/${boardId}/watch`);
-                message.success('Now watching board');
             }
             refetch();
         } catch (error) {
@@ -285,7 +282,6 @@ export default function BoardPage() {
                         }}
                         onDeleteBoard={async () => {
                             await deleteMutation.mutateAsync(boardId);
-                            message.success('Board deleted');
                             router.push('/workspaces');
                         }}
                         onCardClick={(cardId) => router.push(`/boards/${boardId}/cards/${cardId}`)}

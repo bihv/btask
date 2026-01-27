@@ -45,7 +45,6 @@ export default function ProfileVisibilityTab() {
                 bio: values.bio,
                 avatar_url: avatarUrl,
             });
-            message.success('Profile updated successfully!');
         } catch (error) {
             message.error('Failed to update profile');
         }
@@ -72,7 +71,6 @@ export default function ProfileVisibilityTab() {
             // Auto-save avatar
             await updateUser.mutateAsync({ avatar_url: uploadedUrl });
 
-            message.success('Avatar uploaded successfully!');
             onSuccess?.(response.data);
             setAvatarModalOpen(false);
         } catch (error) {
@@ -90,7 +88,6 @@ export default function ProfileVisibilityTab() {
 
         try {
             await updateUser.mutateAsync({ avatar_url: avatarValue });
-            message.success('Avatar updated!');
             setAvatarModalOpen(false);
         } catch (error) {
             message.error('Failed to update avatar');
@@ -106,7 +103,6 @@ export default function ProfileVisibilityTab() {
                 avatar_url: '',
             });
             setAvatarUrl(undefined);
-            message.success('Avatar removed!');
             setAvatarModalOpen(false);
         } catch (error) {
             message.error('Failed to remove avatar');

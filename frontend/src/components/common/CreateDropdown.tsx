@@ -29,7 +29,6 @@ export default function CreateDropdown() {
     const handleCreateWorkspace = async (values: CreateWorkspaceRequest) => {
         try {
             const workspace = await createWorkspaceMutation.mutateAsync(values);
-            message.success('Workspace created');
             setCreateWorkspaceOpen(false);
             workspaceForm.resetFields();
             router.push(`/workspaces/${workspace.id}`);

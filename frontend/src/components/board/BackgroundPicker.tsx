@@ -210,7 +210,6 @@ export default function BackgroundPicker({
             const data = await response.json();
             if (data.success && data.data?.url) {
                 onImageChange?.(data.data.url);
-                message.success('Image uploaded successfully');
             } else {
                 throw new Error(data.error || 'Upload failed');
             }
@@ -270,7 +269,6 @@ export default function BackgroundPicker({
 
             onImageChange?.(url);
             setUrlInput('');
-            message.success('Image URL applied successfully');
         } catch (error: any) {
             message.error('Could not load image from URL. Please check the URL is valid and accessible.');
         } finally {

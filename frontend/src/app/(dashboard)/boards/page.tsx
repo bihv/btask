@@ -264,7 +264,6 @@ export default function BoardsPage() {
         if (!selectedWorkspaceId) return;
         try {
             const newBoard = await createBoardMutation.mutateAsync(values);
-            message.success('Board created successfully');
             setCreateBoardModalOpen(false);
             boardForm.resetFields();
             router.push(`/boards/${newBoard.id}`);

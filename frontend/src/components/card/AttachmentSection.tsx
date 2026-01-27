@@ -91,7 +91,6 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
     const handleDelete = async (attachmentId: string) => {
         try {
             await attachmentApi.delete(attachmentId);
-            message.success('Attachment deleted');
             onUpdate();
         } catch (error) {
             message.error('Failed to delete attachment');
