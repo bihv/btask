@@ -112,7 +112,7 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                     </div>
                 }
             >
-                <CardPageContent isModal />
+                <CardPageContent />
             </Modal>
 
             <Lightbox

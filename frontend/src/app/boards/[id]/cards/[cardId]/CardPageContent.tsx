@@ -21,7 +21,7 @@ import LabelPickerModal from '@/components/card/LabelPickerModal';
 
 const { Text } = Typography;
 
-export default function CardPageContent({ isModal = false }: { isModal?: boolean }) {
+export default function CardPageContent() {
     const router = useRouter();
     const params = useParams();
     const boardId = params.id as string;
@@ -115,7 +115,7 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
     // Loading states
     if (loading || isCardLoading) {
         return (
-            <div className="loading-container" style={{ minHeight: isModal ? 300 : '100vh' }}>
+            <div className="loading-container" style={{ minHeight: 300 }}>
                 <Spin size="large" />
             </div>
         );
@@ -123,7 +123,7 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
 
     if (!card) {
         return (
-            <div className="loading-container" style={{ minHeight: isModal ? 300 : '100vh', flexDirection: 'column', gap: 16 }}>
+            <div className="loading-container" style={{ minHeight: 300, flexDirection: 'column', gap: 16 }}>
                 <Text>Card not found</Text>
                 <Button onClick={handleBack}>Back to board</Button>
             </div>
@@ -133,11 +133,11 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
     return (
         <div
             style={{
-                height: isModal ? 'auto' : 'calc(100vh - 64px)',
+                height: 'auto',
                 background: 'var(--bg-secondary)',
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: isModal ? 'visible' : 'hidden',
+                overflow: 'visible',
             }}
         >
             <CardHeader
@@ -146,7 +146,7 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
                 onTitleSave={handleTitleSave}
                 onCompletedChange={handleCompletedChange}
                 onBack={handleBack}
-                hideBackButton={isModal}
+                hideBackButton
             />
 
             <div
@@ -154,7 +154,8 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'row',
-                    overflow: isModal ? 'visible' : 'hidden',
+                    overflow: 'hidden',
+                    maxHeight: 'calc(90vh - 180px)',
                 }}
                 className="card-detail-container"
             >
@@ -163,6 +164,7 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
                         .card-detail-container {
                             flex-direction: column !important;
                             overflow-y: auto !important;
+                            max-height: none !important;
                         }
                     }
                 `}</style>
@@ -195,28 +197,18 @@ export default function CardPageContent({ isModal = false }: { isModal?: boolean
                     onAddChecklistTriggered={() => setTriggerAddChecklist(!triggerAddChecklist)}
                     attachmentButtonRef={attachmentButtonRef}
                     onCoverClick={() => setCoverOpen(true)}
-                />
-
-                <CardSidebar
-                    card={card}
-                    cardId={cardId}
-                    boardId={boardId}
-                    currentUser={user}
-                    workspaceMembers={workspaceMembers}
-                    boardLabels={boardLabels}
-                    comments={card?.comments || []}
-                    isAddingComment={addCommentMutation.isPending}
-                    onMembersClick={() => setMembersOpen(true)}
-                    onLabelsClick={() => setLabelsOpen(true)}
-                    onDueDateClick={() => setDueDateOpen(true)}
-                    onCoverClick={() => setCoverOpen(true)}
-                    onLabelsRefresh={refetchLabels}
-                    onCardRefresh={refetchCard}
-                    onAddComment={(content) => addCommentMutation.mutateAsync(content)}
+                    isArchived={card.is_archived || false}
                     onArchiveChange={(isArchived) => {
                         setCard({ ...card, is_archived: isArchived });
                         invalidateBoardCache();
                     }}
+                />
+
+                <CardSidebar
+                    currentUser={user}
+                    comments={card?.comments || []}
+                    isAddingComment={addCommentMutation.isPending}
+                    onAddComment={(content) => addCommentMutation.mutateAsync(content)}
                 />
             </div>
 

@@ -96,9 +96,6 @@ export default function ActivitySection({
                         <div
                             style={{
                                 marginTop: 4,
-                                padding: '6px 10px',
-                                background: 'var(--bg-tertiary)',
-                                borderRadius: 6,
                                 wordBreak: 'break-word',
                                 fontSize: 13,
                             }}

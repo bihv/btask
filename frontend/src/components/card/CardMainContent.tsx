@@ -1,14 +1,18 @@
 'use client';
 
 import React from 'react';
-import { Button, Typography, Tooltip } from 'antd';
-import { TagOutlined, ClockCircleOutlined, CheckSquareOutlined, UserOutlined, PaperClipOutlined, PictureOutlined } from '@ant-design/icons';
+import { Button, Typography, Tooltip, App } from 'antd';
+import { TagOutlined, ClockCircleOutlined, CheckSquareOutlined, UserOutlined, PaperClipOutlined, PictureOutlined, DeleteOutlined, InboxOutlined, UndoOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
 import { Card, User, Checklist, Attachment, BoardList } from '@/types';
 import CardDescriptionSection from './CardDescriptionSection';
 import ChecklistSection from './ChecklistSection';
 import AttachmentSection from './AttachmentSection';
+import ShareCardModal from './ShareCardModal';
 import UserAvatar from '@/components/common/UserAvatar';
 import DueDateTag from '@/components/common/DueDateTag';
+import { useBoardStore } from '@/stores/boardStore';
+import { cardArchiveApi } from '@/lib/api';
 
 const { Text } = Typography;
 
@@ -36,6 +40,8 @@ interface CardMainContentProps {
     onAddChecklistTriggered?: () => void;
     attachmentButtonRef?: React.RefObject<HTMLElement | null>;
     onCoverClick?: () => void;
+    isArchived: boolean;
+    onArchiveChange: (isArchived: boolean) => void;
 }
 
 export default function CardMainContent({
@@ -62,17 +68,49 @@ export default function CardMainContent({
     onAddChecklistTriggered,
     attachmentButtonRef,
     onCoverClick,
+    isArchived,
+    onArchiveChange,
 }: CardMainContentProps) {
+    const router = useRouter();
+    const { deleteCard } = useBoardStore();
+    const { modal, message } = App.useApp();
+
+    const handleArchive = async () => {
+        try {
+            if (isArchived) {
+                await cardArchiveApi.unarchive(cardId);
+                onArchiveChange(false);
+            } else {
+                await cardArchiveApi.archive(cardId);
+                onArchiveChange(true);
+            }
+        } catch (error) {
+            message.error('Failed to update card');
+        }
+    };
+
+    const handleDelete = () => {
+        modal.confirm({
+            title: 'Delete card?',
+            content: 'This action cannot be undone.',
+            okText: 'Delete',
+            okType: 'danger',
+            onOk: () => {
+                deleteCard(cardId);
+                router.push(`/boards/${boardId}`);
+            },
+        });
+    };
 
     return (
         <div
             style={{
                 flex: 1,
                 minWidth: 0,
+                minHeight: 0,
                 padding: 24,
                 paddingTop: 8,
                 overflowY: 'auto',
-                height: '100%',
             }}
             className="card-main-content"
         >
@@ -234,6 +272,27 @@ export default function CardMainContent({
                     onClick={() => attachmentButtonRef?.current?.click()}
                 >
                     Attachment
+                </Button>
+                <ShareCardModal
+                    cardId={cardId}
+                    cardTitle={card?.title || ''}
+                    boardId={boardId}
+                    cardData={card}
+                />
+                <Button
+                    icon={isArchived ? <UndoOutlined /> : <InboxOutlined />}
+                    size="small"
+                    onClick={handleArchive}
+                >
+                    {isArchived ? 'Restore' : 'Archive'}
+                </Button>
+                <Button
+                    icon={<DeleteOutlined />}
+                    size="small"
+                    danger
+                    onClick={handleDelete}
+                >
+                    Delete
                 </Button>
             </div>
 
