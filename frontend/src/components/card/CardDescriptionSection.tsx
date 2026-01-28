@@ -19,6 +19,7 @@ interface CardDescriptionSectionProps {
     onSave: () => void;
     onCancel: () => void;
     onEditStart: () => void;
+    workspaceId?: string;
 }
 
 export default function CardDescriptionSection({
@@ -28,6 +29,7 @@ export default function CardDescriptionSection({
     onSave,
     onCancel,
     onEditStart,
+    workspaceId,
 }: CardDescriptionSectionProps) {
     return (
         <div>
@@ -54,6 +56,7 @@ export default function CardDescriptionSection({
                         onChange={onDescriptionChange}
                         editable={true}
                         placeholder="Add a more detailed description..."
+                        workspaceId={workspaceId}
                     />
                     <div style={{ marginTop: 8 }}>
                         <Button type="primary" size="small" onClick={onSave}>

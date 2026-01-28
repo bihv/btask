@@ -177,6 +177,7 @@ export default function CardPageContent() {
                     checklists={checklists}
                     attachments={attachments}
                     workspaceMembers={workspaceMembers}
+                    workspaceId={currentBoard?.workspace_id}
                     lists={currentBoard?.lists || []}
                     onDescriptionChange={setDescription}
                     onDescriptionSave={handleDescSave}

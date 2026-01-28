@@ -25,6 +25,7 @@ interface CardMainContentProps {
     checklists: Checklist[];
     attachments: Attachment[];
     workspaceMembers: User[];
+    workspaceId?: string;
     lists: BoardList[];
     onDescriptionChange: (value: string) => void;
     onDescriptionSave: () => void;
@@ -54,6 +55,7 @@ export default function CardMainContent({
     checklists,
     attachments,
     workspaceMembers,
+    workspaceId,
     lists,
     onDescriptionChange,
     onDescriptionSave,
@@ -307,6 +309,7 @@ export default function CardMainContent({
                 onSave={onDescriptionSave}
                 onCancel={onDescriptionCancel}
                 onEditStart={onDescriptionEditStart}
+                workspaceId={workspaceId}
             />
 
             {/* Checklists */}
