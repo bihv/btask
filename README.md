@@ -31,6 +31,7 @@ A full-stack Trello clone built with modern technologies.
 - ✅ Due dates with completion status
 - ✅ Light/Dark theme
 - ✅ Responsive design
+- ✅ Plugin System (Marketplace, Safe Sandbox)
 
 ## Getting Started
 
@@ -144,9 +145,23 @@ mello/
 │   │   ├── lib/            # API client
 │   │   ├── providers/      # Context providers
 │   │   ├── stores/         # Zustand stores
-│   │   └── types/          # TypeScript types
+│   │   ├── types/          # TypeScript types
+├── plugins/            # Example plugins
+│   └── card-view-counter/
+├── sdk/                # Plugin SDK
 └── docker-compose.yml
 ```
+
+## Plugins Development
+
+Mello supports a secure, sandboxed plugin system that allows developers to extend functionality without modifying the core codebase.
+
+- **Architecture**: Plugins run in isolated iframes and communicate with the host via a type-safe SDK.
+- **SDK**: A comprehensive TypeScript SDK (`@mello/plugin-sdk`) provides hooks for UI components, data storage, and theme synchronization.
+- **Example**: Check out `plugins/card-view-counter` for a reference implementation of a plugin that:
+    - Renders a badge on the card front.
+    - Adds a statistics section to the card back.
+    - Uses the Data API to persist information.
 
 ## License
 
