@@ -22,6 +22,7 @@ import {
     BgColorsOutlined,
     SafetyOutlined,
     BlockOutlined,
+    ApiOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
@@ -102,6 +103,7 @@ export default function SettingsLayout({
         { key: 'profile', icon: <UserOutlined />, label: 'Profile and Visibility' },
         { key: 'activity', icon: <HistoryOutlined />, label: 'Activity' },
         { key: 'cards', icon: <CreditCardOutlined />, label: 'Cards' },
+        { key: 'plugins', icon: <ApiOutlined />, label: 'My Plugins' },
         {
             key: 'settings',
             icon: <SettingOutlined />,
@@ -129,6 +131,7 @@ export default function SettingsLayout({
         { key: 'admin-users', icon: <CrownOutlined />, label: 'User Management' },
         { key: 'admin-labels', icon: <TranslationOutlined />, label: 'System Labels' },
         { key: 'admin-templates', icon: <BlockOutlined />, label: 'Templates' },
+        { key: 'admin-plugins', icon: <ApiOutlined />, label: 'Plugins' },
     ];
 
     const handlePersonalMenuClick: MenuProps['onClick'] = (e) => {
@@ -149,6 +152,8 @@ export default function SettingsLayout({
             router.push('/admin/labels');
         } else if (e.key === 'admin-templates') {
             router.push('/admin/templates');
+        } else if (e.key === 'admin-plugins') {
+            router.push('/admin/plugins');
         }
     };
 

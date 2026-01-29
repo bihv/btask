@@ -20,6 +20,8 @@ import DueDatePickerModal from '@/components/card/DueDatePickerModal';
 import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
 import LabelPickerModal from '@/components/card/LabelPickerModal';
 import styles from './CardPageContent.module.css';
+import { pluginLoader } from '@/lib/pluginLoader';
+import { usePluginsOptional } from '@/components/plugins';
 
 const { Text } = Typography;
 
@@ -33,10 +35,20 @@ export default function CardPageContent() {
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
     const { message } = App.useApp();
+    const pluginContext = usePluginsOptional();
+    const loadingPlugins = pluginContext?.loading ?? true;
 
     const invalidateBoardCache = () => {
         queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
     };
+
+    // Broadcast card:opened event to plugins when plugins are ready
+    useEffect(() => {
+        if (cardId && !loadingPlugins) {
+            pluginLoader.broadcast('card:opened', { cardId });
+        }
+    }, [cardId, loadingPlugins]);
+
 
     // Print Logic
     const printContentRef = useRef<HTMLDivElement>(null);

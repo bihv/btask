@@ -37,6 +37,7 @@ import DueDatePickerModal from '@/components/card/DueDatePickerModal';
 import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
 import LabelPickerModal from '@/components/card/LabelPickerModal';
 import { useAttachments, useWorkspaceMembers, useBoardLabels } from '@/hooks/useCards';
+import { CardBadgeRenderer } from '@/components/plugins';
 
 const { Text } = Typography;
 
@@ -488,6 +489,9 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                         {customFieldTags}
                     </div>
                 )}
+
+                {/* Plugin Badges */}
+                <CardBadgeRenderer card={card} />
 
                 {/* Footer */}
                 <div

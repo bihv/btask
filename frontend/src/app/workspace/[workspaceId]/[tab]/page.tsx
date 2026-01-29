@@ -14,15 +14,11 @@ import { useWorkspace } from '@/hooks/useWorkspaces';
 import WorkspaceBoards from '@/components/workspace/WorkspaceBoards';
 import WorkspaceMembers from '@/components/workspace/WorkspaceMembers';
 import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
+import WorkspacePowerUps from '@/components/workspace/WorkspacePowerUps';
 
 const { Title } = Typography;
 
 const tabConfig: Record<string, { title: string; icon: React.ReactNode; description: string }> = {
-    powerups: {
-        title: 'Power-Ups',
-        icon: <ThunderboltOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
-        description: 'Enable and manage Power-Ups for this workspace.',
-    },
     billing: {
         title: 'Billing',
         icon: <DollarOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
@@ -69,9 +65,13 @@ export default function WorkspaceSettingsTabPage() {
         return <WorkspaceSettings workspace={workspace} />;
     }
 
+    if (tab === 'powerups') {
+        return <WorkspacePowerUps workspace={workspace} />;
+    }
+
     // Render placeholder for other tabs
     const config = tabConfig[tab];
-    
+
     if (!config) {
         return <Empty description="Page not found" />;
     }

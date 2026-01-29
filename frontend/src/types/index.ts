@@ -353,3 +353,101 @@ export interface Template {
     created_at?: string;
     lists?: TemplateList[];
 }
+
+// Plugin types
+export type PluginStatus = 'draft' | 'review' | 'published' | 'suspended';
+export type PluginPricingType = 'free' | 'paid' | 'freemium';
+
+export interface PluginCapability {
+    id: string;
+    plugin_id: string;
+    capability: string;
+    created_at: string;
+}
+
+export interface PluginPermission {
+    id: string;
+    plugin_id: string;
+    permission: string;
+    scope: string;
+    created_at: string;
+}
+
+export interface Plugin {
+    id: string;
+    slug: string;
+    name: string;
+    description?: string;
+    version: string;
+    author_id?: string;
+    author?: User;
+    icon_url?: string;
+    homepage_url?: string;
+    privacy_policy_url?: string;
+    manifest_url: string;
+    client_url: string;
+    server_url?: string;
+    status: PluginStatus;
+    is_official: boolean;
+    is_public: boolean;
+    install_count: number;
+    rating_avg: number;
+    rating_count: number;
+    pricing_type: PluginPricingType;
+    price_monthly?: number;
+    price_yearly?: number;
+    capabilities?: PluginCapability[];
+    permissions?: PluginPermission[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PluginInstallation {
+    id: string;
+    plugin_id: string;
+    workspace_id?: string;
+    board_id?: string;
+    installed_by?: string;
+    is_enabled: boolean;
+    settings: Record<string, unknown>;
+    plugin: Plugin;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreatePluginRequest {
+    slug: string;
+    name: string;
+    description?: string;
+    version: string;
+    icon_url?: string;
+    homepage_url?: string;
+    privacy_policy_url?: string;
+    manifest_url: string;
+    client_url: string;
+    server_url?: string;
+    capabilities: string[];
+    permissions: string[];
+    pricing_type?: PluginPricingType;
+    price_monthly?: number;
+    price_yearly?: number;
+}
+
+export interface UpdatePluginRequest {
+    name?: string;
+    description?: string;
+    version?: string;
+    icon_url?: string;
+    homepage_url?: string;
+    privacy_policy_url?: string;
+    manifest_url?: string;
+    client_url?: string;
+    server_url?: string;
+    status?: PluginStatus;
+    is_public?: boolean;
+    capabilities?: string[];
+    permissions?: string[];
+    pricing_type?: PluginPricingType;
+    price_monthly?: number;
+    price_yearly?: number;
+}

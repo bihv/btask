@@ -1,0 +1,34 @@
+{
+  "name": "mello-plugin-card-view-counter",
+  "version": "1.0.0",
+  "description": "Example Mello plugin that tracks card views",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "bundle": "npm run build && cp dist/client.iife.js client.js && zip -j plugin-bundle.zip client.js manifest.json && rm client.js",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "mello",
+    "plugin",
+    "card-views",
+    "analytics"
+  ],
+  "author": "Mello Team",
+  "license": "MIT",
+  "dependencies": {
+    "@ant-design/icons": "^6.1.0",
+    "@mello/plugin-sdk": "file:../../sdk",
+    "antd": "^6.2.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}

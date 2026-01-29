@@ -145,5 +145,59 @@ func GetAllowedContentTypes() map[string]bool {
 	}
 }
 
+// GetPluginContentTypes returns content types allowed for plugin files
+func GetPluginContentTypes() map[string]bool {
+	return map[string]bool{
+		"application/javascript": true,
+		"text/javascript":        true,
+		"application/json":       true,
+		"text/css":               true,
+		"application/zip":        true,
+	}
+}
+
 // MaxFileSize is the maximum allowed file size (50MB)
 const MaxFileSize = 50 * 1024 * 1024
+
+// MaxPluginSize is the maximum allowed plugin bundle size (10MB)
+const MaxPluginSize = 10 * 1024 * 1024
+
+// UploadPluginFile uploads a plugin file with exact filename (no UUID)
+func (s *MinioStorage) UploadPluginFile(ctx context.Context, file io.Reader, filename string, contentType string, size int64, pluginID string) (string, error) {
+	// Use exact path: plugins/{pluginID}/{filename}
+	objectName := fmt.Sprintf("plugins/%s/%s", pluginID, filename)
+
+	// Upload file
+	_, err := s.client.PutObject(ctx, s.bucket, objectName, file, size, minio.PutObjectOptions{
+		ContentType: contentType,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to upload plugin file: %w", err)
+	}
+
+	// Return public URL
+	url := fmt.Sprintf("%s/%s/%s", s.publicURL, s.bucket, objectName)
+	return url, nil
+}
+
+// DeletePluginFiles deletes all files for a plugin
+func (s *MinioStorage) DeletePluginFiles(ctx context.Context, pluginID string) error {
+	prefix := fmt.Sprintf("plugins/%s/", pluginID)
+
+	objectsCh := s.client.ListObjects(ctx, s.bucket, minio.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	})
+
+	for object := range objectsCh {
+		if object.Err != nil {
+			return fmt.Errorf("error listing plugin files: %w", object.Err)
+		}
+		err := s.client.RemoveObject(ctx, s.bucket, object.Key, minio.RemoveObjectOptions{})
+		if err != nil {
+			return fmt.Errorf("failed to delete plugin file %s: %w", object.Key, err)
+		}
+	}
+
+	return nil
+}

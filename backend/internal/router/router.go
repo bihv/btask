@@ -83,6 +83,11 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	admin.Delete("/templates/:id", templateHandler.Delete)
 	admin.Put("/templates/:id/lists", templateHandler.UpdateLists)
 
+	// Admin plugin routes
+	pluginHandler := handlers.NewPluginHandler()
+	admin.Get("/plugins", pluginHandler.AdminGetAll)
+	admin.Delete("/plugins/:id", pluginHandler.AdminHardDelete)
+
 	// Public template routes (authenticated users can view)
 	templates := protected.Group("/templates")
 	templates.Get("/", templateHandler.GetAll)
@@ -257,6 +262,60 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	lists.Post("/:id/watch", notificationHandler.WatchList)
 	lists.Delete("/:id/watch", notificationHandler.UnwatchList)
 	lists.Get("/:id/watching", notificationHandler.IsWatching)
+
+	// Plugin routes (protected - requires user authentication)
+	plugins := protected.Group("/plugins")
+	plugins.Get("/my", pluginHandler.GetMyPlugins)
+	plugins.Get("/", pluginHandler.GetAll)
+	plugins.Get("/:slug", pluginHandler.GetBySlug)
+	plugins.Post("/", pluginHandler.Create)
+	plugins.Put("/:id", pluginHandler.Update)
+	plugins.Delete("/:id", pluginHandler.Delete)
+
+	// Plugin upload route
+	pluginUploadHandler := handlers.NewPluginUploadHandler()
+	plugins.Post("/:id/upload", pluginUploadHandler.UploadPluginBundle)
+
+	// Board plugin routes
+	boards.Get("/:id/plugins", pluginHandler.GetBoardPlugins)
+	boards.Post("/:id/plugins/:slug/install", pluginHandler.InstallToBoard)
+	boards.Delete("/:id/plugins/:slug/uninstall", pluginHandler.UninstallFromBoard)
+	boards.Put("/:id/plugins/:slug/settings", pluginHandler.UpdateBoardPluginSettings)
+
+	// Workspace plugin routes
+	workspaces.Get("/:id/plugins", pluginHandler.GetWorkspacePlugins)
+	workspaces.Post("/:id/plugins/:slug/install", pluginHandler.InstallToWorkspace)
+	workspaces.Delete("/:id/plugins/:slug/uninstall", pluginHandler.UninstallFromWorkspace)
+
+	// Plugin Installation routes
+	installations := protected.Group("/plugin-installations")
+	installations.Get("/:id/settings", pluginHandler.GetInstallationSettings)
+	installations.Put("/:id/settings", pluginHandler.UpdateInstallationSettings)
+
+	// Webhook routes
+	webhookHandler := handlers.NewWebhookHandler()
+	plugins.Post("/:pluginId/installations/:installationId/webhooks", webhookHandler.Create)
+	plugins.Get("/:pluginId/installations/:installationId/webhooks", webhookHandler.List)
+
+	webhooks := protected.Group("/webhooks")
+	webhooks.Put("/:id", webhookHandler.Update)
+	webhooks.Delete("/:id", webhookHandler.Delete)
+	webhooks.Get("/:id/deliveries", webhookHandler.GetDeliveries)
+
+	// Plugin Data API (requires plugin token authentication)
+	pluginDataHandler := handlers.NewPluginDataHandler()
+	pluginData := api.Group("/plugin-data")
+	pluginData.Use(middleware.PluginAuthMiddleware())
+	pluginData.Use(middleware.PluginScopeMiddleware())
+	pluginData.Get("/:scope/:entityId", pluginDataHandler.GetDataByScope)
+	pluginData.Get("/:scope/:entityId/:key", pluginDataHandler.GetData)
+	pluginData.Put("/:scope/:entityId/:key", pluginDataHandler.SetData)
+	pluginData.Delete("/:scope/:entityId/:key", pluginDataHandler.DeleteData)
+
+	// Plugin Data Proxy (for frontend clients acting on behalf of plugins)
+	pluginProxy := protected.Group("/plugin-proxy")
+	pluginProxy.Get("/:pluginId/:installationId/data/:scope/:entityId/:key", pluginDataHandler.GetDataByUser)
+	pluginProxy.Put("/:pluginId/:installationId/data/:scope/:entityId/:key", pluginDataHandler.SetDataByUser)
 
 	// WebSocket route (without auth middleware, uses token query param)
 	app.Use("/ws", handlers.WebSocketUpgrade)

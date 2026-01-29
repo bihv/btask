@@ -13,6 +13,7 @@ import UserAvatar from '@/components/common/UserAvatar';
 import DueDateTag from '@/components/common/DueDateTag';
 import { useBoardStore } from '@/stores/boardStore';
 import { cardArchiveApi } from '@/lib/api';
+import { CardBackSectionRenderer } from '@/components/plugins';
 
 const { Text } = Typography;
 
@@ -337,6 +338,9 @@ export default function CardMainContent({
                     buttonRef={attachmentButtonRef}
                 />
             </div>
+
+            {/* Plugin Sections */}
+            <CardBackSectionRenderer card={card} />
         </div>
     );
 }

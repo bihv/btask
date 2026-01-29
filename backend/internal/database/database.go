@@ -59,6 +59,19 @@ func Migrate() error {
 		&models.Template{},
 		&models.TemplateList{},
 		&models.TemplateCard{},
+		// Plugin system models
+		&models.Plugin{},
+		&models.PluginCapability{},
+		&models.PluginPermission{},
+		&models.PluginInstallation{},
+		&models.PluginAPIKey{},
+		&models.PluginData{},
+		&models.PluginSecret{},
+		&models.PluginDataRetention{},
+		&models.PluginWebhook{},
+		&models.WebhookDelivery{},
+		&models.AutomationRule{},
+		&models.AutomationRun{},
 	)
 
 	if err != nil {

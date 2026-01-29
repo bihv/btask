@@ -7,7 +7,12 @@
     }
 }
 
-/* Global print styles */
+/* Global print styles - wrapped in local class for CSS Modules */
+.printContainer {
+    display: contents;
+    /* Allow children to inherit layout without affecting print */
+}
+
 @media print {
     @page {
         margin: 15mm;
@@ -15,10 +20,13 @@
     }
 
     /* Force Light Theme Variables */
+    .printContainer :global(:root),
+    .printContainer :global(body),
+    .printContainer :global(html),
+    .printContainer :global([data-theme='dark']),
     :global(:root),
-    :global(body),
-    :global(html),
-    :global([data-theme='dark']) {
+    :global(body):global(.printing),
+    :global(html):global(.printing) {
         --bg-primary: #ffffff !important;
         --bg-secondary: #ffffff !important;
         --bg-tertiary: #f4f5f7 !important;
@@ -29,22 +37,22 @@
     }
 
     /* Hide UI Elements */
-    :global(.ant-btn),
-    :global(button),
-    :global(input),
-    :global(textarea),
-    :global([role="button"]),
-    :global(.no-print) {
+    .printContainer :global(.ant-btn),
+    .printContainer :global(button),
+    .printContainer :global(input),
+    .printContainer :global(textarea),
+    .printContainer :global([role="button"]),
+    .printContainer :global(.no-print) {
         display: none !important;
     }
 
     /* Layout Adjustments for Print */
-    :global(.card-detail-container) {
+    .printContainer :global(.card-detail-container) {
         display: block !important;
     }
 
-    :global(.card-main-content),
-    :global(.card-sidebar) {
+    .printContainer :global(.card-main-content),
+    .printContainer :global(.card-sidebar) {
         width: 100% !important;
         max-width: 100% !important;
         flex: none !important;
@@ -54,42 +62,42 @@
         background: white !important;
     }
 
-    :global(.card-sidebar) {
+    .printContainer :global(.card-sidebar) {
         margin-top: 30px !important;
         border-top: 1px solid #eee;
         padding-top: 20px !important;
     }
 
     /* Content Visibility & Colors */
-    :global(*) {
+    .printContainer :global(*) {
         overflow: visible !important;
         height: auto !important;
         color: black !important;
     }
 
     /* Prevent breaking inside text elements */
-    :global(p),
-    :global(li),
-    :global(h1),
-    :global(h2),
-    :global(h3),
-    :global(h4),
-    :global(h5),
-    :global(h6),
-    :global(.activity-item),
-    :global(.checklist-item) {
+    .printContainer :global(p),
+    .printContainer :global(li),
+    .printContainer :global(h1),
+    .printContainer :global(h2),
+    .printContainer :global(h3),
+    .printContainer :global(h4),
+    .printContainer :global(h5),
+    .printContainer :global(h6),
+    .printContainer :global(.activity-item),
+    .printContainer :global(.checklist-item) {
         page-break-inside: avoid;
         break-inside: avoid;
     }
 
-    :global(li) {
+    .printContainer :global(li) {
         margin-bottom: 4px;
     }
 
     /* Fix Avatar Distortion in Flex Containers */
-    :global(.ant-avatar),
-    :global([class*="avatar"]),
-    :global([class*="Avatar"]) {
+    .printContainer :global(.ant-avatar),
+    .printContainer :global([class*="avatar"]),
+    .printContainer :global([class*="Avatar"]) {
         flex-shrink: 0 !important;
         flex-grow: 0 !important;
         aspect-ratio: 1 / 1 !important;
@@ -104,102 +112,102 @@
         height: 24px !important;
     }
 
-    :global(.ant-avatar img),
-    :global([class*="avatar"] img) {
+    .printContainer :global(.ant-avatar img),
+    .printContainer :global([class*="avatar"] img) {
         width: 100% !important;
         height: 100% !important;
         object-fit: cover !important;
         border-radius: 50% !important;
     }
 
-    :global(.ant-avatar-string) {
+    .printContainer :global(.ant-avatar-string) {
         color: white !important;
     }
 
 
     /* Specific Fixes for Editor/BlockNote Content */
-    :global(.bn-editor),
-    :global(.ProseMirror),
-    :global([class*="blocknote"]),
-    :global([data-content-type]),
-    :global(.bn-block-content) {
+    .printContainer :global(.bn-editor),
+    .printContainer :global(.ProseMirror),
+    .printContainer :global([class*="blocknote"]),
+    .printContainer :global([data-content-type]),
+    .printContainer :global(.bn-block-content) {
         background-color: white !important;
         background: white !important;
         color: black !important;
     }
 
     /* Fix code blocks in editor to be readable */
-    :global(pre),
-    :global(code),
-    :global(.bn-block-content[data-content-type="codeBlock"]) {
+    .printContainer :global(pre),
+    .printContainer :global(code),
+    .printContainer :global(.bn-block-content[data-content-type="codeBlock"]) {
         background-color: #f5f5f5 !important;
         color: black !important;
     }
 
     /* Ensure Ant Design Tags use Light Theme Colors for Print */
-    :global(.ant-tag) {
+    .printContainer :global(.ant-tag) {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         box-shadow: none !important;
     }
 
     /* Force specific light colors for standard tag states (Due dates, etc) */
-    :global(.ant-tag-red) {
+    .printContainer :global(.ant-tag-red) {
         background-color: #fff1f0 !important;
         border-color: #ffa39e !important;
         color: #cf1322 !important;
     }
 
-    :global(.ant-tag-green) {
+    .printContainer :global(.ant-tag-green) {
         background-color: #f6ffed !important;
         border-color: #b7eb8f !important;
         color: #52c41a !important;
     }
 
-    :global(.ant-tag-orange) {
+    .printContainer :global(.ant-tag-orange) {
         background-color: #fff7e6 !important;
         border-color: #ffd591 !important;
         color: #fa8c16 !important;
     }
 
-    :global(.ant-tag-blue) {
+    .printContainer :global(.ant-tag-blue) {
         background-color: #e6f7ff !important;
         border-color: #91d5ff !important;
         color: #1890ff !important;
     }
 
     /* Fallback/Default tag to white */
-    :global(.ant-tag:not([class*="ant-tag-red"]):not([class*="ant-tag-green"]):not([class*="ant-tag-orange"]):not([class*="ant-tag-blue"])) {
+    .printContainer :global(.ant-tag:not([class*="ant-tag-red"]):not([class*="ant-tag-green"]):not([class*="ant-tag-orange"]):not([class*="ant-tag-blue"])) {
         background-color: white !important;
         border: 1px solid #d9d9d9 !important;
         color: black !important;
     }
 
     /* Colors for labels/covers matching user intent */
-    :global([style*="background-color"]) {
+    .printContainer :global([style*="background-color"]) {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
     /* Page Breaks */
-    :global(.checklist-section),
-    :global(.attachment-section),
-    :global(.activity-item) {
+    .printContainer :global(.checklist-section),
+    .printContainer :global(.attachment-section),
+    .printContainer :global(.activity-item) {
         page-break-inside: avoid;
     }
 
     /* Fix Ant Design Checkbox */
-    :global(.ant-checkbox-wrapper) {
+    .printContainer :global(.ant-checkbox-wrapper) {
         display: inline-flex !important;
         align-items: center !important;
     }
 
-    :global(.ant-checkbox) {
+    .printContainer :global(.ant-checkbox) {
         top: 0 !important;
         /* Fix alignment */
     }
 
-    :global(.ant-checkbox-inner) {
+    .printContainer :global(.ant-checkbox-inner) {
         width: 18px !important;
         height: 18px !important;
         background-color: white !important;
@@ -210,13 +218,13 @@
     }
 
     /* Checked State */
-    :global(.ant-checkbox-checked .ant-checkbox-inner) {
+    .printContainer :global(.ant-checkbox-checked .ant-checkbox-inner) {
         background-color: #1890ff !important;
         border-color: #1890ff !important;
     }
 
     /* Ensure Tick Mark is Visible */
-    :global(.ant-checkbox-checked .ant-checkbox-inner::after) {
+    .printContainer :global(.ant-checkbox-checked .ant-checkbox-inner::after) {
         display: table !important;
         /* Antd uses table display sometimes, or block */
         border: 2px solid white !important;
@@ -234,7 +242,7 @@
     }
 
     /* Unchecked override to be sure */
-    :global(.ant-checkbox:not(.ant-checkbox-checked) .ant-checkbox-inner) {
+    .printContainer :global(.ant-checkbox:not(.ant-checkbox-checked) .ant-checkbox-inner) {
         background-color: white !important;
     }
 }

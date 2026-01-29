@@ -6,8 +6,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/database"
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/models"
+	"github.com/mello/backend/internal/repository"
 	"github.com/mello/backend/internal/services"
 	"github.com/mello/backend/internal/websocket"
 	"github.com/mello/backend/pkg/utils"
@@ -18,14 +20,17 @@ type CardHandler struct {
 	listService         *services.ListService
 	notificationService *services.NotificationService
 	linkPreviewService  *services.LinkPreviewService
+	webhookService      *services.WebhookService
 }
 
 func NewCardHandler() *CardHandler {
+	webhookRepo := repository.NewWebhookRepository(database.DB)
 	return &CardHandler{
 		service:             services.NewCardService(),
 		listService:         services.NewListService(),
 		notificationService: services.NewNotificationService(),
 		linkPreviewService:  services.NewLinkPreviewService(),
+		webhookService:      services.NewWebhookService(webhookRepo),
 	}
 }
 
@@ -85,6 +90,17 @@ func (h *CardHandler) Create(c *fiber.Ctx) error {
 			}
 		}
 	}()
+
+	// Trigger webhook event
+	if list != nil {
+		go h.webhookService.TriggerEvent(services.EventCardCreated, &list.BoardID, map[string]interface{}{
+			"card_id":    card.ID.String(),
+			"card_title": card.Title,
+			"list_id":    listID.String(),
+			"board_id":   list.BoardID.String(),
+			"user_id":    userID.String(),
+		})
+	}
 
 	return utils.SuccessResponse(c, card)
 }
@@ -164,6 +180,17 @@ func (h *CardHandler) Update(c *fiber.Ctx) error {
 		}
 	}()
 
+	// Trigger webhook event
+	if list != nil {
+		go h.webhookService.TriggerEvent(services.EventCardUpdated, &list.BoardID, map[string]interface{}{
+			"card_id":    card.ID.String(),
+			"card_title": card.Title,
+			"list_id":    card.ListID.String(),
+			"board_id":   list.BoardID.String(),
+			"user_id":    userID.String(),
+		})
+	}
+
 	return utils.SuccessResponse(c, card)
 }
 
@@ -175,8 +202,28 @@ func (h *CardHandler) Delete(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "Invalid card ID")
 	}
 
+	// Get card info before deletion for webhook
+	card, _ := h.service.GetByID(id, userID)
+	var boardID *uuid.UUID
+	if card != nil {
+		list, _ := h.listService.GetByID(card.ListID, userID)
+		if list != nil {
+			boardID = &list.BoardID
+		}
+	}
+
 	if err := h.service.Delete(id, userID); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	// Trigger webhook event
+	if boardID != nil && card != nil {
+		go h.webhookService.TriggerEvent(services.EventCardDeleted, boardID, map[string]interface{}{
+			"card_id":    id.String(),
+			"card_title": card.Title,
+			"board_id":   boardID.String(),
+			"user_id":    userID.String(),
+		})
 	}
 
 	return utils.SuccessMessageResponse(c, "Card deleted successfully")
@@ -224,6 +271,18 @@ func (h *CardHandler) Move(c *fiber.Ctx) error {
 			}
 		}
 	}()
+
+	// Trigger webhook event
+	if newList != nil && card != nil {
+		go h.webhookService.TriggerEvent(services.EventCardMoved, &newList.BoardID, map[string]interface{}{
+			"card_id":      card.ID.String(),
+			"card_title":   card.Title,
+			"from_list_id": card.ListID.String(),
+			"to_list_id":   req.ListID.String(),
+			"board_id":     newList.BoardID.String(),
+			"user_id":      userID.String(),
+		})
+	}
 
 	return utils.SuccessMessageResponse(c, "Card moved successfully")
 }

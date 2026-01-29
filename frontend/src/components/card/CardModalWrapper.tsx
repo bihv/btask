@@ -10,6 +10,8 @@ import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import CardPageContent from '@/app/boards/[id]/cards/[cardId]/CardPageContent';
 
+import { PluginProvider } from '@/components/plugins';
+
 const { Text } = Typography;
 
 interface CardModalWrapperProps {
@@ -21,6 +23,8 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
     const { currentBoard } = useBoardStore();
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const { data: cardData } = useCard(cardId);
+
+
 
     return (
         <>
@@ -112,7 +116,9 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                     </div>
                 }
             >
-                <CardPageContent />
+                <PluginProvider boardId={currentBoard?.id || ''}>
+                    <CardPageContent />
+                </PluginProvider>
             </Modal>
 
             <Lightbox
