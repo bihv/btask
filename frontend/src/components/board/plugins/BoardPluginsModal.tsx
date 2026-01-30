@@ -24,7 +24,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
     // Queries
     const { data: installedPlugins = [], isLoading: loadingInstalled } = useBoardPlugins(boardId);
     const { data: availablePlugins = [], isLoading: loadingAvailable } = usePublishedPlugins();
-    
+
     // Mutations
     const installPlugin = useInstallPluginToBoard();
     const uninstallPlugin = useUninstallPluginFromBoard();
@@ -35,10 +35,10 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
 
     // Derived state
     const installedSlugs = new Set(installedPlugins.map((inst: any) => inst.plugin?.slug));
-    
-    const filteredAvailable = availablePlugins.filter((p: Plugin) => 
-        (p.name.toLowerCase().includes(searchText.toLowerCase()) || 
-        p.description?.toLowerCase().includes(searchText.toLowerCase())) &&
+
+    const filteredAvailable = availablePlugins.filter((p: Plugin) =>
+        (p.name.toLowerCase().includes(searchText.toLowerCase()) ||
+            p.description?.toLowerCase().includes(searchText.toLowerCase())) &&
         !installedSlugs.has(p.slug)
     );
 
@@ -54,7 +54,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
 
     const handleUninstall = (installation: any) => {
         const isInherited = !!installation.workspace_id;
-        
+
         if (isInherited) {
             message.info('This plugin is installed at the workspace level. Please go to Workspace Settings to manage it.');
             return;
@@ -113,12 +113,12 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                     >
                         <List.Item.Meta
                             avatar={
-                                <Avatar 
-                                    src={item.plugin.icon_url} 
-                                    icon={<ThunderboltOutlined />} 
-                                    shape="square" 
+                                <Avatar
+                                    src={item.plugin.icon_url}
+                                    icon={<ThunderboltOutlined />}
+                                    shape="square"
                                     size="large"
-                                    style={{ backgroundColor: isInherited ? '#8c8c8c' : '#1890ff' }} 
+                                    style={{ backgroundColor: isInherited ? '#8c8c8c' : '#1890ff' }}
                                 />
                             }
                             title={
@@ -147,7 +147,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                     allowClear
                 />
             </div>
-            
+
             {filteredAvailable.length === 0 ? (
                 <Empty description="No new plugins available" />
             ) : (
@@ -157,14 +157,14 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                     loading={loadingAvailable}
                     renderItem={(plugin: Plugin) => (
                         <List.Item>
-                            <Card 
-                                hoverable 
+                            <Card
+                                hoverable
                                 size="small"
                                 actions={[
-                                    <Button 
-                                        type="primary" 
-                                        ghost 
-                                        size="small" 
+                                    <Button
+                                        type="primary"
+                                        ghost
+                                        size="small"
                                         icon={<PlusOutlined />}
                                         onClick={() => handleInstall(plugin)}
                                         loading={installPlugin.isPending && installPlugin.variables?.slug === plugin.slug}
@@ -202,7 +202,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                 open={open}
                 onCancel={onClose}
                 footer={null}
-                width={700}
+                width={'90vw'}
                 styles={{
                     body: {
                         padding: '0 24px 24px'

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { message } from 'antd';
+import { App } from 'antd';
 
 export interface AutomationRule {
     id: string;
@@ -24,11 +24,11 @@ export const useBoardRules = (boardId: string) => {
 };
 
 export const useCreateRule = () => {
+    const { message } = App.useApp();
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (data: any) => api.post('/automation/rules', data),
         onSuccess: () => {
-            message.success('Rule created successfully');
             queryClient.invalidateQueries({ queryKey: ['rules'] });
         },
         onError: (error: any) => {
@@ -38,12 +38,15 @@ export const useCreateRule = () => {
 };
 
 export const useDeleteRule = () => {
+    const { message } = App.useApp();
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => api.delete(`/automation/rules/${id}`),
         onSuccess: () => {
-            message.success('Rule deleted');
             queryClient.invalidateQueries({ queryKey: ['rules'] });
+        },
+        onError: (error: any) => {
+            message.error(error.response?.data?.error || 'Failed to delete rule');
         },
     });
 };
