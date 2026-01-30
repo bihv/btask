@@ -23,10 +23,10 @@ type CardHandler struct {
 	webhookService      *services.WebhookService
 }
 
-func NewCardHandler() *CardHandler {
+func NewCardHandler(automationService *services.AutomationService) *CardHandler {
 	webhookRepo := repository.NewWebhookRepository(database.DB)
 	return &CardHandler{
-		service:             services.NewCardService(),
+		service:             services.NewCardService(automationService),
 		listService:         services.NewListService(),
 		notificationService: services.NewNotificationService(),
 		linkPreviewService:  services.NewLinkPreviewService(),

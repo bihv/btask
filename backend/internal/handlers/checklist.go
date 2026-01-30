@@ -18,7 +18,7 @@ type ChecklistHandler struct {
 func NewChecklistHandler() *ChecklistHandler {
 	return &ChecklistHandler{
 		repo:        repository.NewChecklistRepository(),
-		cardService: services.NewCardService(),
+		cardService: services.NewCardService(services.NewAutomationService()),
 	}
 }
 

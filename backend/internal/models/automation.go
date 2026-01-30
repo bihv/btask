@@ -7,31 +7,30 @@ import (
 	"gorm.io/gorm"
 )
 
-// AutomationRule represents an automation rule (Butler-like)
 type AutomationRule struct {
-	ID            uuid.UUID              `json:"id" gorm:"type:uuid;primary_key"`
-	PluginID      *uuid.UUID             `json:"plugin_id" gorm:"type:uuid;index"`
-	WorkspaceID   *uuid.UUID             `json:"workspace_id" gorm:"type:uuid;index"`
-	BoardID       *uuid.UUID             `json:"board_id" gorm:"type:uuid;index"`
-	Name          string                 `json:"name" gorm:"not null"`
-	Description   string                 `json:"description"`
-	TriggerType   string                 `json:"trigger_type" gorm:"not null"` // event, schedule, manual
-	TriggerConfig map[string]interface{} `json:"trigger_config" gorm:"type:jsonb;not null"`
-	Actions       []interface{}          `json:"actions" gorm:"type:jsonb;not null"`
-	IsEnabled     bool                   `json:"is_enabled" gorm:"default:true;index"`
-	CreatedBy     *uuid.UUID             `json:"created_by" gorm:"type:uuid"`
-	RunCount      int                    `json:"run_count" gorm:"default:0"`
-	LastRunAt     *time.Time             `json:"last_run_at"`
-	LastError     string                 `json:"last_error"`
-	CreatedAt     time.Time              `json:"created_at"`
-	UpdatedAt     time.Time              `json:"updated_at"`
+	ID            uuid.UUID  `json:"id" gorm:"type:uuid;primary_key"`
+	PluginID      *uuid.UUID `json:"plugin_id" gorm:"type:uuid;index"`
+	WorkspaceID   *uuid.UUID `json:"workspace_id" gorm:"type:uuid;index"`
+	BoardID       *uuid.UUID `json:"board_id" gorm:"type:uuid;index"`
+	Name          string     `json:"name" gorm:"not null"`
+	Description   string     `json:"description"`
+	TriggerType   string     `json:"trigger_type" gorm:"not null"` // event, schedule, manual
+	TriggerConfig JSONMap    `json:"trigger_config" gorm:"type:jsonb;not null"`
+	Actions       JSONArray  `json:"actions" gorm:"type:jsonb;not null"`
+	IsEnabled     bool       `json:"is_enabled" gorm:"default:true;index"`
+	CreatedBy     *uuid.UUID `json:"created_by" gorm:"type:uuid"`
+	RunCount      int        `json:"run_count" gorm:"default:0"`
+	LastRunAt     *time.Time `json:"last_run_at"`
+	LastError     string     `json:"last_error"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
 
 	// Relations
 	Plugin    *Plugin         `json:"plugin,omitempty" gorm:"foreignKey:PluginID"`
 	Workspace *Workspace      `json:"workspace,omitempty" gorm:"foreignKey:WorkspaceID"`
 	Board     *Board          `json:"board,omitempty" gorm:"foreignKey:BoardID"`
 	Creator   *User           `json:"creator,omitempty" gorm:"foreignKey:CreatedBy"`
-	Runs      []AutomationRun `json:"runs,omitempty" gorm:"foreignKey:RuleID"`
+	Runs      []AutomationRun `json:"runs,omitempty" gorm:"foreignKey:RuleID;constraint:OnDelete:CASCADE;"`
 }
 
 func (ar *AutomationRule) BeforeCreate(tx *gorm.DB) error {
@@ -66,21 +65,21 @@ func (ar *AutomationRun) BeforeCreate(tx *gorm.DB) error {
 
 // Request/Response DTOs
 type CreateAutomationRuleRequest struct {
-	Name          string                 `json:"name" validate:"required,min=3,max=200"`
-	Description   string                 `json:"description" validate:"max=1000"`
-	TriggerType   string                 `json:"trigger_type" validate:"required,oneof=event schedule manual"`
-	TriggerConfig map[string]interface{} `json:"trigger_config" validate:"required"`
-	Actions       []interface{}          `json:"actions" validate:"required,min=1"`
-	WorkspaceID   *string                `json:"workspace_id"`
-	BoardID       *string                `json:"board_id"`
+	Name          string    `json:"name" validate:"required,min=3,max=200"`
+	Description   string    `json:"description" validate:"max=1000"`
+	TriggerType   string    `json:"trigger_type" validate:"required,oneof=event schedule manual"`
+	TriggerConfig JSONMap   `json:"trigger_config" validate:"required"`
+	Actions       JSONArray `json:"actions" validate:"required,min=1"`
+	WorkspaceID   *string   `json:"workspace_id"`
+	BoardID       *string   `json:"board_id"`
 }
 
 type UpdateAutomationRuleRequest struct {
-	Name          string                 `json:"name" validate:"omitempty,min=3,max=200"`
-	Description   string                 `json:"description" validate:"max=1000"`
-	TriggerConfig map[string]interface{} `json:"trigger_config"`
-	Actions       []interface{}          `json:"actions" validate:"omitempty,min=1"`
-	IsEnabled     *bool                  `json:"is_enabled"`
+	Name          string    `json:"name" validate:"omitempty,min=3,max=200"`
+	Description   string    `json:"description" validate:"max=1000"`
+	TriggerConfig JSONMap   `json:"trigger_config"`
+	Actions       JSONArray `json:"actions" validate:"omitempty,min=1"`
+	IsEnabled     *bool     `json:"is_enabled"`
 }
 
 type TriggerAutomationRequest struct {
@@ -89,8 +88,8 @@ type TriggerAutomationRequest struct {
 
 // Automation Trigger Types
 type EventTriggerConfig struct {
-	Event      string                   `json:"event"`      // card.moved, card.created, etc.
-	Conditions []AutomationCondition    `json:"conditions"` // Optional conditions
+	Event      string                `json:"event"`      // card.moved, card.created, etc.
+	Conditions []AutomationCondition `json:"conditions"` // Optional conditions
 }
 
 type ScheduleTriggerConfig struct {
@@ -132,7 +131,7 @@ type AssignMemberAction struct {
 }
 
 type SetDueDateAction struct {
-	Type    string `json:"type"` // set_due_date
+	Type    string `json:"type"`     // set_due_date
 	DueDate string `json:"due_date"` // ISO date or relative like "+7d"
 }
 

@@ -15,15 +15,17 @@ type CardService struct {
 	boardRepo          *repository.BoardRepository
 	workspaceRepo      *repository.WorkspaceRepository
 	linkPreviewService *LinkPreviewService
+	automationService  *AutomationService
 }
 
-func NewCardService() *CardService {
+func NewCardService(automationService *AutomationService) *CardService {
 	return &CardService{
 		cardRepo:           repository.NewCardRepository(),
 		listRepo:           repository.NewListRepository(),
 		boardRepo:          repository.NewBoardRepository(),
 		workspaceRepo:      repository.NewWorkspaceRepository(),
 		linkPreviewService: NewLinkPreviewService(),
+		automationService:  automationService,
 	}
 }
 
@@ -74,6 +76,15 @@ func (s *CardService) Create(listID uuid.UUID, userID uuid.UUID, req models.Crea
 	if err := s.cardRepo.Create(card); err != nil {
 		return nil, err
 	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.created", list.BoardID, map[string]interface{}{
+		"card_id":   card.ID.String(),
+		"list_id":   listID.String(),
+		"board_id":  list.BoardID.String(),
+		"list_name": list.Title, // Changed from Name to Title
+		"user_id":   userID.String(),
+	})
 
 	return card, nil
 }
@@ -197,7 +208,21 @@ func (s *CardService) Move(cardID uuid.UUID, userID uuid.UUID, req models.MoveCa
 		return errors.New("access denied")
 	}
 
-	return s.cardRepo.MoveCard(cardID, req.ListID, req.Position)
+	err = s.cardRepo.MoveCard(cardID, req.ListID, req.Position)
+	if err != nil {
+		return err
+	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.moved", list.BoardID, map[string]interface{}{
+		"card_id":        cardID.String(),
+		"source_list_id": list.ID.String(),
+		"list_id":        req.ListID.String(), // Target list
+		"board_id":       list.BoardID.String(),
+		"user_id":        userID.String(),
+	})
+
+	return nil
 }
 
 func (s *CardService) AddLabel(cardID uuid.UUID, labelID uuid.UUID, userID uuid.UUID) error {
@@ -220,7 +245,20 @@ func (s *CardService) AddLabel(cardID uuid.UUID, labelID uuid.UUID, userID uuid.
 		return errors.New("access denied")
 	}
 
-	return s.cardRepo.AddLabel(cardID, labelID)
+	err = s.cardRepo.AddLabel(cardID, labelID)
+	if err != nil {
+		return err
+	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.label_added", list.BoardID, map[string]interface{}{
+		"card_id":  cardID.String(),
+		"label_id": labelID.String(),
+		"board_id": list.BoardID.String(),
+		"user_id":  userID.String(),
+	})
+
+	return nil
 }
 
 func (s *CardService) RemoveLabel(cardID uuid.UUID, labelID uuid.UUID, userID uuid.UUID) error {

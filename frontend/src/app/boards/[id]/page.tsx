@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Typography, Button, Input, Spin, App, Tooltip } from 'antd';
+import AutomationModal from '@/components/board/automation/AutomationModal';
 import {
     MoreOutlined,
     ArrowLeftOutlined,
@@ -56,8 +57,10 @@ export default function BoardPage() {
     const [title, setTitle] = useState('');
     const [shareOpen, setShareOpen] = useState(false);
     const [filters, setFilters] = useState<FilterState>(defaultFilters);
+
     const [showFilters, setShowFilters] = useState(false);
     const [pluginsModalOpen, setPluginsModalOpen] = useState(false);
+    const [automationModalOpen, setAutomationModalOpen] = useState(false);
 
     // View mode from URL query param
     const searchParams = useSearchParams();
@@ -210,12 +213,12 @@ export default function BoardPage() {
                                 style={{ color: 'white' }}
                             />
                         </Tooltip>
-                        <Tooltip title="Automation (coming soon)">
+                        <Tooltip title="Automation">
                             <Button
                                 type="text"
                                 icon={<RobotOutlined />}
-                                disabled
-                                style={{ color: 'rgba(255,255,255,0.6)' }}
+                                onClick={() => setAutomationModalOpen(true)}
+                                style={{ color: 'white' }}
                             />
                         </Tooltip>
 
@@ -316,6 +319,12 @@ export default function BoardPage() {
                     onClose={() => setPluginsModalOpen(false)}
                     boardId={boardId}
                     workspaceId={board.workspace_id}
+                />
+
+                <AutomationModal
+                    open={automationModalOpen}
+                    onClose={() => setAutomationModalOpen(false)}
+                    boardId={boardId}
                 />
             </div>
         </PluginProvider>

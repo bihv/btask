@@ -102,8 +102,12 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	searchHandler := handlers.NewSearchHandler()
 	protected.Get("/search", searchHandler.Search)
 
+	// Automation Service
+	automationService := services.NewAutomationService()
+	automationHandler := handlers.NewAutomationHandler(automationService)
+
 	// User routes
-	cardHandler := handlers.NewCardHandler()
+	cardHandler := handlers.NewCardHandler(automationService)
 	users := protected.Group("/users")
 	users.Get("/me", userHandler.GetMe)
 	users.Get("/me/cards", cardHandler.GetMyCards)
@@ -300,7 +304,13 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	webhooks := protected.Group("/webhooks")
 	webhooks.Put("/:id", webhookHandler.Update)
 	webhooks.Delete("/:id", webhookHandler.Delete)
-	webhooks.Get("/:id/deliveries", webhookHandler.GetDeliveries)
+	webhooks.Get("/:id/deliveries", webhookHandler.GetDeliveries) // Keeping existing webhook routes
+
+	// Automation Routes
+	automation := protected.Group("/automation")
+	automation.Post("/rules", automationHandler.CreateRule)
+	automation.Delete("/rules/:id", automationHandler.DeleteRule)
+	boards.Get("/:boardId/automation/rules", automationHandler.GetRules)
 
 	// Plugin Data API (requires plugin token authentication)
 	pluginDataHandler := handlers.NewPluginDataHandler()

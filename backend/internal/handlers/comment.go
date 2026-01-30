@@ -22,7 +22,7 @@ type CommentHandler struct {
 func NewCommentHandler() *CommentHandler {
 	return &CommentHandler{
 		service:             services.NewCommentService(),
-		cardService:         services.NewCardService(),
+		cardService:         services.NewCardService(services.NewAutomationService()),
 		listService:         services.NewListService(),
 		notificationService: services.NewNotificationService(),
 	}
