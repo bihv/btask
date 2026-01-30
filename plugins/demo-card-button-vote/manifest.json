@@ -1,0 +1,19 @@
+{
+  "id": "demo-card-button-vote",
+  "name": "Demo: Vote Button",
+  "version": "1.0.0",
+  "description": "A demo plugin showing how to add a button to the card sidebar",
+  "author": {
+    "name": "Mello Team",
+    "email": "plugins@mello.app",
+    "url": "https://mello.app"
+  },
+  "client_url": "/plugins/demo-card-button-vote/client.js",
+  "capabilities": [
+    "card-buttons"
+  ],
+  "permissions": [
+    "read:cards"
+  ],
+  "settings": {}
+}

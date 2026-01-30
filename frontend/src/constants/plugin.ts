@@ -1,6 +1,7 @@
 export const PLUGIN_SLOTS = {
     CARD_BADGE: 'card-badge',
     CARD_BACK_SECTION: 'card-back-section',
+    CARD_BUTTON: 'card-button',
 } as const;
 
 export const PLUGIN_CAPABILITIES = {

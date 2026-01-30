@@ -12,7 +12,7 @@ import type { PluginSlotType } from './pluginIframeManager';
 // ============================================================================
 
 export function buildBackgroundCSP(pluginOrigin: string, hostOrigin: string): string {
-    return `
+  return `
     default-src 'none';
     script-src 'unsafe-inline' 'unsafe-eval' ${pluginOrigin};
     style-src 'unsafe-inline';
@@ -21,7 +21,7 @@ export function buildBackgroundCSP(pluginOrigin: string, hostOrigin: string): st
 }
 
 export function buildRenderCSP(pluginOrigin: string, hostOrigin: string): string {
-    return `
+  return `
     default-src 'none';
     script-src 'unsafe-inline' 'unsafe-eval' ${pluginOrigin};
     style-src 'unsafe-inline';
@@ -36,7 +36,7 @@ export function buildRenderCSP(pluginOrigin: string, hostOrigin: string): string
 // ============================================================================
 
 export function buildBackgroundRuntimeScript(installationId: string): string {
-    return `
+  return `
     window.installationId = "${installationId}";
     window.isRenderMode = false;
     
@@ -60,13 +60,13 @@ export function buildBackgroundRuntimeScript(installationId: string): string {
 }
 
 export function buildRenderRuntimeScript(
-    installationId: string,
-    slotType: PluginSlotType,
-    context: any
+  installationId: string,
+  slotType: PluginSlotType,
+  context: any
 ): string {
-    const contextJson = JSON.stringify(context);
+  const contextJson = JSON.stringify(context);
 
-    return `
+  return `
     window.installationId = "${installationId}";
     window.slotType = "${slotType}";
     window.renderContext = ${contextJson};
@@ -76,11 +76,13 @@ export function buildRenderRuntimeScript(
       var root = document.getElementById('plugin-root');
       if (root) {
         var height = root.offsetHeight || root.scrollHeight;
+        var width = root.offsetWidth || root.scrollWidth;
         window.parent.postMessage({
           type: 'mello:render:resize',
           installationId: "${installationId}",
           slotType: "${slotType}",
-          height: height
+          height: height,
+          width: width
         }, '*');
       }
     };
@@ -131,16 +133,16 @@ export function buildRenderRuntimeScript(
 // ============================================================================
 
 interface BackgroundHtmlParams {
-    cspPolicy: string;
-    pluginName: string;
-    runtimeScript: string;
-    pluginUrl: string;
+  cspPolicy: string;
+  pluginName: string;
+  runtimeScript: string;
+  pluginUrl: string;
 }
 
 export function buildBackgroundHtml(params: BackgroundHtmlParams): string {
-    const { cspPolicy, pluginName, runtimeScript, pluginUrl } = params;
+  const { cspPolicy, pluginName, runtimeScript, pluginUrl } = params;
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
@@ -155,15 +157,15 @@ export function buildBackgroundHtml(params: BackgroundHtmlParams): string {
 }
 
 interface RenderHtmlParams {
-    cspPolicy: string;
-    runtimeScript: string;
-    pluginUrl: string;
+  cspPolicy: string;
+  runtimeScript: string;
+  pluginUrl: string;
 }
 
 export function buildRenderHtml(params: RenderHtmlParams): string {
-    const { cspPolicy, runtimeScript, pluginUrl } = params;
+  const { cspPolicy, runtimeScript, pluginUrl } = params;
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">

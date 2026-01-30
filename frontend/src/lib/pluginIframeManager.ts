@@ -145,7 +145,8 @@ export function handleRenderResize(
   const key = `${installationId}:${slotType}`;
   const iframe = iframeMap.get(key);
 
-  if (iframe && height > 0) {
-    iframe.style.height = `${height}px`;
+  if (iframe) {
+    if (height > 0) iframe.style.height = `${height}px`;
+    if (event.data.width > 0) iframe.style.width = `${event.data.width}px`;
   }
 }

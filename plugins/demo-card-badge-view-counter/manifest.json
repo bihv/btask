@@ -1,6 +1,6 @@
 {
-  "id": "card-view-counter",
-  "name": "Card View Counter",
+  "id": "demo-card-badge-view-counter",
+  "name": "Demo: View Counter",
   "version": "2.1.0",
   "description": "Track how many times each card has been viewed (iframe rendering)",
   "author": {
@@ -8,6 +8,7 @@
     "email": "plugins@mello.app",
     "url": "https://mello.app"
   },
+  "client_url": "/plugins/demo-card-badge-view-counter/client.js",
   "capabilities": [
     "card-badges",
     "card-back-section"

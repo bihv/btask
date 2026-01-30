@@ -1,12 +1,12 @@
 {
-  "name": "mello-plugin-card-view-counter",
+  "name": "mello-demo-card-badge-view-counter",
   "version": "1.0.0",
   "description": "Example Mello plugin that tracks card views",
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "bundle": "npm run build && cp dist/client.iife.js client.js && zip -j plugin-bundle.zip client.js manifest.json && rm client.js",
+    "bundle": "npm run build && node scripts/bundle.js",
     "preview": "vite preview"
   },
   "keywords": [
@@ -28,6 +28,7 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.0.0",
+    "archiver": "^7.0.1",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   }
