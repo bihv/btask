@@ -248,4 +248,51 @@ export function useUninstallPluginFromWorkspace() {
             queryClient.invalidateQueries({ queryKey: workspacePluginKeys.all(workspaceId) });
         },
     });
+
+}
+
+// ============ Board Plugins ============
+
+export const boardPluginKeys = {
+    all: (boardId: string) => ['board-plugins', boardId] as const,
+};
+
+// Get plugins installed in a board (includes workspace plugins)
+export function useBoardPlugins(boardId: string) {
+    return useQuery({
+        queryKey: boardPluginKeys.all(boardId),
+        queryFn: async (): Promise<import('@/types').PluginInstallation[]> => {
+            const response = await api.get(`/boards/${boardId}/plugins`);
+            return response.data?.data || response.data || [];
+        },
+        enabled: !!boardId,
+    });
+}
+
+// Install plugin to board
+export function useInstallPluginToBoard() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ boardId, slug }: { boardId: string; slug: string }): Promise<void> => {
+            await api.post(`/boards/${boardId}/plugins/${slug}/install`);
+        },
+        onSuccess: (_, { boardId }) => {
+            queryClient.invalidateQueries({ queryKey: boardPluginKeys.all(boardId) });
+        },
+    });
+}
+
+// Uninstall plugin from board
+export function useUninstallPluginFromBoard() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ boardId, slug }: { boardId: string; slug: string }): Promise<void> => {
+            await api.delete(`/boards/${boardId}/plugins/${slug}/uninstall`);
+        },
+        onSuccess: (_, { boardId }) => {
+            queryClient.invalidateQueries({ queryKey: boardPluginKeys.all(boardId) });
+        },
+    });
 }
