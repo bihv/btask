@@ -7,7 +7,7 @@ export interface TriggerOption {
     parts: TriggerPart[];
 }
 
-export type TriggerPartType = 'static' | 'filter' | 'user' | 'list_select' | 'verb_select' | 'input_text' | 'input_number' | 'condition_group' | 'label_select' | 'member_select' | 'text_match' | 'date_comparison' | 'custom_field_select' | 'custom_field_multi_select' | 'number_comparison';
+export type TriggerPartType = 'static' | 'filter' | 'user' | 'list_select' | 'verb_select' | 'input_text' | 'input_number' | 'condition_group' | 'label_select' | 'member_select' | 'text_match' | 'date_comparison' | 'custom_field_select' | 'custom_field_multi_select' | 'board_select' | 'number_comparison';
 
 
 export interface TriggerPart {
@@ -547,6 +547,72 @@ export const TRIGGER_TEMPLATES: TriggerOption[] = [
             { type: 'static', value: 'a card' },
             { type: 'filter', key: 'filter' },
             { type: 'user', key: 'user' }
+        ]
+    }
+];
+
+// --- ACTIONS ---
+
+export const ACTION_CATEGORIES: { id: string; label: string; icon?: string }[] = [
+    { id: 'move', label: 'Move' },
+    { id: 'add_remove', label: 'Add/Remove' },
+    { id: 'dates', label: 'Dates' },
+    { id: 'checklists', label: 'Checklists' },
+    { id: 'members', label: 'Members' },
+    { id: 'content', label: 'Content' },
+    { id: 'fields', label: 'Fields' },
+    { id: 'sort', label: 'Sort' },
+    { id: 'cascade', label: 'Cascade' },
+    // Jira and Bitbucket removed
+];
+
+export const ACTION_TEMPLATES: TriggerOption[] = [
+    // --- MOVE ---
+    {
+        id: 'move_card_to_list',
+        category: 'move' as any,
+        text: '{verb} the card to {position} of list {list_name} on board {board_id}',
+        parts: [
+            {
+                type: 'verb_select',
+                key: 'verb',
+                value: 'move',
+                options: ['move', 'copy']
+            },
+            { type: 'static', value: 'the card to the' },
+            {
+                type: 'verb_select',
+                key: 'position',
+                value: 'top',
+                options: ['top', 'bottom']
+            },
+            { type: 'static', value: 'of list' },
+            { type: 'list_select', key: 'list_name' },
+            { type: 'static', value: 'on board' },
+            { type: 'board_select', key: 'board_id' }
+        ]
+    },
+    {
+        id: 'move_card_to_top_of_list',
+        category: 'move' as any,
+        text: 'move the card to the top of the list',
+        parts: [
+            { type: 'static', value: 'move the card to' },
+            { type: 'static', value: 'the top of the list' }
+        ]
+    },
+    {
+        id: 'archive_card',
+        category: 'move' as any,
+        text: '{verb} the card',
+        parts: [
+            {
+                type: 'verb_select',
+                key: 'verb',
+                value: 'archive',
+                options: ['archive', 'unarchive']
+            },
+            { type: 'static', value: 'the card' }
         ]
     }
 ];

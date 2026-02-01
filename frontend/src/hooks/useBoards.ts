@@ -63,6 +63,34 @@ export function useStarredBoards() {
     });
 }
 
+// Fetch all boards across all workspaces
+export function useAllBoards() {
+    return useQuery({
+        queryKey: boardKeys.all,
+        queryFn: async (): Promise<Board[]> => {
+            // First fetch all workspaces
+            const wsResponse = await api.get('/workspaces/');
+            const workspaces = wsResponse.data.data || [];
+
+            // Then fetch boards for each workspace
+            const allBoards: Board[] = [];
+            await Promise.all(
+                workspaces.map(async (ws: { id: string }) => {
+                    try {
+                        const boardsRes = await api.get(`/workspaces/${ws.id}/boards`);
+                        const boards = boardsRes.data.data || [];
+                        allBoards.push(...boards);
+                    } catch {
+                        // Ignore errors
+                    }
+                })
+            );
+
+            return allBoards;
+        },
+    });
+}
+
 // Create board mutation
 export function useCreateBoard(workspaceId: string) {
     const queryClient = useQueryClient();

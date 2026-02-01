@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Steps, Form, Input, Select, Button, Space, Card, Typography, Divider, Tabs, List, Tag, Popover, Switch, Tooltip } from 'antd';
+import { Steps, Form, Input, Select, Button, Space, Card, Typography, Divider, Tabs, List, Tag, Popover, Switch, Tooltip, theme } from 'antd';
 import { PlayCircleOutlined, ThunderboltOutlined, SaveOutlined, PlusOutlined, DeleteOutlined, UnorderedListOutlined, CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useCreateRule } from '@/hooks/useAutomation';
-import { useBoard } from '@/hooks/useBoards';
-import { TRIGGER_CATEGORIES, TRIGGER_TEMPLATES, TriggerOption, TriggerPart } from './automationTypes';
+import { useBoard, useAllBoards } from '@/hooks/useBoards';
+import api from '@/lib/api';
+import { TRIGGER_CATEGORIES, TRIGGER_TEMPLATES, ACTION_CATEGORIES, ACTION_TEMPLATES, TriggerOption, TriggerPart } from './automationTypes';
 import { TriggerFilterModal } from './TriggerFilterModal';
 import { TriggerUserModal } from './TriggerUserModal';
 import { TriggerDateModal } from './TriggerDateModal';
@@ -22,8 +23,10 @@ interface RuleBuilderProps {
 export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilderProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
+    const { token } = theme.useToken();
     const createRule = useCreateRule();
     const { data: board } = useBoard(boardId);
+    const { data: allBoards } = useAllBoards();
 
     // Data for popovers
     const lists = board?.lists || [];
@@ -42,9 +45,117 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
 
     // State for Trigger Builder
     const [activeCategory, setActiveCategory] = useState<string>('card_move');
+    const [selectedTriggerId, setSelectedTriggerId] = useState<string | null>(null);
     const [triggerConfig, setTriggerConfig] = useState<any>({}); // Store configurations for each trigger ID
     const [isAdvanced, setIsAdvanced] = useState(true);
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+
+    // State for Action Builder (Step 2)
+    const [activeActionCategory, setActiveActionCategory] = useState<string>('move');
+    const [actions, setActions] = useState<any[]>([]); // List of added actions [{ id: 'move_card', ...config }]
+    const [actionConfig, setActionConfig] = useState<any>({}); // Configuration for current editing action inputs
+    const [remoteLists, setRemoteLists] = useState<Record<string, any[]>>({}); // Cache for lists of other boards
+    const [actionValidationErrors, setActionValidationErrors] = useState<Record<string, string[]>>({});
+
+    // State for Rule Name
+    const [ruleName, setRuleName] = useState('New Automation Rule');
+    const [isNameEdited, setIsNameEdited] = useState(false);
+
+    // Helper to generate text description
+    // Helper to generate text description
+    const getTriggerDescription = () => {
+        if (!selectedTriggerId) return '';
+        const template = TRIGGER_TEMPLATES.find(t => t.id === selectedTriggerId);
+        if (!template) return '';
+        const config = triggerConfig[selectedTriggerId] || {};
+
+        return template.parts.map(part => {
+            if (part.type === 'static') return part.value;
+            if (part.key) {
+                let val = config[part.key];
+
+                // Handle special types mapping
+                if (part.type === 'list_select' && val) {
+                    const list = lists.find((l: any) => l.id === val);
+                    if (list) val = list.title;
+                }
+
+                if ((part.type === 'board_select') && val) {
+                    const board = allBoards?.find((b: any) => b.id === val);
+                    if (board) val = board.title;
+                }
+
+                if (part.type === 'user' && val && typeof val === 'object') {
+                    val = val.text || val.username || val.name;
+                }
+
+                // Handle Label objects if any
+                if (part.type === 'label_select' && val) {
+                    if (typeof val === 'object') val = val.name;
+                    else {
+                        const label = labels.find((l: any) => l.id === val);
+                        if (label) val = label.name;
+                    }
+                }
+
+                if (part.type === 'member_select' && val) {
+                    const member = members.find((m: any) => m.id === val);
+                    if (member) val = member.username || member.fullName;
+                }
+
+                // Check if val is still an object (fallback)
+                if (typeof val === 'object' && val !== null) {
+                    return JSON.stringify(val);
+                }
+
+                return val !== undefined ? val : (part.value || '');
+            }
+            return '';
+        }).join(' ').replace(/\s+/g, ' ').trim();
+    };
+
+    const getActionDescription = (action: any) => {
+        const template = ACTION_TEMPLATES.find(t => t.id === action.id);
+        if (!template) return action.id;
+
+        return template.parts.map(part => {
+            if (part.type === 'static') return part.value;
+
+            if (part.key) {
+                let val = action[part.key];
+
+                if (part.type === 'list_select' && val) {
+                    // Check local lists first
+                    let list = lists.find((l: any) => l.id === val);
+
+                    // Check remote lists if board_id is present in action
+                    if (!list && action.board_id) {
+                        const remote = remoteLists[action.board_id];
+                        if (remote) {
+                            list = remote.find((l: any) => l.id === val);
+                        }
+                    }
+                    if (list) val = list.title;
+                }
+
+                if (part.type === 'board_select') {
+                    if (val) {
+                        const board = allBoards?.find((b: any) => b.id === val);
+                        if (board) val = board.title;
+                    } else if (board) {
+                        val = board.title;
+                    }
+                }
+
+                // Fallback for missing values or objects
+                if (val === undefined || val === null) return part.value || '';
+                if (typeof val === 'object') return JSON.stringify(val);
+
+                return val;
+            }
+            return '';
+        }).join(' ').replace(/\s+/g, ' ').trim();
+    };
 
     const validateTrigger = (triggerId: string, template: TriggerOption, config: any) => {
         const errors: string[] = [];
@@ -82,8 +193,6 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
 
                 case 'input_text':
                     if (part.icon === 'list') {
-                        // Checklist name special case: if rendered, it is required? defaulting to null in state
-                        // Logical check: if visible (passed check above), it requires value
                         if (!val) errors.push(part.key);
                     } else {
                         if (!val) errors.push(part.key);
@@ -91,9 +200,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                     break;
 
                 case 'number_comparison':
-                    // Usually has default, but just in case
                     if (!val) {
-                        // It usually initializes
                     }
                     break;
 
@@ -105,6 +212,28 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
             }
         });
 
+        return errors;
+    };
+
+    const validateAction = (templateId: string, template: any, config: any) => {
+        const errors: string[] = [];
+        template.parts.forEach((part: any) => {
+            if (part.type === 'static') return;
+            if (!part.key) return;
+
+            const val = config[part.key] !== undefined ? config[part.key] : part.value;
+            // Check required fields
+            if (['list_select', 'board_select', 'verb_select', 'member_select', 'label_select'].includes(part.type)) {
+
+                // board_select is optional (defaults to current board)
+                if (part.type === 'board_select') return;
+
+                if (val === undefined || val === null || val === '') {
+                    errors.push(part.key);
+                }
+            }
+            // Add other types if needed
+        });
         return errors;
     };
 
@@ -126,6 +255,166 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
         }
     };
 
+    // Helper to fetch lists for a board
+    const fetchBoardLists = async (targetBoardId: string) => {
+        if (!targetBoardId || targetBoardId === boardId) return; // Current board already has lists
+        if (remoteLists[targetBoardId]) return; // Already cached
+
+        try {
+            const res = await api.get(`/boards/${targetBoardId}`);
+            const data = res.data.data;
+            if (data && data.lists) {
+                setRemoteLists(prev => ({ ...prev, [targetBoardId]: data.lists }));
+            }
+        } catch (err) {
+            console.error('Failed to fetch lists for board', targetBoardId, err);
+        }
+    };
+
+    const handleUpdateAction = (templateId: string, key: string, value: any) => {
+        setActionConfig((prev: any) => {
+            const newConfig = {
+                ...prev,
+                [templateId]: {
+                    ...prev[templateId],
+                    [key]: value
+                }
+            };
+
+            // If board_id changed, fetch lists
+            if (key === 'board_id' && value) {
+                fetchBoardLists(value);
+                // Optionally clear list_name if board changed?
+                // newConfig[templateId].list_name = null; 
+            }
+            return newConfig;
+        });
+        // Clear error for this field if exists
+        if (actionValidationErrors[templateId]?.includes(key)) {
+            setActionValidationErrors(prev => ({
+                ...prev,
+                [templateId]: prev[templateId].filter(k => k !== key)
+            }));
+        }
+    };
+
+    const renderTriggerSummary = () => {
+        if (!selectedTriggerId) return 'No trigger selected';
+        const template = TRIGGER_TEMPLATES.find(t => t.id === selectedTriggerId);
+        if (!template) return selectedTriggerId;
+
+        return (
+            <Space wrap size={4}>
+                {template.parts.map((part, index) => {
+                    const config = triggerConfig[selectedTriggerId] || {};
+
+                    if (part.type === 'static') {
+                        return <Text key={index} style={{ color: token.colorTextSecondary }}>{part.value}</Text>;
+                    }
+
+                    if (part.type === 'filter') {
+                        const filters = config.filters || [];
+                        if (filters.length === 0) return null;
+                        return (
+                            <Space key={index} size={2}>
+                                {filters.map((f: any, i: number) => (
+                                    <Tag key={i} style={{ margin: 0 }}>{f.text}</Tag>
+                                ))}
+                            </Space>
+                        );
+                    }
+
+                    if (part.type === 'user') {
+                        if (!config.user) return null;
+                        return <Tag key={index} style={{ margin: 0 }}>{config.user.text}</Tag>;
+                    }
+
+                    if (part.key) {
+                        let val = config[part.key];
+                        // List select lookup
+                        if (part.type === 'list_select' && val) {
+                            const list = lists.find((l: any) => l.id === val);
+                            if (list) val = list.title;
+                        }
+
+                        // Default fallback
+                        const displayVal = val !== undefined ? val : (part.value || '...');
+
+                        // Highlight dynamic parts slightly
+                        return <Text key={index} strong style={{ color: token.colorText }}>{displayVal}</Text>;
+                    }
+                    return null;
+                })}
+            </Space>
+        );
+    };
+
+    const renderActionRow = (part: TriggerPart, templateId: string) => {
+        const config = actionConfig[templateId] || {};
+        const errors = actionValidationErrors[templateId] || [];
+        const hasError = part.key ? errors.includes(part.key) : false;
+        const update = (k: string, v: any) => handleUpdateAction(templateId, k, v);
+
+        switch (part.type) {
+            case 'static': return <Text>{part.value}</Text>;
+            case 'verb_select':
+                return (
+                    <Select
+                        value={config[part.key!] || part.value}
+                        style={{ width: 'auto', minWidth: 100 }}
+                        bordered={false}
+                        className="trigger-select"
+                        onChange={v => update(part.key!, v)}
+                        status={hasError ? 'error' : ''}
+                    >
+                        {part.options?.map(o => <Select.Option key={o} value={o}>{o}</Select.Option>)}
+                    </Select>
+                );
+            case 'board_select':
+                return (
+                    <Select
+                        showSearch
+                        filterOption={(input, option) =>
+                            (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        placeholder={board?.title || "Current Board"}
+                        value={config[part.key!]} // undefined/null means current board
+                        style={{ width: 160 }}
+                        onChange={v => update(part.key!, v)}
+                        allowClear
+                        status={hasError ? 'error' : ''}
+                    >
+                        {/* Option for Current Board explicitly? Or just clear to default? Let's add explicit option if helpful, but placeholder works */}
+                        {allBoards?.map((b: any) => <Select.Option key={b.id} value={b.id}>{b.title}</Select.Option>)}
+                    </Select>
+                );
+            case 'list_select':
+                // Determine which lists to show
+                const targetBoardId = config['board_id'];
+                const targetLists = targetBoardId && targetBoardId !== boardId
+                    ? (remoteLists[targetBoardId] || [])
+                    : lists;
+
+                return (
+                    <Select
+                        showSearch
+                        filterOption={(input, option) =>
+                            (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        placeholder={targetLists.length === 0 && targetBoardId ? "Loading..." : "List name"}
+                        value={config[part.key!]}
+                        style={{ width: 150 }}
+                        onChange={v => update(part.key!, v)}
+                        status={hasError ? 'error' : ''}
+                    >
+                        {targetLists.map((l: any) => <Select.Option key={l.id} value={l.id}>{l.title}</Select.Option>)}
+                    </Select>
+                );
+            // Add other action types as needed (members, fields, etc.)
+            default: return null;
+        }
+    };
+
     const renderTriggerPart = (part: TriggerPart, triggerId: string) => {
         const config = triggerConfig[triggerId] || {};
         const errors = validationErrors[triggerId] || [];
@@ -134,12 +423,10 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
         switch (part.type) {
             case 'custom_field_multi_select':
                 const selectedIds = config[part.key!] || [];
-                // Helper to add a field
                 const handleAddField = (id: string) => {
                     const newIds = [...selectedIds, id];
                     handleUpdateTrigger(triggerId, part.key!, newIds);
                 };
-                // Helper to remove a field
                 const handleRemoveField = (id: string) => {
                     handleUpdateTrigger(triggerId, part.key!, selectedIds.filter((sid: string) => sid !== id));
                 };
@@ -183,7 +470,6 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                 const compConfig = config[part.key!] || { condition: 'greater than', value: '0' };
                 const updateComp = (key: string, val: any) => {
                     const newConfig = { ...compConfig, [key]: val };
-                    // If toggling secondary off, remove it
                     if (key === 'hasSecondary' && !val) {
                         delete newConfig.secondaryCondition;
                         delete newConfig.secondaryValue;
@@ -241,7 +527,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                 );
 
             case 'custom_field_select':
-                const filteredFields = customFields.filter(f => !part.filterType || f.type === part.filterType || (part.filterType === 'text' && f.type === 'number')); // Text can often match number too for value
+                const filteredFields = customFields.filter(f => !part.filterType || f.type === part.filterType || (part.filterType === 'text' && f.type === 'number'));
                 return (
                     <Select
                         placeholder="Field"
@@ -265,7 +551,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                         {part.value}
                         {part.tooltip && (
                             <Tooltip title={part.tooltip}>
-                                <InfoCircleOutlined style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginLeft: 6 }} />
+                                <InfoCircleOutlined style={{ color: token.colorTextQuaternary, fontSize: 12, marginLeft: 6 }} />
                             </Tooltip>
                         )}
                     </Text>
@@ -352,7 +638,6 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                 );
 
             case 'input_number':
-                // For now simple input, maybe input number later
                 return <Input style={{ width: 60 }} defaultValue={part.value} status={hasError ? 'error' : ''} />;
 
             case 'input_text':
@@ -373,13 +658,13 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                         <div style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            backgroundColor: '#1f1f1f',
-                            border: '1px solid #303030',
-                            borderRadius: 4,
+                            backgroundColor: token.colorFillSecondary,
+                            border: `1px solid ${token.colorBorder}`,
+                            borderRadius: token.borderRadius,
                             padding: '2px 8px',
                             gap: 8
                         }}>
-                            <Text style={{ color: '#8c8c8c', fontSize: 13 }}>in a checklist named</Text>
+                            <Text style={{ color: token.colorTextSecondary, fontSize: 13 }}>in a checklist named</Text>
                             <Input
                                 placeholder={part.placeholder}
                                 value={config[part.key!]}
@@ -392,7 +677,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                                 size="small"
                                 icon={<span style={{ fontSize: 10 }}>✕</span>}
                                 onClick={() => handleUpdateTrigger(triggerId, part.key!, null)}
-                                style={{ color: '#595959', minWidth: 20, height: 20, padding: 0 }}
+                                style={{ color: token.colorTextSecondary, minWidth: 20, height: 20, padding: 0 }}
                             />
                         </div>
                     );
@@ -409,7 +694,6 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                 );
 
             case 'condition_group':
-                // Placeholder
                 return <Button size="small" icon={<PlusOutlined />} />;
 
             case 'label_select':
@@ -501,11 +785,102 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
         }
     };
 
+    const renderActionSummary = (action: any) => {
+        const template = ACTION_TEMPLATES.find(t => t.id === action.id);
+        if (!template) return action.id;
+
+        return (
+            <Space wrap size={4}>
+                {template.parts.map((part, index) => {
+                    if (part.type === 'static') {
+                        return <Text key={index} style={{ color: token.colorTextSecondary }}>{part.value}</Text>;
+                    }
+
+                    if (part.key) {
+                        let val = action[part.key];
+
+                        // Resolve values
+                        if (part.type === 'list_select' && val) {
+                            // Check current board lists
+                            let list = lists.find((l: any) => l.id === val);
+
+                            // If not found, check remote lists if board_id is present
+                            if (!list && action.board_id) {
+                                const remote = remoteLists[action.board_id];
+                                if (remote) {
+                                    list = remote.find((l: any) => l.id === val);
+                                }
+                            }
+
+                            if (list) val = list.title;
+                        }
+
+                        if (part.type === 'board_select') {
+                            if (val) {
+                                const board = allBoards?.find((b: any) => b.id === val);
+                                if (board) val = board.title;
+                            } else if (board) {
+                                val = board.title;
+                            }
+                        }
+
+                        if (part.type === 'verb_select' && val) {
+                            // Just use the value
+                        }
+
+                        const displayVal = val !== undefined ? val : (part.value || '...');
+                        return <Text key={index} strong style={{ color: token.colorText }}>{displayVal}</Text>;
+                    }
+                    return null;
+                })}
+            </Space>
+        );
+    };
+
+
+
+    // Update name when entering Step 3
+    const handleNext = () => {
+        if (currentStep === 1) {
+            // Moving to Review
+            if (!isNameEdited) {
+                const triggerDesc = getTriggerDescription();
+                // Join all actions with ' & '
+                const actionDesc = actions.map(a => getActionDescription(a)).join(' & ');
+                setRuleName(`${triggerDesc} → ${actionDesc}`);
+            }
+        }
+        setCurrentStep(currentStep + 1);
+    };
+
     const handleFinish = async (values: any) => {
-        // ... Logic to construct payload based on selected Trigger (needs a selection state)
-        // For prototype, assuming first one in category or explicit selection
-        // Phase 3 implementation
-        onSuccess();
+        if (!selectedTriggerId) return;
+
+        // Construct Payload
+        const triggerPayload = {
+            id: selectedTriggerId,
+            ...triggerConfig[selectedTriggerId]
+        };
+
+        const ruleData = {
+            name: ruleName,
+            description: '',
+            trigger_type: 'event', // Default to event
+            trigger_config: triggerPayload,
+            actions: actions.map(a => {
+                const { id, ...rest } = a;
+                return { id, ...rest };
+            }),
+        };
+
+        createRule.mutate({
+            board_id: boardId,
+            ...ruleData
+        }, {
+            onSuccess: () => {
+                onSuccess();
+            }
+        });
     };
 
     return (
@@ -517,7 +892,22 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                     { title: 'Actions', icon: <PlayCircleOutlined /> },
                     { title: 'Review', icon: <SaveOutlined /> },
                 ]}
-                style={{ marginBottom: 24 }}
+                onChange={(step) => {
+                    // Allow navigating back
+                    if (step < currentStep) {
+                        setCurrentStep(step);
+                    }
+                    // Allow navigating forward only if valid?
+                    // For now, let's just allow clicking existing headers if we are at step 2
+                    if (currentStep === 2) {
+                        setCurrentStep(step);
+                    }
+                    // If at step 0, can't jump to 2 directly usually unless validated.
+                    // But simpler: just allow setStep if we have data.
+                    if (step === 1 && selectedTriggerId) setCurrentStep(1);
+                    if (step === 2 && selectedTriggerId && actions.length > 0) setCurrentStep(2);
+                }}
+                style={{ marginBottom: 24, cursor: 'pointer' }}
             />
 
             <Form form={form} layout="vertical" onFinish={handleFinish}>
@@ -593,31 +983,170 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                                                 setValidationErrors(prev => ({ ...prev, [item.id]: errors }));
                                             } else {
                                                 // Proceed
-                                                // setTriggerId(item.id); 
-                                                // setCurrentStep(1);
+                                                setSelectedTriggerId(item.id);
+                                                setCurrentStep(1);
                                             }
                                         }}
                                     />
                                 </div>
                             </List.Item>
                         )}
-                        style={{ background: '#141414', borderRadius: 8, padding: 8 }} // Dark theme mock
+                        style={{ background: token.colorFillAlter, borderRadius: token.borderRadius, padding: 8 }}
                         className="trigger-list"
                     />
-
-                    {/* Filters Display (Tags) for each row - tricky in List, maybe integrated in renderTriggerPart? 
-                        Displaying selected filters as tags inline
-                    */}
                 </div>
 
-                {/* STEP 2 & 3: Keep existing for now to focus on Trigger */}
+                {/* STEP 2: ACTIONS */}
                 <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
-                    <p>Actions Placeholder</p>
+                    {/* Selected Trigger Display (Read-only) */}
+                    <Card style={{ marginBottom: 24, background: token.colorFillSecondary, borderColor: token.colorBorder }} bodyStyle={{ padding: 12 }}>
+                        <Space style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                            <Space>
+                                <Text strong style={{ color: token.colorText }}>Trigger:</Text>
+                                <Text style={{ color: token.colorTextSecondary }}>
+                                    {renderTriggerSummary()}
+                                </Text>
+                            </Space>
+                            <Button type="text" icon={<DeleteOutlined />} onClick={() => setCurrentStep(0)} />
+                        </Space>
+                    </Card>
+
+                    <Title level={5}>Select Action</Title>
+
+                    <Space style={{ marginBottom: 16 }} wrap>
+                        {ACTION_CATEGORIES?.map(cat => (
+                            <Button
+                                key={cat.id}
+                                type={activeActionCategory === cat.id ? 'primary' : 'default'}
+                                onClick={() => setActiveActionCategory(cat.id)}
+                            >
+                                {cat.label}
+                            </Button>
+                        ))}
+                    </Space>
+
+                    <List
+                        dataSource={ACTION_TEMPLATES?.filter(t => t.category === activeActionCategory)}
+                        renderItem={item => (
+                            <List.Item>
+                                <Space wrap style={{ flex: 1, marginRight: 16 }}>
+                                    {item.parts.map((part, idx) => (
+                                        <div key={idx}>{renderActionRow(part, item.id)}</div>
+                                    ))}
+                                </Space>
+                                <Button
+                                    type="primary"
+                                    shape="circle"
+                                    icon={<PlusOutlined />}
+                                    onClick={() => {
+                                        const errors = validateAction(item.id, item, actionConfig[item.id] || {});
+                                        if (errors.length > 0) {
+                                            setActionValidationErrors(prev => ({ ...prev, [item.id]: errors }));
+                                        } else {
+                                            setActions(prev => [...prev, { id: item.id, ...actionConfig[item.id] }]);
+                                            // Optional: Clear config for this item after adding? 
+                                            // setActionConfig(prev => ({ ...prev, [item.id]: {} }));
+                                        }
+                                    }}
+                                />
+                            </List.Item>
+                        )}
+                        style={{ background: token.colorFillAlter, borderRadius: token.borderRadius, padding: 8 }}
+                    />
+
+                    {actions.length > 0 && (
+                        <div style={{ marginTop: 24 }}>
+                            <Title level={5}>Actions to perform</Title>
+                            <List
+                                dataSource={actions}
+                                renderItem={(action, idx) => (
+                                    <List.Item>
+                                        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                                            <Space>
+                                                <Text strong>Action {idx + 1}:</Text>
+                                                {renderActionSummary(action)}
+                                            </Space>
+                                            <Button
+                                                type="text"
+                                                icon={<CloseOutlined />}
+                                                onClick={() => setActions(prev => prev.filter((_, i) => i !== idx))}
+                                            />
+                                        </Space>
+                                    </List.Item>
+                                )}
+                                style={{ background: token.colorFillAlter, borderRadius: token.borderRadius, padding: 8 }}
+                            />
+                        </div>
+                    )}
                 </div>
 
-                <div style={{ marginTop: 24, textAlign: 'right' }}>
+                {/* STEP 3: REVIEW */}
+                <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
+
+                    <div style={{ marginBottom: 24 }}>
+                        <Title level={5}>Rule Name</Title>
+                        <Input
+                            value={ruleName}
+                            onChange={(e) => {
+                                setRuleName(e.target.value);
+                                setIsNameEdited(true);
+                            }}
+                            size="large"
+                            placeholder="e.g., Move newly added cards to To Do"
+                        />
+                    </div>
+
+                    <Card style={{ marginBottom: 24 }} bodyStyle={{ padding: 12 }}>
+                        <Space style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                            <Space>
+                                <Text strong>Trigger:</Text>
+                                <Text>
+                                    {renderTriggerSummary()}
+                                </Text>
+                            </Space>
+                            <Button type="link" size="small" onClick={() => setCurrentStep(0)}>Edit</Button>
+                        </Space>
+                    </Card>
+
+                    <Title level={5}>Actions</Title>
+                    <List
+                        dataSource={actions}
+                        renderItem={(action, idx) => (
+                            <List.Item>
+                                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                                    <Space>
+                                        <Text strong>Action {idx + 1}:</Text>
+                                        {renderActionSummary(action)}
+                                    </Space>
+                                    <Space>
+                                        <Button type="link" size="small" onClick={() => setCurrentStep(1)}>Edit</Button>
+                                        <Button
+                                            type="text"
+                                            icon={<CloseOutlined />}
+                                            onClick={() => setActions(prev => prev.filter((_, i) => i !== idx))}
+                                        />
+                                    </Space>
+                                </Space>
+                            </List.Item>
+                        )}
+                        style={{ borderRadius: 8, padding: 8, marginBottom: 24 }}
+                    />
+
+                    <Button
+                        type="primary"
+                        size="large"
+                        icon={<SaveOutlined />}
+                        block
+                        onClick={() => form.submit()}
+                        disabled={!selectedTriggerId || actions.length === 0}
+                    >
+                        Create Automation
+                    </Button>
+                </div>
+
+                <div style={{ marginTop: 24, textAlign: 'right', display: currentStep === 2 ? 'none' : 'block' }}>
                     {currentStep > 0 && <Button style={{ margin: '0 8px' }} onClick={() => setCurrentStep(currentStep - 1)}>Previous</Button>}
-                    {currentStep > 0 && currentStep < 2 && <Button type="primary" onClick={() => setCurrentStep(currentStep + 1)}>Next</Button>}
+                    {currentStep > 0 && currentStep < 2 && actions.length > 0 && <Button type="primary" onClick={handleNext}>Next</Button>}
                 </div>
             </Form>
         </div>
