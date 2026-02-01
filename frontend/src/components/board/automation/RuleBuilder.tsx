@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Steps, Form, Input, Select, Button, Space, Card, Typography, Divider, Tabs, List, Tag, Popover, Switch, Tooltip, theme } from 'antd';
 import { PlayCircleOutlined, ThunderboltOutlined, SaveOutlined, PlusOutlined, DeleteOutlined, UnorderedListOutlined, CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { useCreateRule } from '@/hooks/useAutomation';
+import { useCreateRule, useUpdateRule } from '@/hooks/useAutomation';
 import { useBoard, useAllBoards } from '@/hooks/useBoards';
 import api from '@/lib/api';
 import { TRIGGER_CATEGORIES, TRIGGER_TEMPLATES, ACTION_CATEGORIES, ACTION_TEMPLATES, TriggerOption, TriggerPart } from './automationTypes';
@@ -18,13 +18,15 @@ interface RuleBuilderProps {
     boardId: string;
     onCancel: () => void;
     onSuccess: () => void;
+    ruleToEdit?: any;
 }
 
-export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilderProps) {
+export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }: RuleBuilderProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
     const { token } = theme.useToken();
     const createRule = useCreateRule();
+    const updateRule = useUpdateRule();
     const { data: board } = useBoard(boardId);
     const { data: allBoards } = useAllBoards();
 
@@ -45,20 +47,45 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
 
     // State for Trigger Builder
     const [activeCategory, setActiveCategory] = useState<string>('card_move');
-    const [selectedTriggerId, setSelectedTriggerId] = useState<string | null>(null);
-    const [triggerConfig, setTriggerConfig] = useState<any>({}); // Store configurations for each trigger ID
+    const [selectedTriggerId, setSelectedTriggerId] = useState<string | null>(() => {
+        if (ruleToEdit && ruleToEdit.trigger_config) {
+            return ruleToEdit.trigger_config.id;
+        }
+        return null;
+    });
+    const [triggerConfig, setTriggerConfig] = useState<any>(() => {
+        if (ruleToEdit && ruleToEdit.trigger_config) {
+            return { [ruleToEdit.trigger_config.id]: ruleToEdit.trigger_config };
+        }
+        return {};
+    }); // Store configurations for each trigger ID
     const [isAdvanced, setIsAdvanced] = useState(true);
     const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
 
     // State for Action Builder (Step 2)
     const [activeActionCategory, setActiveActionCategory] = useState<string>('move');
-    const [actions, setActions] = useState<any[]>([]); // List of added actions [{ id: 'move_card', ...config }]
-    const [actionConfig, setActionConfig] = useState<any>({}); // Configuration for current editing action inputs
+    const [actions, setActions] = useState<any[]>(() => {
+        if (ruleToEdit && ruleToEdit.actions) {
+            // Need to reconstruct action config for validation?
+            return ruleToEdit.actions;
+        }
+        return [];
+    }); // List of added actions [{ id: 'move_card', ...config }]
+    const [actionConfig, setActionConfig] = useState<any>(() => {
+        if (ruleToEdit && ruleToEdit.actions) {
+            const config: any = {};
+            ruleToEdit.actions.forEach((act: any) => {
+                config[act.id] = act;
+            });
+            return config;
+        }
+        return {};
+    }); // Configuration for current editing action inputs
     const [remoteLists, setRemoteLists] = useState<Record<string, any[]>>({}); // Cache for lists of other boards
     const [actionValidationErrors, setActionValidationErrors] = useState<Record<string, string[]>>({});
 
     // State for Rule Name
-    const [ruleName, setRuleName] = useState('New Automation Rule');
+    const [ruleName, setRuleName] = useState(() => ruleToEdit ? ruleToEdit.name : 'New Automation Rule');
     const [isNameEdited, setIsNameEdited] = useState(false);
 
     // Helper to generate text description
@@ -853,34 +880,44 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
         setCurrentStep(currentStep + 1);
     };
 
-    const handleFinish = async (values: any) => {
+    const handleFinish = async () => {
+        // Construct payload
         if (!selectedTriggerId) return;
-
-        // Construct Payload
         const triggerPayload = {
             id: selectedTriggerId,
             ...triggerConfig[selectedTriggerId]
         };
 
-        const ruleData = {
-            name: ruleName,
-            description: '',
-            trigger_type: 'event', // Default to event
+        // Flatten board_id from actions if needed (handled in getActionDescription but payload needs to be clean)
+        // Ensure actions are an object array
+
+        // Final name logic check
+        let finalName = ruleName;
+        if (!isNameEdited && ruleToEdit) {
+            // Keep existing name if not edited, logic below handles auto-gen for new rules mostly
+            // But if we want to regen based on edited trigger/actions?
+            // Let's rely on handleNext updating it
+        }
+
+        const payload = {
+            name: finalName,
+            board_id: boardId,
+            trigger_type: 'event', // hardcoded for now
             trigger_config: triggerPayload,
-            actions: actions.map(a => {
-                const { id, ...rest } = a;
-                return { id, ...rest };
-            }),
+            actions: actions,
+            is_enabled: true
         };
 
-        createRule.mutate({
-            board_id: boardId,
-            ...ruleData
-        }, {
-            onSuccess: () => {
-                onSuccess();
+        try {
+            if (ruleToEdit) {
+                await updateRule.mutateAsync({ id: ruleToEdit.id, data: payload });
+            } else {
+                await createRule.mutateAsync(payload);
             }
-        });
+            onSuccess();
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
@@ -1140,7 +1177,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess }: RuleBuilde
                         onClick={() => form.submit()}
                         disabled={!selectedTriggerId || actions.length === 0}
                     >
-                        Create Automation
+                        {ruleToEdit ? 'Save Automation' : 'Create Automation'}
                     </Button>
                 </div>
 

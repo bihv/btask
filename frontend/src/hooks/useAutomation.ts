@@ -50,3 +50,17 @@ export const useDeleteRule = () => {
         },
     });
 };
+
+export const useUpdateRule = () => {
+    const { message } = App.useApp();
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: any }) => api.put(`/automation/rules/${id}`, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['rules'] });
+        },
+        onError: (error: any) => {
+            message.error(error.response?.data?.error || 'Failed to update rule');
+        },
+    });
+};

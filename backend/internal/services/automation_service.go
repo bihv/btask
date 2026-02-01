@@ -83,6 +83,34 @@ func (s *AutomationService) DeleteRule(id uuid.UUID) error {
 	return s.repo.DeleteRule(id)
 }
 
+func (s *AutomationService) UpdateRule(id uuid.UUID, req models.CreateAutomationRuleRequest) (*models.AutomationRule, error) {
+	rule, err := s.repo.FindRuleByID(id)
+	if err != nil {
+		return nil, errors.New("rule not found")
+	}
+
+	// Update fields
+	rule.Name = req.Name
+	rule.Description = req.Description
+	rule.TriggerType = req.TriggerType
+	rule.TriggerConfig = req.TriggerConfig
+	rule.Actions = req.Actions
+
+	// Update BoardID/WorkspaceID only if provided (though usually these don't move)
+	if req.BoardID != nil {
+		bid, err := uuid.Parse(*req.BoardID)
+		if err == nil {
+			rule.BoardID = &bid
+		}
+	}
+
+	if err := s.repo.UpdateRule(rule); err != nil {
+		return nil, err
+	}
+
+	return rule, nil
+}
+
 // ==========================================
 // RULE ENGINE (Core Logic)
 // ==========================================

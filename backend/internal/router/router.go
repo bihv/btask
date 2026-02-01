@@ -309,6 +309,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Automation Routes
 	automation := protected.Group("/automation")
 	automation.Post("/rules", automationHandler.CreateRule)
+	automation.Put("/rules/:id", automationHandler.UpdateRule)
 	automation.Delete("/rules/:id", automationHandler.DeleteRule)
 	boards.Get("/:boardId/automation/rules", automationHandler.GetRules)
 
