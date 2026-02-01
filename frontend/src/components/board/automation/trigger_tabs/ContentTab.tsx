@@ -17,11 +17,17 @@ export const ContentTab = ({ onAdd }: ContentTabProps) => {
         const [operator, setOperator] = useState('starting');
         const [textVal, setTextVal] = useState('');
         const [mode] = useState('with');
+        const [error, setError] = useState(false);
 
         const handleAdd = () => {
-            const targetText = target === 'name' ? 'a name' : target === 'desc' ? 'a description' : 'a name or description';
-            const opText = operator.replace('_', ' ');
-            onAdd({ type: 'content', subtype: 'text_match', mode, target, operator, value: textVal, text: `${mode} ${targetText} ${opText} "${textVal}"` });
+            if (textVal && textVal.trim() !== '') {
+                const targetText = target === 'name' ? 'a name' : target === 'desc' ? 'a description' : 'a name or description';
+                const opText = operator.replace('_', ' ');
+                onAdd({ type: 'content', subtype: 'text_match', mode, target, operator, value: textVal, text: `${mode} ${targetText} ${opText} "${textVal}"` });
+                setError(false);
+            } else {
+                setError(true);
+            }
         };
 
         return (
@@ -41,7 +47,16 @@ export const ContentTab = ({ onAdd }: ContentTabProps) => {
                         <Option value="not_ending">not ending with</Option>
                         <Option value="not_containing">not containing</Option>
                     </Select>
-                    <Input placeholder="text" value={textVal} onChange={e => setTextVal(e.target.value)} style={{ width: 100 }} />
+                    <Input
+                        placeholder="text"
+                        value={textVal}
+                        status={error ? 'error' : ''}
+                        onChange={e => {
+                            setTextVal(e.target.value);
+                            setError(false);
+                        }}
+                        style={{ width: 100 }}
+                    />
                 </Space>
                 <Button icon={<PlusOutlined />} type="text" onClick={handleAdd} />
             </div>

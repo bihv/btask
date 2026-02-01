@@ -13,9 +13,10 @@ interface TriggerFilterModalProps {
     lists: any[];
     labels: any[];
     members: any[];
+    showInactive?: boolean;
 }
 
-export const TriggerFilterModal = ({ value, onChange, lists, labels, members }: TriggerFilterModalProps) => {
+export const TriggerFilterModal = ({ value, onChange, lists, labels, members, showInactive = true }: TriggerFilterModalProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleAddFilter = (filter: any) => {
@@ -28,7 +29,7 @@ export const TriggerFilterModal = ({ value, onChange, lists, labels, members }: 
         {
             key: 'basic',
             label: 'Basic',
-            children: <BasicTab lists={lists} labels={labels} members={members} onAdd={handleAddFilter} />
+            children: <BasicTab lists={lists} labels={labels} members={members} showInactiveOption={showInactive} onAdd={handleAddFilter} />
         },
         {
             key: 'dates',
