@@ -139,6 +139,20 @@ type ArchiveCardAction struct {
 	Type string `json:"type"` // archive_card
 }
 
+type UnarchiveCardAction struct {
+	Type string `json:"type"` // unarchive_card
+}
+
+type RemoveLabelAction struct {
+	Type    string `json:"type"` // remove_label
+	LabelID string `json:"label_id"`
+}
+
+type RemoveMemberAction struct {
+	Type   string `json:"type"` // remove_member
+	UserID string `json:"user_id"`
+}
+
 type SendWebhookAction struct {
 	Type    string                 `json:"type"` // send_webhook
 	URL     string                 `json:"url"`

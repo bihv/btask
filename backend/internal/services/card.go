@@ -132,6 +132,10 @@ func (s *CardService) Update(cardID uuid.UUID, userID uuid.UUID, req models.Upda
 		return nil, errors.New("access denied")
 	}
 
+	// Track changes for automation triggers
+	oldDueDate := card.DueDate
+	oldIsCompleted := card.IsCompleted
+
 	if req.Title != "" {
 		card.Title = req.Title
 	}
@@ -160,6 +164,34 @@ func (s *CardService) Update(cardID uuid.UUID, userID uuid.UUID, req models.Upda
 
 	if err := s.cardRepo.Update(card); err != nil {
 		return nil, err
+	}
+
+	// Trigger Automation for due date change
+	dueDateChanged := (oldDueDate == nil && card.DueDate != nil) ||
+		(oldDueDate != nil && card.DueDate == nil) ||
+		(oldDueDate != nil && card.DueDate != nil && !oldDueDate.Equal(*card.DueDate))
+	if dueDateChanged {
+		s.automationService.ProcessEvent("card.due_date_changed", list.BoardID, map[string]interface{}{
+			"card_id":  cardID.String(),
+			"list_id":  card.ListID.String(),
+			"board_id": list.BoardID.String(),
+			"user_id":  userID.String(),
+		})
+	}
+
+	// Trigger Automation for completion status change
+	if oldIsCompleted != card.IsCompleted {
+		eventType := "card.completed"
+		if !card.IsCompleted {
+			eventType = "card.incomplete"
+		}
+		s.automationService.ProcessEvent(eventType, list.BoardID, map[string]interface{}{
+			"card_id":      cardID.String(),
+			"list_id":      card.ListID.String(),
+			"board_id":     list.BoardID.String(),
+			"is_completed": card.IsCompleted,
+			"user_id":      userID.String(),
+		})
 	}
 
 	return card, nil
@@ -281,7 +313,20 @@ func (s *CardService) RemoveLabel(cardID uuid.UUID, labelID uuid.UUID, userID uu
 		return errors.New("access denied")
 	}
 
-	return s.cardRepo.RemoveLabel(cardID, labelID)
+	err = s.cardRepo.RemoveLabel(cardID, labelID)
+	if err != nil {
+		return err
+	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.label_removed", list.BoardID, map[string]interface{}{
+		"card_id":  cardID.String(),
+		"label_id": labelID.String(),
+		"board_id": list.BoardID.String(),
+		"user_id":  userID.String(),
+	})
+
+	return nil
 }
 
 func (s *CardService) AddMember(cardID uuid.UUID, memberUserID uuid.UUID, userID uuid.UUID) error {
@@ -304,7 +349,20 @@ func (s *CardService) AddMember(cardID uuid.UUID, memberUserID uuid.UUID, userID
 		return errors.New("access denied")
 	}
 
-	return s.cardRepo.AddMember(cardID, memberUserID)
+	err = s.cardRepo.AddMember(cardID, memberUserID)
+	if err != nil {
+		return err
+	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.member_added", list.BoardID, map[string]interface{}{
+		"card_id":   cardID.String(),
+		"member_id": memberUserID.String(),
+		"board_id":  list.BoardID.String(),
+		"user_id":   userID.String(),
+	})
+
+	return nil
 }
 
 func (s *CardService) RemoveMember(cardID uuid.UUID, memberUserID uuid.UUID, userID uuid.UUID) error {
@@ -327,7 +385,20 @@ func (s *CardService) RemoveMember(cardID uuid.UUID, memberUserID uuid.UUID, use
 		return errors.New("access denied")
 	}
 
-	return s.cardRepo.RemoveMember(cardID, memberUserID)
+	err = s.cardRepo.RemoveMember(cardID, memberUserID)
+	if err != nil {
+		return err
+	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.member_removed", list.BoardID, map[string]interface{}{
+		"card_id":   cardID.String(),
+		"member_id": memberUserID.String(),
+		"board_id":  list.BoardID.String(),
+		"user_id":   userID.String(),
+	})
+
+	return nil
 }
 
 func (s *CardService) Archive(cardID uuid.UUID, userID uuid.UUID) error {
@@ -350,7 +421,20 @@ func (s *CardService) Archive(cardID uuid.UUID, userID uuid.UUID) error {
 		return errors.New("access denied")
 	}
 
-	return s.cardRepo.Archive(cardID)
+	err = s.cardRepo.Archive(cardID)
+	if err != nil {
+		return err
+	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.archived", list.BoardID, map[string]interface{}{
+		"card_id":  cardID.String(),
+		"list_id":  card.ListID.String(),
+		"board_id": list.BoardID.String(),
+		"user_id":  userID.String(),
+	})
+
+	return nil
 }
 
 func (s *CardService) Unarchive(cardID uuid.UUID, userID uuid.UUID) error {
@@ -373,7 +457,20 @@ func (s *CardService) Unarchive(cardID uuid.UUID, userID uuid.UUID) error {
 		return errors.New("access denied")
 	}
 
-	return s.cardRepo.Unarchive(cardID)
+	err = s.cardRepo.Unarchive(cardID)
+	if err != nil {
+		return err
+	}
+
+	// Trigger Automation
+	s.automationService.ProcessEvent("card.unarchived", list.BoardID, map[string]interface{}{
+		"card_id":  cardID.String(),
+		"list_id":  card.ListID.String(),
+		"board_id": list.BoardID.String(),
+		"user_id":  userID.String(),
+	})
+
+	return nil
 }
 
 func (s *CardService) GetArchivedByBoardID(boardID uuid.UUID, userID uuid.UUID) ([]models.Card, error) {

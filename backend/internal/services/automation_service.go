@@ -134,8 +134,23 @@ func (s *AutomationService) ProcessEvent(eventType string, boardID uuid.UUID, co
 }
 
 func (s *AutomationService) matchRule(rule models.AutomationRule, eventType string, context map[string]interface{}) bool {
-	// 1. Check Event Type
+	// Parse trigger config
 	configBytes, _ := json.Marshal(rule.TriggerConfig)
+
+	// First try parsing as frontend format (has "id" field)
+	var frontendConfig struct {
+		ID     string `json:"id"`
+		ListID string `json:"list_id"`
+		Verb   string `json:"verb"`
+	}
+	json.Unmarshal(configBytes, &frontendConfig)
+
+	// If frontend format detected, use trigger ID mapping
+	if frontendConfig.ID != "" {
+		return s.matchFrontendTrigger(frontendConfig.ID, eventType, context, rule.TriggerConfig)
+	}
+
+	// Fall back to legacy format (event field)
 	var triggerConfig models.EventTriggerConfig
 	json.Unmarshal(configBytes, &triggerConfig)
 
@@ -143,25 +158,119 @@ func (s *AutomationService) matchRule(rule models.AutomationRule, eventType stri
 		return false
 	}
 
-	// 2. Check Conditions (Phase 3 placeholder)
-	// For now, we assume simple matching (e.g. if event is "card.moved", check if destination list matches)
-
-	// Example: If rule triggers on "Move to Done", we check context["list_name"] == "Done" or context["list_id"] == target_list_id
-	// This requires more complex logic. For Phase 1, we trust the eventType match or implement strict match.
-	// Let's implement a simple condition checker if conditions exist.
-
+	// Check conditions if any
 	for _, condition := range triggerConfig.Conditions {
 		val, exists := context[condition.Field]
 		if !exists {
 			return false
 		}
-
-		// Simple string comparison for now
 		if condition.Operator == "equals" && val != condition.Value {
 			return false
 		}
 	}
 
+	return true
+}
+
+// matchFrontendTrigger maps frontend trigger IDs to backend events
+func (s *AutomationService) matchFrontendTrigger(triggerID, eventType string, context map[string]interface{}, config models.JSONMap) bool {
+	// Map frontend trigger IDs to expected backend events
+	triggerEventMap := map[string][]string{
+		"card_added_to_board": {"card.created", "card.moved"},
+		"card_added_to_list":  {"card.created", "card.moved"},
+		"card_archived":       {"card.archived", "card.unarchived"},
+		"card_status_changed": {"card.completed", "card.incomplete"},
+		"label_changed":       {"card.label_added", "card.label_removed"},
+		"member_changed":      {"card.member_added", "card.member_removed"},
+		"member_me_changed":   {"card.member_added", "card.member_removed"},
+		"date_changed":        {"card.due_date_changed"},
+		"list_created":        {"list.created", "list.renamed", "list.archived"},
+	}
+
+	// Check if eventType matches any expected events for this trigger
+	expectedEvents, ok := triggerEventMap[triggerID]
+	if !ok {
+		log.Printf("[Automation] Unknown trigger ID: %s", triggerID)
+		return false
+	}
+
+	eventMatched := false
+	for _, e := range expectedEvents {
+		if e == eventType {
+			eventMatched = true
+			break
+		}
+	}
+	if !eventMatched {
+		return false
+	}
+
+	// Check conditions based on trigger type
+	switch triggerID {
+	case "card_added_to_list":
+		// Check if card was created/moved to the specified list
+		listID, _ := config["list_id"].(string)
+		if listID != "" {
+			contextListID, _ := context["list_id"].(string)
+			if listID != contextListID {
+				return false
+			}
+		}
+		// Check verb (added to, moved into, etc.)
+		verb, _ := config["verb"].(string)
+		if verb == "moved into" && eventType != "card.moved" {
+			return false
+		}
+		if verb == "created in" && eventType != "card.created" {
+			return false
+		}
+
+	case "card_archived":
+		verb, _ := config["verb"].(string)
+		if verb == "archived" && eventType != "card.archived" {
+			return false
+		}
+		if verb == "unarchived" && eventType != "card.unarchived" {
+			return false
+		}
+
+	case "label_changed":
+		verb, _ := config["verb"].(string)
+		if verb == "added to" && eventType != "card.label_added" {
+			return false
+		}
+		if verb == "removed from" && eventType != "card.label_removed" {
+			return false
+		}
+		// Check label_id match
+		labelID, _ := config["label_id"].(string)
+		if labelID != "" {
+			contextLabelID, _ := context["label_id"].(string)
+			if labelID != contextLabelID {
+				return false
+			}
+		}
+
+	case "member_changed", "member_me_changed":
+		verb, _ := config["verb"].(string)
+		if verb == "added to" && eventType != "card.member_added" {
+			return false
+		}
+		if verb == "removed from" && eventType != "card.member_removed" {
+			return false
+		}
+
+	case "card_status_changed":
+		status, _ := config["status"].(string)
+		if status == "complete" && eventType != "card.completed" {
+			return false
+		}
+		if status == "incomplete" && eventType != "card.incomplete" {
+			return false
+		}
+	}
+
+	log.Printf("[Automation] Rule matched: trigger=%s event=%s", triggerID, eventType)
 	return true
 }
 
@@ -181,15 +290,22 @@ func (s *AutomationService) executeRule(rule models.AutomationRule, context map[
 	var errs []string
 
 	for _, actionRaw := range rule.Actions {
-		// Decode action
+		var err error
+		// Decode action - support both frontend format (id) and backend format (type)
 		actionBytes, _ := json.Marshal(actionRaw)
 		var baseAction struct {
 			Type string `json:"type"`
+			ID   string `json:"id"`
 		}
 		json.Unmarshal(actionBytes, &baseAction)
 
-		var err error
-		switch baseAction.Type {
+		// Use ID as fallback if Type is empty (frontend format)
+		actionType := baseAction.Type
+		if actionType == "" {
+			actionType = baseAction.ID
+		}
+
+		switch actionType {
 		case "move_card":
 			var action models.MoveCardAction
 			json.Unmarshal(actionBytes, &action)
@@ -198,9 +314,26 @@ func (s *AutomationService) executeRule(rule models.AutomationRule, context map[
 			var action models.AddLabelAction
 			json.Unmarshal(actionBytes, &action)
 			err = s.executeAddLabel(action, context)
+		case "remove_label":
+			var action models.RemoveLabelAction
+			json.Unmarshal(actionBytes, &action)
+			err = s.executeRemoveLabel(action, context)
+		case "add_member":
+			var action models.AssignMemberAction
+			json.Unmarshal(actionBytes, &action)
+			err = s.executeAddMember(action, context)
+		case "remove_member":
+			var action models.RemoveMemberAction
+			json.Unmarshal(actionBytes, &action)
+			err = s.executeRemoveMember(action, context)
+		case "set_due_date":
+			var action models.SetDueDateAction
+			json.Unmarshal(actionBytes, &action)
+			err = s.executeSetDueDate(action, context)
 		case "archive_card":
 			err = s.executeArchiveCard(context)
-			// Add more actions here
+		case "unarchive_card":
+			err = s.executeUnarchiveCard(context)
 		}
 
 		if err != nil {
@@ -266,4 +399,115 @@ func (s *AutomationService) executeArchiveCard(context map[string]interface{}) e
 	}
 	cardID, _ := uuid.Parse(cardIDStr)
 	return s.cardRepo.Archive(cardID)
+}
+
+func (s *AutomationService) executeUnarchiveCard(context map[string]interface{}) error {
+	cardIDStr, ok := context["card_id"].(string)
+	if !ok {
+		return errors.New("card_id missing in context")
+	}
+	cardID, _ := uuid.Parse(cardIDStr)
+	return s.cardRepo.Unarchive(cardID)
+}
+
+func (s *AutomationService) executeRemoveLabel(action models.RemoveLabelAction, context map[string]interface{}) error {
+	cardIDStr, ok := context["card_id"].(string)
+	if !ok {
+		return errors.New("card_id missing in context")
+	}
+	cardID, _ := uuid.Parse(cardIDStr)
+	labelID, _ := uuid.Parse(action.LabelID)
+
+	return s.cardRepo.RemoveLabel(cardID, labelID)
+}
+
+func (s *AutomationService) executeAddMember(action models.AssignMemberAction, context map[string]interface{}) error {
+	cardIDStr, ok := context["card_id"].(string)
+	if !ok {
+		return errors.New("card_id missing in context")
+	}
+	cardID, _ := uuid.Parse(cardIDStr)
+	userID, _ := uuid.Parse(action.UserID)
+
+	return s.cardRepo.AddMember(cardID, userID)
+}
+
+func (s *AutomationService) executeRemoveMember(action models.RemoveMemberAction, context map[string]interface{}) error {
+	cardIDStr, ok := context["card_id"].(string)
+	if !ok {
+		return errors.New("card_id missing in context")
+	}
+	cardID, _ := uuid.Parse(cardIDStr)
+	userID, _ := uuid.Parse(action.UserID)
+
+	return s.cardRepo.RemoveMember(cardID, userID)
+}
+
+func (s *AutomationService) executeSetDueDate(action models.SetDueDateAction, context map[string]interface{}) error {
+	cardIDStr, ok := context["card_id"].(string)
+	if !ok {
+		return errors.New("card_id missing in context")
+	}
+	cardID, _ := uuid.Parse(cardIDStr)
+
+	card, err := s.cardRepo.FindByID(cardID)
+	if err != nil {
+		return errors.New("card not found")
+	}
+
+	// Parse due date - can be ISO date or relative like "+7d"
+	dueDateStr := action.DueDate
+	var dueDate time.Time
+
+	if len(dueDateStr) > 0 && dueDateStr[0] == '+' {
+		// Relative date parsing (e.g., "+7d", "+1w", "+2h")
+		duration, err := parseRelativeDuration(dueDateStr[1:])
+		if err != nil {
+			return fmt.Errorf("invalid relative date format: %v", err)
+		}
+		dueDate = time.Now().Add(duration)
+	} else {
+		// ISO date parsing
+		parsed, err := time.Parse(time.RFC3339, dueDateStr)
+		if err != nil {
+			// Try simple date format
+			parsed, err = time.Parse("2006-01-02", dueDateStr)
+			if err != nil {
+				return fmt.Errorf("invalid date format: %v", err)
+			}
+		}
+		dueDate = parsed
+	}
+
+	card.DueDate = &dueDate
+	return s.cardRepo.Update(card)
+}
+
+// parseRelativeDuration parses strings like "7d", "1w", "2h" into time.Duration
+func parseRelativeDuration(s string) (time.Duration, error) {
+	if len(s) < 2 {
+		return 0, errors.New("duration too short")
+	}
+
+	unit := s[len(s)-1]
+	numStr := s[:len(s)-1]
+
+	var num int
+	_, err := fmt.Sscanf(numStr, "%d", &num)
+	if err != nil {
+		return 0, err
+	}
+
+	switch unit {
+	case 'h':
+		return time.Duration(num) * time.Hour, nil
+	case 'd':
+		return time.Duration(num) * 24 * time.Hour, nil
+	case 'w':
+		return time.Duration(num) * 7 * 24 * time.Hour, nil
+	case 'm':
+		return time.Duration(num) * 30 * 24 * time.Hour, nil // approximate month
+	default:
+		return 0, fmt.Errorf("unknown unit: %c", unit)
+	}
 }
