@@ -247,11 +247,11 @@ func (s *CardService) Move(cardID uuid.UUID, userID uuid.UUID, req models.MoveCa
 
 	// Trigger Automation
 	s.automationService.ProcessEvent("card.moved", list.BoardID, map[string]interface{}{
-		"card_id":        cardID.String(),
-		"source_list_id": list.ID.String(),
-		"list_id":        req.ListID.String(), // Target list
-		"board_id":       list.BoardID.String(),
-		"user_id":        userID.String(),
+		"card_id":     cardID.String(),
+		"old_list_id": list.ID.String(), // Source list (matches trigger config)
+		"list_id":     req.ListID.String(), // Target list
+		"board_id":    list.BoardID.String(),
+		"user_id":     userID.String(),
 	})
 
 	return nil

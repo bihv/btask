@@ -1,13 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { List, Button, Typography, Space, Card, Tag, Flex, App, Modal } from 'antd';
-import { DeleteOutlined, RightOutlined, RobotOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
-import { useBoardRules, useDeleteRule } from '@/hooks/useAutomation';
+import { useState, useMemo, useCallback } from 'react';
+import { List, Button, Typography, Space, Card, Tag, Flex, App, Modal, Switch, Tooltip, Spin } from 'antd';
+import { DeleteOutlined, RightOutlined, RobotOutlined, EditOutlined, EyeOutlined, FilterOutlined, PlayCircleOutlined, PauseOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { 
+    useBoardRules, 
+    useDeleteRule, 
+    useToggleRule,
+    useAvailableTriggers, 
+    useAvailableActions,
+    findTriggerById,
+    findActionById,
+} from '@/hooks/useAutomationSchema';
+import { SentenceDisplay } from './SentenceTemplateRenderer';
 import { useBoard, useAllBoards } from '@/hooks/useBoards';
 import { theme } from 'antd';
 import RuleBuilder from './RuleBuilder';
-import { TRIGGER_TEMPLATES, ACTION_TEMPLATES } from './automationTypes';
+import type { AutomationRule, RuleCondition } from '@/types/automation';
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -18,19 +27,31 @@ interface AutomationRulesProps {
 export default function AutomationRules({ boardId }: AutomationRulesProps) {
     const { modal } = App.useApp();
     const [isCreating, setIsCreating] = useState(false);
-    const [editingRule, setEditingRule] = useState<any>(null);
-    const [viewingRule, setViewingRule] = useState<any>(null);
+    const [editingRule, setEditingRule] = useState<AutomationRule | null>(null);
+    const [viewingRule, setViewingRule] = useState<AutomationRule | null>(null);
     const { data: rules = [], isLoading } = useBoardRules(boardId);
     const deleteRule = useDeleteRule();
+    const toggleRule = useToggleRule();
     const { token } = theme.useToken();
+
+    // Load schema for dynamic descriptions
+    const { data: triggers = [], isLoading: loadingTriggers } = useAvailableTriggers();
+    const { data: actions = [], isLoading: loadingActions } = useAvailableActions();
 
     const { data: board } = useBoard(boardId);
     const { data: allBoards } = useAllBoards();
 
-    // Data for resolution
-    const lists = board?.lists || [];
-    const labels = board?.labels || [];
-    const members = (board as any)?.members || [];
+    // Context for SentenceDisplay
+    const context = useMemo(() => ({
+        lists: (board?.lists || []).map(l => ({ id: l.id, title: l.title })),
+        labels: (board?.labels || []).map(l => ({ id: l.id, name: l.name || '', color: l.color })),
+        members: ((board as any)?.members || []).map((m: any) => ({ 
+            id: m.id, 
+            username: m.username, 
+            full_name: m.full_name 
+        })),
+        boards: (allBoards || []).map(b => ({ id: b.id, title: b.title })),
+    }), [board, allBoards]);
 
     const handleDelete = (id: string) => {
         modal.confirm({
@@ -41,98 +62,64 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
         });
     };
 
-    const renderTriggerDescription = (rule: any) => {
+    const handleToggle = (rule: AutomationRule) => {
+        toggleRule.mutate({ id: rule.id, enabled: !rule.is_enabled });
+    };
+
+    // Render trigger description using schema
+    const renderTriggerDescription = useCallback((rule: AutomationRule) => {
         const config = rule.trigger_config || {};
-        // Match by trigger_config.id first, then trigger_type
         const triggerId = config.id || rule.trigger_type;
-        const template = TRIGGER_TEMPLATES.find(t => t.id === triggerId);
-
-        if (template) {
+        
+        const triggerSchema = findTriggerById(triggers, triggerId);
+        if (triggerSchema && triggerSchema.sentence_template) {
             return (
-                <Text>
-                    {template.parts.map((part, index) => {
-                        if (part.type === 'static') return <span key={index}>{part.value} </span>;
-
-                        if (part.key) {
-                            let val = config[part.key];
-
-                            if (part.type === 'list_select' && val) {
-                                const list = lists.find((l: any) => l.id === val);
-                                if (list) val = list.title;
-                            }
-                            if (part.type === 'board_select' && val) {
-                                const b = allBoards?.find((b: any) => b.id === val);
-                                if (b) val = b.title;
-                            }
-                            if (part.type === 'member_select' && val) {
-                                const m = members.find((m: any) => m.id === val);
-                                if (m) val = m.username || m.fullName;
-                            }
-                            if (part.type === 'label_select' && val) {
-                                if (typeof val === 'object') val = val.name;
-                                else {
-                                    const l = labels.find((l: any) => l.id === val);
-                                    if (l) val = l.name;
-                                }
-                            }
-                            if (part.type === 'user' && val && typeof val === 'object') {
-                                val = val.text || val.username || val.name;
-                            }
-                            if (typeof val === 'object' && val !== null) {
-                                return JSON.stringify(val);
-                            }
-
-                            // Use default value if config value is missing
-                            const displayVal = val !== undefined && val !== null && val !== '' ? val : part.value;
-                            if (displayVal === undefined || displayVal === null) return null;
-
-                            return <Text strong key={index}>{displayVal}{' '}</Text>;
-                        }
-                        return null;
-                    })}
-                </Text>
+                <SentenceDisplay
+                    template={triggerSchema.sentence_template}
+                    config={config}
+                    properties={triggerSchema.properties.reduce((acc, p) => {
+                        acc[p.name] = p;
+                        return acc;
+                    }, {} as Record<string, any>)}
+                    context={context}
+                />
             );
         }
 
-        if (rule.trigger_type === 'event') {
-            return <Tag color="blue">Event: {config.event}</Tag>;
-        }
-        return <Tag>{rule.trigger_type}</Tag>;
-    };
+        return <Tag color="blue">{triggerSchema?.name || triggerId}</Tag>;
+    }, [triggers, context]);
 
-    const renderActionDescription = (action: any) => {
-        // action.type or action.id might be used
+    // Render action description
+    const renderActionDescription = useCallback((action: any) => {
         const actionId = action.id || action.type;
-        const template = ACTION_TEMPLATES.find(t => t.id === actionId);
+        
+        const actionSchema = findActionById(actions, actionId);
+        if (actionSchema && actionSchema.sentence_template) {
+            return (
+                <SentenceDisplay
+                    template={actionSchema.sentence_template}
+                    config={action}
+                    properties={actionSchema.properties.reduce((acc, p) => {
+                        acc[p.name] = p;
+                        return acc;
+                    }, {} as Record<string, any>)}
+                    context={context}
+                />
+            );
+        }
 
-        if (!template) return <Text>{actionId}</Text>;
+        return <Text>{actionSchema?.name || actionId}</Text>;
+    }, [actions, context]);
 
+    // Render conditions summary
+    const renderConditionsSummary = (conditions?: RuleCondition[]) => {
+        if (!conditions || conditions.length === 0) return null;
         return (
-            <Text>
-                {template.parts.map((part, index) => {
-                    if (part.type === 'static') return <span key={index}>{part.value} </span>;
-
-                    if (part.key) {
-                        let val = action[part.key];
-
-                        if (part.type === 'list_select' && val) {
-                            const list = lists.find((l: any) => l.id === val);
-                            if (list) val = list.title;
-                        }
-                        if (part.type === 'board_select' && val) {
-                            const b = allBoards?.find((b: any) => b.id === val);
-                            if (b) val = b.title;
-                        }
-
-                        // Use default value if config value is missing
-                        const displayVal = val !== undefined && val !== null && val !== '' ? val : part.value;
-                        if (displayVal === undefined || displayVal === null) return null;
-
-                        return <Text strong key={index}>{displayVal}{' '}</Text>;
-                    }
-                    return null;
-                })}
-            </Text>
+            <Tooltip title={`${conditions.length} condition(s) must be met`}>
+                <Tag color="orange" icon={<FilterOutlined />}>
+                    {conditions.length} condition{conditions.length > 1 ? 's' : ''}
+                </Tag>
+            </Tooltip>
         );
     };
 
@@ -144,13 +131,16 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                 </Button>
                 <RuleBuilder
                     boardId={boardId}
-                    ruleToEdit={editingRule}
+                    ruleToEdit={editingRule || undefined}
                     onCancel={() => { setIsCreating(false); setEditingRule(null); }}
                     onSuccess={() => { setIsCreating(false); setEditingRule(null); }}
                 />
             </div>
         );
     }
+
+    // Show loading if schema is loading
+    const schemaLoading = loadingTriggers || loadingActions;
 
     return (
         <div style={{ padding: '24px' }}>
@@ -204,24 +194,47 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                 )}
             </Flex>
 
-            {(rules.length > 0 || isLoading) && (
+            {(rules.length > 0 || isLoading || schemaLoading) && (
                 <List
                     header={<Text strong>Your Rules</Text>}
-                    loading={isLoading}
+                    loading={isLoading || schemaLoading}
                     dataSource={rules}
-                    renderItem={(rule: any) => (
+                    renderItem={(rule: AutomationRule) => (
                         <List.Item>
                             <Card style={{ width: '100%' }} size="small" hoverable>
                                 <Flex justify="space-between" align="center">
-                                    <Space orientation="vertical" size={2} style={{ flex: 1, cursor: 'pointer' }} onClick={() => setViewingRule(rule)}>
-                                        <Text strong style={{ fontSize: 16 }}>{rule.name}</Text>
-                                        <Space>
-                                            {renderTriggerDescription(rule)}
-                                            <RightOutlined style={{ fontSize: 10 }} />
-                                            <Tag color="green">{rule.actions?.length || 0} Actions</Tag>
-                                        </Space>
+                                    <Space style={{ flex: 1, cursor: 'pointer' }} onClick={() => setViewingRule(rule)}>
+                                        <div>
+                                            <Space align="center" style={{ marginBottom: 4 }}>
+                                                <Text strong style={{ fontSize: 16 }}>{rule.name}</Text>
+                                                {!rule.is_enabled && <Tag color="default">Disabled</Tag>}
+                                            </Space>
+                                            <div>
+                                                <Space size={4}>
+                                                    <ThunderboltOutlined style={{ color: token.colorTextSecondary }} />
+                                                    {renderTriggerDescription(rule)}
+                                                    {renderConditionsSummary(rule.conditions)}
+                                                    <RightOutlined style={{ fontSize: 10, color: token.colorTextSecondary }} />
+                                                    <Tag color="green">{rule.actions?.length || 0} Action{(rule.actions?.length || 0) !== 1 ? 's' : ''}</Tag>
+                                                </Space>
+                                            </div>
+                                            {rule.run_count !== undefined && rule.run_count > 0 && (
+                                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                                    Ran {rule.run_count} time{rule.run_count !== 1 ? 's' : ''}
+                                                    {rule.last_run_at && ` · Last: ${new Date(rule.last_run_at).toLocaleDateString()}`}
+                                                </Text>
+                                            )}
+                                        </div>
                                     </Space>
                                     <Space>
+                                        <Tooltip title={rule.is_enabled ? 'Disable' : 'Enable'}>
+                                            <Switch
+                                                size="small"
+                                                checked={rule.is_enabled}
+                                                onChange={() => handleToggle(rule)}
+                                                loading={toggleRule.isPending}
+                                            />
+                                        </Tooltip>
                                         <Button
                                             icon={<EyeOutlined />}
                                             type="text"
@@ -253,6 +266,9 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                 footer={[
                     <Button key="close" onClick={() => setViewingRule(null)}>
                         Close
+                    </Button>,
+                    <Button key="edit" type="primary" onClick={() => { setEditingRule(viewingRule); setViewingRule(null); }}>
+                        Edit Rule
                     </Button>
                 ]}
             >
@@ -264,9 +280,47 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                         </div>
 
                         <div>
-                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>Trigger</Text>
-                            {renderTriggerDescription(viewingRule)}
+                            <Text type="secondary">Status</Text>
+                            <div>
+                                <Tag color={viewingRule.is_enabled ? 'green' : 'default'}>
+                                    {viewingRule.is_enabled ? 'Enabled' : 'Disabled'}
+                                </Tag>
+                            </div>
                         </div>
+
+                        <div>
+                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>Trigger</Text>
+                            <Card size="small">
+                                <Space>
+                                    <ThunderboltOutlined />
+                                    {renderTriggerDescription(viewingRule)}
+                                </Space>
+                            </Card>
+                        </div>
+
+                        {viewingRule.conditions && viewingRule.conditions.length > 0 && (
+                            <div>
+                                <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                                    Conditions ({viewingRule.conditions.length})
+                                </Text>
+                                <Card size="small">
+                                    <List
+                                        size="small"
+                                        dataSource={viewingRule.conditions}
+                                        renderItem={(cond: RuleCondition, idx: number) => (
+                                            <List.Item style={{ padding: '4px 0' }}>
+                                                <Space>
+                                                    {idx > 0 && <Tag color="blue">{cond.logic?.toUpperCase() || 'AND'}</Tag>}
+                                                    <Text code>{cond.field}</Text>
+                                                    <Text type="secondary">{cond.operator}</Text>
+                                                    {cond.value !== undefined && <Text strong>{JSON.stringify(cond.value)}</Text>}
+                                                </Space>
+                                            </List.Item>
+                                        )}
+                                    />
+                                </Card>
+                            </div>
+                        )}
 
                         <div>
                             <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
@@ -276,13 +330,30 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                                 size="small"
                                 bordered
                                 dataSource={viewingRule.actions}
-                                renderItem={(action: any) => (
+                                renderItem={(action: any, idx: number) => (
                                     <List.Item>
-                                        {renderActionDescription(action)}
+                                        <Space>
+                                            <Tag color="green">{idx + 1}</Tag>
+                                            {renderActionDescription(action)}
+                                        </Space>
                                     </List.Item>
                                 )}
                             />
                         </div>
+
+                        {(viewingRule.run_count !== undefined || viewingRule.last_run_at) && (
+                            <div>
+                                <Text type="secondary">Statistics</Text>
+                                <div>
+                                    <Text>
+                                        Ran {viewingRule.run_count || 0} time{(viewingRule.run_count || 0) !== 1 ? 's' : ''}
+                                    </Text>
+                                    {viewingRule.last_run_at && (
+                                        <Text type="secondary"> · Last run: {new Date(viewingRule.last_run_at).toLocaleString()}</Text>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </Flex>
                 )}
             </Modal>

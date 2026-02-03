@@ -44,6 +44,32 @@ export function useWebSocket(token: string | null) {
                     console.log('Labels updated, refreshing...');
                     queryClient.invalidateQueries({ queryKey: labelKeys.all });
                 }
+
+                // Handle automation invalidation - refetch board and card data
+                if (message.type === 'invalidate') {
+                    const data = message.data;
+                    console.log('Automation invalidation received:', data);
+                    
+                    if (data.board_id) {
+                        // Invalidate board queries
+                        queryClient.invalidateQueries({ queryKey: ['board', data.board_id] });
+                        queryClient.invalidateQueries({ queryKey: ['boards'] });
+                        
+                        // Invalidate automation rules for this board
+                        queryClient.invalidateQueries({ queryKey: ['automation', 'rules', data.board_id] });
+                    }
+                    
+                    if (data.card_id) {
+                        // Invalidate card queries
+                        queryClient.invalidateQueries({ queryKey: ['card', data.card_id] });
+                        queryClient.invalidateQueries({ queryKey: ['cards'] });
+                    }
+                    
+                    // Also invalidate list queries since cards may have moved
+                    if (data.board_id) {
+                        queryClient.invalidateQueries({ queryKey: ['lists', data.board_id] });
+                    }
+                }
             } catch (error) {
                 console.error('Failed to parse WebSocket message:', error);
             }

@@ -17,7 +17,6 @@ export interface User {
     language?: string;
     timezone?: string;
     date_format?: string;
-
     // Admin
     is_admin?: boolean;
 }
@@ -451,3 +450,5 @@ export interface UpdatePluginRequest {
     price_monthly?: number;
     price_yearly?: number;
 }
+// Re-export automation types
+export * from './automation';

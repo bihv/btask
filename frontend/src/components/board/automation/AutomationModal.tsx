@@ -73,7 +73,7 @@ export default function AutomationModal({ open, onClose, boardId }: AutomationMo
                         ]}
                     />
                 </Sider>
-                <Content>
+                <Content style={{ overflow: 'auto', height: '100%' }}>
                     {renderContent()}
                 </Content>
             </Layout>

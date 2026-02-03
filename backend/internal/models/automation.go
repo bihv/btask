@@ -77,6 +77,7 @@ type CreateAutomationRuleRequest struct {
 type UpdateAutomationRuleRequest struct {
 	Name          string    `json:"name" validate:"omitempty,min=3,max=200"`
 	Description   string    `json:"description" validate:"max=1000"`
+	TriggerType   string    `json:"trigger_type" validate:"omitempty,oneof=event schedule manual"`
 	TriggerConfig JSONMap   `json:"trigger_config"`
 	Actions       JSONArray `json:"actions" validate:"omitempty,min=1"`
 	IsEnabled     *bool     `json:"is_enabled"`

@@ -67,7 +67,7 @@ func (h *AutomationHandler) UpdateRule(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid rule ID"})
 	}
 
-	var req models.CreateAutomationRuleRequest
+	var req models.UpdateAutomationRuleRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
@@ -81,4 +81,69 @@ func (h *AutomationHandler) UpdateRule(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"data": rule})
+}
+
+// ==========================================
+// SCHEMA API ENDPOINTS
+// ==========================================
+
+// GetAutomationSchema returns the full automation schema (triggers, actions, conditions)
+// for building the automation UI.
+// GET /api/automation/schema
+func (h *AutomationHandler) GetAutomationSchema(c *fiber.Ctx) error {
+	schema := h.service.GetFullAutomationSchema()
+	return c.JSON(fiber.Map{"data": schema})
+}
+
+// GetAvailableTriggers returns all registered triggers with their schemas.
+// GET /api/automation/triggers
+func (h *AutomationHandler) GetAvailableTriggers(c *fiber.Ctx) error {
+	triggers := h.service.GetAvailableTriggers()
+	return c.JSON(fiber.Map{"data": triggers})
+}
+
+// GetAvailableActions returns all registered actions with their schemas.
+// GET /api/automation/actions
+func (h *AutomationHandler) GetAvailableActions(c *fiber.Ctx) error {
+	actions := h.service.GetAvailableActions()
+	return c.JSON(fiber.Map{"data": actions})
+}
+
+// GetConditionOperators returns available condition operators.
+// GET /api/automation/conditions/operators
+func (h *AutomationHandler) GetConditionOperators(c *fiber.Ctx) error {
+	operators := h.service.GetAvailableConditionOperators()
+	return c.JSON(fiber.Map{"data": operators})
+}
+
+// GetConditionFields returns available fields for conditions based on context.
+// GET /api/automation/conditions/fields?context=card
+func (h *AutomationHandler) GetConditionFields(c *fiber.Ctx) error {
+	contextType := c.Query("context", "card")
+	fields := h.service.GetAvailableConditionFields(contextType)
+	return c.JSON(fiber.Map{"data": fields})
+}
+
+// ValidateRule validates a rule configuration before saving.
+// POST /api/automation/validate
+func (h *AutomationHandler) ValidateRule(c *fiber.Ctx) error {
+	var req models.CreateAutomationRuleRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	errs := h.service.ValidateRuleConfig(req)
+	if len(errs) > 0 {
+		// Convert errors to strings
+		errStrings := make([]string, len(errs))
+		for i, e := range errs {
+			errStrings[i] = e.Error()
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"valid":  false,
+			"errors": errStrings,
+		})
+	}
+
+	return c.JSON(fiber.Map{"valid": true})
 }

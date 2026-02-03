@@ -151,3 +151,51 @@ func (h *Hub) BroadcastToAll(data interface{}) {
 		}
 	}
 }
+
+// BroadcastInvalidation sends an invalidation event to all connected clients
+// This is used by automation to notify frontend to refetch data
+func (h *Hub) BroadcastInvalidation(invalidationType string, boardID, cardID uuid.UUID, extra map[string]interface{}) {
+	data := map[string]interface{}{
+		"invalidation_type": invalidationType,
+	}
+	
+	if boardID != uuid.Nil {
+		data["board_id"] = boardID.String()
+	}
+	if cardID != uuid.Nil {
+		data["card_id"] = cardID.String()
+	}
+	if extra != nil {
+		for k, v := range extra {
+			data[k] = v
+		}
+	}
+
+	message := WSMessage{
+		Type: "invalidate",
+		Data: data,
+	}
+
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		logger.Error("Failed to marshal invalidation message", zap.Error(err))
+		return
+	}
+
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	for _, client := range h.clients {
+		select {
+		case client.send <- jsonData:
+		default:
+			// Client buffer full, skip
+		}
+	}
+
+	logger.Info("Broadcast invalidation", 
+		zap.String("type", invalidationType), 
+		zap.String("boardID", boardID.String()),
+		zap.String("cardID", cardID.String()),
+	)
+}

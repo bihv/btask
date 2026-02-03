@@ -1,0 +1,101 @@
+.container {
+    padding: 16px;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    gap: 16px;
+}
+
+.calendarWrapper {
+    flex: 1;
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--ant-color-bg-container);
+    overflow: auto;
+    min-height: 0;
+}
+
+.sidebar {
+    width: 300px;
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.sidebarHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.cardsList {
+    flex: 1;
+    overflow: auto;
+}
+
+.cardsListInner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cardItem {
+    cursor: pointer;
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.cardItem:hover {
+    border-color: var(--primary-color, #1890ff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cardTags {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.popoverContent {
+    max-height: 200px;
+    overflow: auto;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.popoverCardItem {
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.popoverCardTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.badgeWrapper {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+}
+
+.monthBadges {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    display: flex;
+    gap: 2px;
+}

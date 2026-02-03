@@ -10,6 +10,7 @@ import { useBoardStore } from '@/stores/boardStore';
 import { Card } from '@/types';
 import { FilterState } from '@/components/board/BoardFilterPopover';
 import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
+import styles from './CalendarView.module.css';
 
 const { Text } = Typography;
 
@@ -106,19 +107,16 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
         return (
             <Popover
                 content={
-                    <div style={{ maxHeight: 200, overflow: 'auto', minWidth: 200, display: 'flex', flexDirection: 'column' }}>
+                    <div className={styles.popoverContent}>
                         {cards.map((card) => (
                             <div
                                 key={card.id}
-                                style={{
-                                    cursor: 'pointer',
-                                    padding: '4px 0',
-                                }}
+                                className={styles.popoverCardItem}
                                 onClick={() => onCardClick?.(card.id)}
                             >
                                 <div>
                                     <Text strong style={{ fontSize: 12 }}>{card.title}</Text>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                    <div className={styles.popoverCardTags}>
                                         <Tag 
                                             style={{ 
                                                 fontSize: 10, 
@@ -139,11 +137,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                 title={`Cards due ${value.format('MMM D')}`}
                 trigger="hover"
             >
-                <div style={{ 
-                    position: 'absolute', 
-                    bottom: 4, 
-                    right: 4,
-                }}>
+                <div className={styles.badgeWrapper}>
                     <Badge
                         count={cards.length}
                         style={{
@@ -169,13 +163,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
         const pending = cards.length - overdue - completed;
         
         return (
-            <div style={{ 
-                position: 'absolute', 
-                bottom: 4, 
-                right: 4,
-                display: 'flex',
-                gap: 2,
-            }}>
+            <div className={styles.monthBadges}>
                 {overdue > 0 && (
                     <Tooltip title={`${overdue} overdue`}>
                         <Badge
@@ -246,19 +234,8 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
     };
 
     return (
-        <div style={{ 
-            padding: 16, 
-            height: '100%', 
-            overflow: 'auto',
-            display: 'flex',
-            gap: 16,
-        }}>
-            <div style={{ 
-                flex: 1,
-                borderRadius: 8,
-                padding: 16,
-                background: 'var(--ant-color-bg-container)',
-            }}>
+        <div className={styles.container}>
+            <div className={styles.calendarWrapper}>
                 <Calendar
                     cellRender={(current, info) => {
                         if (info.type === 'date') return dateCellRender(current);
@@ -271,18 +248,8 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
             </div>
             
             {sidebarOpen && (
-                <div style={{
-                    width: 300,
-                    borderRadius: 8,
-                    padding: 16,
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-color)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    maxHeight: '100%',
-                    overflow: 'hidden',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexShrink: 0 }}>
+                <div className={styles.sidebar}>
+                    <div className={styles.sidebarHeader}>
                         <Text strong>
                             {sidebarTitle}
                         </Text>
@@ -296,20 +263,17 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                     {displayCards.length === 0 ? (
                         <Empty description="No cards due" image={Empty.PRESENTED_IMAGE_SIMPLE} />
                     ) : (
-                        <div style={{ flex: 1, overflow: 'auto' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div className={styles.cardsList}>
+                            <div className={styles.cardsListInner}>
                                 {displayCards.map((card) => (
                                     <div
                                         key={card.id}
-                                        style={{
-                                            cursor: 'pointer',
-                                            padding: '8px 0',
-                                        }}
+                                        className={styles.cardItem}
                                         onClick={() => onCardClick?.(card.id)}
                                     >
                                         <div>
                                             <Text strong>{card.title}</Text>
-                                            <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                            <div className={styles.cardTags}>
                                                 <Tag 
                                                     style={{ 
                                                         backgroundColor: card.listColor || undefined,

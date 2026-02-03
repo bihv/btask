@@ -41,6 +41,19 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Email verification (public - user clicks link from email)
 	api.Get("/users/verify-email", userHandler.VerifyEmailChange)
 
+	// Automation Service (initialize early for public schema endpoints)
+	automationService := services.NewAutomationService()
+	automationHandler := handlers.NewAutomationHandler(automationService)
+
+	// Public automation schema endpoints (no auth required)
+	// These are read-only schema endpoints used by the UI builder
+	publicAutomation := api.Group("/automation")
+	publicAutomation.Get("/triggers", automationHandler.GetAvailableTriggers)
+	publicAutomation.Get("/actions", automationHandler.GetAvailableActions)
+	publicAutomation.Get("/schema", automationHandler.GetAutomationSchema)
+	publicAutomation.Get("/conditions/operators", automationHandler.GetConditionOperators)
+	publicAutomation.Get("/conditions/fields", automationHandler.GetConditionFields)
+
 	// Protected routes
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(cfg))
@@ -102,11 +115,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	searchHandler := handlers.NewSearchHandler()
 	protected.Get("/search", searchHandler.Search)
 
-	// Automation Service
-	automationService := services.NewAutomationService()
-	automationHandler := handlers.NewAutomationHandler(automationService)
-
-	// User routes
+	// User routes (automationService already initialized above for public schema endpoints)
 	cardHandler := handlers.NewCardHandler(automationService)
 	users := protected.Group("/users")
 	users.Get("/me", userHandler.GetMe)
@@ -306,11 +315,12 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	webhooks.Delete("/:id", webhookHandler.Delete)
 	webhooks.Get("/:id/deliveries", webhookHandler.GetDeliveries) // Keeping existing webhook routes
 
-	// Automation Routes
-	automation := protected.Group("/automation")
-	automation.Post("/rules", automationHandler.CreateRule)
-	automation.Put("/rules/:id", automationHandler.UpdateRule)
-	automation.Delete("/rules/:id", automationHandler.DeleteRule)
+	// Automation Routes (protected - require auth for CRUD operations)
+	automationProtected := protected.Group("/automation")
+	automationProtected.Post("/rules", automationHandler.CreateRule)
+	automationProtected.Put("/rules/:id", automationHandler.UpdateRule)
+	automationProtected.Delete("/rules/:id", automationHandler.DeleteRule)
+	automationProtected.Post("/validate", automationHandler.ValidateRule)
 	boards.Get("/:boardId/automation/rules", automationHandler.GetRules)
 
 	// Plugin Data API (requires plugin token authentication)
