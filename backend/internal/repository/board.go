@@ -206,3 +206,34 @@ func (r *BoardRepository) GetRecentlyViewed(userID uuid.UUID, limit int) ([]mode
 
 	return result, nil
 }
+
+// GetMembers returns all members of a board
+func (r *BoardRepository) GetMembers(boardID uuid.UUID) ([]models.BoardMember, error) {
+	var members []models.BoardMember
+	err := database.DB.
+		Preload("User").
+		Where("board_id = ?", boardID).
+		Find(&members).Error
+	return members, err
+}
+
+// AddMember adds a member to a board
+func (r *BoardRepository) AddMember(member *models.BoardMember) error {
+	return database.DB.Create(member).Error
+}
+
+// RemoveMember removes a member from a board
+func (r *BoardRepository) RemoveMember(boardID uuid.UUID, userID uuid.UUID) error {
+	return database.DB.
+		Where("board_id = ? AND user_id = ?", boardID, userID).
+		Delete(&models.BoardMember{}).Error
+}
+
+// IsMember checks if a user is a member of a board
+func (r *BoardRepository) IsMember(boardID uuid.UUID, userID uuid.UUID) bool {
+	var count int64
+	database.DB.Model(&models.BoardMember{}).
+		Where("board_id = ? AND user_id = ?", boardID, userID).
+		Count(&count)
+	return count > 0
+}

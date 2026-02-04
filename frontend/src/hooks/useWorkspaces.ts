@@ -60,3 +60,17 @@ export function useCreateWorkspace() {
         },
     });
 }
+
+// Delete workspace mutation
+export function useDeleteWorkspace() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string): Promise<void> => {
+            await api.delete(`/workspaces/${id}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
+        },
+    });
+}

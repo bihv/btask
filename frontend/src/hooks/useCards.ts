@@ -167,13 +167,16 @@ export function useInvalidateChecklists(cardId: string) {
     return () => queryClient.invalidateQueries({ queryKey: cardKeys.checklists(cardId) });
 }
 
-// Fetch attachments for a card
-export function useAttachments(cardId: string) {
+// Fetch attachments for a card (only 'upload' source by default for display)
+export function useAttachments(cardId: string, source: 'upload' | 'editor' | 'all' = 'upload') {
     return useQuery({
-        queryKey: ['cards', cardId, 'attachments'],
+        queryKey: ['cards', cardId, 'attachments', source],
         queryFn: async () => {
             const { attachmentApi } = await import('@/lib/api');
-            const response = await attachmentApi.getByCardId(cardId);
+            // If 'all', don't pass source filter
+            const response = source === 'all' 
+                ? await attachmentApi.getByCardId(cardId)
+                : await attachmentApi.getByCardId(cardId, source);
             return response.data.data || [];
         },
         enabled: !!cardId,

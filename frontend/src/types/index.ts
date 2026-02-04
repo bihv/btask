@@ -215,6 +215,8 @@ export interface ChecklistItem {
 }
 
 // Attachment types
+export type AttachmentSource = 'upload' | 'editor';
+
 export interface Attachment {
     id: string;
     card_id: string;
@@ -224,6 +226,9 @@ export interface Attachment {
     file_size?: number;
     uploaded_by: string;
     uploader?: User;
+    source: AttachmentSource;
+    is_orphan: boolean;
+    orphaned_at?: string;
     created_at: string;
     updated_at: string;
 }

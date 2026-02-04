@@ -64,3 +64,14 @@ func (r *UserRepository) FindAll() ([]models.User, error) {
 	err := database.DB.Order("created_at DESC").Find(&users).Error
 	return users, err
 }
+
+// SearchByQuery searches users by email or full_name (partial match)
+func (r *UserRepository) SearchByQuery(query string, limit int) ([]models.User, error) {
+	var users []models.User
+	searchQuery := "%" + query + "%"
+	err := database.DB.
+		Where("email ILIKE ? OR full_name ILIKE ?", searchQuery, searchQuery).
+		Limit(limit).
+		Find(&users).Error
+	return users, err
+}

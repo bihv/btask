@@ -25,11 +25,31 @@ type Board struct {
 	Lists        []List        `json:"lists,omitempty" gorm:"foreignKey:BoardID"`
 	Labels       []Label       `json:"labels,omitempty" gorm:"foreignKey:BoardID"`
 	CustomFields []CustomField `json:"custom_fields,omitempty" gorm:"foreignKey:BoardID"`
+	Members      []BoardMember `json:"members,omitempty" gorm:"foreignKey:BoardID"`
 }
 
 func (b *Board) BeforeCreate(tx *gorm.DB) error {
 	if b.ID == uuid.Nil {
 		b.ID = uuid.New()
+	}
+	return nil
+}
+
+type BoardMember struct {
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
+	BoardID   uuid.UUID `json:"board_id" gorm:"type:uuid;not null"`
+	UserID    uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
+	Role      string    `json:"role" gorm:"default:'member'"` // admin, member
+	CreatedAt time.Time `json:"created_at"`
+
+	// Relations
+	Board Board `json:"board,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
+	User  User  `json:"user,omitempty" gorm:"foreignKey:UserID"`
+}
+
+func (bm *BoardMember) BeforeCreate(tx *gorm.DB) error {
+	if bm.ID == uuid.Nil {
+		bm.ID = uuid.New()
 	}
 	return nil
 }

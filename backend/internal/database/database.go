@@ -37,6 +37,7 @@ func Migrate() error {
 		&models.Workspace{},
 		&models.WorkspaceMember{},
 		&models.Board{},
+		&models.BoardMember{},
 		&models.BoardView{},
 		&models.List{},
 		&models.Card{},
@@ -72,6 +73,7 @@ func Migrate() error {
 		&models.WebhookDelivery{},
 		&models.AutomationRule{},
 		&models.AutomationRun{},
+		&models.SystemSettings{},
 	)
 
 	if err != nil {
@@ -84,6 +86,12 @@ func Migrate() error {
 	// Seed default labels
 	if err := seeders.SeedLabels(DB); err != nil {
 		logger.Error("Failed to seed labels", zap.Error(err))
+		// Don't return error - seeding failure shouldn't stop the app
+	}
+
+	// Seed default system settings
+	if err := seeders.SeedSystemSettings(DB); err != nil {
+		logger.Error("Failed to seed system settings", zap.Error(err))
 		// Don't return error - seeding failure shouldn't stop the app
 	}
 

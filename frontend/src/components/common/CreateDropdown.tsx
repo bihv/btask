@@ -5,25 +5,39 @@ import { Button, Dropdown, Modal, Input, App, Form } from 'antd';
 import { PlusOutlined, ProjectOutlined, TeamOutlined, AppstoreOutlined, FileOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import type { MenuProps } from 'antd';
-import { useCreateWorkspace } from '@/hooks/useWorkspaces';
+import { useCreateWorkspace, useWorkspaces } from '@/hooks/useWorkspaces';
 import { CreateWorkspaceRequest } from '@/types';
+import api from '@/lib/api';
+import CreateBoardModal, { CreateBoardData } from '@/components/board/CreateBoardModal';
 
 export default function CreateDropdown() {
     const router = useRouter();
     const { message } = App.useApp();
     const [createBoardOpen, setCreateBoardOpen] = useState(false);
     const [createWorkspaceOpen, setCreateWorkspaceOpen] = useState(false);
-    const [newBoardTitle, setNewBoardTitle] = useState('');
     const [workspaceForm] = Form.useForm();
+    const [isCreatingBoard, setIsCreatingBoard] = useState(false);
     const createWorkspaceMutation = useCreateWorkspace();
+    const { data: workspaces, isLoading: isLoadingWorkspaces } = useWorkspaces();
 
-    const handleCreateBoard = async () => {
-        if (!newBoardTitle.trim()) return;
-        // For quick create, we'll need to select a workspace first
-        // For now, show a message to use workspace page
-        message.info('Please create boards from within a workspace');
-        setCreateBoardOpen(false);
-        setNewBoardTitle('');
+    const handleCreateBoard = async (data: CreateBoardData) => {
+        if (!data.workspace_id) return;
+        try {
+            setIsCreatingBoard(true);
+            const response = await api.post(`/workspaces/${data.workspace_id}/boards`, {
+                title: data.title,
+                background_color: data.background_color,
+                background_image: data.background_image,
+            });
+            const board = response.data.data;
+            message.success('Board created successfully');
+            setCreateBoardOpen(false);
+            router.push(`/boards/${board.id}`);
+        } catch (error: any) {
+            message.error(error.response?.data?.error || 'Failed to create board');
+        } finally {
+            setIsCreatingBoard(false);
+        }
     };
 
     const handleCreateWorkspace = async (values: CreateWorkspaceRequest) => {
@@ -76,26 +90,18 @@ export default function CreateDropdown() {
             </Dropdown>
 
             {/* Create Board Modal */}
-            <Modal
-                title="Create Board"
+            <CreateBoardModal
                 open={createBoardOpen}
-                onOk={handleCreateBoard}
-                onCancel={() => {
+                onCancel={() => setCreateBoardOpen(false)}
+                onSubmit={handleCreateBoard}
+                loading={isCreatingBoard}
+                workspaces={workspaces}
+                showWorkspaceSelect={true}
+                onCreateWorkspace={() => {
                     setCreateBoardOpen(false);
-                    setNewBoardTitle('');
+                    setCreateWorkspaceOpen(true);
                 }}
-                okText="Create"
-            >
-                <p style={{ marginBottom: 8, color: 'var(--text-secondary)' }}>
-                    To create a board, please go to a workspace first.
-                </p>
-                <Input
-                    placeholder="Board title"
-                    value={newBoardTitle}
-                    onChange={(e) => setNewBoardTitle(e.target.value)}
-                    disabled
-                />
-            </Modal>
+            />
 
             {/* Create Workspace Modal */}
             <Modal

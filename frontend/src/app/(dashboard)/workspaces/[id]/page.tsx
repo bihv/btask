@@ -3,29 +3,22 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
-    Card,
     Row,
     Col,
     Typography,
     Button,
-    Modal,
-    Form,
-    Input,
     Empty,
     Spin,
     App,
 } from 'antd';
-import { PlusOutlined, StarOutlined, StarFilled, ArrowLeftOutlined } from '@ant-design/icons';
+import { PlusOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useHeader } from '@/providers/HeaderProvider';
 import { useWorkspace } from '@/hooks/useWorkspaces';
 import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
-import BackgroundPicker, { GRADIENT_BACKGROUNDS, SOLID_COLORS } from '@/components/board/BackgroundPicker';
+import CreateBoardModal, { CreateBoardData } from '@/components/board/CreateBoardModal';
 import BoardCard from '@/components/board/BoardCard';
 
-const { Title, Text } = Typography;
-
-// Default background
-const DEFAULT_BACKGROUND = SOLID_COLORS[0];
+const { Title } = Typography;
 
 export default function WorkspaceDetailPage() {
     const router = useRouter();
@@ -34,10 +27,7 @@ export default function WorkspaceDetailPage() {
     const { setHeaderContent } = useHeader();
 
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedBackground, setSelectedBackground] = useState(DEFAULT_BACKGROUND);
-    const [selectedImage, setSelectedImage] = useState('');
     const { message } = App.useApp();
-    const [form] = Form.useForm();
 
     // React Query hooks - workspace already includes boards
     const { data: workspace, isLoading } = useWorkspace(workspaceId);
@@ -45,17 +35,14 @@ export default function WorkspaceDetailPage() {
     const createMutation = useCreateBoard(workspaceId);
     const updateMutation = useUpdateBoard();
 
-    const handleCreateBoard = async (values: { title: string }) => {
+    const handleCreateBoard = async (data: CreateBoardData) => {
         try {
             await createMutation.mutateAsync({
-                title: values.title,
-                background_color: selectedImage ? '' : selectedBackground,
-                background_image: selectedImage,
+                title: data.title,
+                background_color: data.background_color,
+                background_image: data.background_image,
             });
             setModalOpen(false);
-            form.resetFields();
-            setSelectedBackground(DEFAULT_BACKGROUND);
-            setSelectedImage('');
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to create board');
         }
@@ -124,58 +111,12 @@ export default function WorkspaceDetailPage() {
                 </Row>
             )}
 
-            <Modal
-                title="Create Board"
+            <CreateBoardModal
                 open={modalOpen}
                 onCancel={() => setModalOpen(false)}
-                footer={null}
-            >
-                <Form form={form} layout="vertical" onFinish={handleCreateBoard}>
-                    <div
-                        style={{
-                            height: 100,
-                            borderRadius: 8,
-                            marginBottom: 16,
-                            background: selectedImage 
-                                ? `url(${selectedImage}) center/cover`
-                                : selectedBackground,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Text style={{ color: 'white', fontSize: 18, fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                            Preview
-                        </Text>
-                    </div>
-
-                    <Form.Item
-                        name="title"
-                        label="Board Title"
-                        rules={[{ required: true, message: 'Please enter a board title' }]}
-                    >
-                        <Input placeholder="e.g., Project Alpha" />
-                    </Form.Item>
-
-                    <Form.Item label="Background">
-                        <BackgroundPicker
-                            value={selectedBackground}
-                            imageValue={selectedImage}
-                            onChange={setSelectedBackground}
-                            onImageChange={setSelectedImage}
-                        />
-                    </Form.Item>
-
-                    <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-                        <Button onClick={() => setModalOpen(false)} style={{ marginRight: 8 }}>
-                            Cancel
-                        </Button>
-                        <Button type="primary" htmlType="submit" loading={createMutation.isPending}>
-                            Create
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
+                onSubmit={handleCreateBoard}
+                loading={createMutation.isPending}
+            />
         </div>
     );
 }

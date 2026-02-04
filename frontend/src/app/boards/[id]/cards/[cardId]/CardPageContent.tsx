@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Spin, Typography, Button, App } from 'antd';
 import { Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
-import api from '@/lib/api';
+import api, { attachmentApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useChecklists, useAttachments } from '@/hooks/useCards';
 import { useQueryClient } from '@tanstack/react-query';
@@ -24,6 +24,46 @@ import { pluginLoader } from '@/lib/pluginLoader';
 import { usePluginsOptional } from '@/components/plugins';
 
 const { Text } = Typography;
+
+// Helper to extract all file URLs from BlockNote JSON content
+const extractFileUrls = (content: string): string[] => {
+    if (!content) return [];
+    try {
+        const blocks = JSON.parse(content);
+        const urls: string[] = [];
+        
+        const extractFromBlocks = (items: unknown[]) => {
+            for (const item of items) {
+                if (typeof item !== 'object' || item === null) continue;
+                const block = item as Record<string, unknown>;
+                
+                // Check for image/file/video blocks with url prop
+                if (block.type === 'image' || block.type === 'file' || block.type === 'video') {
+                    const props = block.props as Record<string, unknown> | undefined;
+                    if (props?.url && typeof props.url === 'string') {
+                        urls.push(props.url);
+                    }
+                }
+                
+                // Recursively check nested content
+                if (Array.isArray(block.content)) {
+                    extractFromBlocks(block.content);
+                }
+                if (Array.isArray(block.children)) {
+                    extractFromBlocks(block.children);
+                }
+            }
+        };
+        
+        if (Array.isArray(blocks)) {
+            extractFromBlocks(blocks);
+        }
+        
+        return urls;
+    } catch {
+        return [];
+    }
+};
 
 export default function CardPageContent() {
     const router = useRouter();
@@ -122,10 +162,18 @@ export default function CardPageContent() {
         invalidateBoardCache();
     };
 
-    const handleDescSave = () => {
+    const handleDescSave = async () => {
         if (!card) return;
         if (description !== card.description) {
-            updateCard(card.id, { description });
+            await updateCard(card.id, { description });
+            
+            // Sync orphan status for editor attachments
+            const urls = extractFileUrls(description);
+            try {
+                await attachmentApi.syncOrphans(card.id, urls);
+            } catch (err) {
+                console.error('Failed to sync orphan attachments:', err);
+            }
         }
         setIsEditingDesc(false);
     };

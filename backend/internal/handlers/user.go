@@ -150,6 +150,31 @@ func (h *UserHandler) Search(c *fiber.Ctx) error {
 	})
 }
 
+// Suggest returns a list of users matching the query (for autocomplete)
+func (h *UserHandler) Suggest(c *fiber.Ctx) error {
+	query := c.Query("q")
+	if query == "" || len(query) < 2 {
+		return utils.SuccessResponse(c, []models.UserResponse{})
+	}
+
+	users, err := h.userRepo.SearchByQuery(query, 10)
+	if err != nil {
+		return utils.InternalErrorResponse(c, h.labelService.Get("ERROR_SEARCH_USERS_FAILED", "en"))
+	}
+
+	results := make([]models.UserResponse, len(users))
+	for i, user := range users {
+		results[i] = models.UserResponse{
+			ID:        user.ID,
+			Email:     user.Email,
+			FullName:  user.FullName,
+			AvatarURL: user.AvatarURL,
+		}
+	}
+
+	return utils.SuccessResponse(c, results)
+}
+
 // ChangePassword changes the user's password
 func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)

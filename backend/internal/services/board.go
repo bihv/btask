@@ -256,3 +256,120 @@ func (s *BoardService) GetRecentlyViewed(userID uuid.UUID, limit int) ([]models.
 	}
 	return s.boardRepo.GetRecentlyViewed(userID, limit)
 }
+
+// GetMembers returns all members of a board (workspace members + board-specific members)
+func (s *BoardService) GetMembers(boardID uuid.UUID, userID uuid.UUID) ([]models.BoardMember, error) {
+	board, err := s.boardRepo.FindByID(boardID)
+	if err != nil {
+		return nil, errors.New("board not found")
+	}
+
+	if !s.hasWorkspaceAccess(board.WorkspaceID, userID) {
+		return nil, errors.New("access denied")
+	}
+
+	// Get workspace members
+	workspaceMembers, err := s.workspaceRepo.GetMembers(board.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get board-specific members
+	boardMembers, err := s.boardRepo.GetMembers(boardID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a map to track unique members by user ID
+	memberMap := make(map[uuid.UUID]models.BoardMember)
+
+	// Add workspace members first (they get access via workspace)
+	for _, wm := range workspaceMembers {
+		memberMap[wm.UserID] = models.BoardMember{
+			ID:        wm.ID,
+			BoardID:   boardID,
+			UserID:    wm.UserID,
+			Role:      wm.Role, // Keep workspace role
+			CreatedAt: wm.CreatedAt,
+			User:      wm.User,
+		}
+	}
+
+	// Override with board-specific members (they may have different role)
+	for _, bm := range boardMembers {
+		memberMap[bm.UserID] = bm
+	}
+
+	// Convert map to slice
+	result := make([]models.BoardMember, 0, len(memberMap))
+	for _, member := range memberMap {
+		result = append(result, member)
+	}
+
+	return result, nil
+}
+
+// AddMemberByEmail adds a member to a board by email
+func (s *BoardService) AddMemberByEmail(boardID uuid.UUID, inviterID uuid.UUID, email string, role string) error {
+	board, err := s.boardRepo.FindByID(boardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasWorkspaceAccess(board.WorkspaceID, inviterID) {
+		return errors.New("access denied")
+	}
+
+	// Find user by email
+	userRepo := repository.NewUserRepository()
+	user, err := userRepo.FindByEmail(email)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	// Check if already a workspace member (they already have access)
+	if s.workspaceRepo.IsMember(board.WorkspaceID, user.ID) {
+		return errors.New("user already has access via workspace membership")
+	}
+
+	// Check if already a board-specific member
+	if s.boardRepo.IsMember(boardID, user.ID) {
+		return errors.New("user is already a board member")
+	}
+
+	if role == "" {
+		role = "member"
+	}
+
+	member := &models.BoardMember{
+		BoardID: boardID,
+		UserID:  user.ID,
+		Role:    role,
+	}
+
+	return s.boardRepo.AddMember(member)
+}
+
+// RemoveMember removes a board-specific member (cannot remove workspace members from board)
+func (s *BoardService) RemoveMember(boardID uuid.UUID, removerID uuid.UUID, memberUserID uuid.UUID) error {
+	board, err := s.boardRepo.FindByID(boardID)
+	if err != nil {
+		return errors.New("board not found")
+	}
+
+	if !s.hasWorkspaceAccess(board.WorkspaceID, removerID) {
+		return errors.New("access denied")
+	}
+
+	// Check if this is a workspace member - cannot remove them from board level
+	if s.workspaceRepo.IsMember(board.WorkspaceID, memberUserID) {
+		return errors.New("cannot remove workspace member from board - remove from workspace instead")
+	}
+
+	// Check if actually a board member
+	if !s.boardRepo.IsMember(boardID, memberUserID) {
+		return errors.New("user is not a board member")
+	}
+
+	return s.boardRepo.RemoveMember(boardID, memberUserID)
+}

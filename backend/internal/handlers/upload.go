@@ -6,16 +6,21 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mello/backend/internal/middleware"
+	"github.com/mello/backend/internal/repository"
 	"github.com/mello/backend/internal/storage"
 	"github.com/mello/backend/pkg/logger"
 	"github.com/mello/backend/pkg/utils"
 	"go.uber.org/zap"
 )
 
-type UploadHandler struct{}
+type UploadHandler struct {
+	settingsRepo *repository.SystemSettingsRepository
+}
 
 func NewUploadHandler() *UploadHandler {
-	return &UploadHandler{}
+	return &UploadHandler{
+		settingsRepo: repository.NewSystemSettingsRepository(),
+	}
 }
 
 // UploadFile handles file upload to MinIO, organizing files by user ID
@@ -29,9 +34,13 @@ func (h *UploadHandler) UploadFile(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "No file provided")
 	}
 
+	// Get max file size from settings
+	maxSizeMB := h.settingsRepo.GetMaxUploadSize()
+	maxSize := int64(maxSizeMB) * 1024 * 1024
+
 	// Check file size
-	if file.Size > storage.MaxFileSize {
-		return utils.ValidationErrorResponse(c, fmt.Sprintf("File size exceeds maximum allowed size of %d MB", storage.MaxFileSize/(1024*1024)))
+	if file.Size > maxSize {
+		return utils.ValidationErrorResponse(c, fmt.Sprintf("File size exceeds maximum allowed size of %d MB", maxSizeMB))
 	}
 
 	// Get content type
@@ -40,10 +49,9 @@ func (h *UploadHandler) UploadFile(c *fiber.Ctx) error {
 		contentType = "application/octet-stream"
 	}
 
-	// Validate content type
-	allowedTypes := storage.GetAllowedContentTypes()
-	if !allowedTypes[contentType] {
-		return utils.ValidationErrorResponse(c, "File type not allowed")
+	// Validate content type using settings
+	if !h.settingsRepo.IsContentTypeAllowed(contentType) {
+		return utils.ValidationErrorResponse(c, "File type not allowed: "+contentType)
 	}
 
 	// Open file

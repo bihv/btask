@@ -1,17 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Modal, Input, Button, Typography, Spin, Select, App } from 'antd';
-import { UserAddOutlined, DeleteOutlined, CrownOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Modal, AutoComplete, Button, Typography, Spin, Select, App } from 'antd';
+import { DeleteOutlined, CrownOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useUserSuggest } from '@/hooks/useUsers';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const { Text } = Typography;
 
 interface Member {
     id: string;
     user_id: string;
-    workspace_id: string;
+    workspace_id?: string;
+    board_id?: string;
     role: string;
     user?: {
         id: string;
@@ -21,14 +24,25 @@ interface Member {
     };
 }
 
+type ShareType = 'workspace' | 'board';
+
 interface ShareModalProps {
     open: boolean;
     onClose: () => void;
-    workspaceId: string;
+    workspaceId?: string;
+    boardId?: string;
     isOwner: boolean;
+    type?: ShareType;
 }
 
-export default function ShareModal({ open, onClose, workspaceId, isOwner }: ShareModalProps) {
+export default function ShareModal({
+    open,
+    onClose,
+    workspaceId,
+    boardId,
+    isOwner,
+    type = 'workspace'
+}: ShareModalProps) {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('member');
     const [members, setMembers] = useState<Member[]>([]);
@@ -36,10 +50,34 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
     const [isInviting, setIsInviting] = useState(false);
     const { message } = App.useApp();
 
+    const isBoard = type === 'board';
+    const entityId = isBoard ? boardId : workspaceId;
+    const basePath = isBoard ? `/boards/${boardId}` : `/workspaces/${workspaceId}`;
+    const title = isBoard ? 'Share Board' : 'Share Workspace';
+
+    // Debounce search query
+    const debouncedQuery = useDebounce(email, 300);
+
+    // Use React Query for user suggestions
+    const { data: suggestions = [], isFetching: isSearching } = useUserSuggest(debouncedQuery, open);
+
+    // Get member user IDs to filter from suggestions
+    const memberUserIds = useMemo(() =>
+        new Set(members.map(m => m.user_id)),
+        [members]
+    );
+
+    // Filter out existing members from suggestions
+    const filteredSuggestions = useMemo(() =>
+        suggestions.filter(u => !memberUserIds.has(u.id)),
+        [suggestions, memberUserIds]
+    );
+
     const fetchMembers = async () => {
+        if (!entityId) return;
         setIsLoading(true);
         try {
-            const response = await api.get(`/workspaces/${workspaceId}/members`);
+            const response = await api.get(`${basePath}/members`);
             setMembers(response.data.data || []);
         } catch (error) {
             console.error('Failed to fetch members:', error);
@@ -48,10 +86,14 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
     };
 
     useEffect(() => {
-        if (open && workspaceId) {
+        if (open && entityId) {
             fetchMembers();
         }
-    }, [open, workspaceId]);
+    }, [open, entityId]);
+
+    const handleSelect = (value: string) => {
+        setEmail(value);
+    };
 
     const handleInvite = async () => {
         if (!email.trim()) {
@@ -61,10 +103,11 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
 
         setIsInviting(true);
         try {
-            await api.post(`/workspaces/${workspaceId}/invite`, {
+            await api.post(`${basePath}/invite`, {
                 email: email.trim(),
                 role
             });
+            message.success('Member invited successfully');
             setEmail('');
             fetchMembers();
         } catch (error: any) {
@@ -75,17 +118,24 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
 
     const handleRemove = async (userId: string) => {
         try {
-            await api.delete(`/workspaces/${workspaceId}/members/${userId}`);
+            await api.delete(`${basePath}/members/${userId}`);
+            message.success('Member removed');
             fetchMembers();
         } catch (error: any) {
             message.error(error.response?.data?.error || 'Failed to remove member');
         }
     };
 
+    // Build autocomplete options - label is what shows in input after selection
+    const options = filteredSuggestions.map(user => ({
+        value: user.email,
+        label: user.email,
+        user,  // Store user data for optionRender
+    }));
 
     return (
         <Modal
-            title="Share Workspace"
+            title={title}
             open={open}
             onCancel={onClose}
             footer={null}
@@ -97,13 +147,39 @@ export default function ShareModal({ open, onClose, workspaceId, isOwner }: Shar
                         Invite by email
                     </Text>
                     <div style={{ display: 'flex', gap: 8 }}>
-                        <Input
-                            placeholder="Enter email address..."
+                        <AutoComplete
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            onPressEnter={handleInvite}
-                            prefix={<UserAddOutlined />}
+                            options={options}
+                            onSelect={handleSelect}
+                            onChange={setEmail}
+                            placeholder="Enter email address..."
                             style={{ flex: 1 }}
+                            notFoundContent={isSearching ? <Spin size="small" /> : null}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleInvite();
+                                }
+                            }}
+                            optionRender={(option) => {
+                                const user = (option.data as any).user;
+                                return (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+                                        <UserAvatar
+                                            avatarUrl={user.avatar_url}
+                                            name={user.full_name || user.email}
+                                            size={28}
+                                        />
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontWeight: 500, fontSize: 13 }}>
+                                                {user.full_name || user.email}
+                                            </div>
+                                            <div style={{ fontSize: 12, opacity: 0.7 }}>
+                                                {user.email}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }}
                         />
                         <Select
                             value={role}

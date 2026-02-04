@@ -132,6 +132,7 @@ export default function SettingsLayout({
         { key: 'admin-labels', icon: <TranslationOutlined />, label: 'System Labels' },
         { key: 'admin-templates', icon: <BlockOutlined />, label: 'Templates' },
         { key: 'admin-plugins', icon: <ApiOutlined />, label: 'Plugins' },
+        { key: 'admin-settings', icon: <SettingOutlined />, label: 'System Settings' },
     ];
 
     const handlePersonalMenuClick: MenuProps['onClick'] = (e) => {
@@ -154,6 +155,8 @@ export default function SettingsLayout({
             router.push('/admin/templates');
         } else if (e.key === 'admin-plugins') {
             router.push('/admin/plugins');
+        } else if (e.key === 'admin-settings') {
+            router.push('/admin/settings');
         }
     };
 

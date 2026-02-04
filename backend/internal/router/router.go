@@ -101,6 +101,12 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	admin.Get("/plugins", pluginHandler.AdminGetAll)
 	admin.Delete("/plugins/:id", pluginHandler.AdminHardDelete)
 
+	// Admin system settings routes
+	systemSettingsHandler := handlers.NewSystemSettingsHandler()
+	admin.Get("/settings", systemSettingsHandler.Get)
+	admin.Put("/settings", systemSettingsHandler.Update)
+	admin.Post("/settings/cleanup", systemSettingsHandler.RunCleanup)
+
 	// Public template routes (authenticated users can view)
 	templates := protected.Group("/templates")
 	templates.Get("/", templateHandler.GetAll)
@@ -125,6 +131,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	users.Put("/me/preferences", userHandler.UpdatePreferences)
 	users.Delete("/me", userHandler.DeleteAccount)
 	users.Get("/search", userHandler.Search)
+	users.Get("/suggest", userHandler.Suggest)
 	users.Get("/:id", userHandler.GetByID)
 	users.Put("/:id", userHandler.Update)
 
@@ -154,6 +161,9 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	boards.Delete("/:id/watch", boardHandler.Unwatch)
 	boards.Get("/:id/watching", boardHandler.IsWatching)
 	boards.Post("/:id/copy", boardHandler.Copy)
+	boards.Get("/:id/members", boardHandler.GetMembers)
+	boards.Post("/:id/invite", boardHandler.InviteMember)
+	boards.Delete("/:id/members/:userId", boardHandler.RemoveMember)
 
 	// Label routes
 	labelHandler := handlers.NewLabelHandler()
@@ -254,6 +264,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	attachmentHandler := handlers.NewAttachmentHandler()
 	cards.Get("/:cardId/attachments", attachmentHandler.GetByCardID)
 	cards.Post("/:cardId/attachments", attachmentHandler.Create)
+	cards.Post("/:cardId/attachments/sync-orphans", attachmentHandler.SyncEditorAttachments)
 
 	attachments := protected.Group("/attachments")
 	attachments.Delete("/:id", attachmentHandler.Delete)

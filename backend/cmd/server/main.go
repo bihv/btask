@@ -7,6 +7,7 @@ import (
 	"github.com/mello/backend/internal/config"
 	"github.com/mello/backend/internal/database"
 	"github.com/mello/backend/internal/router"
+	"github.com/mello/backend/internal/services"
 	"github.com/mello/backend/internal/storage"
 	"github.com/mello/backend/internal/websocket"
 	"github.com/mello/backend/pkg/logger"
@@ -48,8 +49,17 @@ func main() {
 	websocket.InitGlobalHub()
 	logger.Info("WebSocket hub initialized")
 
+	// Start orphan cleanup service
+	orphanCleanupService := services.NewOrphanCleanupService()
+	orphanCleanupService.Start()
+	defer orphanCleanupService.Stop()
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
+		// Allow large file uploads (50MB max)
+		BodyLimit: 50 * 1024 * 1024,
+		// Enable streaming for multipart requests
+		StreamRequestBody: true,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
 			if e, ok := err.(*fiber.Error); ok {

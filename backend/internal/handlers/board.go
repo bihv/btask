@@ -217,3 +217,66 @@ func (h *BoardHandler) GetRecentlyViewed(c *fiber.Ctx) error {
 
 	return utils.SuccessResponse(c, boards)
 }
+
+func (h *BoardHandler) GetMembers(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	members, err := h.service.GetMembers(id, userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, members)
+}
+
+func (h *BoardHandler) InviteMember(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	var req struct {
+		Email string `json:"email"`
+		Role  string `json:"role"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	if req.Email == "" {
+		return utils.ValidationErrorResponse(c, "Email is required")
+	}
+
+	if err := h.service.AddMemberByEmail(id, userID, req.Email, req.Role); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Member invited successfully")
+}
+
+func (h *BoardHandler) RemoveMember(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	boardID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid board ID")
+	}
+
+	memberUserID, err := uuid.Parse(c.Params("userId"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid user ID")
+	}
+
+	if err := h.service.RemoveMember(boardID, userID, memberUserID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessMessageResponse(c, "Member removed successfully")
+}

@@ -315,6 +315,7 @@ export default function CardMainContent({
                 onCancel={onDescriptionCancel}
                 onEditStart={onDescriptionEditStart}
                 workspaceId={workspaceId}
+                cardId={cardId}
             />
 
             {/* Checklists */}

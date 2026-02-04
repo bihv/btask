@@ -310,7 +310,8 @@ export default function BoardPage() {
                 <ShareModal
                     open={shareOpen}
                     onClose={() => setShareOpen(false)}
-                    workspaceId={board.workspace_id}
+                    boardId={boardId}
+                    type="board"
                     isOwner={true}
                 />
 

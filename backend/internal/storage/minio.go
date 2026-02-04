@@ -116,35 +116,6 @@ func extractObjectName(url, bucket string) string {
 	return parts[1]
 }
 
-// GetAllowedContentTypes returns the list of allowed content types
-func GetAllowedContentTypes() map[string]bool {
-	return map[string]bool{
-		// Images
-		"image/jpeg":    true,
-		"image/png":     true,
-		"image/gif":     true,
-		"image/webp":    true,
-		"image/svg+xml": true,
-
-		// Videos
-		"video/mp4":  true,
-		"video/webm": true,
-		"video/ogg":  true,
-
-		// Documents
-		"application/pdf":    true,
-		"application/msword": true,
-		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": true,
-		"application/vnd.ms-excel": true,
-		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":         true,
-		"application/vnd.ms-powerpoint":                                             true,
-		"application/vnd.openxmlformats-officedocument.presentationml.presentation": true,
-		"text/plain":                   true,
-		"application/zip":              true,
-		"application/x-rar-compressed": true,
-	}
-}
-
 // GetPluginContentTypes returns content types allowed for plugin files
 func GetPluginContentTypes() map[string]bool {
 	return map[string]bool{
@@ -155,9 +126,6 @@ func GetPluginContentTypes() map[string]bool {
 		"application/zip":        true,
 	}
 }
-
-// MaxFileSize is the maximum allowed file size (50MB)
-const MaxFileSize = 50 * 1024 * 1024
 
 // MaxPluginSize is the maximum allowed plugin bundle size (10MB)
 const MaxPluginSize = 10 * 1024 * 1024

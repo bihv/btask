@@ -14,22 +14,99 @@ import {
     Empty,
     Spin,
     App,
+    Dropdown,
 } from 'antd';
-import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
+import { PlusOutlined, ProjectOutlined, MoreOutlined, TeamOutlined, SettingOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { CreateWorkspaceRequest } from '@/types';
 import { useHeader } from '@/providers/HeaderProvider';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useWorkspaces, useDeleteWorkspace } from '@/hooks/useWorkspaces';
+import ShareModal from '@/components/workspace/ShareModal';
+import { useAuthStore } from '@/stores/authStore';
+import type { MenuProps } from 'antd';
 
 const { Title, Text, Paragraph } = Typography;
+const { confirm } = Modal;
 
 export default function WorkspacesPage() {
     const router = useRouter();
     const { setHeaderContent } = useHeader();
-    const { message } = App.useApp();
-
+    const { message, modal } = App.useApp();
+    const { user } = useAuthStore();
+    const [shareModalOpen, setShareModalOpen] = useState(false);
+    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
+    const deleteWorkspace = useDeleteWorkspace();
 
     // React Query hooks
     const { data: workspaces = [], isLoading } = useWorkspaces();
+
+    const handleMenuClick = (e: React.MouseEvent, workspaceId: string) => {
+        e.stopPropagation();
+    };
+
+    const handleShare = (workspaceId: string) => {
+        setSelectedWorkspaceId(workspaceId);
+        setShareModalOpen(true);
+    };
+
+    const handleSettings = (workspaceId: string) => {
+        router.push(`/workspace/${workspaceId}/settings`);
+    };
+
+    const handleDelete = (workspaceId: string, workspaceName: string) => {
+        modal.confirm({
+            title: 'Delete Workspace',
+            icon: <ExclamationCircleOutlined />,
+            content: `Are you sure you want to delete "${workspaceName}"? This will delete all boards in this workspace. This action cannot be undone.`,
+            okText: 'Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk: async () => {
+                try {
+                    await deleteWorkspace.mutateAsync(workspaceId);
+                    message.success('Workspace deleted');
+                } catch (error: any) {
+                    message.error(error.response?.data?.error || 'Failed to delete workspace');
+                }
+            },
+        });
+    };
+
+    const getMenuItems = (workspaceId: string, workspaceName: string, ownerId: string): MenuProps['items'] => {
+        const isOwner = user?.id === ownerId;
+        
+        return [
+            {
+                key: 'share',
+                icon: <TeamOutlined />,
+                label: 'Share / Invite',
+                onClick: (e) => {
+                    e.domEvent.stopPropagation();
+                    handleShare(workspaceId);
+                },
+            },
+            {
+                key: 'settings',
+                icon: <SettingOutlined />,
+                label: 'Settings',
+                onClick: (e) => {
+                    e.domEvent.stopPropagation();
+                    handleSettings(workspaceId);
+                },
+            },
+            { type: 'divider' as const },
+            {
+                key: 'delete',
+                icon: <DeleteOutlined />,
+                label: 'Delete',
+                danger: true,
+                disabled: !isOwner,
+                onClick: (e) => {
+                    e.domEvent.stopPropagation();
+                    handleDelete(workspaceId, workspaceName);
+                },
+            },
+        ];
+    };
 
     // Set dynamic header
     useEffect(() => {
@@ -68,8 +145,26 @@ export default function WorkspacesPage() {
                             <Card
                                 hoverable
                                 onClick={() => router.push(`/workspaces/${workspace.id}`)}
-                                style={{ height: '100%' }}
+                                style={{ height: '100%', position: 'relative' }}
                             >
+                                {/* Menu Button */}
+                                <Dropdown
+                                    menu={{ items: getMenuItems(workspace.id, workspace.name, workspace.owner_id) }}
+                                    trigger={['click']}
+                                    placement="bottomRight"
+                                >
+                                    <Button
+                                        type="text"
+                                        icon={<MoreOutlined />}
+                                        onClick={handleMenuClick}
+                                        size="small"
+                                        style={{
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 8,
+                                        }}
+                                    />
+                                </Dropdown>
                                 <div
                                     style={{
                                         display: 'flex',
@@ -120,7 +215,18 @@ export default function WorkspacesPage() {
                 </Row>
             )}
 
-
+            {/* Share Modal */}
+            {selectedWorkspaceId && (
+                <ShareModal
+                    open={shareModalOpen}
+                    onClose={() => {
+                        setShareModalOpen(false);
+                        setSelectedWorkspaceId(null);
+                    }}
+                    workspaceId={selectedWorkspaceId}
+                    isOwner={workspaces.find(w => w.id === selectedWorkspaceId)?.owner_id === user?.id}
+                />
+            )}
         </div>
     );
 }

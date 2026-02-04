@@ -28,10 +28,35 @@ export interface SystemTranslation {
     value: string;
 }
 
+export interface AllowedFileTypesConfig {
+    allowed_prefixes: string[];
+    allowed_types: string[];
+    blocked_types: string[];
+}
+
+export interface SystemSettings {
+    id: number;
+    orphan_cleanup_days: number;
+    orphan_cleanup_enabled: boolean;
+    last_orphan_cleanup_at: string | null;
+    max_upload_size_mb: number;
+    allowed_file_types: AllowedFileTypesConfig;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface UpdateSystemSettingsRequest {
+    orphan_cleanup_days?: number;
+    orphan_cleanup_enabled?: boolean;
+    max_upload_size_mb?: number;
+    allowed_file_types?: AllowedFileTypesConfig;
+}
+
 // Query Keys
 export const adminKeys = {
     users: ['admin', 'users'] as const,
     labels: ['admin', 'labels'] as const,
+    settings: ['admin', 'settings'] as const,
 };
 
 // ============ Users ============
@@ -176,6 +201,46 @@ export function useDeleteTranslation() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: adminKeys.labels });
+        },
+    });
+}
+
+// ============ System Settings ============
+
+export function useSystemSettings() {
+    return useQuery({
+        queryKey: adminKeys.settings,
+        queryFn: async (): Promise<SystemSettings> => {
+            const response = await api.get('/admin/settings');
+            return response.data.data;
+        },
+    });
+}
+
+export function useUpdateSystemSettings() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: UpdateSystemSettingsRequest): Promise<SystemSettings> => {
+            const response = await api.put('/admin/settings', data);
+            return response.data.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: adminKeys.settings });
+        },
+    });
+}
+
+export function useRunCleanup() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (): Promise<{ deleted: number; failed: number; message: string }> => {
+            const response = await api.post('/admin/settings/cleanup');
+            return response.data.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: adminKeys.settings });
         },
     });
 }

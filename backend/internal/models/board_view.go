@@ -14,9 +14,9 @@ type BoardView struct {
 	UserID   uuid.UUID `json:"user_id" gorm:"type:uuid;not null;index"`
 	ViewedAt time.Time `json:"viewed_at" gorm:"not null"`
 
-	// Relations
-	Board Board `json:"board,omitempty" gorm:"foreignKey:BoardID"`
-	User  User  `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	// Relations - cascade delete when board/user is deleted
+	Board Board `json:"board,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
+	User  User  `json:"user,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 func (bv *BoardView) BeforeCreate(tx *gorm.DB) error {

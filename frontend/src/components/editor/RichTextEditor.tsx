@@ -18,7 +18,7 @@ import {
 } from '@blocknote/react';
 import { fullCodeBlockOptions } from '@/lib/codeBlockConfig';
 import { useTheme } from '@/providers/ThemeProvider';
-import { uploadFile } from '@/lib/api';
+import { uploadFile, uploadFileWithAttachment } from '@/lib/api';
 import Lightbox, { SlideImage, SlideVideo } from 'yet-another-react-lightbox';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
@@ -48,6 +48,7 @@ interface RichTextEditorProps {
     editable?: boolean;
     placeholder?: string;
     workspaceId?: string;
+    cardId?: string; // If provided, creates attachment record when uploading files
 }
 
 const editorStyles: React.CSSProperties = {
@@ -97,11 +98,16 @@ export default function RichTextEditor({
     editable = true,
     placeholder = 'Start typing...',
     workspaceId,
+    cardId,
 }: RichTextEditorProps) {
     const { resolvedTheme } = useTheme();
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxSlide, setLightboxSlide] = useState<(SlideImage | SlideVideo)[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
+    
+    // Use ref to always have latest cardId in upload handler
+    const cardIdRef = useRef(cardId);
+    cardIdRef.current = cardId;
 
     // Fetch workspace members for mentions
     const { data: workspaceMembers = [] } = useWorkspaceMembers(workspaceId || '');
@@ -130,10 +136,25 @@ export default function RichTextEditor({
         return undefined;
     }, [content]);
 
+    // Create upload handler that optionally creates attachment records
+    // Use ref to access latest cardId since BlockNote caches the upload function
+    const handleUpload = useMemo(() => {
+        return async (file: File): Promise<string> => {
+            const currentCardId = cardIdRef.current;
+            console.log('[RichTextEditor] Upload file, cardId:', currentCardId);
+            if (currentCardId) {
+                // If cardId is provided, create attachment record
+                return uploadFileWithAttachment(file, currentCardId, 'editor');
+            }
+            // Otherwise just upload the file
+            return uploadFile(file);
+        };
+    }, []); // No deps needed since we use ref
+
     const editor = useCreateBlockNote({
         schema,
         initialContent,
-        uploadFile,
+        uploadFile: handleUpload,
     });
 
     // Handle content changes
