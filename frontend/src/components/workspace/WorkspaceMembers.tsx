@@ -132,52 +132,52 @@ export default function WorkspaceMembers({ workspace }: WorkspaceMembersProps) {
             {members.length === 0 ? (
                 <Empty description="No members yet" />
             ) : (
-                <List
-                    itemLayout="horizontal"
-                    dataSource={members}
-                    renderItem={(item) => (
-                        <List.Item
-                            actions={
-                                isOwner && item.user_id !== user?.id
-                                    ? [
-                                        <Button
-                                            type="text"
-                                            danger
-                                            icon={<DeleteOutlined />}
-                                            key="remove"
-                                            onClick={() => removeMutation.mutate(item.user_id)}
-                                            loading={removeMutation.isPending}
-                                        >
-                                            Remove
-                                        </Button>
-                                    ]
-                                    : []
-                            }
-                        >
-                            <List.Item.Meta
-                                avatar={
-                                    <UserAvatar
-                                        avatarUrl={item.user?.avatar_url}
-                                        name={item.user?.full_name || item.user?.email}
-                                        size={40}
-                                    />
-                                }
-                                title={
-                                    <Space>
-                                        <Text strong>{item.user?.full_name || item.user?.email || 'Unknown'}</Text>
-                                        {item.role === 'owner' && (
-                                            <Tag color="gold" icon={<CrownOutlined />}>Owner</Tag>
-                                        )}
-                                        {item.role === 'admin' && (
-                                            <Tag color="blue">Admin</Tag>
-                                        )}
-                                    </Space>
-                                }
-                                description={item.user?.email}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {members.map((item) => (
+                    <div
+                        key={item.user_id}
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '12px 0',
+                            borderBottom: '1px solid var(--border-color, #f0f0f0)',
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            <UserAvatar
+                                avatarUrl={item.user?.avatar_url}
+                                name={item.user?.full_name || item.user?.email}
+                                size={40}
                             />
-                        </List.Item>
-                    )}
-                />
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <Space>
+                                    <Text strong>{item.user?.full_name || item.user?.email || 'Unknown'}</Text>
+                                    {item.role === 'owner' && (
+                                        <Tag color="gold" icon={<CrownOutlined />}>Owner</Tag>
+                                    )}
+                                    {item.role === 'admin' && (
+                                        <Tag color="blue">Admin</Tag>
+                                    )}
+                                </Space>
+                                <Text type="secondary" style={{ fontSize: '12px' }}>{item.user?.email}</Text>
+                            </div>
+                        </div>
+                        
+                        {isOwner && item.user_id !== user?.id && (
+                            <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() => removeMutation.mutate(item.user_id)}
+                                loading={removeMutation.isPending}
+                            >
+                                Remove
+                            </Button>
+                        )}
+                    </div>
+                ))}
+            </div>
             )}
         </div>
     );

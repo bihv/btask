@@ -80,7 +80,6 @@ export default function SettingsLayout({
     const lastSegment = pathSegments[pathSegments.length - 1] || '';
 
     // Determine active keys
-    const activePersonalKey = isPersonalSettings ? lastSegment : '';
     const activeWorkspaceKey = !isPersonalSettings ? 'ws-' + lastSegment : '';
 
     useEffect(() => {
@@ -132,7 +131,15 @@ export default function SettingsLayout({
         { key: 'admin-labels', icon: <TranslationOutlined />, label: 'System Labels' },
         { key: 'admin-templates', icon: <BlockOutlined />, label: 'Templates' },
         { key: 'admin-plugins', icon: <ApiOutlined />, label: 'Plugins' },
-        { key: 'admin-settings', icon: <SettingOutlined />, label: 'System Settings' },
+        {
+            key: 'admin-settings',
+            icon: <SettingOutlined />,
+            label: 'System Settings',
+            children: [
+                { key: 'admin-settings-general', label: 'General' },
+                { key: 'admin-settings-security', label: 'File Security' },
+            ],
+        },
     ];
 
     const handlePersonalMenuClick: MenuProps['onClick'] = (e) => {
@@ -156,7 +163,11 @@ export default function SettingsLayout({
         } else if (e.key === 'admin-plugins') {
             router.push('/admin/plugins');
         } else if (e.key === 'admin-settings') {
-            router.push('/admin/settings');
+            router.push('/admin/settings/general');
+        } else if (e.key === 'admin-settings-general') {
+            router.push('/admin/settings/general');
+        } else if (e.key === 'admin-settings-security') {
+            router.push('/admin/settings/security');
         }
     };
 
@@ -172,6 +183,44 @@ export default function SettingsLayout({
             router.push(`/workspace/${value}/${currentTab}`);
         }
     };
+    
+    // Determine active admin key based on path conventions
+    const activeAdminKey = (() => {
+        if (!pathname.startsWith('/admin')) return '';
+        
+        // Handle settings sub-pages (e.g., /admin/settings/general -> admin-settings-general)
+        if (pathname.includes('/settings/')) {
+            return `admin-settings-${lastSegment}`;
+        }
+        // Handle root settings (fallback to general)
+        if (pathname === '/admin/settings') {
+            return 'admin-settings-general';
+        }
+        
+        // Handle standard admin pages (e.g., /admin/users -> admin-users)
+        return `admin-${lastSegment}`;
+    })();
+
+    // Determine active personal key
+    const activePersonalKey = (() => {
+        if (!pathname.startsWith('/me')) return '';
+        
+        // Handle settings sub-pages
+        if (pathname.includes('/me/settings/')) {
+            return `settings/${lastSegment}`;
+        }
+        
+        // Handle root settings (redirects to account usually, but for highlighting)
+        if (pathname === '/me/settings') {
+            return 'settings/account';
+        }
+        
+        // Handle standard personal pages
+        return lastSegment;
+    })();
+
+    const defaultOpenPersonalKeys = pathname.includes('/me/settings') ? ['settings'] : [];
+    const defaultOpenAdminKeys = pathname.startsWith('/admin/settings') ? ['admin-settings'] : [];
 
     // Show loading until mounted, authenticated, AND labels are loaded
     if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
@@ -228,6 +277,7 @@ export default function SettingsLayout({
                     <Menu
                         mode="inline"
                         selectedKeys={activePersonalKey ? [activePersonalKey] : []}
+                        defaultOpenKeys={defaultOpenPersonalKeys}
                         items={personalMenuItems}
                         onClick={handlePersonalMenuClick}
                         style={{ border: 'none' }}
@@ -334,7 +384,8 @@ export default function SettingsLayout({
                         </div>
                         <Menu
                             mode="inline"
-                            selectedKeys={[]}
+                            selectedKeys={activeAdminKey ? [activeAdminKey] : []}
+                            defaultOpenKeys={defaultOpenAdminKeys}
                             items={adminMenuItems}
                             onClick={handleAdminMenuClick}
                             style={{ border: 'none' }}
