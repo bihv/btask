@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mello/backend/internal/config"
 	"github.com/mello/backend/internal/database"
+	"github.com/mello/backend/internal/database/seeders"
 	"github.com/mello/backend/internal/router"
 	"github.com/mello/backend/internal/services"
 	"github.com/mello/backend/internal/storage"
@@ -36,6 +37,18 @@ func main() {
 	// Run migrations
 	if err := database.Migrate(); err != nil {
 		logger.Fatal("Failed to run migrations", zap.Error(err))
+	}
+
+	// Seed default labels
+	if err := seeders.SeedLabels(database.DB); err != nil {
+		logger.Error("Failed to seed labels", zap.Error(err))
+		// Don't return error - seeding failure shouldn't stop the app
+	}
+
+	// Seed default system settings
+	if err := seeders.SeedSystemSettings(database.DB); err != nil {
+		logger.Error("Failed to seed system settings", zap.Error(err))
+		// Don't return error - seeding failure shouldn't stop the app
 	}
 
 	// Initialize MinIO storage

@@ -1,24 +1,17 @@
 package seeders
 
 import (
-	"github.com/google/uuid"
+	"fmt"
+
 	"github.com/mello/backend/internal/models"
+	"github.com/mello/backend/internal/repository"
 	"github.com/mello/backend/pkg/logger"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-// LabelSeed represents a label to be seeded with its translations
-type LabelSeed struct {
-	Key          string
-	Category     string
-	DefaultValue string
-	Description  string
-	Translations map[string]string // language code -> translated value
-}
-
 // DefaultLabels contains all pre-defined system labels
-var DefaultLabels = []LabelSeed{
+var DefaultLabels = []models.LabelSeed{
 	// ============ Validation Errors ============
 	{
 		Key:          "ERROR_USER_NOT_FOUND",
@@ -597,70 +590,36 @@ var DefaultLabels = []LabelSeed{
 // SeedLabels seeds the default labels into the database using batch operations
 func SeedLabels(db *gorm.DB) error {
 	logger.Info("Seeding system labels...")
+	repo := repository.NewSystemLabelRepository()
 
-	// Step 1: Batch query ALL existing label keys in one query
-	var existingLabels []models.SystemLabel
-	if err := db.Select("id", "key").Find(&existingLabels).Error; err != nil {
-		logger.Error("Failed to fetch existing labels", zap.Error(err))
-		return err
+	// 1. Get existing keys to avoid duplicates
+	existingKeys := make(map[string]bool)
+	var existing []models.SystemLabel
+	// We only need keys, so select Key to be efficient
+	db.Select("key").Find(&existing)
+	for _, l := range existing {
+		existingKeys[l.Key] = true
 	}
 
-	// Create a map of existing keys for O(1) lookup
-	existingKeys := make(map[string]uuid.UUID) // key -> id
-	for _, label := range existingLabels {
-		existingKeys[label.Key] = label.ID
-	}
-
-	// Step 2: Filter seeds to only new labels
-	var newLabels []models.SystemLabel
-	var newLabelSeeds []LabelSeed
-
-	for _, seed := range DefaultLabels {
-		if _, exists := existingKeys[seed.Key]; !exists {
-			newLabels = append(newLabels, models.SystemLabel{
-				Key:          seed.Key,
-				Category:     seed.Category,
-				DefaultValue: seed.DefaultValue,
-				Description:  seed.Description,
-			})
-			newLabelSeeds = append(newLabelSeeds, seed)
+	// 2. Filter new labels
+	var labelsToInsert []models.LabelSeed
+	for _, l := range DefaultLabels {
+		if !existingKeys[l.Key] {
+			labelsToInsert = append(labelsToInsert, l)
 		}
 	}
 
-	if len(newLabels) == 0 {
+	if len(labelsToInsert) == 0 {
 		logger.Info("No new labels to seed")
 		return nil
 	}
 
-	// Step 3: Batch insert all new labels in one query
-	if err := db.Create(&newLabels).Error; err != nil {
-		logger.Error("Failed to batch insert labels", zap.Error(err))
-		return err
+	// 3. Batch insert using Repository
+	if err := repo.BulkInsert(db, labelsToInsert); err != nil {
+		logger.Error("Failed to bulk insert labels", zap.Error(err))
+		return fmt.Errorf("failed to bulk insert labels: %w", err)
 	}
 
-	logger.Info("Seeded labels", zap.Int("count", len(newLabels)))
-
-	// Step 4: Prepare all translations for batch insert
-	var translations []models.SystemTranslation
-	for i, seed := range newLabelSeeds {
-		for lang, value := range seed.Translations {
-			translations = append(translations, models.SystemTranslation{
-				LabelID:  newLabels[i].ID, // ID is populated after Create
-				Language: lang,
-				Value:    value,
-			})
-		}
-	}
-
-	// Step 5: Batch insert all translations in one query
-	if len(translations) > 0 {
-		if err := db.Create(&translations).Error; err != nil {
-			logger.Error("Failed to batch insert translations", zap.Error(err))
-			return err
-		}
-		logger.Info("Seeded translations", zap.Int("count", len(translations)))
-	}
-
-	logger.Info("System labels seeding completed")
+	logger.Info("Seeded labels", zap.Int("count", len(labelsToInsert)))
 	return nil
 }

@@ -79,12 +79,13 @@ func Setup(app *fiber.App, cfg *config.Config) {
 
 	// Admin label routes
 	admin.Get("/labels", systemLabelHandler.GetAllLabels)
-	admin.Post("/labels", systemLabelHandler.CreateLabel)
+
 	admin.Put("/labels/:id", systemLabelHandler.UpdateLabel)
-	admin.Delete("/labels/:id", systemLabelHandler.DeleteLabel)
+	admin.Get("/labels/export", systemLabelHandler.ExportLabels)
+	admin.Post("/labels/import", systemLabelHandler.ImportLabels)
+
 	admin.Post("/translations", systemLabelHandler.CreateTranslation)
 	admin.Put("/translations/:id", systemLabelHandler.UpdateTranslation)
-	admin.Delete("/translations/:id", systemLabelHandler.DeleteTranslation)
 
 	// Admin template routes
 	templateRepo := repository.NewTemplateRepository(database.DB)

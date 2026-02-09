@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/database"
 	"github.com/mello/backend/internal/models"
+	"gorm.io/gorm"
 )
 
 type SystemLabelRepository struct{}
@@ -100,19 +101,9 @@ func (r *SystemLabelRepository) GetResolvedLabels(language string) (map[string]s
 	return result, nil
 }
 
-// Create creates a new label
-func (r *SystemLabelRepository) Create(label *models.SystemLabel) error {
-	return database.DB.Create(label).Error
-}
-
 // Update updates a label
 func (r *SystemLabelRepository) Update(label *models.SystemLabel) error {
 	return database.DB.Save(label).Error
-}
-
-// Delete deletes a label (translations cascade)
-func (r *SystemLabelRepository) Delete(id uuid.UUID) error {
-	return database.DB.Delete(&models.SystemLabel{}, "id = ?", id).Error
 }
 
 // --- Translation methods ---
@@ -137,9 +128,9 @@ func (r *SystemLabelRepository) UpdateTranslation(translation *models.SystemTran
 	return database.DB.Save(translation).Error
 }
 
-// DeleteTranslation deletes a translation
-func (r *SystemLabelRepository) DeleteTranslation(id uuid.UUID) error {
-	return database.DB.Delete(&models.SystemTranslation{}, "id = ?", id).Error
+// FindAll returns all labels with translations
+func (r *SystemLabelRepository) FindAll(dest *[]models.SystemLabel) error {
+	return database.DB.Preload("Translations").Order("key ASC").Find(dest).Error
 }
 
 // TranslationExists checks if a translation exists for label + language
@@ -147,4 +138,63 @@ func (r *SystemLabelRepository) TranslationExists(labelID uuid.UUID, language st
 	var count int64
 	database.DB.Model(&models.SystemTranslation{}).Where("label_id = ? AND language = ?", labelID, language).Count(&count)
 	return count > 0
+}
+
+// BulkInsert consistently inserts labels and translations
+// It assumes the labels passed DO NOT exist in the DB (ID collisions are handled by DB auto-gen)
+func (r *SystemLabelRepository) BulkInsert(tx *gorm.DB, items []models.LabelSeed) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	// 1. Prepare Labels for batch insert
+	var labels []*models.SystemLabel
+	for _, item := range items {
+		labels = append(labels, &models.SystemLabel{
+			Key:          item.Key,
+			Category:     item.Category,
+			DefaultValue: item.DefaultValue,
+			Description:  item.Description,
+		})
+	}
+
+	// 2. Batch insert labels
+	if err := tx.Create(labels).Error; err != nil {
+		return err
+	}
+
+	// 3. Prepare Translations
+	var translations []models.SystemTranslation
+	for i, item := range items {
+		// labels[i].ID is populated by GORM after Create
+		for lang, val := range item.Translations {
+			translations = append(translations, models.SystemTranslation{
+				LabelID:  labels[i].ID,
+				Language: lang,
+				Value:    val,
+			})
+		}
+	}
+
+	// 4. Batch insert translations
+	if len(translations) > 0 {
+		if err := tx.Create(&translations).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ReplaceAll deletes all existing labels and re-seeds them
+func (r *SystemLabelRepository) ReplaceAll(items []models.LabelSeed) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Delete all existing labels (Cascade deletes translations)
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.SystemLabel{}).Error; err != nil {
+			return err
+		}
+
+		// 2. Bulk Insert new ones
+		return r.BulkInsert(tx, items)
+	})
 }

@@ -1,7 +1,6 @@
 package database
 
 import (
-	"github.com/mello/backend/internal/database/seeders"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/pkg/logger"
 	"go.uber.org/zap"
@@ -83,17 +82,7 @@ func Migrate() error {
 
 	logger.Info("Database migrations completed")
 
-	// Seed default labels
-	if err := seeders.SeedLabels(DB); err != nil {
-		logger.Error("Failed to seed labels", zap.Error(err))
-		// Don't return error - seeding failure shouldn't stop the app
-	}
-
-	// Seed default system settings
-	if err := seeders.SeedSystemSettings(DB); err != nil {
-		logger.Error("Failed to seed system settings", zap.Error(err))
-		// Don't return error - seeding failure shouldn't stop the app
-	}
+	logger.Info("Database migrations completed")
 
 	return nil
 }

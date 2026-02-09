@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/models"
@@ -77,34 +79,6 @@ func (h *SystemLabelHandler) GetAllLabels(c *fiber.Ctx) error {
 	})
 }
 
-// CreateLabel creates a new label
-func (h *SystemLabelHandler) CreateLabel(c *fiber.Ctx) error {
-	var req models.CreateSystemLabelRequest
-	if err := c.BodyParser(&req); err != nil {
-		return utils.ValidationErrorResponse(c, "Invalid request body")
-	}
-
-	if req.Key == "" || req.DefaultValue == "" {
-		return utils.ValidationErrorResponse(c, "Key and default_value are required")
-	}
-
-	label := &models.SystemLabel{
-		Key:          req.Key,
-		Category:     req.Category,
-		DefaultValue: req.DefaultValue,
-		Description:  req.Description,
-	}
-
-	if err := h.repo.Create(label); err != nil {
-		return utils.InternalErrorResponse(c, "Failed to create label")
-	}
-
-	h.labelService.ClearCache()
-	BroadcastLabelsUpdated()
-
-	return utils.SuccessResponse(c, label)
-}
-
 // UpdateLabel updates a label
 func (h *SystemLabelHandler) UpdateLabel(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
@@ -143,23 +117,6 @@ func (h *SystemLabelHandler) UpdateLabel(c *fiber.Ctx) error {
 	BroadcastLabelsUpdated()
 
 	return utils.SuccessResponse(c, label)
-}
-
-// DeleteLabel deletes a label
-func (h *SystemLabelHandler) DeleteLabel(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return utils.ValidationErrorResponse(c, "Invalid label ID")
-	}
-
-	if err := h.repo.Delete(id); err != nil {
-		return utils.InternalErrorResponse(c, "Failed to delete label")
-	}
-
-	h.labelService.ClearCache()
-	BroadcastLabelsUpdated()
-
-	return utils.SuccessMessageResponse(c, "Label deleted")
 }
 
 // --- Translation endpoints ---
@@ -234,21 +191,69 @@ func (h *SystemLabelHandler) UpdateTranslation(c *fiber.Ctx) error {
 	return utils.SuccessResponse(c, translation)
 }
 
-// DeleteTranslation deletes a translation
-func (h *SystemLabelHandler) DeleteTranslation(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return utils.ValidationErrorResponse(c, "Invalid translation ID")
+// --- Import/Export endpoints ---
+
+// ExportLabels exports all labels to a JSON file
+func (h *SystemLabelHandler) ExportLabels(c *fiber.Ctx) error {
+	// Fetch all labels with translations
+	var labels []models.SystemLabel
+	if err := h.repo.FindAll(&labels); err != nil {
+		return utils.InternalErrorResponse(c, "Failed to fetch labels")
 	}
 
-	if err := h.repo.DeleteTranslation(id); err != nil {
-		return utils.InternalErrorResponse(c, "Failed to delete translation")
+	// format export data
+	var exportData []models.LabelSeed
+	for _, l := range labels {
+		translations := make(map[string]string)
+		for _, t := range l.Translations {
+			translations[t.Language] = t.Value
+		}
+
+		exportData = append(exportData, models.LabelSeed{
+			Key:          l.Key,
+			Category:     l.Category,
+			DefaultValue: l.DefaultValue,
+			Description:  l.Description,
+			Translations: translations,
+		})
+	}
+
+	data, err := json.MarshalIndent(exportData, "", "    ")
+	if err != nil {
+		return utils.InternalErrorResponse(c, "Failed to marshal export data")
+	}
+
+	c.Set("Content-Type", "application/json")
+	c.Set("Content-Disposition", "attachment; filename=system_labels.json")
+	return c.Send(data)
+}
+
+// ImportLabels imports labels from a JSON file (Updates only)
+func (h *SystemLabelHandler) ImportLabels(c *fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "File is required")
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return utils.InternalErrorResponse(c, "Failed to open file")
+	}
+	defer f.Close()
+
+	var importData []models.LabelSeed
+	if err := json.NewDecoder(f).Decode(&importData); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid JSON file")
+	}
+
+	if err := h.repo.ReplaceAll(importData); err != nil {
+		return utils.InternalErrorResponse(c, "Failed to replace labels")
 	}
 
 	h.labelService.ClearCache()
 	BroadcastLabelsUpdated()
 
-	return utils.SuccessMessageResponse(c, "Translation deleted")
+	return utils.SuccessMessageResponse(c, "Labels imported successfully")
 }
 
 // BroadcastLabelsUpdated notifies all clients that labels have been updated

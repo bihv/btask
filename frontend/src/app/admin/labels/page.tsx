@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Table, Button, Input, Select, Modal, Form, Typography, Card, Spin, Tag, Space, App } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import {
     useAdminLabels,
-    useCreateLabel,
     useUpdateLabel,
-    useDeleteLabel,
     useCreateTranslation,
     useUpdateTranslation,
     useDeleteTranslation,
+    exportLabels,
+    useImportLabels,
     SystemLabel,
 } from '@/hooks/useAdmin';
 
@@ -68,12 +68,12 @@ export default function AdminLabelsPage() {
     const labels = data?.labels || [];
     const total = data?.total || 0;
 
-    const createLabel = useCreateLabel();
     const updateLabel = useUpdateLabel();
-    const deleteLabel = useDeleteLabel();
     const createTranslation = useCreateTranslation();
     const updateTranslation = useUpdateTranslation();
     const deleteTranslation = useDeleteTranslation();
+    const importLabels = useImportLabels();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (!user?.is_admin) {
@@ -81,16 +81,7 @@ export default function AdminLabelsPage() {
         }
     }, [user, router]);
 
-    const handleCreateLabel = async (values: { key: string; category: string; default_value: string; description: string }) => {
-        try {
-            await createLabel.mutateAsync(values);
-            message.success('Label created');
-            setLabelModalOpen(false);
-            labelForm.resetFields();
-        } catch {
-            message.error('Failed to create label');
-        }
-    };
+
 
     const handleUpdateLabel = async (values: { key: string; category: string; default_value: string; description: string }) => {
         if (!editingLabel) return;
@@ -105,14 +96,7 @@ export default function AdminLabelsPage() {
         }
     };
 
-    const handleDeleteLabel = async (id: string) => {
-        try {
-            await deleteLabel.mutateAsync(id);
-            message.success('Label deleted');
-        } catch {
-            message.error('Failed to delete label');
-        }
-    };
+
 
     const handleSaveTranslation = async (labelId: string, language: string, value: string, existingId?: string) => {
         try {
@@ -133,6 +117,29 @@ export default function AdminLabelsPage() {
             message.success('Translation deleted');
         } catch {
             message.error('Failed to delete translation');
+        }
+    };
+
+    const handleExport = async () => {
+        try {
+            await exportLabels();
+        } catch {
+            message.error('Failed to export labels');
+        }
+    };
+
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            await importLabels.mutateAsync(file);
+        } catch {
+            message.error('Failed to import labels');
+        } finally {
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     };
 
@@ -180,20 +187,6 @@ export default function AdminLabelsPage() {
                             setLabelModalOpen(true);
                         }}
                     />
-                    <Button
-                        size="small"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => {
-                            modal.confirm({
-                                title: 'Delete this label?',
-                                content: 'All translations will be deleted.',
-                                okText: 'Delete',
-                                okType: 'danger',
-                                onOk: () => handleDeleteLabel(record.id),
-                            });
-                        }}
-                    />
                 </Space>
             ),
         },
@@ -231,18 +224,18 @@ export default function AdminLabelsPage() {
     return (
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={2} style={{ margin: 0 }}>System Labels</Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => {
-                        setEditingLabel(null);
-                        labelForm.resetFields();
-                        setLabelModalOpen(true);
-                    }}
-                >
-                    Add Label
-                </Button>
+                <Title level={4} style={{ margin: 0 }}>System Labels</Title>
+                <Space>
+                    <Button icon={<DownloadOutlined />} onClick={handleExport}>Export</Button>
+                    <Button icon={<UploadOutlined />} onClick={() => fileInputRef.current?.click()}>Import</Button>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        accept=".json"
+                        onChange={handleImport}
+                    />
+                </Space>
             </div>
 
             {/* Filter Section */}
@@ -304,7 +297,7 @@ export default function AdminLabelsPage() {
             </Card>
 
             <Modal
-                title={editingLabel ? 'Edit Label' : 'Create Label'}
+                title="Edit Label"
                 open={labelModalOpen}
                 onCancel={() => {
                     setLabelModalOpen(false);
@@ -316,13 +309,13 @@ export default function AdminLabelsPage() {
                 <Form
                     form={labelForm}
                     layout="vertical"
-                    onFinish={editingLabel ? handleUpdateLabel : handleCreateLabel}
+                    onFinish={handleUpdateLabel}
                 >
                     <Form.Item name="key" label="Key" rules={[{ required: true }]}>
-                        <Input placeholder="ERROR_EMAIL_IN_USE" />
+                        <Input placeholder="ERROR_EMAIL_IN_USE" disabled />
                     </Form.Item>
                     <Form.Item name="category" label="Category">
-                        <Select placeholder="Select category">
+                        <Select placeholder="Select category" disabled>
                             {CATEGORIES.map(c => <Select.Option key={c} value={c}>{c}</Select.Option>)}
                         </Select>
                     </Form.Item>
@@ -333,8 +326,8 @@ export default function AdminLabelsPage() {
                         <Input.TextArea placeholder="Description for admin" />
                     </Form.Item>
                     <Form.Item>
-                        <Button type="primary" htmlType="submit" block loading={createLabel.isPending || updateLabel.isPending}>
-                            {editingLabel ? 'Update' : 'Create'}
+                        <Button type="primary" htmlType="submit" block loading={updateLabel.isPending}>
+                            Update
                         </Button>
                     </Form.Item>
                 </Form>
@@ -397,21 +390,7 @@ function TranslationRow({
                         icon={value ? <EditOutlined /> : <PlusOutlined />}
                         onClick={() => { setInputValue(value); setEditing(true); }}
                     />
-                    {translationId && (
-                        <Button
-                            size="small"
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => {
-                                confirmDelete({
-                                    title: 'Delete translation?',
-                                    okText: 'Delete',
-                                    okType: 'danger',
-                                    onOk: () => onDelete(translationId),
-                                });
-                            }}
-                        />
-                    )}
+
                 </>
             )}
         </div>

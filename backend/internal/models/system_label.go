@@ -43,14 +43,6 @@ func (t *SystemTranslation) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// CreateSystemLabelRequest is the request for creating a label
-type CreateSystemLabelRequest struct {
-	Key          string `json:"key" validate:"required,max=100"`
-	Category     string `json:"category" validate:"max=50"`
-	DefaultValue string `json:"default_value" validate:"required"`
-	Description  string `json:"description"`
-}
-
 // UpdateSystemLabelRequest is the request for updating a label
 type UpdateSystemLabelRequest struct {
 	Key          string `json:"key" validate:"max=100"`
@@ -69,4 +61,13 @@ type CreateTranslationRequest struct {
 // UpdateTranslationRequest is the request for updating a translation
 type UpdateTranslationRequest struct {
 	Value string `json:"value" validate:"required"`
+}
+
+// LabelSeed represents the structure for export/import and seeding
+type LabelSeed struct {
+	Key          string            `json:"key"`
+	Category     string            `json:"category"`
+	DefaultValue string            `json:"default_value"`
+	Description  string            `json:"description"`
+	Translations map[string]string `json:"translations"`
 }

@@ -119,19 +119,7 @@ export function useAdminLabels(params: LabelsQueryParams = {}) {
     });
 }
 
-export function useCreateLabel() {
-    const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (data: { key: string; category: string; default_value: string; description: string }) => {
-            const response = await api.post('/admin/labels', data);
-            return response.data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: adminKeys.labels });
-        },
-    });
-}
 
 export function useUpdateLabel() {
     const queryClient = useQueryClient();
@@ -147,12 +135,37 @@ export function useUpdateLabel() {
     });
 }
 
-export function useDeleteLabel() {
+
+
+// ============ Import/Export ============
+
+export const exportLabels = async () => {
+    const response = await api.get('/admin/labels/export', { responseType: 'blob' });
+
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'system_labels.json');
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
+};
+
+export function useImportLabels() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (id: string) => {
-            const response = await api.delete(`/admin/labels/${id}`);
+        mutationFn: async (file: File) => {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await api.post('/admin/labels/import', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             return response.data;
         },
         onSuccess: () => {
