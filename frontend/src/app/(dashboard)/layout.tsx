@@ -30,6 +30,7 @@ import UserAvatar from '@/components/common/UserAvatar';
 import GlobalSearch from '@/components/common/GlobalSearch';
 import CreateDropdown from '@/components/common/CreateDropdown';
 import { useLabels } from '@/hooks/useLabels';
+import styles from './DashboardLayout.module.css';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -95,18 +96,18 @@ export default function DashboardLayout({
 
     // Avatar dropdown menu content
     const avatarDropdownContent = (
-        <div className="avatar-dropdown-menu">
+        <div className={styles.avatarDropdownMenu}>
             {/* User Info */}
-            <div className="dropdown-section">
-                <div className="dropdown-user-info">
+            <div className={styles.dropdownSection}>
+                <div className={styles.dropdownUserInfo}>
                     <UserAvatar
                         avatarUrl={user?.avatar_url}
                         name={user?.full_name}
                         size={40}
                     />
-                    <div className="dropdown-user-details">
-                        <div className="dropdown-user-name">{user?.full_name || 'User'}</div>
-                        <div className="dropdown-user-email">{user?.email}</div>
+                    <div className={styles.dropdownUserDetails}>
+                        <div className={styles.dropdownUserName}>{user?.full_name || 'User'}</div>
+                        <div className={styles.dropdownUserEmail}>{user?.email}</div>
                     </div>
                 </div>
             </div>
@@ -114,21 +115,21 @@ export default function DashboardLayout({
             <Divider style={{ margin: '8px 0' }} />
 
             {/* Account Section */}
-            <div className="dropdown-section">
-                <div className="dropdown-section-label">Account</div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/profile')}>
+            <div className={styles.dropdownSection}>
+                <div className={styles.dropdownSectionLabel}>Account</div>
+                <div className={styles.dropdownMenuItem} onClick={() => router.push('/me/profile')}>
                     <UserOutlined />
                     <span>Profile and visibility</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/activity')}>
+                <div className={styles.dropdownMenuItem} onClick={() => router.push('/activity')}>
                     <HistoryOutlined />
                     <span>Activity</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/cards')}>
+                <div className={styles.dropdownMenuItem} onClick={() => router.push('/me/cards')}>
                     <CreditCardOutlined />
                     <span>Cards</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/settings')}>
+                <div className={styles.dropdownMenuItem} onClick={() => router.push('/me/settings')}>
                     <SettingOutlined />
                     <span>Settings</span>
                 </div>
@@ -136,8 +137,8 @@ export default function DashboardLayout({
 
             <Divider style={{ margin: '8px 0' }} />
 
-            <div className="dropdown-section">
-                <div className="dropdown-menu-item" onClick={() => router.push('/workspaces')}>
+            <div className={styles.dropdownSection}>
+                <div className={styles.dropdownMenuItem} onClick={() => router.push('/workspaces')}>
                     <TeamOutlined />
                     <span>Create Workspace</span>
                 </div>
@@ -145,12 +146,12 @@ export default function DashboardLayout({
 
             <Divider style={{ margin: '8px 0' }} />
 
-            <div className="dropdown-section">
-                <div className="dropdown-menu-item" onClick={() => { }}>
+            <div className={styles.dropdownSection}>
+                <div className={styles.dropdownMenuItem} onClick={() => { }}>
                     <QuestionCircleOutlined />
                     <span>Help</span>
                 </div>
-                <div className="dropdown-menu-item" onClick={() => { }}>
+                <div className={styles.dropdownMenuItem} onClick={() => { }}>
                     <ThunderboltOutlined />
                     <span>Shortcuts</span>
                 </div>
@@ -158,9 +159,9 @@ export default function DashboardLayout({
 
             <Divider style={{ margin: '8px 0' }} />
 
-            <div className="dropdown-section">
+            <div className={styles.dropdownSection}>
                 <div
-                    className="dropdown-menu-item logout-item"
+                    className={`${styles.dropdownMenuItem} ${styles.logoutItem}`}
                     onClick={() => {
                         logout();
                         router.push('/login');
@@ -175,69 +176,7 @@ export default function DashboardLayout({
 
     return (
         <Layout style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden' }}>
-            <style jsx global>{`
-                .avatar-dropdown-menu {
-                    width: 304px;
-                    padding: 12px 0;
-                    background: var(--bg-secondary);
-                    border-radius: 8px;
-                    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-                }
-                .dropdown-section {
-                    padding: 0 12px;
-                }
-                .dropdown-section-label {
-                    font-size: 11px;
-                    font-weight: 600;
-                    color: var(--text-secondary);
-                    padding: 8px 12px 4px;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-                .dropdown-user-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 8px 12px;
-                    margin-bottom: 4px;
-                }
-                .dropdown-user-details {
-                    flex: 1;
-                    min-width: 0;
-                }
-                .dropdown-user-name {
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: var(--text-primary);
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-                .dropdown-user-email {
-                    font-size: 12px;
-                    color: var(--text-secondary);
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-                .dropdown-menu-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 8px 12px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    transition: background 0.2s;
-                    color: var(--text-primary);
-                }
-                .dropdown-menu-item:hover {
-                    background: var(--bg-tertiary);
-                }
-                .dropdown-menu-item.logout-item:hover {
-                    background: rgba(255, 77, 79, 0.1);
-                    color: #ff4d4f;
-                }
-            `}</style>
+
 
             {/* Row 1: Top Header Bar (same as board layout) */}
             <Header

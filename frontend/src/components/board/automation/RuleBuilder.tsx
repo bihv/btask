@@ -73,10 +73,10 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
     const context: PickerContext = useMemo(() => ({
         lists: (board?.lists || []).map(l => ({ id: l.id, title: l.title })),
         labels: (board?.labels || []).map(l => ({ id: l.id, name: l.name || '', color: l.color })),
-        members: ((board as any)?.members || []).map((m: any) => ({ 
-            id: m.id, 
-            username: m.username, 
-            full_name: m.full_name 
+        members: ((board as any)?.members || []).map((m: any) => ({
+            id: m.id,
+            username: m.username,
+            full_name: m.full_name
         })),
         boards: (allBoards || []).map(b => ({ id: b.id, title: b.title })),
     }), [board, allBoards]);
@@ -99,7 +99,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
         if (ruleToEdit && allTriggers.length > 0) {
             setRuleName(ruleToEdit.name);
             setIsEnabled(ruleToEdit.is_enabled);
-            
+
             // Find trigger by matching the trigger_config.id
             const triggerId = ruleToEdit.trigger_config?.id;
             const trigger = allTriggers.find(t => t.id === triggerId);
@@ -107,7 +107,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                 setSelectedTrigger(trigger);
                 setTriggerConfig(ruleToEdit.trigger_config || {});
             }
-            
+
             // Set actions
             if (ruleToEdit.actions) {
                 setActions(ruleToEdit.actions);
@@ -122,13 +122,13 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
 
     // Get categories with triggers/actions
     const triggerCategories = useMemo(() => {
-        return TRIGGER_CATEGORY_INFO.filter(cat => 
+        return TRIGGER_CATEGORY_INFO.filter(cat =>
             triggersByCategory[cat.id] && triggersByCategory[cat.id].length > 0
         );
     }, [triggersByCategory]);
 
     const actionCategories = useMemo(() => {
-        return ACTION_CATEGORY_INFO.filter(cat => 
+        return ACTION_CATEGORY_INFO.filter(cat =>
             actionsByCategory[cat.id] && actionsByCategory[cat.id].length > 0
         );
     }, [actionsByCategory]);
@@ -182,7 +182,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
             ...prev,
             [actionId]: { ...prev[actionId], [key]: value },
         }));
-        setActions(prev => prev.map(a => 
+        setActions(prev => prev.map(a =>
             a.id === actionId ? { ...a, [key]: value } : a
         ));
     };
@@ -271,7 +271,14 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                         <Button
                             key={cat.id}
                             type={activeCategory === cat.id ? 'primary' : 'default'}
-                            onClick={() => setActiveCategory(cat.id)}
+                            onClick={() => {
+                                setActiveCategory(cat.id);
+                                // Reset trigger selection when switching categories
+                                if (selectedTrigger && selectedTrigger.category !== cat.id) {
+                                    setSelectedTrigger(null);
+                                    setTriggerConfig({});
+                                }
+                            }}
                             block
                         >
                             {cat.label}
@@ -289,14 +296,14 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             onClick={() => handleSelectTrigger(trigger)}
                             style={{
                                 cursor: 'pointer',
-                                backgroundColor: selectedTrigger?.id === trigger.id 
-                                    ? token.colorPrimaryBg 
+                                backgroundColor: selectedTrigger?.id === trigger.id
+                                    ? token.colorPrimaryBg
                                     : 'transparent',
                                 borderRadius: 8,
                                 padding: '12px 16px',
                                 marginBottom: 8,
-                                border: selectedTrigger?.id === trigger.id 
-                                    ? `1px solid ${token.colorPrimary}` 
+                                border: selectedTrigger?.id === trigger.id
+                                    ? `1px solid ${token.colorPrimary}`
                                     : '1px solid transparent',
                             }}
                         >
@@ -314,9 +321,9 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
 
                 {/* Trigger configuration */}
                 {selectedTrigger && selectedTrigger.sentence_template && (
-                    <Card 
-                        title="Configure Trigger" 
-                        size="small" 
+                    <Card
+                        title="Configure Trigger"
+                        size="small"
                         style={{ marginTop: 16 }}
                     >
                         <SentenceTemplateRenderer
@@ -396,7 +403,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             if (!schema) return null;
 
                             return (
-                                <Card 
+                                <Card
                                     key={`${action.id}-${index}`}
                                     size="small"
                                     extra={
@@ -460,7 +467,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             <Text>{selectedTrigger?.name}</Text>
                         )}
                     </div>
-                    
+
                     <div>
                         <Text strong>Then: </Text>
                         <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
@@ -519,16 +526,16 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                         </Button>
                     )}
                     {currentStep < 2 ? (
-                        <Button 
-                            type="primary" 
+                        <Button
+                            type="primary"
                             onClick={() => setCurrentStep(prev => prev + 1)}
                             disabled={currentStep === 0 && !selectedTrigger}
                         >
                             Next
                         </Button>
                     ) : (
-                        <Button 
-                            type="primary" 
+                        <Button
+                            type="primary"
                             icon={<SaveOutlined />}
                             onClick={handleSave}
                             loading={createRule.isPending || updateRule.isPending}
