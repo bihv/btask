@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Table, Tag, Avatar, Typography, Tooltip } from 'antd';
+import { LinkOutlined } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card } from '@/types';
@@ -107,7 +108,7 @@ export default function TableView({ filters, onCardClick }: TableViewProps) {
                         }
                     }
                 }
-                
+
                 allCards.push({
                     ...card,
                     listTitle: list.title,
@@ -134,7 +135,8 @@ export default function TableView({ filters, onCardClick }: TableViewProps) {
                     style={{ cursor: 'pointer' }}
                     onClick={() => onCardClick?.(record.id)}
                 >
-                    {title}
+                    {record.link_url && <LinkOutlined style={{ marginRight: 6, color: 'var(--text-secondary)' }} />}
+                    {record.link_title || title}
                 </Text>
             ),
         },

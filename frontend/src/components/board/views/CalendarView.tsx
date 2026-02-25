@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Calendar, Badge, Popover, Typography, Tag, Empty, Button, Tooltip } from 'antd';
-import { CloseOutlined } from '@ant-design/icons';
+import { CloseOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import type { CalendarMode } from 'antd/es/calendar/generateCalendar';
 import dayjs from 'dayjs';
@@ -22,7 +22,7 @@ interface CalendarViewProps {
 // Filter helper function
 const filterCard = (card: Card, filters: FilterState | undefined): boolean => {
     if (!filters) return true;
-    
+
     // Search filter
     if (filters.search && !card.title.toLowerCase().includes(filters.search.toLowerCase())) {
         return false;
@@ -91,7 +91,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                 cards.push(...cardsByDate[dateKey]);
             }
         });
-        return cards.sort((a, b) => 
+        return cards.sort((a, b) =>
             dayjs(a.due_date).valueOf() - dayjs(b.due_date).valueOf()
         );
     };
@@ -99,11 +99,11 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
     const dateCellRender = (value: Dayjs) => {
         const dateKey = value.format('YYYY-MM-DD');
         const cards = cardsByDate[dateKey] || [];
-        
+
         if (cards.length === 0) return null;
 
         const isOverdue = value.isBefore(dayjs(), 'day');
-        
+
         return (
             <Popover
                 content={
@@ -115,11 +115,14 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                                 onClick={() => onCardClick?.(card.id)}
                             >
                                 <div>
-                                    <Text strong style={{ fontSize: 12 }}>{card.title}</Text>
+                                    <Text strong style={{ fontSize: 12 }}>
+                                        {card.link_url && <LinkOutlined style={{ marginRight: 4, color: 'var(--text-secondary)' }} />}
+                                        {card.link_title || card.title}
+                                    </Text>
                                     <div className={styles.popoverCardTags}>
-                                        <Tag 
-                                            style={{ 
-                                                fontSize: 10, 
+                                        <Tag
+                                            style={{
+                                                fontSize: 10,
                                                 backgroundColor: card.listColor || undefined,
                                                 color: card.listColor ? '#fff' : undefined,
                                                 border: 'none',
@@ -152,16 +155,16 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
 
     const monthCellRender = (value: Dayjs) => {
         const cards = getCardsForMonth(value);
-        
+
         if (cards.length === 0) return null;
 
         const now = dayjs();
-        const overdue = cards.filter(card => 
+        const overdue = cards.filter(card =>
             card.due_date && dayjs(card.due_date).isBefore(now, 'day') && !card.is_completed
         ).length;
         const completed = cards.filter(card => card.is_completed).length;
         const pending = cards.length - overdue - completed;
-        
+
         return (
             <div className={styles.monthBadges}>
                 {overdue > 0 && (
@@ -246,7 +249,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                     onPanelChange={handlePanelChange}
                 />
             </div>
-            
+
             {sidebarOpen && (
                 <div className={styles.sidebar}>
                     <div className={styles.sidebarHeader}>
@@ -272,10 +275,13 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                                         onClick={() => onCardClick?.(card.id)}
                                     >
                                         <div>
-                                            <Text strong>{card.title}</Text>
+                                            <Text strong>
+                                                {card.link_url && <LinkOutlined style={{ marginRight: 4, color: 'var(--text-secondary)' }} />}
+                                                {card.link_title || card.title}
+                                            </Text>
                                             <div className={styles.cardTags}>
-                                                <Tag 
-                                                    style={{ 
+                                                <Tag
+                                                    style={{
                                                         backgroundColor: card.listColor || undefined,
                                                         color: card.listColor ? '#fff' : undefined,
                                                         border: 'none',

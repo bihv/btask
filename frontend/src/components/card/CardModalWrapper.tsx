@@ -33,7 +33,7 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                 onCancel={onClose}
                 footer={null}
                 width="90vw"
-                style={{ maxWidth: 1200, top: 20, maxHeight: 'calc(100vh - 40px)' }}
+                style={{ top: 20, maxHeight: 'calc(100vh - 40px)' }}
                 styles={{
                     body: {
                         padding: 0,
