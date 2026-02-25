@@ -55,6 +55,7 @@ func (s *CardService) Create(listID uuid.UUID, userID uuid.UUID, req models.Crea
 		Description: req.Description,
 		Position:    position,
 		DueDate:     req.DueDate,
+		StartDate:   req.StartDate,
 		CreatedBy:   userID,
 	}
 
@@ -147,6 +148,9 @@ func (s *CardService) Update(cardID uuid.UUID, userID uuid.UUID, req models.Upda
 	}
 	if req.DueDate != nil {
 		card.DueDate = req.DueDate
+	}
+	if req.StartDate != nil {
+		card.StartDate = req.StartDate
 	}
 	if req.IsCompleted != nil {
 		card.IsCompleted = *req.IsCompleted
@@ -248,7 +252,7 @@ func (s *CardService) Move(cardID uuid.UUID, userID uuid.UUID, req models.MoveCa
 	// Trigger Automation
 	s.automationService.ProcessEvent("card.moved", list.BoardID, map[string]interface{}{
 		"card_id":     cardID.String(),
-		"old_list_id": list.ID.String(), // Source list (matches trigger config)
+		"old_list_id": list.ID.String(),    // Source list (matches trigger config)
 		"list_id":     req.ListID.String(), // Target list
 		"board_id":    list.BoardID.String(),
 		"user_id":     userID.String(),

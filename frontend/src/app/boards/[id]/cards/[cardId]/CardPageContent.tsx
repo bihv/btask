@@ -7,7 +7,7 @@ import { Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import api, { attachmentApi } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useChecklists, useAttachments } from '@/hooks/useCards';
+import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useUpdateComment, useChecklists, useAttachments } from '@/hooks/useCards';
 import { useQueryClient } from '@tanstack/react-query';
 import { useReactToPrint } from 'react-to-print';
 
@@ -16,7 +16,7 @@ import CardHeader from '@/components/card/CardHeader';
 import CardMainContent from '@/components/card/CardMainContent';
 import CardSidebar from '@/components/card/CardSidebar';
 import MembersPickerModal from '@/components/card/MembersPickerModal';
-import DueDatePickerModal from '@/components/card/DueDatePickerModal';
+import DatePickerModal from '@/components/card/DatePickerModal';
 import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
 import LabelPickerModal from '@/components/card/LabelPickerModal';
 import styles from './CardPageContent.module.css';
@@ -31,12 +31,12 @@ const extractFileUrls = (content: string): string[] => {
     try {
         const blocks = JSON.parse(content);
         const urls: string[] = [];
-        
+
         const extractFromBlocks = (items: unknown[]) => {
             for (const item of items) {
                 if (typeof item !== 'object' || item === null) continue;
                 const block = item as Record<string, unknown>;
-                
+
                 // Check for image/file/video blocks with url prop
                 if (block.type === 'image' || block.type === 'file' || block.type === 'video') {
                     const props = block.props as Record<string, unknown> | undefined;
@@ -44,7 +44,7 @@ const extractFileUrls = (content: string): string[] => {
                         urls.push(props.url);
                     }
                 }
-                
+
                 // Recursively check nested content
                 if (Array.isArray(block.content)) {
                     extractFromBlocks(block.content);
@@ -54,11 +54,11 @@ const extractFileUrls = (content: string): string[] => {
                 }
             }
         };
-        
+
         if (Array.isArray(blocks)) {
             extractFromBlocks(blocks);
         }
-        
+
         return urls;
     } catch {
         return [];
@@ -103,6 +103,7 @@ export default function CardPageContent() {
     const { data: checklists = [], refetch: refetchChecklists } = useChecklists(cardId);
     const { data: attachments = [], refetch: refetchAttachments } = useAttachments(cardId);
     const addCommentMutation = useAddComment(cardId);
+    const updateCommentMutation = useUpdateComment(cardId);
 
     // Local state
     const [card, setCard] = useState<Card | null>(null);
@@ -166,7 +167,7 @@ export default function CardPageContent() {
         if (!card) return;
         if (description !== card.description) {
             await updateCard(card.id, { description });
-            
+
             // Sync orphan status for editor attachments
             const urls = extractFileUrls(description);
             try {
@@ -202,7 +203,6 @@ export default function CardPageContent() {
             className={styles.printableCard}
             style={{
                 height: 'auto',
-                background: 'var(--bg-secondary)',
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'visible',
@@ -269,6 +269,9 @@ export default function CardPageContent() {
                     comments={card?.comments || []}
                     isAddingComment={addCommentMutation.isPending}
                     onAddComment={(content) => addCommentMutation.mutateAsync(content)}
+                    onUpdateComment={(commentId, content) => updateCommentMutation.mutateAsync({ commentId, content })}
+                    workspaceId={currentBoard?.workspace_id}
+                    cardId={cardId}
                 />
             </div>
 
@@ -298,11 +301,12 @@ export default function CardPageContent() {
                 onCardRefresh={refetchCard}
             />
 
-            <DueDatePickerModal
+            <DatePickerModal
                 open={dueDateOpen}
                 onClose={() => setDueDateOpen(false)}
                 cardId={cardId}
                 boardId={boardId}
+                startDate={card.start_date}
                 dueDate={card.due_date}
                 isCompleted={card.is_completed || false}
                 onUpdate={(updates) => setCard({ ...card, ...updates })}

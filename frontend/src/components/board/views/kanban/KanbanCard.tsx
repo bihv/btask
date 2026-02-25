@@ -33,7 +33,7 @@ import EditableTitle from '@/components/common/EditableTitle';
 import api, { linkPreviewApi } from '@/lib/api';
 import LinkPreviewCard from '@/components/card/LinkPreviewCard';
 import MembersPickerModal from '@/components/card/MembersPickerModal';
-import DueDatePickerModal from '@/components/card/DueDatePickerModal';
+import DatePickerModal from '@/components/card/DatePickerModal';
 import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
 import LabelPickerModal from '@/components/card/LabelPickerModal';
 import { useAttachments, useWorkspaceMembers, useBoardLabels } from '@/hooks/useCards';
@@ -583,11 +583,12 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 onCardRefresh={handleCardUpdate}
             />
 
-            <DueDatePickerModal
+            <DatePickerModal
                 open={dueDateModalOpen}
                 onClose={() => setDueDateModalOpen(false)}
                 cardId={card.id}
                 boardId={boardId}
+                startDate={card.start_date}
                 dueDate={card.due_date}
                 isCompleted={card.is_completed || false}
                 onUpdate={(updates) => {

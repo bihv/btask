@@ -21,12 +21,10 @@ export const Mention = createReactInlineContentSpec(
             return (
                 <span
                     style={{
-                        backgroundColor: 'var(--primary-color, #1890ff)',
-                        color: 'white',
-                        padding: '2px 6px',
-                        borderRadius: 4,
+                        color: 'var(--primary-color)',
+                        padding: '1px 5px',
+                        borderRadius: 10,
                         cursor: 'pointer',
-                        fontWeight: 500,
                     }}
                     data-user-id={props.inlineContent.props.userId}
                 >

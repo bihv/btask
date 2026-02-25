@@ -9,6 +9,9 @@ interface CardSidebarProps {
     comments: Comment[];
     isAddingComment: boolean;
     onAddComment: (content: string) => Promise<Comment>;
+    onUpdateComment?: (commentId: string, content: string) => Promise<Comment>;
+    workspaceId?: string;
+    cardId?: string;
 }
 
 export default function CardSidebar({
@@ -16,6 +19,9 @@ export default function CardSidebar({
     comments,
     isAddingComment,
     onAddComment,
+    onUpdateComment,
+    workspaceId,
+    cardId,
 }: CardSidebarProps) {
     return (
         <div
@@ -46,7 +52,10 @@ export default function CardSidebar({
                     comments={comments}
                     currentUser={currentUser}
                     onAddComment={onAddComment}
+                    onUpdateComment={onUpdateComment}
                     isLoading={isAddingComment}
+                    workspaceId={workspaceId}
+                    cardId={cardId}
                 />
             </div>
         </div>

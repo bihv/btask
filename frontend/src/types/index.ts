@@ -87,6 +87,7 @@ export interface Card {
     cover_color?: string;
     position: number;
     due_date?: string;
+    start_date?: string;
     is_completed: boolean;
     is_archived?: boolean;
     created_by: string;

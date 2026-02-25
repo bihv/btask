@@ -104,7 +104,7 @@ export default function RichTextEditor({
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxSlide, setLightboxSlide] = useState<(SlideImage | SlideVideo)[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
-    
+
     // Use ref to always have latest cardId in upload handler
     const cardIdRef = useRef(cardId);
     cardIdRef.current = cardId;
@@ -236,6 +236,9 @@ export default function RichTextEditor({
     return (
         <div style={{ ...editorStyles }}>
             <style>{`
+                .bn-container, .bn-editor {
+                    background: transparent !important;
+                }
                 .bn-editor {
                     padding-left: 0 !important;
                     padding-right: 0 !important;

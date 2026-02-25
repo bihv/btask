@@ -111,6 +111,21 @@ export function useAddComment(cardId: string) {
     });
 }
 
+// Update comment mutation
+export function useUpdateComment(cardId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ commentId, content }: { commentId: string; content: string }): Promise<Comment> => {
+            const response = await api.put(`/comments/${commentId}`, { content });
+            return response.data.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: cardKeys.detail(cardId) });
+        },
+    });
+}
+
 // Toggle label mutation
 export function useToggleCardLabel(cardId: string) {
     const queryClient = useQueryClient();
@@ -174,7 +189,7 @@ export function useAttachments(cardId: string, source: 'upload' | 'editor' | 'al
         queryFn: async () => {
             const { attachmentApi } = await import('@/lib/api');
             // If 'all', don't pass source filter
-            const response = source === 'all' 
+            const response = source === 'all'
                 ? await attachmentApi.getByCardId(cardId)
                 : await attachmentApi.getByCardId(cardId, source);
             return response.data.data || [];

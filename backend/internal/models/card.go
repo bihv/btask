@@ -16,6 +16,7 @@ type Card struct {
 	CoverBgColor string     `json:"cover_bg_color"` // auto-extracted dominant color for contain mode
 	Position     int        `json:"position" gorm:"default:0"`
 	DueDate      *time.Time `json:"due_date"`
+	StartDate    *time.Time `json:"start_date"`
 	IsCompleted  bool       `json:"is_completed" gorm:"default:false"`
 	IsArchived   bool       `json:"is_archived" gorm:"default:false"`
 	CreatedBy    uuid.UUID  `json:"created_by" gorm:"type:uuid"`
@@ -68,6 +69,7 @@ type CreateCardRequest struct {
 	Description string     `json:"description"`
 	Position    *int       `json:"position"`
 	DueDate     *time.Time `json:"due_date"`
+	StartDate   *time.Time `json:"start_date"`
 }
 
 type UpdateCardRequest struct {
@@ -77,6 +79,7 @@ type UpdateCardRequest struct {
 	CoverBgColor *string    `json:"cover_bg_color"`
 	Position     *int       `json:"position"`
 	DueDate      *time.Time `json:"due_date"`
+	StartDate    *time.Time `json:"start_date"`
 	IsCompleted  *bool      `json:"is_completed"`
 	IsArchived   *bool      `json:"is_archived"`
 }

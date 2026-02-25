@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Button, Typography, Tooltip, App } from 'antd';
+import { Button, Typography, Tooltip, App, Tag } from 'antd';
 import { TagOutlined, ClockCircleOutlined, CheckSquareOutlined, UserOutlined, PaperClipOutlined, PictureOutlined, DeleteOutlined, InboxOutlined, UndoOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import dayjs from 'dayjs';
 import { Card, User, Checklist, Attachment, BoardList } from '@/types';
 import CardDescriptionSection from './CardDescriptionSection';
 import ChecklistSection from './ChecklistSection';
@@ -129,7 +130,7 @@ export default function CardMainContent({
             `}</style>
 
             {/* Data Display Sections - Show when data exists */}
-            {(card.members?.length || card.labels?.length || card.due_date) && (
+            {(card.members?.length || card.labels?.length || card.due_date || card.start_date) && (
                 <div style={{ marginTop: 16, marginBottom: 8 }}>
                     <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                         {/* Members Section */}
@@ -200,21 +201,31 @@ export default function CardMainContent({
                             </div>
                         )}
 
-                        {/* Due Date Section */}
-                        {card.due_date && (
+                        {/* Dates Section */}
+                        {(card.start_date || card.due_date) && (
                             <div>
                                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-                                    Due date
+                                    Dates
                                 </Text>
                                 <div
-                                    style={{ cursor: 'pointer', display: 'inline-block' }}
+                                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
                                     onClick={onDueDateClick}
                                 >
-                                    <DueDateTag
-                                        dueDate={card.due_date}
-                                        isCompleted={card.is_completed || false}
-                                        showIcon={false}
-                                    />
+                                    {card.start_date && (
+                                        <Tag>
+                                            {dayjs(card.start_date).format('MMM D YYYY hh:mm A')}
+                                        </Tag>
+                                    )}
+                                    {card.start_date && card.due_date && (
+                                        <span style={{ color: 'var(--text-secondary)' }}>→</span>
+                                    )}
+                                    {card.due_date && (
+                                        <DueDateTag
+                                            dueDate={card.due_date}
+                                            isCompleted={card.is_completed || false}
+                                            showIcon={false}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -244,8 +255,8 @@ export default function CardMainContent({
                         Labels
                     </Button>
                 )}
-                {/* Show Dates button only when no due date */}
-                {!card.due_date && (
+                {/* Show Dates button only when no dates at all */}
+                {!card.due_date && !card.start_date && (
                     <Button
                         icon={<ClockCircleOutlined />}
                         size="small"
@@ -300,7 +311,7 @@ export default function CardMainContent({
                 >
                     Delete
                 </Button>
-                
+
                 {/* Plugin Buttons */}
                 <CardButtonRenderer card={card} />
 

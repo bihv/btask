@@ -22,6 +22,9 @@ func (r *CardRepository) FindByID(id uuid.UUID) (*models.Card, error) {
 	err := database.DB.
 		Preload("Labels.Label").
 		Preload("Members.User").
+		Preload("Comments", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).
 		Preload("Comments.User").
 		Preload("Creator").
 		First(&card, "id = ?", id).Error
