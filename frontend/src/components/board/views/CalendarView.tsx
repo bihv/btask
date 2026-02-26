@@ -28,16 +28,20 @@ const filterCard = (card: Card, filters: FilterState | undefined): boolean => {
         return false;
     }
     // Label filter
-    if (filters.labelIds.length > 0) {
+    if (filters.labelIds.length > 0 || filters.noLabels) {
         const cardLabelIds = card.labels?.map(l => l.label_id) || [];
-        if (!filters.labelIds.some(id => cardLabelIds.includes(id))) {
+        const matchesNoLabels = filters.noLabels && cardLabelIds.length === 0;
+        const matchesSpecific = filters.labelIds.length > 0 && filters.labelIds.some(id => cardLabelIds.includes(id));
+        if (!matchesNoLabels && !matchesSpecific) {
             return false;
         }
     }
     // Member filter
-    if (filters.memberIds.length > 0) {
+    if (filters.memberIds.length > 0 || filters.noMembers) {
         const cardMemberIds = card.members?.map(m => m.user_id) || [];
-        if (!filters.memberIds.some(id => cardMemberIds.includes(id))) {
+        const matchesNoMembers = filters.noMembers && cardMemberIds.length === 0;
+        const matchesSpecific = filters.memberIds.length > 0 && filters.memberIds.some(id => cardMemberIds.includes(id));
+        if (!matchesNoMembers && !matchesSpecific) {
             return false;
         }
     }

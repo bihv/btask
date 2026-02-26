@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Typography, Button, Input, Spin, App, Tooltip } from 'antd';
 import AutomationModal from '@/components/board/automation/AutomationModal';
@@ -26,6 +26,7 @@ import {
 import { useBoard, useUpdateBoard, useDeleteBoard } from '@/hooks/useBoards';
 import { useWorkspaceMembers } from '@/hooks/useCards';
 import BoardFilterPopover, { FilterState, defaultFilters, hasActiveFilters } from '@/components/board/BoardFilterPopover';
+import { Label } from '@/types';
 import ShareModal from '@/components/workspace/ShareModal';
 import BoardMenuPopover from '@/components/board/BoardMenuPopover';
 import api from '@/lib/api';
@@ -138,6 +139,24 @@ export default function BoardPage() {
         }
     };
 
+    // Compute labels actually in use on non-archived cards
+    const activeLabels = useMemo(() => {
+        if (!board) return [];
+        const labelMap = new Map<string, Label>();
+        (board.lists || []).forEach(list => {
+            (list.cards || []).forEach(card => {
+                if (!card.is_archived) {
+                    (card.labels || []).forEach(cl => {
+                        if (cl.label && !labelMap.has(cl.label_id)) {
+                            labelMap.set(cl.label_id, cl.label);
+                        }
+                    });
+                }
+            });
+        });
+        return Array.from(labelMap.values());
+    }, [board?.lists]);
+
     if (isLoading || !board) {
         return (
             <div className="loading-container" style={{ minHeight: '100%' }}>
@@ -225,7 +244,7 @@ export default function BoardPage() {
                         {/* Filter button */}
                         {viewMode !== 'dashboard' && (
                             <BoardFilterPopover
-                                labels={board.labels || []}
+                                labels={activeLabels}
                                 members={workspaceMembers}
                                 filters={filters}
                                 onChange={setFilters}

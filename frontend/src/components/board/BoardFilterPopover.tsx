@@ -2,6 +2,7 @@ import React from 'react';
 import { Popover, Input, Button, Checkbox, Avatar, Badge, Space, Divider, Typography } from 'antd';
 import { FilterOutlined, SearchOutlined, UserOutlined, ClockCircleOutlined, TagOutlined } from '@ant-design/icons';
 import { Label, User } from '@/types';
+import UserAvatar from '@/components/common/UserAvatar';
 import dayjs from 'dayjs';
 
 const { Text, Title } = Typography;
@@ -9,14 +10,18 @@ const { Text, Title } = Typography;
 export interface FilterState {
     search: string;
     labelIds: string[];
+    noLabels: boolean;
     memberIds: string[];
+    noMembers: boolean;
     dueDate: 'overdue' | 'due_soon' | 'due_later' | 'no_date' | null;
 }
 
 export const defaultFilters: FilterState = {
     search: '',
     labelIds: [],
+    noLabels: false,
     memberIds: [],
+    noMembers: false,
     dueDate: null,
 };
 
@@ -24,7 +29,9 @@ export function hasActiveFilters(filters: FilterState): boolean {
     return (
         filters.search !== '' ||
         filters.labelIds.length > 0 ||
+        filters.noLabels ||
         filters.memberIds.length > 0 ||
+        filters.noMembers ||
         filters.dueDate !== null
     );
 }
@@ -48,8 +55,8 @@ export default function BoardFilterPopover({
 }: BoardFilterPopoverProps) {
     const activeCount = [
         filters.search ? 1 : 0,
-        filters.labelIds.length > 0 ? 1 : 0,
-        filters.memberIds.length > 0 ? 1 : 0,
+        (filters.labelIds.length > 0 || filters.noLabels) ? 1 : 0,
+        (filters.memberIds.length > 0 || filters.noMembers) ? 1 : 0,
         filters.dueDate ? 1 : 0,
     ].reduce((a, b) => a + b, 0);
 
@@ -78,10 +85,10 @@ export default function BoardFilterPopover({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <Text strong style={{ fontSize: 14 }}>Filter Cards</Text>
                     {activeCount > 0 && (
-                        <Button 
-                            size="small" 
-                            type="link" 
-                            danger 
+                        <Button
+                            size="small"
+                            type="link"
+                            danger
                             onClick={() => onChange(defaultFilters)}
                             style={{ padding: 0 }}
                         >
@@ -104,29 +111,25 @@ export default function BoardFilterPopover({
                 <div style={{ marginBottom: 16 }}>
                     <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>MEMBERS</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <div 
-                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
-                             onClick={() => onChange({ ...filters, memberIds: [] })}
+                        <div
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
+                            onClick={() => onChange({ ...filters, noMembers: !filters.noMembers })}
                         >
-                             <Checkbox checked={filters.memberIds.length === 0} />
-                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Checkbox checked={filters.noMembers} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <Avatar size="small" icon={<UserOutlined />} />
                                 <Text>No members</Text>
-                             </div>
+                            </div>
                         </div>
                         {members.map(member => (
-                            <div 
+                            <div
                                 key={member.id}
                                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
                                 onClick={() => handleMemberToggle(member.id)}
                             >
                                 <Checkbox checked={filters.memberIds.includes(member.id)} />
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    {member.avatar_url ? (
-                                        <Avatar size="small" src={member.avatar_url} />
-                                    ) : (
-                                        <Avatar size="small" style={{ backgroundColor: '#0079bf' }}>{member.full_name?.[0] || member.email[0]}</Avatar>
-                                    )}
+                                    <UserAvatar size="small" avatarUrl={member.avatar_url} name={member.full_name || member.email} />
                                     <Text>{member.full_name || member.email}</Text>
                                 </div>
                             </div>
@@ -137,31 +140,31 @@ export default function BoardFilterPopover({
                 <div style={{ marginBottom: 16 }}>
                     <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>LABELS</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                         <div 
-                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
-                             onClick={() => onChange({ ...filters, labelIds: [] })}
+                        <div
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
+                            onClick={() => onChange({ ...filters, noLabels: !filters.noLabels })}
                         >
-                             <Checkbox checked={filters.labelIds.length === 0} />
-                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Checkbox checked={filters.noLabels} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <TagOutlined />
                                 <Text>No labels</Text>
-                             </div>
+                            </div>
                         </div>
                         {labels.map(label => (
-                            <div 
+                            <div
                                 key={label.id}
                                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
                                 onClick={() => handleLabelToggle(label.id)}
                             >
                                 <Checkbox checked={filters.labelIds.includes(label.id)} />
-                                <div style={{ 
-                                    width: '100%', 
-                                    height: 32, 
-                                    backgroundColor: label.color, 
-                                    borderRadius: 4, 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    paddingLeft: 12 
+                                <div style={{
+                                    width: '100%',
+                                    height: 32,
+                                    backgroundColor: label.color,
+                                    borderRadius: 4,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    paddingLeft: 12
                                 }}>
                                     <Text style={{ color: '#fff', fontWeight: 500, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
                                         {label.name}
@@ -172,37 +175,37 @@ export default function BoardFilterPopover({
                     </div>
                 </div>
 
-                 <div style={{ marginBottom: 8 }}>
+                <div style={{ marginBottom: 8 }}>
                     <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>DUE DATE</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                         <div 
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
-                                onClick={() => handleDueDateToggle(null)}
-                            >
-                                <Checkbox checked={filters.dueDate === null} />
-                                <Text>No filter</Text>
+                        <div
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
+                            onClick={() => handleDueDateToggle(null)}
+                        >
+                            <Checkbox checked={filters.dueDate === null} />
+                            <Text>No filter</Text>
                         </div>
-                         <div 
-                                key="overdue"
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
-                                onClick={() => handleDueDateToggle('overdue')}
-                            >
-                                <Checkbox checked={filters.dueDate === 'overdue'} />
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <ClockCircleOutlined style={{ color: '#eb5a46' }} />
-                                    <Text>Overdue</Text>
-                                </div>
+                        <div
+                            key="overdue"
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
+                            onClick={() => handleDueDateToggle('overdue')}
+                        >
+                            <Checkbox checked={filters.dueDate === 'overdue'} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <ClockCircleOutlined style={{ color: '#eb5a46' }} />
+                                <Text>Overdue</Text>
+                            </div>
                         </div>
-                         <div 
-                                key="due_soon"
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
-                                onClick={() => handleDueDateToggle('due_soon')}
-                            >
-                                <Checkbox checked={filters.dueDate === 'due_soon'} />
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <ClockCircleOutlined style={{ color: '#f2d600' }} />
-                                    <Text>Due soon</Text>
-                                </div>
+                        <div
+                            key="due_soon"
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
+                            onClick={() => handleDueDateToggle('due_soon')}
+                        >
+                            <Checkbox checked={filters.dueDate === 'due_soon'} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <ClockCircleOutlined style={{ color: '#f2d600' }} />
+                                <Text>Due soon</Text>
+                            </div>
                         </div>
                         <div
                             key="due_later"

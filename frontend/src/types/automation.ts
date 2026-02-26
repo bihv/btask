@@ -5,7 +5,7 @@
 
 // --- Property Schema (for dynamic form generation) ---
 
-export type UIWidgetType = 
+export type UIWidgetType =
     | 'select'
     | 'multi_select'
     | 'input'
@@ -240,15 +240,13 @@ export function groupByCategory<T extends { category: string }>(items: T[]): Rec
 }
 
 // --- Category definitions ---
-// These MUST match the categories returned by backend (metadata.category)
+// Only categories that have backend implementations
 
 export const TRIGGER_CATEGORY_INFO: CategoryInfo[] = [
     { id: 'card', label: 'Card', order: 1 },
     { id: 'label', label: 'Labels', order: 2 },
     { id: 'member', label: 'Members', order: 3 },
     { id: 'date', label: 'Dates', order: 4 },
-    { id: 'checklist', label: 'Checklists', order: 5 },
-    { id: 'content', label: 'Content', order: 6 },
 ];
 
 export const ACTION_CATEGORY_INFO: CategoryInfo[] = [
@@ -256,7 +254,4 @@ export const ACTION_CATEGORY_INFO: CategoryInfo[] = [
     { id: 'label', label: 'Labels', order: 2 },
     { id: 'member', label: 'Members', order: 3 },
     { id: 'date', label: 'Dates', order: 4 },
-    { id: 'checklist', label: 'Checklists', order: 5 },
-    { id: 'content', label: 'Content', order: 6 },
-    { id: 'notification', label: 'Notifications', order: 7 },
 ];

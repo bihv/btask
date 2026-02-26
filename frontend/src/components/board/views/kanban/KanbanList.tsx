@@ -41,17 +41,19 @@ function matchesFilters(card: Card, filters: FilterState): boolean {
     }
 
     // Label filter
-    if (filters.labelIds.length > 0) {
+    if (filters.labelIds.length > 0 || filters.noLabels) {
         const cardLabelIds = (card.labels || []).map((l: { label_id: string }) => l.label_id);
-        const hasLabel = filters.labelIds.some(id => cardLabelIds.includes(id));
-        if (!hasLabel) return false;
+        const matchesNoLabels = filters.noLabels && cardLabelIds.length === 0;
+        const matchesSpecific = filters.labelIds.length > 0 && filters.labelIds.some(id => cardLabelIds.includes(id));
+        if (!matchesNoLabels && !matchesSpecific) return false;
     }
 
     // Member filter
-    if (filters.memberIds.length > 0) {
+    if (filters.memberIds.length > 0 || filters.noMembers) {
         const cardMemberIds = (card.members || []).map((m: { user_id: string }) => m.user_id);
-        const hasMember = filters.memberIds.some(id => cardMemberIds.includes(id));
-        if (!hasMember) return false;
+        const matchesNoMembers = filters.noMembers && cardMemberIds.length === 0;
+        const matchesSpecific = filters.memberIds.length > 0 && filters.memberIds.some(id => cardMemberIds.includes(id));
+        if (!matchesNoMembers && !matchesSpecific) return false;
     }
 
     // Due date filter
@@ -494,7 +496,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                 </SortableContext>
                 {/* Droppable zone at the bottom */}
                 {!readOnly && (
-                    <div 
+                    <div
                         ref={setDroppableRef}
                     />
                 )}
