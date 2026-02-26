@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Select, Empty, Typography } from 'antd';
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -43,6 +44,7 @@ export default function CreateBoardModal({
     onCreateWorkspace,
 }: CreateBoardModalProps) {
     const t = useTranslation();
+    const token = useAppToken();
     const [form] = Form.useForm();
     const [selectedBackground, setSelectedBackground] = useState(DEFAULT_BACKGROUND);
     const [selectedImage, setSelectedImage] = useState('');
@@ -117,7 +119,7 @@ export default function CreateBoardModal({
                         justifyContent: 'center',
                     }}
                 >
-                    <Text style={{ color: 'white', fontSize: 18, fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                    <Text style={{ color: token.colorWhite, fontSize: 18, fontWeight: 600, textShadow: `0 1px 2px ${token.colorOverlayDark}` }}>
                         {t('UI_PREVIEW')}
                     </Text>
                 </div>

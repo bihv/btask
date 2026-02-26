@@ -38,6 +38,7 @@ import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
 import LabelPickerModal from '@/components/card/LabelPickerModal';
 import { useAttachments, useWorkspaceMembers, useBoardLabels } from '@/hooks/useCards';
 import { CardBadgeRenderer } from '@/components/plugins';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -60,6 +61,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
     const updateCard = useBoardStore((state) => state.updateCard);
     const showCardCovers = showCovers ?? showCardCoversFromStore;
     const [isConverting, setIsConverting] = useState(false);
+    const token = useAppToken();
 
     // Get workspace members and board labels using hooks
     const { data: workspaceMembers = [] } = useWorkspaceMembers(currentBoard?.workspace_id || '');
@@ -276,7 +278,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                         if (cfv.value === 'true') {
                             return (
                                 <div key={cfv.id} style={badgeStyle}>
-                                    <CheckSquareOutlined style={{ color: '#52c41a', fontSize: 12 }} />
+                                    <CheckSquareOutlined style={{ color: token.colorSuccess, fontSize: 12 }} />
                                     <span style={{ color: 'var(--text-secondary)' }}>{field.name}</span>
                                 </div>
                             );
@@ -391,7 +393,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                                     cursor: 'pointer',
                                     padding: 8,
                                     borderRadius: '50%',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                    backgroundColor: token.colorOverlayDarker,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -400,7 +402,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                                 }}
                                 className={styles.cardMenuButton}
                             >
-                                <EditOutlined style={{ fontSize: 14, color: '#fff' }} />
+                                <EditOutlined style={{ fontSize: 14, color: token.colorWhite }} />
                             </div>
                         </Dropdown>
                     </div>
@@ -546,12 +548,12 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                                     width: 24,
                                     height: 24,
                                     borderRadius: '50%',
-                                    backgroundColor: '#0052cc',
+                                    backgroundColor: token.colorPrimary,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontSize: 10,
-                                    color: 'white',
+                                    color: token.colorWhite,
                                     marginLeft: -4,
                                 }}>
                                     +{card.members.length - 3}

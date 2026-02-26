@@ -5,6 +5,7 @@ import { Typography } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -21,6 +22,7 @@ export default function MemberPickerContent({
     onToggleMember,
     onRemoveAll,
 }: MemberPickerContentProps) {
+    const token = useAppToken();
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 200 }}>
             {/* Remove all button */}
@@ -32,7 +34,7 @@ export default function MemberPickerContent({
                         cursor: 'pointer',
                         borderRadius: 4,
                         marginBottom: 8,
-                        color: '#cf1322',
+                        color: token.colorError,
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
@@ -72,7 +74,7 @@ export default function MemberPickerContent({
                             size="small"
                         />
                         <span style={{ flex: 1 }}>{member.full_name}</span>
-                        {isSelected && <CheckOutlined style={{ color: '#52c41a' }} />}
+                        {isSelected && <CheckOutlined style={{ color: token.colorSuccess }} />}
                     </div>
                 );
             })}

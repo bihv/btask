@@ -6,6 +6,7 @@ import { PictureOutlined } from '@ant-design/icons';
 import api, { uploadFile } from '@/lib/api';
 import { extractDominantColor } from '@/utils/extractColor';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -35,6 +36,7 @@ export default function CoverImagePickerModal({
 }: CoverImagePickerModalProps) {
     const { message } = App.useApp();
     const t = useTranslation();
+    const token = useAppToken();
 
     const imageAttachments = attachments.filter((a) =>
         IMAGE_EXTENSIONS.some((ext) => a.file_name.toLowerCase().endsWith(ext))
@@ -101,7 +103,7 @@ export default function CoverImagePickerModal({
                                         cursor: 'pointer',
                                         border:
                                             currentCover === a.file_url
-                                                ? '2px solid #1890ff'
+                                                ? `2px solid ${token.colorPrimary}`
                                                 : '1px solid var(--border-color)',
                                     }}
                                 >

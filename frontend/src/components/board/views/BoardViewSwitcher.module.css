@@ -1,7 +1,7 @@
 /* Board View Switcher - White text for visibility on board backgrounds */
 .switcher :global(.ant-segmented) {
     --ant-segmented-label-color: rgba(255, 255, 255, 0.85);
-    --ant-segmented-label-hover-color: #fff;
+    --ant-segmented-label-hover-color: var(--board-toolbar-text, #fff);
 }
 
 .switcher :global(.ant-segmented-item-label) {
@@ -9,7 +9,7 @@
 }
 
 .switcher :global(.ant-segmented-item:hover .ant-segmented-item-label) {
-    color: #fff;
+    color: var(--board-toolbar-text, #fff);
 }
 
 .switcher :global(.ant-segmented-item-selected .ant-segmented-item-label) {

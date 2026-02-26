@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Tabs, Divider, Typography, Input, Button, Spin, Empty, App, Space } from 'antd';
 import { CheckOutlined, UploadOutlined, SearchOutlined, PictureOutlined, BgColorsOutlined, LinkOutlined } from '@ant-design/icons';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -105,11 +106,11 @@ interface BackgroundPickerProps {
     onImageChange?: (url: string) => void;
 }
 
-export default function BackgroundPicker({ 
-    value, 
+export default function BackgroundPicker({
+    value,
     imageValue,
-    onChange, 
-    onImageChange 
+    onChange,
+    onImageChange
 }: BackgroundPickerProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<UnsplashPhoto[]>([]);
@@ -119,6 +120,7 @@ export default function BackgroundPicker({
     const [urlInput, setUrlInput] = useState('');
     const [isValidatingUrl, setIsValidatingUrl] = useState(false);
     const { message } = App.useApp();
+    const token = useAppToken();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
@@ -280,8 +282,8 @@ export default function BackgroundPicker({
     const isImageSelected = (url: string) => imageValue === url;
 
     // Images to display (search results or defaults)
-    const displayImages = searchQuery.trim() && searchResults.length > 0 
-        ? searchResults 
+    const displayImages = searchQuery.trim() && searchResults.length > 0
+        ? searchResults
         : DEFAULT_IMAGES;
 
     // Photos Tab Content
@@ -307,8 +309,8 @@ export default function BackgroundPicker({
                     </Text>
                 </div>
             ) : searchQuery.trim() && searchResults.length === 0 ? (
-                <Empty 
-                    image={Empty.PRESENTED_IMAGE_SIMPLE} 
+                <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
                     description="No images found"
                     style={{ margin: '16px 0' }}
                 />
@@ -336,10 +338,10 @@ export default function BackgroundPicker({
                                 cursor: 'pointer',
                                 position: 'relative',
                                 border: isImageSelected(photo.url)
-                                    ? '2px solid #fff'
+                                    ? `2px solid ${token.colorWhite}`
                                     : '2px solid transparent',
                                 boxShadow: isImageSelected(photo.url)
-                                    ? '0 0 0 2px #0052cc'
+                                    ? `0 0 0 2px ${token.colorPrimary}`
                                     : 'none',
                                 transition: 'all 0.2s ease',
                             }}
@@ -350,9 +352,9 @@ export default function BackgroundPicker({
                                         position: 'absolute',
                                         top: 8,
                                         right: 8,
-                                        color: '#fff',
+                                        color: token.colorWhite,
                                         fontSize: 14,
-                                        background: 'rgba(0,0,0,0.3)',
+                                        background: token.colorOverlayDark,
                                         borderRadius: '50%',
                                         padding: 4,
                                     }}
@@ -437,7 +439,7 @@ export default function BackgroundPicker({
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         position: 'relative',
-                        border: '2px solid #0052cc',
+                        border: `2px solid ${token.colorPrimary}`,
                         marginTop: 12,
                     }}
                 >
@@ -446,8 +448,8 @@ export default function BackgroundPicker({
                             position: 'absolute',
                             bottom: 4,
                             left: 4,
-                            background: 'rgba(0,0,0,0.6)',
-                            color: '#fff',
+                            background: token.colorOverlayDarker,
+                            color: token.colorWhite,
                             fontSize: 10,
                             padding: '2px 6px',
                             borderRadius: 4,
@@ -567,7 +569,7 @@ export default function BackgroundPicker({
                         }}
                     >
                         {isSelected(color) && (
-                            <CheckOutlined style={{ color: '#fff', fontSize: 14 }} />
+                            <CheckOutlined style={{ color: token.colorWhite, fontSize: 14 }} />
                         )}
                     </div>
                 ))}

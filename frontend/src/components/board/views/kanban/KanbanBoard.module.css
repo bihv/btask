@@ -38,7 +38,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #172b4d;
+    color: var(--text-primary);
 }
 
 .listContent {
@@ -56,7 +56,7 @@
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    color: #172b4d;
+    color: var(--text-primary);
 }
 
 .card:hover {
@@ -126,13 +126,13 @@
 }
 
 :global([data-theme='dark']) .listHeader {
-    color: #b6c2cf;
+    color: var(--text-primary);
 }
 
 :global([data-theme='dark']) .card {
     background: rgba(30, 33, 37, 0.95);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-    color: #b6c2cf;
+    color: var(--text-primary);
 }
 
 :global([data-theme='dark']) .card:hover {

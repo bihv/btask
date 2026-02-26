@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useAppToken } from '@/hooks/useAppToken';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Typography, Button, Input, Spin, App, Tooltip } from 'antd';
 import AutomationModal from '@/components/board/automation/AutomationModal';
@@ -40,6 +41,7 @@ export default function BoardPage() {
     const params = useParams();
     const boardId = params.id as string;
     const { message } = App.useApp();
+    const token = useAppToken();
 
     // React Query for fetching board data
     const { data: board, isLoading, refetch } = useBoard(boardId);
@@ -174,7 +176,7 @@ export default function BoardPage() {
                     flexDirection: 'column',
                     background: board.background_image
                         ? `url(${board.background_image}) center/cover fixed`
-                        : board.background_color || '#0079bf',
+                        : board.background_color || token.colorTemplateCover,
                 }}
             >
                 {/* Row 2: Board Toolbar */}
@@ -184,7 +186,7 @@ export default function BoardPage() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '8px 16px',
-                        background: 'rgba(0, 0, 0, 0.3)',
+                        background: token.colorOverlayDark,
                         backdropFilter: 'blur(8px)',
                         WebkitBackdropFilter: 'blur(8px)',
                     }}
@@ -195,7 +197,7 @@ export default function BoardPage() {
                             type="text"
                             icon={<ArrowLeftOutlined />}
                             onClick={() => router.back()}
-                            style={{ color: 'white' }}
+                            style={{ color: token.colorWhite }}
                         />
                         {isEditing ? (
                             <Input
@@ -213,7 +215,7 @@ export default function BoardPage() {
                         ) : (
                             <Text
                                 strong
-                                style={{ fontSize: 16, cursor: 'pointer', color: 'white' }}
+                                style={{ fontSize: 16, cursor: 'pointer', color: token.colorWhite }}
                                 onClick={() => setIsEditing(true)}
                             >
                                 {board.title}
@@ -229,7 +231,7 @@ export default function BoardPage() {
                                 type="text"
                                 icon={<ThunderboltOutlined />}
                                 onClick={() => setPluginsModalOpen(true)}
-                                style={{ color: 'white' }}
+                                style={{ color: token.colorWhite }}
                             />
                         </Tooltip>
                         <Tooltip title="Automation">
@@ -237,7 +239,7 @@ export default function BoardPage() {
                                 type="text"
                                 icon={<RobotOutlined />}
                                 onClick={() => setAutomationModalOpen(true)}
-                                style={{ color: 'white' }}
+                                style={{ color: token.colorWhite }}
                             />
                         </Tooltip>
 
@@ -254,7 +256,7 @@ export default function BoardPage() {
                                     <Button
                                         type={hasActiveFilters(filters) ? 'primary' : 'text'}
                                         icon={<FilterOutlined />}
-                                        style={!hasActiveFilters(filters) ? { color: 'white' } : {}}
+                                        style={!hasActiveFilters(filters) ? { color: token.colorWhite } : {}}
                                     >
                                         {hasActiveFilters(filters) ? 'Filters' : 'Filter'}
                                     </Button>
@@ -266,9 +268,9 @@ export default function BoardPage() {
                         <Tooltip title={board.is_starred ? 'Unstar' : 'Star'}>
                             <Button
                                 type="text"
-                                icon={board.is_starred ? <StarFilled style={{ color: '#f5c542' }} /> : <StarOutlined />}
+                                icon={board.is_starred ? <StarFilled style={{ color: token.colorStarYellow }} /> : <StarOutlined />}
                                 onClick={toggleStar}
-                                style={{ color: 'white' }}
+                                style={{ color: token.colorWhite }}
                             />
                         </Tooltip>
 
@@ -277,7 +279,7 @@ export default function BoardPage() {
                             type="text"
                             icon={<ShareAltOutlined />}
                             onClick={() => setShareOpen(true)}
-                            style={{ color: 'white' }}
+                            style={{ color: token.colorWhite }}
                         >
                             Share
                         </Button>
@@ -311,7 +313,7 @@ export default function BoardPage() {
                             }}
                             onCardClick={(cardId) => router.push(`/boards/${boardId}/cards/${cardId}`)}
                         >
-                            <Button type="text" icon={<MoreOutlined />} style={{ color: 'white' }} />
+                            <Button type="text" icon={<MoreOutlined />} style={{ color: token.colorWhite }} />
                         </BoardMenuPopover>
                     </div>
                 </div>

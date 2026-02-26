@@ -26,6 +26,7 @@ import {
 import { Attachment } from '@/types';
 import { attachmentApi, uploadFile } from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -38,21 +39,22 @@ interface AttachmentSectionProps {
     buttonRef?: React.RefObject<HTMLElement | null>;
 }
 
-const getFileIcon = (fileName: string, fileType?: string) => {
+const getFileIcon = (fileName: string, fileType?: string, colors?: { primary: string; error: string; success: string; muted: string }) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
+    const c = colors || { primary: '#1890ff', error: '#ff4d4f', success: '#52c41a', muted: '#666' };
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) {
-        return <FileImageOutlined style={{ fontSize: 24, color: '#1890ff' }} />;
+        return <FileImageOutlined style={{ fontSize: 24, color: c.primary }} />;
     }
     if (ext === 'pdf') {
-        return <FilePdfOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />;
+        return <FilePdfOutlined style={{ fontSize: 24, color: c.error }} />;
     }
     if (['doc', 'docx'].includes(ext || '')) {
-        return <FileWordOutlined style={{ fontSize: 24, color: '#1890ff' }} />;
+        return <FileWordOutlined style={{ fontSize: 24, color: c.primary }} />;
     }
     if (['xls', 'xlsx'].includes(ext || '')) {
-        return <FileExcelOutlined style={{ fontSize: 24, color: '#52c41a' }} />;
+        return <FileExcelOutlined style={{ fontSize: 24, color: c.success }} />;
     }
-    return <FileOutlined style={{ fontSize: 24, color: '#666' }} />;
+    return <FileOutlined style={{ fontSize: 24, color: c.muted }} />;
 };
 
 const isImageFile = (fileName: string) => {
@@ -70,6 +72,8 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
     const [uploading, setUploading] = useState(false);
     const { message } = App.useApp();
     const t = useTranslation();
+    const token = useAppToken();
+    const fileIconColors = { primary: token.colorPrimary, error: token.colorError, success: token.colorSuccess, muted: token.colorMutedText };
 
     const handleUpload = async (file: File) => {
         setUploading(true);
@@ -141,7 +145,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                                         preview={true}
                                     />
                                 ) : (
-                                    getFileIcon(attachment.file_name, attachment.file_type)
+                                    getFileIcon(attachment.file_name, attachment.file_type, fileIconColors)
                                 )}
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <Text

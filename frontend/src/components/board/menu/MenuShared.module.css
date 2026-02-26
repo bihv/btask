@@ -21,7 +21,7 @@
 }
 
 .menuItemDanger {
-    color: #ff4d4f;
+    color: var(--ant-color-error, #ff4d4f);
 }
 
 .menuItemIcon {
@@ -36,5 +36,5 @@
 }
 
 .menuItemTextDanger {
-    color: #ff4d4f;
+    color: var(--ant-color-error, #ff4d4f);
 }

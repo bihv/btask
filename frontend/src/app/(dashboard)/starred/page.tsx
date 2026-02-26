@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useAppToken } from '@/hooks/useAppToken';
 import { useRouter } from 'next/navigation';
 import { Typography, Spin, Empty, Card, Row, Col } from 'antd';
 import { StarFilled } from '@ant-design/icons';
@@ -14,6 +15,7 @@ export default function StarredPage() {
     const router = useRouter();
     const { setHeaderContent } = useHeader();
     const t = useTranslation();
+    const token = useAppToken();
 
     // React Query hooks
     const { data: boards = [], isLoading } = useStarredBoards();
@@ -58,7 +60,7 @@ export default function StarredPage() {
                                 style={{
                                     background: board.background_image
                                         ? `url(${board.background_image}) center/cover`
-                                        : board.background_color || '#0079bf',
+                                        : board.background_color || token.colorTemplateCover,
                                     borderRadius: 8,
                                     height: 100,
                                 }}
@@ -76,9 +78,9 @@ export default function StarredPage() {
                                 <Text
                                     strong
                                     style={{
-                                        color: 'white',
+                                        color: token.colorWhite,
                                         fontSize: 16,
-                                        textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                        textShadow: `0 1px 2px ${token.colorShadowHeavy}`,
                                     }}
                                     ellipsis
                                 >
@@ -92,7 +94,7 @@ export default function StarredPage() {
                                 >
                                     <StarFilled
                                         style={{
-                                            color: '#f5cd47',
+                                            color: token.colorStarYellow,
                                             cursor: 'pointer',
                                             fontSize: 18,
                                         }}

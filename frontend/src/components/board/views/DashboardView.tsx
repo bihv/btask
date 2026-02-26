@@ -13,6 +13,7 @@ import { Card as CardType } from '@/types';
 import dayjs from 'dayjs';
 import { isOverdue, isDueSoon } from '@/components/common/DueDateTag';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Title, Text } = Typography;
 
@@ -23,6 +24,7 @@ interface DashboardViewProps {
 export default function DashboardView({ onCardClick }: DashboardViewProps) {
     const { lists, currentBoard } = useBoardStore();
     const t = useTranslation();
+    const token = useAppToken();
 
     const stats = useMemo(() => {
         let total = 0;
@@ -110,7 +112,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                             title={t('UI_COMPLETED')}
                             value={stats.complete}
                             suffix={`/ ${stats.total}`}
-                            styles={{ content: { color: '#52c41a' } }}
+                            styles={{ content: { color: token.colorSuccess } }}
                         />
                         <Progress percent={completionPercent} size="small" />
                     </Card>
@@ -120,7 +122,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         <Statistic
                             title={t('UI_OVERDUE')}
                             value={stats.overdue}
-                            styles={{ content: { color: stats.overdue > 0 ? '#ff4d4f' : undefined } }}
+                            styles={{ content: { color: stats.overdue > 0 ? token.colorError : undefined } }}
                             prefix={<ExclamationCircleOutlined />}
                         />
                     </Card>
@@ -130,7 +132,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         <Statistic
                             title={t('UI_DUE_SOON')}
                             value={stats.dueSoon}
-                            styles={{ content: { color: stats.dueSoon > 0 ? '#faad14' : undefined } }}
+                            styles={{ content: { color: stats.dueSoon > 0 ? token.colorWarning : undefined } }}
                             prefix={<ClockCircleOutlined />}
                         />
                     </Card>
@@ -150,7 +152,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                                     </div>
                                     <Progress
                                         percent={stats.total > 0 ? Math.round((item.count / stats.total) * 100) : 0}
-                                        strokeColor={item.color || '#1890ff'}
+                                        strokeColor={item.color || token.colorPrimary}
                                         showInfo={false}
                                         size="small"
                                     />
@@ -218,7 +220,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                 {/* Overdue Cards */}
                 <Col xs={24} md={12}>
                     <Card
-                        title={<Text style={{ color: '#ff4d4f' }}>{t('UI_OVERDUE_CARDS')}</Text>}
+                        title={<Text style={{ color: token.colorError }}>{t('UI_OVERDUE_CARDS')}</Text>}
                         style={cardStyle}
                     >
                         {stats.overdueCards.length === 0 ? (

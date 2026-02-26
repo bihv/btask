@@ -11,6 +11,7 @@ import { Card } from '@/types';
 import { FilterState } from '@/components/board/BoardFilterPopover';
 import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
 import styles from './CalendarView.module.css';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -70,6 +71,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
     const [calendarMode, setCalendarMode] = useState<CalendarMode>('month');
     const [panelDate, setPanelDate] = useState<Dayjs>(dayjs());
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const token = useAppToken();
 
     // Get all cards with due dates (filtered)
     const cardsByDate = useMemo(() => {
@@ -128,7 +130,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                                             style={{
                                                 fontSize: 10,
                                                 backgroundColor: card.listColor || undefined,
-                                                color: card.listColor ? '#fff' : undefined,
+                                                color: card.listColor ? token.colorWhite : undefined,
                                                 border: 'none',
                                             }}
                                         >
@@ -148,7 +150,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                     <Badge
                         count={cards.length}
                         style={{
-                            backgroundColor: isOverdue ? '#ff4d4f' : '#1890ff',
+                            backgroundColor: isOverdue ? token.colorError : token.colorPrimary,
                             cursor: 'pointer',
                         }}
                     />
@@ -175,7 +177,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                     <Tooltip title={`${overdue} overdue`}>
                         <Badge
                             count={overdue}
-                            style={{ backgroundColor: '#ff4d4f' }}
+                            style={{ backgroundColor: token.colorError }}
                         />
                     </Tooltip>
                 )}
@@ -183,7 +185,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                     <Tooltip title={`${pending} pending`}>
                         <Badge
                             count={pending}
-                            style={{ backgroundColor: '#1890ff' }}
+                            style={{ backgroundColor: token.colorPrimary }}
                         />
                     </Tooltip>
                 )}
@@ -191,7 +193,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                     <Tooltip title={`${completed} completed`}>
                         <Badge
                             count={completed}
-                            style={{ backgroundColor: '#52c41a' }}
+                            style={{ backgroundColor: token.colorSuccess }}
                         />
                     </Tooltip>
                 )}
@@ -287,7 +289,7 @@ export default function CalendarView({ filters, onCardClick }: CalendarViewProps
                                                 <Tag
                                                     style={{
                                                         backgroundColor: card.listColor || undefined,
-                                                        color: card.listColor ? '#fff' : undefined,
+                                                        color: card.listColor ? token.colorWhite : undefined,
                                                         border: 'none',
                                                     }}
                                                 >

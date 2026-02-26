@@ -12,6 +12,7 @@ import CardPageContent from '@/app/boards/[id]/cards/[cardId]/CardPageContent';
 
 import { PluginProvider } from '@/components/plugins';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -25,6 +26,7 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const { data: cardData } = useCard(cardId);
     const t = useTranslation();
+    const token = useAppToken();
 
 
 
@@ -85,14 +87,14 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                             justifyContent: 'space-between',
                             padding: '12px 24px',
                             background: cardData?.cover_image
-                                ? 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)'
+                                ? `linear-gradient(to bottom, ${token.colorOverlayDarker} 0%, transparent 100%)`
                                 : 'transparent',
                             borderBottom: cardData?.cover_image ? 'none' : '1px solid var(--border-color)',
                         }}>
                             <Text strong style={{
                                 fontSize: 16,
-                                color: cardData?.cover_image ? 'white' : 'inherit',
-                                textShadow: cardData?.cover_image ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
+                                color: cardData?.cover_image ? token.colorWhite : 'inherit',
+                                textShadow: cardData?.cover_image ? `0 1px 2px ${token.colorOverlayDark}` : 'none',
                             }}>
                                 {currentBoard?.title || t('UI_BOARD')}
                             </Text>
@@ -103,7 +105,7 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                                     fontSize: 16,
                                     padding: 8,
                                     borderRadius: 4,
-                                    color: cardData?.cover_image ? 'white' : 'inherit',
+                                    color: cardData?.cover_image ? token.colorWhite : 'inherit',
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.background = cardData?.cover_image

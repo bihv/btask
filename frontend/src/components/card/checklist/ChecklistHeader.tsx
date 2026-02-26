@@ -4,6 +4,7 @@ import React from 'react';
 import { Typography, Progress, Dropdown, Button } from 'antd';
 import { CheckSquareOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -19,6 +20,7 @@ export default function ChecklistHeader({
     onDelete,
 }: ChecklistHeaderProps) {
     const t = useTranslation();
+    const token = useAppToken();
     return (
         <>
             {/* Checklist Header */}
@@ -52,7 +54,7 @@ export default function ChecklistHeader({
                     percent={progress}
                     showInfo={false}
                     size="small"
-                    strokeColor={progress === 100 ? '#52c41a' : undefined}
+                    strokeColor={progress === 100 ? token.colorSuccess : undefined}
                 />
             </div>
         </>

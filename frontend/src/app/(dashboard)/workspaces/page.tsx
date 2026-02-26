@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAppToken } from '@/hooks/useAppToken';
 import { useRouter } from 'next/navigation';
 import {
     Card,
@@ -37,6 +38,7 @@ export default function WorkspacesPage() {
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
     const deleteWorkspace = useDeleteWorkspace();
     const t = useTranslation();
+    const token = useAppToken();
 
     // React Query hooks
     const { data: workspaces = [], isLoading } = useWorkspaces();
@@ -184,7 +186,7 @@ export default function WorkspacesPage() {
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            color: 'white',
+                                            color: token.colorWhite,
                                             fontSize: 18,
                                             fontWeight: 600,
                                         }}

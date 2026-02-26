@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import styles from './BoardViewSwitcher.module.css';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 export type BoardViewMode = 'board' | 'table' | 'calendar' | 'dashboard';
 
@@ -20,6 +21,7 @@ interface BoardViewSwitcherProps {
 
 export default function BoardViewSwitcher({ value, onChange }: BoardViewSwitcherProps) {
     const t = useTranslation();
+    const token = useAppToken();
 
     const viewOptions = [
         { value: 'board', icon: <AppstoreOutlined />, label: t('UI_VIEW_BOARD') },
@@ -48,7 +50,7 @@ export default function BoardViewSwitcher({ value, onChange }: BoardViewSwitcher
             }))}
             className={styles.switcher}
             style={{
-                background: 'rgba(0, 0, 0, 0.25)',
+                background: token.colorOverlayDark,
                 backdropFilter: 'blur(8px)',
             }}
         />

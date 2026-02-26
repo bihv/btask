@@ -98,7 +98,7 @@ export default function KanbanBoard({ filters, readOnly = false, listsData, onCa
         if (onListsChange) {
             const activeList = lists.find(l => l.id === activeListId);
             const overList = lists.find(l => l.id === overListId);
-            
+
             if (!activeList || !overList) return;
 
             const activeCardIndex = activeList.cards?.findIndex(c => c.id === activeCardId) ?? -1;
@@ -110,8 +110,8 @@ export default function KanbanBoard({ filters, readOnly = false, listsData, onCa
                 const newCards = [...(activeList.cards ?? [])];
                 newCards.splice(activeCardIndex, 1);
                 newCards.splice(overIndex > activeCardIndex ? overIndex - 1 : overIndex, 0, movedCard);
-                
-                const newLists = lists.map(l => 
+
+                const newLists = lists.map(l =>
                     l.id === activeListId ? { ...l, cards: newCards } : l
                 );
                 onListsChange(newLists);
@@ -195,12 +195,12 @@ export default function KanbanBoard({ filters, readOnly = false, listsData, onCa
                     strategy={horizontalListSortingStrategy}
                 >
                     {lists.map((list) => (
-                        <KanbanList 
-                            key={list.id} 
-                            list={list} 
-                            filters={filters} 
-                            readOnly={readOnly} 
-                            onCardClick={onCardClick} 
+                        <KanbanList
+                            key={list.id}
+                            list={list}
+                            filters={filters}
+                            readOnly={readOnly}
+                            onCardClick={onCardClick}
                             showCovers={showCovers}
                             onAddCard={onAddCard}
                             onDeleteCard={onDeleteCard}
@@ -229,7 +229,7 @@ export default function KanbanBoard({ filters, readOnly = false, listsData, onCa
                                 </div>
                             ))}
                             {(activeList.cards?.length || 0) > 3 && (
-                                <div style={{ padding: 8, color: '#666', fontSize: 12 }}>
+                                <div style={{ padding: 8, color: 'var(--text-secondary)', fontSize: 12 }}>
                                     +{(activeList.cards?.length || 0) - 3} more cards
                                 </div>
                             )}

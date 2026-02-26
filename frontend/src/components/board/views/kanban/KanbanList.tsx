@@ -16,6 +16,7 @@ import { isDueSoon, isDueLater, isOverdue } from '@/components/common/DueDateTag
 import KanbanCard from './KanbanCard';
 import styles from './KanbanBoard.module.css';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const LIST_COLORS = [
     '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
@@ -81,6 +82,7 @@ function matchesFilters(card: Card, filters: FilterState): boolean {
 export default function KanbanList({ list, filters, readOnly = false, onCardClick, showCovers, onAddCard, onDeleteCard }: KanbanListProps) {
     const { modal } = App.useApp();
     const t = useTranslation();
+    const token = useAppToken();
     const { updateList, updateListColor, deleteList, copyList, moveAllCards, sortCards, createCard, lists } = useBoardStore();
     const [isAddingCard, setIsAddingCard] = useState(false);
     const [newCardTitle, setNewCardTitle] = useState('');
@@ -209,8 +211,8 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                             borderRadius: 4,
                             backgroundColor: color,
                             cursor: 'pointer',
-                            border: list.color === color ? '2px solid #fff' : 'none',
-                            boxShadow: list.color === color ? '0 0 0 2px #1890ff' : 'none',
+                            border: list.color === color ? `2px solid ${token.colorWhite}` : 'none',
+                            boxShadow: list.color === color ? `0 0 0 2px ${token.colorPrimary}` : 'none',
                         }}
                     />
                 ))}
@@ -377,7 +379,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     width: 40,
                     minWidth: 40,
                     height: 'fit-content',
-                    background: list.color || 'rgba(255, 255, 255, 0.85)',
+                    background: list.color || token.colorOverlayLight,
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
                     borderRadius: 12,
@@ -388,7 +390,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     cursor: 'pointer',
                     flexShrink: 0,
                     border: '1px solid rgba(255, 255, 255, 0.2)',
-                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+                    boxShadow: `0 4px 16px ${token.colorShadowLight}`,
                 }}
                 {...attributes}
                 {...listeners}
@@ -396,7 +398,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
             >
                 <ColumnWidthOutlined
                     style={{
-                        color: list.color ? '#fff' : '#172b4d',
+                        color: list.color ? token.colorWhite : token.colorTemplateDarkText,
                         marginBottom: 12,
                     }}
                 />
@@ -405,7 +407,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                         writingMode: 'vertical-rl',
                         fontWeight: 600,
                         fontSize: 14,
-                        color: list.color ? '#fff' : '#172b4d',
+                        color: list.color ? token.colorWhite : token.colorTemplateDarkText,
                         whiteSpace: 'nowrap',
                     }}
                 >
@@ -416,7 +418,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                         marginTop: 12,
                         fontWeight: 600,
                         fontSize: 12,
-                        color: list.color ? 'rgba(255,255,255,0.8)' : '#5e6c84',
+                        color: list.color ? 'rgba(255,255,255,0.8)' : token.colorMutedText,
                     }}
                 >
                     {filteredCards.length}
@@ -439,14 +441,14 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                 className={styles.listHeader}
                 {...(readOnly ? {} : attributes)}
                 {...(readOnly ? {} : listeners)}
-                style={list.color ? { color: '#fff' } : undefined}
+                style={list.color ? { color: token.colorWhite } : undefined}
             >
                 <EditableTitle
                     value={list.title}
                     onSave={handleTitleSave}
                     disabled={readOnly}
                     style={{ flex: 1 }}
-                    textStyle={{ color: list.color ? '#fff' : undefined }}
+                    textStyle={{ color: list.color ? token.colorWhite : undefined }}
                     size="small"
                 />
                 <Popover
@@ -467,7 +469,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                             icon={<ColumnWidthOutlined />}
                             onClick={handleToggleCollapse}
                             title={t('UI_COLLAPSE_LIST')}
-                            style={list.color ? { color: '#fff' } : undefined}
+                            style={list.color ? { color: token.colorWhite } : undefined}
                         />
                         <Dropdown
                             menu={{ items: menuItems }}
@@ -479,7 +481,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                                 type="text"
                                 size="small"
                                 icon={<MoreOutlined />}
-                                style={list.color ? { color: '#fff' } : undefined}
+                                style={list.color ? { color: token.colorWhite } : undefined}
                             />
                         </Dropdown>
                     </>
@@ -552,7 +554,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     style={{
                         width: '100%',
                         textAlign: 'left',
-                        ...(list.color ? { color: '#fff' } : {}),
+                        ...(list.color ? { color: token.colorWhite } : {}),
                     }}
                 >
                     {t('UI_ADD_A_CARD')}

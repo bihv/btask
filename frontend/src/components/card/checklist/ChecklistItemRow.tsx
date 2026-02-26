@@ -26,6 +26,7 @@ import MemberPickerModal from '@/components/common/MemberPickerModal';
 import { checklistApi } from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -141,6 +142,7 @@ export default function ChecklistItemRow({
 }: ChecklistItemRowProps) {
     const { message } = App.useApp();
     const t2 = useTranslation();
+    const token = useAppToken();
     const [dueDateModalOpen, setDueDateModalOpen] = useState(false);
     const [memberModalOpen, setMemberModalOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<string[]>(
@@ -334,12 +336,12 @@ export default function ChecklistItemRow({
                                         width: 28,
                                         height: 28,
                                         borderRadius: '50%',
-                                        backgroundColor: '#0052cc',
+                                        backgroundColor: token.colorPrimary,
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         fontSize: 10,
-                                        color: 'white',
+                                        color: token.colorWhite,
                                         marginLeft: -4,
                                     }}>
                                         +{item.assignees.length - 3}

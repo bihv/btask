@@ -6,6 +6,7 @@ import { CheckOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '
 import { Label } from '@/types';
 import api from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -40,6 +41,7 @@ export default function LabelPickerModal({
     const [view, setView] = useState<View>('list');
     const { message } = App.useApp();
     const t = useTranslation();
+    const token = useAppToken();
     const [editingLabel, setEditingLabel] = useState<Label | null>(null);
 
     // Form states
@@ -171,7 +173,7 @@ export default function LabelPickerModal({
                                     borderRadius: 4,
                                     backgroundColor: label.color,
                                     cursor: 'pointer',
-                                    color: 'white',
+                                    color: token.colorWhite,
                                 }}
                             >
                                 <span style={{ flex: 1 }}>{label.name || ''}</span>
@@ -218,7 +220,7 @@ export default function LabelPickerModal({
                     padding: '10px 12px',
                     borderRadius: 4,
                     backgroundColor: color,
-                    color: 'white',
+                    color: token.colorWhite,
                     marginBottom: 12,
                     minHeight: 32,
                 }}
@@ -255,13 +257,13 @@ export default function LabelPickerModal({
                                 borderRadius: 4,
                                 backgroundColor: c,
                                 cursor: 'pointer',
-                                border: color === c ? '2px solid #000' : '2px solid transparent',
+                                border: color === c ? `2px solid ${token.colorText}` : '2px solid transparent',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                             }}
                         >
-                            {color === c && <CheckOutlined style={{ color: 'white' }} />}
+                            {color === c && <CheckOutlined style={{ color: token.colorWhite }} />}
                         </div>
                     ))}
                 </div>

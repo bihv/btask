@@ -15,6 +15,7 @@ import dayjs from 'dayjs';
 import MemberPickerContent from '@/components/common/MemberPickerContent';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 interface NewChecklistItemFormProps {
     checklistId: string;
@@ -49,6 +50,7 @@ export default function NewChecklistItemForm({
 }: NewChecklistItemFormProps) {
     const [localAssigneeIds, setLocalAssigneeIds] = useState<string[]>(assigneeIds);
     const t = useTranslation();
+    const token = useAppToken();
 
     useEffect(() => {
         setLocalAssigneeIds(assigneeIds);
@@ -120,7 +122,7 @@ export default function NewChecklistItemForm({
                 autoSize={{ minRows: 1, maxRows: 4 }}
                 style={{
                     resize: 'vertical',
-                    borderColor: isActive ? '#1677ff' : undefined,
+                    borderColor: isActive ? token.colorPrimary : undefined,
                 }}
             />
 
@@ -191,7 +193,7 @@ export default function NewChecklistItemForm({
                                 size="small"
                                 icon={<UserOutlined />}
                                 style={{
-                                    color: assigneeIds.length > 0 ? '#1677ff' : undefined
+                                    color: assigneeIds.length > 0 ? token.colorPrimary : undefined
                                 }}
                             >
                                 {t('UI_ASSIGN')}
@@ -207,7 +209,7 @@ export default function NewChecklistItemForm({
                                 size="small"
                                 icon={<CalendarOutlined />}
                                 style={{
-                                    color: dueDate ? '#1677ff' : undefined
+                                    color: dueDate ? token.colorPrimary : undefined
                                 }}
                             >
                                 {t('UI_DUE_DATE_LABEL')}

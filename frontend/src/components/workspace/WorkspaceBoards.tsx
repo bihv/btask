@@ -88,7 +88,7 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 cursor: 'pointer',
-                                background: 'rgba(0,0,0,0.02)',
+                                background: 'var(--bg-tertiary)',
                                 transition: 'all 0.2s'
                             }}
                             onClick={() => setCreateBoardModalOpen(true)}

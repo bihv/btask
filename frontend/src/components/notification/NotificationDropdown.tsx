@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 dayjs.extend(relativeTime);
 
@@ -30,6 +31,7 @@ export default function NotificationDropdown() {
 
     const [open, setOpen] = useState(false);
     const t = useTranslation();
+    const token = useAppToken();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -141,7 +143,7 @@ export default function NotificationDropdown() {
                                     style={{
                                         padding: '12px 16px',
                                         cursor: 'pointer',
-                                        background: notification.is_read ? 'transparent' : 'rgba(24, 144, 255, 0.1)',
+                                        background: notification.is_read ? 'transparent' : token.colorPrimaryBg,
                                         display: 'flex',
                                         alignItems: 'flex-start'
                                     }}

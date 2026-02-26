@@ -9,6 +9,7 @@ import { Card } from '@/types';
 import { FilterState } from '@/components/board/BoardFilterPopover';
 import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
 import dayjs from 'dayjs';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -19,6 +20,7 @@ interface TableViewProps {
 
 export default function TableView({ filters, onCardClick }: TableViewProps) {
     const { lists, currentBoard } = useBoardStore();
+    const token = useAppToken();
     const [pagination, setPagination] = useState<TablePaginationConfig>({
         current: 1,
         pageSize: 50,
@@ -202,7 +204,7 @@ export default function TableView({ filters, onCardClick }: TableViewProps) {
                         <Tooltip key={member.user_id} title={member.user?.full_name}>
                             <Avatar
                                 src={member.user?.avatar_url || undefined}
-                                style={{ backgroundColor: '#1890ff' }}
+                                style={{ backgroundColor: token.colorPrimary }}
                             >
                                 {member.user?.full_name?.[0] || '?'}
                             </Avatar>

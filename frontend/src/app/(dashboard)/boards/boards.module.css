@@ -165,7 +165,7 @@
 
 .colorOptionSelected {
     box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8),
-        0 0 0 2px var(--primary-color, #1890ff);
+        0 0 0 2px var(--primary-color);
 }
 
 /* Workspace Label in Modal */

@@ -5,6 +5,7 @@ import { Typography } from 'antd';
 import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 import TemplateCardModal from './TemplateCardModal';
 import { TemplateList, TemplateCard, BoardList, Card } from '@/types';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -16,7 +17,7 @@ interface BoardPreviewProps {
 }
 
 // Convert TemplateList to List type for KanbanBoard
-function convertToLists(templateLists: TemplateList[]): BoardList[] {
+function convertToLists(templateLists: TemplateList[], fallbackColor: string): BoardList[] {
     const now = new Date().toISOString();
     return templateLists.map((list, listIndex) => ({
         id: list.id,
@@ -56,7 +57,7 @@ function convertToLists(templateLists: TemplateList[]): BoardList[] {
                 label: {
                     id: `label-${list.id}`,
                     board_id: 'template',
-                    color: list.color || '#579dff',
+                    color: list.color || fallbackColor,
                 },
             }],
         } as Card)),
@@ -64,7 +65,8 @@ function convertToLists(templateLists: TemplateList[]): BoardList[] {
 }
 
 export default function BoardPreview({ lists, title, backgroundColor = '#0079bf', backgroundImage }: BoardPreviewProps) {
-    const convertedLists = useMemo(() => convertToLists(lists), [lists]);
+    const token = useAppToken();
+    const convertedLists = useMemo(() => convertToLists(lists, token.colorPrimary), [lists, token.colorPrimary]);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -104,15 +106,15 @@ export default function BoardPreview({ lists, title, backgroundColor = '#0079bf'
                             alignItems: 'center',
                             gap: '8px',
                             padding: '8px 16px',
-                            background: 'rgba(0, 0, 0, 0.3)',
+                            background: token.colorOverlayDark,
                             backdropFilter: 'blur(8px)',
                         }}
                     >
-                        <Text strong style={{ color: '#fff', fontSize: '14px' }}>{title}</Text>
+                        <Text strong style={{ color: token.colorWhite, fontSize: '14px' }}>{title}</Text>
                         <span
                             style={{
                                 backgroundColor: 'rgba(255,255,255,0.3)',
-                                color: '#fff',
+                                color: token.colorWhite,
                                 fontSize: '10px',
                                 padding: '2px 6px',
                                 borderRadius: '3px',
@@ -134,9 +136,9 @@ export default function BoardPreview({ lists, title, backgroundColor = '#0079bf'
                         overflowY: 'auto',
                     }}
                 >
-                    <KanbanBoard 
-                        readOnly={true} 
-                        listsData={convertedLists} 
+                    <KanbanBoard
+                        readOnly={true}
+                        listsData={convertedLists}
                         onCardClick={handleCardClick}
                         showCovers={true}
                     />

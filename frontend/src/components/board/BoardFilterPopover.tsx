@@ -4,6 +4,7 @@ import { FilterOutlined, SearchOutlined, UserOutlined, ClockCircleOutlined, TagO
 import { Label, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 import dayjs from 'dayjs';
 
 const { Text, Title } = Typography;
@@ -55,6 +56,7 @@ export default function BoardFilterPopover({
     children,
 }: BoardFilterPopoverProps) {
     const t = useTranslation();
+    const token = useAppToken();
     const activeCount = [
         filters.search ? 1 : 0,
         (filters.labelIds.length > 0 || filters.noLabels) ? 1 : 0,
@@ -168,7 +170,7 @@ export default function BoardFilterPopover({
                                     alignItems: 'center',
                                     paddingLeft: 12
                                 }}>
-                                    <Text style={{ color: '#fff', fontWeight: 500, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+                                    <Text style={{ color: token.colorWhite, fontWeight: 500, textShadow: `0 1px 2px ${token.colorShadowHeavy}` }}>
                                         {label.name}
                                     </Text>
                                 </div>
@@ -194,7 +196,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.dueDate === 'overdue'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <ClockCircleOutlined style={{ color: '#eb5a46' }} />
+                                <ClockCircleOutlined style={{ color: token.colorOverdue }} />
                                 <Text>{t('UI_OVERDUE')}</Text>
                             </div>
                         </div>
@@ -205,7 +207,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.dueDate === 'due_soon'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <ClockCircleOutlined style={{ color: '#f2d600' }} />
+                                <ClockCircleOutlined style={{ color: token.colorDueSoon }} />
                                 <Text>{t('UI_DUE_SOON')}</Text>
                             </div>
                         </div>
@@ -216,7 +218,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.dueDate === 'due_later'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <ClockCircleOutlined style={{ color: '#5ba4cf' }} />
+                                <ClockCircleOutlined style={{ color: token.colorDueComplete }} />
                                 <Text>{t('UI_DUE_LATER')}</Text>
                             </div>
                         </div>
@@ -228,7 +230,7 @@ export default function BoardFilterPopover({
                             >
                                 <Checkbox checked={filters.dueDate === 'no_date'} />
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <div style={{ width: 14, height: 14, border: '2px dashed #999', borderRadius: '50%' }} />
+                                    <div style={{ width: 14, height: 14, border: `2px dashed ${token.colorMutedTextLight}`, borderRadius: '50%' }} />
                                     <Text>{t('UI_NO_DUE_DATE')}</Text>
                                 </div>
                             </div>

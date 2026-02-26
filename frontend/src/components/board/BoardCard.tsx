@@ -3,6 +3,7 @@
 import { Card, Typography, Button } from 'antd';
 import { StarOutlined, StarFilled } from '@ant-design/icons';
 import { Board } from '@/types';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -16,6 +17,7 @@ interface BoardCardProps {
 
 export default function BoardCard({ board, onClick, onToggleStar, className, style }: BoardCardProps) {
     const hasImage = !!board.background_image;
+    const token = useAppToken();
 
     return (
         <Card
@@ -43,9 +45,9 @@ export default function BoardCard({ board, onClick, onToggleStar, className, sty
                 <Text
                     strong
                     style={{
-                        color: 'white',
+                        color: token.colorWhite,
                         fontSize: 16,
-                        textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+                        textShadow: `0 1px 2px ${token.colorOverlayDarker}`,
                         wordBreak: 'break-word',
                     }}
                 >
@@ -57,9 +59,9 @@ export default function BoardCard({ board, onClick, onToggleStar, className, sty
                         size="small"
                         icon={
                             board.is_starred ? (
-                                <StarFilled style={{ color: '#f5cd47' }} />
+                                <StarFilled style={{ color: token.colorStarYellow }} />
                             ) : (
-                                <StarOutlined style={{ color: 'rgba(255,255,255,0.7)' }} />
+                                <StarOutlined style={{ color: token.colorOverlayLight }} />
                             )
                         }
                         onClick={(e) => {

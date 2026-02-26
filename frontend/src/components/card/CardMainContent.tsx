@@ -16,6 +16,7 @@ import { useBoardStore } from '@/stores/boardStore';
 import { cardArchiveApi } from '@/lib/api';
 import { CardBackSectionRenderer, CardButtonRenderer } from '@/components/plugins';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 
 const { Text } = Typography;
 
@@ -82,6 +83,7 @@ export default function CardMainContent({
     const { deleteCard } = useBoardStore();
     const { modal, message } = App.useApp();
     const t = useTranslation();
+    const token = useAppToken();
 
     const handleArchive = async () => {
         try {
@@ -183,7 +185,7 @@ export default function CardMainContent({
                                                 backgroundColor: cl.label?.color,
                                                 padding: '4px 12px',
                                                 borderRadius: 4,
-                                                color: 'white',
+                                                color: token.colorWhite,
                                                 fontSize: 12,
                                                 height: 32,
                                                 display: 'flex',

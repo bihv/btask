@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Popover, Button, Divider, Modal, Input, App } from 'antd';
 import styles from './BoardMenuPopover.module.css';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAppToken } from '@/hooks/useAppToken';
 import {
     ShareAltOutlined,
     InfoCircleOutlined,
@@ -66,6 +67,7 @@ export default function BoardMenuPopover({
 }: BoardMenuPopoverProps) {
     const { modal, message } = App.useApp();
     const t = useTranslation();
+    const token = useAppToken();
     const [open, setOpen] = useState(false);
     const [screen, setScreen] = useState<MenuScreen>('main');
     const [copyModalOpen, setCopyModalOpen] = useState(false);
@@ -122,7 +124,7 @@ export default function BoardMenuPopover({
                 label={`${t('UI_VISIBILITY')}: ${(board as any).visibility === 'public' ? t('UI_VISIBILITY_PUBLIC') : t('UI_VISIBILITY_PRIVATE')}`}
             />
             <MenuItem
-                icon={board.is_starred ? <StarFilled style={{ color: '#f5cd47' }} /> : <StarOutlined />}
+                icon={board.is_starred ? <StarFilled style={{ color: token.colorStarYellow }} /> : <StarOutlined />}
                 label={board.is_starred ? t('UI_UNSTAR') : t('UI_STAR')}
                 onClick={onToggleStar}
             />
@@ -148,7 +150,7 @@ export default function BoardMenuPopover({
 
             {/* Section 5: Board Actions */}
             <MenuItem
-                icon={board.is_watching ? <BellFilled style={{ color: '#1890ff' }} /> : <BellOutlined />}
+                icon={board.is_watching ? <BellFilled style={{ color: token.colorPrimary }} /> : <BellOutlined />}
                 label={board.is_watching ? t('UI_WATCHING') : t('UI_WATCH')}
                 onClick={onToggleWatch}
             />
