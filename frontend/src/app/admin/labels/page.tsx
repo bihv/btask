@@ -15,6 +15,7 @@ import {
     useImportLabels,
     SystemLabel,
 } from '@/hooks/useAdmin';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -39,6 +40,7 @@ export default function AdminLabelsPage() {
     const [labelModalOpen, setLabelModalOpen] = useState(false);
     const [editingLabel, setEditingLabel] = useState<SystemLabel | null>(null);
     const [labelForm] = Form.useForm();
+    const t = useTranslation();
 
     // Server-side pagination state
     const [page, setPage] = useState(1);
@@ -145,26 +147,26 @@ export default function AdminLabelsPage() {
 
     const columns = [
         {
-            title: 'Key',
+            title: t('UI_KEY'),
             dataIndex: 'key',
             key: 'key',
             width: 200,
         },
         {
-            title: 'Default (EN)',
+            title: t('UI_DEFAULT_EN'),
             dataIndex: 'default_value',
             key: 'default_value',
             ellipsis: true,
         },
         {
-            title: 'Category',
+            title: t('UI_CATEGORY'),
             dataIndex: 'category',
             key: 'category',
             width: 120,
             render: (cat: string) => <Tag>{cat || 'other'}</Tag>,
         },
         {
-            title: 'Translations',
+            title: t('UI_TRANSLATIONS'),
             key: 'translations',
             width: 120,
             render: (_: unknown, record: SystemLabel) => {
@@ -173,7 +175,7 @@ export default function AdminLabelsPage() {
             },
         },
         {
-            title: 'Actions',
+            title: t('UI_ACTIONS'),
             key: 'actions',
             width: 100,
             render: (_: unknown, record: SystemLabel) => (
@@ -242,7 +244,7 @@ export default function AdminLabelsPage() {
             <Card size="small" style={{ marginBottom: 16 }}>
                 <Space wrap>
                     <Input
-                        placeholder="Search by key or value..."
+                        placeholder={t('UI_SEARCH_KEY_VALUE')}
                         prefix={<SearchOutlined />}
                         value={searchText}
                         onChange={e => setSearchText(e.target.value)}
@@ -250,7 +252,7 @@ export default function AdminLabelsPage() {
                         allowClear
                     />
                     <Select
-                        placeholder="Filter by category"
+                        placeholder={t('UI_FILTER_BY_CATEGORY')}
                         value={categoryFilter}
                         onChange={(val) => {
                             setCategoryFilter(val);
@@ -297,7 +299,7 @@ export default function AdminLabelsPage() {
             </Card>
 
             <Modal
-                title="Edit Label"
+                title={t('UI_EDIT_LABEL')}
                 open={labelModalOpen}
                 onCancel={() => {
                     setLabelModalOpen(false);
@@ -327,7 +329,7 @@ export default function AdminLabelsPage() {
                     </Form.Item>
                     <Form.Item>
                         <Button type="primary" htmlType="submit" block loading={updateLabel.isPending}>
-                            Update
+                            {t('UI_UPDATE')}
                         </Button>
                     </Form.Item>
                 </Form>

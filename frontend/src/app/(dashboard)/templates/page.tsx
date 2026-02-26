@@ -18,6 +18,7 @@ import TemplateCard from '@/components/templates/TemplateCard';
 import SectionHeader from '@/components/templates/SectionHeader';
 import { useTemplates } from '@/hooks/useTemplates';
 import { Template } from '@/types';
+import { useTranslation } from '@/hooks/useLabels';
 
 const CATEGORIES = [
     { name: 'Business', icon: BankOutlined, color: '#4bce97' },
@@ -34,6 +35,7 @@ const { Title } = Typography;
 export default function TemplatesPage() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
+    const t = useTranslation();
 
     // Fetch templates from API
     const { data, isLoading } = useTemplates({ limit: 50 });
@@ -53,8 +55,8 @@ export default function TemplatesPage() {
     const businessTemplates = filteredTemplates.filter((t: Template) => t.category === 'Business');
     const designTemplates = filteredTemplates.filter((t: Template) => t.category === 'Design');
     const educationTemplates = filteredTemplates.filter((t: Template) => t.category === 'Education');
-    const otherTemplates = filteredTemplates.filter((t: Template) => 
-        !t.is_featured && 
+    const otherTemplates = filteredTemplates.filter((t: Template) =>
+        !t.is_featured &&
         !['Business', 'Design', 'Education'].includes(t.category || '')
     );
 
@@ -79,9 +81,9 @@ export default function TemplatesPage() {
         <Row gutter={[24, 24]}>
             {templateList.slice(0, limit).map((template: Template) => (
                 <Col key={template.id} xs={24} sm={12} md={8} lg={8}>
-                    <TemplateCard 
-                        template={toCardFormat(template)} 
-                        onClick={() => handleTemplateClick(template.id)} 
+                    <TemplateCard
+                        template={toCardFormat(template)}
+                        onClick={() => handleTemplateClick(template.id)}
                     />
                 </Col>
             ))}
@@ -108,42 +110,42 @@ export default function TemplatesPage() {
         <div style={{ padding: '24px 32px', maxWidth: '1200px', margin: '0 auto' }}>
             {/* Featured Categories */}
             {filteredCategories.length > 0 && (
-            <div style={{ marginBottom: '40px' }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                     <Title level={4} style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        Featured categories
-                    </Title>
-                    <Input 
-                        prefix={<SearchOutlined style={{ color: 'var(--text-secondary)' }} />} 
-                        placeholder="Find templates" 
-                        style={{ width: '240px' }}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        allowClear
-                    />
-                 </div>
-                
-                <Row gutter={[16, 16]}>
-                    {filteredCategories.map((cat) => (
-                        <Col key={cat.name} xs={24} sm={12} md={8} lg={6} xl={4} xxl={3}> 
-                             <div style={{ cursor: 'pointer' }}>
-                                <CategoryCard name={cat.name} icon={cat.icon} color={cat.color} />
-                            </div>
-                        </Col>
-                    ))}
-                </Row>
-            </div>
+                <div style={{ marginBottom: '40px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <Title level={4} style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                            Featured categories
+                        </Title>
+                        <Input
+                            prefix={<SearchOutlined style={{ color: 'var(--text-secondary)' }} />}
+                            placeholder={t('UI_FIND_TEMPLATES')}
+                            style={{ width: '240px' }}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            allowClear
+                        />
+                    </div>
+
+                    <Row gutter={[16, 16]}>
+                        {filteredCategories.map((cat) => (
+                            <Col key={cat.name} xs={24} sm={12} md={8} lg={6} xl={4} xxl={3}>
+                                <div style={{ cursor: 'pointer' }}>
+                                    <CategoryCard name={cat.name} icon={cat.icon} color={cat.color} />
+                                </div>
+                            </Col>
+                        ))}
+                    </Row>
+                </div>
             )}
 
             {templates.length === 0 ? (
-                <Empty description="No templates available" />
+                <Empty description={t('UI_NO_TEMPLATES')} />
             ) : (
                 <>
                     {/* Featured */}
                     {featuredTemplates.length > 0 && (
                         <>
-                            <SectionHeader 
-                                title="New and notable templates" 
+                            <SectionHeader
+                                title={t('UI_NEW_NOTABLE_TEMPLATES')}
                                 icon={<span role="img" aria-label="star">🌟</span>}
                             />
                             {renderTemplateRow(featuredTemplates)}
@@ -153,8 +155,8 @@ export default function TemplatesPage() {
                     {/* Business */}
                     {businessTemplates.length > 0 && (
                         <>
-                            <SectionHeader 
-                                title="Business" 
+                            <SectionHeader
+                                title="Business"
                                 icon={<BankOutlined style={{ color: '#4bce97' }} />}
                                 actionLabel={businessTemplates.length > 3 ? "More templates for Business" : undefined}
                                 onAction={() => handleCategoryClick('Business')}
@@ -166,8 +168,8 @@ export default function TemplatesPage() {
                     {/* Design */}
                     {designTemplates.length > 0 && (
                         <>
-                            <SectionHeader 
-                                title="Design" 
+                            <SectionHeader
+                                title="Design"
                                 icon={<FormatPainterOutlined style={{ color: '#e2b203' }} />}
                                 actionLabel={designTemplates.length > 3 ? "More templates for Design" : undefined}
                                 onAction={() => handleCategoryClick('Design')}
@@ -179,8 +181,8 @@ export default function TemplatesPage() {
                     {/* Education */}
                     {educationTemplates.length > 0 && (
                         <>
-                            <SectionHeader 
-                                title="Education" 
+                            <SectionHeader
+                                title="Education"
                                 icon={<ReadOutlined style={{ color: '#faa53d' }} />}
                                 actionLabel={educationTemplates.length > 3 ? "More templates for Education" : undefined}
                                 onAction={() => handleCategoryClick('Education')}
@@ -191,8 +193,8 @@ export default function TemplatesPage() {
                     {/* Other */}
                     {otherTemplates.length > 0 && (
                         <>
-                            <SectionHeader 
-                                title="Other templates" 
+                            <SectionHeader
+                                title={t('UI_OTHER_TEMPLATES')}
                                 icon={<span role="img" aria-label="folder">📁</span>}
                             />
                             {renderTemplateRow(otherTemplates)}

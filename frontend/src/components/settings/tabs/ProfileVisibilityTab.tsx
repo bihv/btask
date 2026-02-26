@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useUpdateUser } from '@/hooks/useUser';
 import api from '@/lib/api';
 import UserAvatar, { SYSTEM_AVATARS } from '@/components/common/UserAvatar';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -23,6 +24,7 @@ export default function ProfileVisibilityTab() {
     const { message } = App.useApp();
     const { user } = useAuthStore();
     const updateUser = useUpdateUser();
+    const t = useTranslation();
     const [avatarUrl, setAvatarUrl] = useState<string | undefined>(user?.avatar_url);
     const [uploading, setUploading] = useState(false);
     const [avatarModalOpen, setAvatarModalOpen] = useState(false);
@@ -46,7 +48,7 @@ export default function ProfileVisibilityTab() {
                 avatar_url: avatarUrl,
             });
         } catch (error) {
-            message.error('Failed to update profile');
+            message.error(t('ERROR_UPDATE_PROFILE'));
         }
     };
 
@@ -74,7 +76,7 @@ export default function ProfileVisibilityTab() {
             onSuccess?.(response.data);
             setAvatarModalOpen(false);
         } catch (error) {
-            message.error('Failed to upload avatar');
+            message.error(t('ERROR_UPLOAD_AVATAR'));
             onError?.(error as Error);
         } finally {
             setUploading(false);
@@ -90,7 +92,7 @@ export default function ProfileVisibilityTab() {
             await updateUser.mutateAsync({ avatar_url: avatarValue });
             setAvatarModalOpen(false);
         } catch (error) {
-            message.error('Failed to update avatar');
+            message.error(t('ERROR_UPDATE_AVATAR'));
         }
     };
 
@@ -105,7 +107,7 @@ export default function ProfileVisibilityTab() {
             setAvatarUrl(undefined);
             setAvatarModalOpen(false);
         } catch (error) {
-            message.error('Failed to remove avatar');
+            message.error(t('ERROR_REMOVE_AVATAR'));
         }
     };
 
@@ -140,7 +142,7 @@ export default function ProfileVisibilityTab() {
 
     return (
         <div>
-            <Title level={3} style={{ marginBottom: 24 }}>Profile and Visibility</Title>
+            <Title level={3} style={{ marginBottom: 24 }}>{t('UI_PROFILE_VISIBILITY')}</Title>
 
             {/* Profile Header with Avatar */}
             <div style={{
@@ -176,7 +178,7 @@ export default function ProfileVisibilityTab() {
                 </div>
                 <div>
                     <Text style={{ color: '#fff', fontSize: 20, fontWeight: 600, display: 'block' }}>
-                        {user?.full_name || 'User'}
+                        {user?.full_name || t('UI_USER')}
                     </Text>
                     <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
                         {user?.email}
@@ -189,7 +191,7 @@ export default function ProfileVisibilityTab() {
                 open={avatarModalOpen}
                 onCancel={() => setAvatarModalOpen(false)}
                 footer={null}
-                title="Choose Avatar"
+                title={t('UI_CHOOSE_AVATAR')}
                 width={480}
             >
                 <Tabs
@@ -197,7 +199,7 @@ export default function ProfileVisibilityTab() {
                     items={[
                         {
                             key: 'system',
-                            label: 'System Avatars',
+                            label: t('UI_SYSTEM_AVATARS'),
                             children: (
                                 <div style={{
                                     display: 'grid',
@@ -253,7 +255,7 @@ export default function ProfileVisibilityTab() {
                         },
                         {
                             key: 'upload',
-                            label: 'Upload Photo',
+                            label: t('UI_UPLOAD_PHOTO'),
                             children: (
                                 <div style={{ padding: '24px 0', textAlign: 'center' }}>
                                     <Upload
@@ -263,18 +265,18 @@ export default function ProfileVisibilityTab() {
                                         accept="image/*"
                                     >
                                         <Button type="primary" loading={uploading}>
-                                            {uploading ? 'Uploading...' : 'Choose Image'}
+                                            {uploading ? t('UI_UPLOADING') : t('UI_CHOOSE_IMAGE')}
                                         </Button>
                                     </Upload>
                                     <Text type="secondary" style={{ display: 'block', marginTop: 12 }}>
-                                        Recommended: Square image, at least 200x200 pixels
+                                        {t('UI_AVATAR_RECOMMENDATION')}
                                     </Text>
                                 </div>
                             ),
                         },
                     ]}
                 />
-                
+
                 {/* Remove Avatar Button */}
                 {avatarUrl && (
                     <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border-color)' }}>
@@ -284,7 +286,7 @@ export default function ProfileVisibilityTab() {
                             onClick={handleRemoveAvatar}
                             block
                         >
-                            Remove Avatar
+                            {t('UI_REMOVE_AVATAR')}
                         </Button>
                     </div>
                 )}
@@ -292,7 +294,7 @@ export default function ProfileVisibilityTab() {
 
             {/* About Section */}
             <Card>
-                <Title level={5} style={{ marginTop: 0 }}>About</Title>
+                <Title level={5} style={{ marginTop: 0 }}>{t('UI_ABOUT')}</Title>
 
                 <Form
                     form={form}
@@ -304,16 +306,16 @@ export default function ProfileVisibilityTab() {
                         name="full_name"
                         label={
                             <Flex justify="space-between" style={{ width: '100%' }}>
-                                <span>Full Name *</span>
+                                <span>{t('UI_FULL_NAME')}</span>
                                 <Space size={4}>
                                     <EyeOutlined style={{ fontSize: 12 }} />
-                                    <Text type="secondary" style={{ fontSize: 12 }}>Always public</Text>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_ALWAYS_PUBLIC')}</Text>
                                 </Space>
                             </Flex>
                         }
-                        rules={[{ required: true, message: 'Please enter your full name' }]}
+                        rules={[{ required: true, message: t('VALIDATE_FULL_NAME') }]}
                     >
-                        <Input placeholder="Enter your full name" />
+                        <Input placeholder={t('UI_PLACEHOLDER_FULL_NAME')} />
                     </Form.Item>
 
                     {/* Bio */}
@@ -321,17 +323,17 @@ export default function ProfileVisibilityTab() {
                         name="bio"
                         label={
                             <Flex justify="space-between" style={{ width: '100%' }}>
-                                <span>Bio</span>
+                                <span>{t('UI_BIO')}</span>
                                 <Space size={4}>
                                     <EyeOutlined style={{ fontSize: 12 }} />
-                                    <Text type="secondary" style={{ fontSize: 12 }}>Always public</Text>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_ALWAYS_PUBLIC')}</Text>
                                 </Space>
                             </Flex>
                         }
                     >
                         <TextArea
                             rows={4}
-                            placeholder="Tell us about yourself"
+                            placeholder={t('UI_PLACEHOLDER_BIO')}
                             maxLength={500}
                             showCount
                         />
@@ -339,7 +341,7 @@ export default function ProfileVisibilityTab() {
 
                     {/* Email (Read-only) */}
                     <Form.Item
-                        label="Email"
+                        label={t('UI_EMAIL')}
                     >
                         <Input value={user?.email} disabled />
                     </Form.Item>
@@ -351,7 +353,7 @@ export default function ProfileVisibilityTab() {
                             htmlType="submit"
                             loading={updateUser.isPending}
                         >
-                            Save
+                            {t('UI_SAVE')}
                         </Button>
                     </Form.Item>
                 </Form>

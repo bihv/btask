@@ -13,6 +13,7 @@ import {
 import type { TriggerSchema, ActionSchema, PropertySchema, AutomationRule } from '@/types/automation';
 import { TRIGGER_CATEGORY_INFO, ACTION_CATEGORY_INFO } from '@/types/automation';
 import SentenceTemplateRenderer, { SentenceDisplay } from './SentenceTemplateRenderer';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text, Title } = Typography;
 
@@ -59,6 +60,7 @@ function propertiesToRecord(properties: PropertySchema[]): Record<string, Proper
 export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }: RuleBuilderProps) {
     const { token } = theme.useToken();
     const { message } = App.useApp();
+    const t = useTranslation();
     const [form] = Form.useForm();
 
     // API hooks
@@ -193,7 +195,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
 
     const handleSave = async () => {
         if (!selectedTrigger || actions.length === 0) {
-            message.error('Please select a trigger and at least one action');
+            message.error(t('ERROR_SELECT_TRIGGER_AND_ACTION'));
             return;
         }
 
@@ -228,14 +230,14 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
         try {
             if (ruleToEdit) {
                 await updateRule.mutateAsync({ id: ruleToEdit.id, data: ruleData });
-                message.success('Rule updated successfully');
+                message.success(t('SUCCESS_RULE_UPDATED'));
             } else {
                 await createRule.mutateAsync(ruleData);
-                message.success('Rule created successfully');
+                message.success(t('SUCCESS_RULE_CREATED'));
             }
             onSuccess();
         } catch (error: any) {
-            message.error(error.message || 'Failed to save rule');
+            message.error(error.message || t('ERROR_SAVE_RULE_FAILED'));
         }
     };
 
@@ -244,7 +246,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
         return (
             <div style={{ padding: 40, textAlign: 'center' }}>
                 <Spin size="large" />
-                <div style={{ marginTop: 16 }}>Loading automation schema...</div>
+                <div style={{ marginTop: 16 }}>{t('UI_LOADING_AUTOMATION_SCHEMA')}</div>
             </div>
         );
     }
@@ -254,8 +256,8 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
         return (
             <Alert
                 type="warning"
-                message="No automation triggers or actions available"
-                description="The automation system has not been initialized properly."
+                message={t('UI_NO_AUTOMATION_AVAILABLE')}
+                description={t('UI_AUTOMATION_NOT_INITIALIZED')}
                 style={{ margin: 40 }}
             />
         );
@@ -316,13 +318,13 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             )}
                         </List.Item>
                     )}
-                    locale={{ emptyText: 'No triggers in this category' }}
+                    locale={{ emptyText: t('UI_NO_TRIGGERS_IN_CATEGORY') }}
                 />
 
                 {/* Trigger configuration */}
                 {selectedTrigger && selectedTrigger.sentence_template && (
                     <Card
-                        title="Configure Trigger"
+                        title={t('UI_CONFIGURE_TRIGGER')}
                         size="small"
                         style={{ marginTop: 16 }}
                     >
@@ -361,7 +363,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
             {/* Action list and selected actions */}
             <div style={{ flex: 1 }}>
                 {/* Available actions */}
-                <Title level={5}>Available Actions</Title>
+                <Title level={5}>{t('UI_AVAILABLE_ACTIONS')}</Title>
                 <List
                     size="small"
                     dataSource={actionsByCategory[activeActionCategory] || []}
@@ -375,7 +377,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                                     icon={<PlusOutlined />}
                                     onClick={() => handleAddAction(action)}
                                 >
-                                    Add
+                                    {t('UI_ADD')}
                                 </Button>
                             ]}
                         >
@@ -385,17 +387,17 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             />
                         </List.Item>
                     )}
-                    locale={{ emptyText: 'No actions in this category' }}
+                    locale={{ emptyText: t('UI_NO_ACTIONS_IN_CATEGORY') }}
                 />
 
                 <Divider />
 
                 {/* Selected actions */}
                 <Title level={5}>
-                    Added Actions ({actions.length})
+                    {t('UI_ADDED_ACTIONS')} ({actions.length})
                 </Title>
                 {actions.length === 0 ? (
-                    <Empty description="No actions added yet" />
+                    <Empty description={t('UI_NO_ACTIONS_ADDED')} />
                 ) : (
                     <Space direction="vertical" style={{ width: '100%' }}>
                         {actions.map((action, index) => {
@@ -425,7 +427,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                                             context={context}
                                         />
                                     ) : (
-                                        <Text type="secondary">No configuration needed</Text>
+                                        <Text type="secondary">{t('UI_NO_CONFIG_NEEDED')}</Text>
                                     )}
                                 </Card>
                             );
@@ -440,22 +442,22 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
     const renderReviewStep = () => (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Form form={form} layout="vertical">
-                <Form.Item label="Rule Name">
+                <Form.Item label={t('UI_RULE_NAME')}>
                     <Input
                         value={ruleName}
                         onChange={e => setRuleName(e.target.value)}
-                        placeholder="Enter rule name"
+                        placeholder={t('UI_PLACEHOLDER_RULE_NAME')}
                     />
                 </Form.Item>
-                <Form.Item label="Enabled">
+                <Form.Item label={t('UI_ENABLED')}>
                     <Switch checked={isEnabled} onChange={setIsEnabled} />
                 </Form.Item>
             </Form>
 
-            <Card title="Summary" size="small">
+            <Card title={t('UI_SUMMARY')} size="small">
                 <Space direction="vertical" style={{ width: '100%' }}>
                     <div>
-                        <Text strong>When: </Text>
+                        <Text strong>{t('UI_WHEN')} </Text>
                         {selectedTrigger && selectedTrigger.sentence_template ? (
                             <SentenceDisplay
                                 template={selectedTrigger.sentence_template}
@@ -469,7 +471,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                     </div>
 
                     <div>
-                        <Text strong>Then: </Text>
+                        <Text strong>{t('UI_THEN')} </Text>
                         <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
                             {actions.map((action, index) => {
                                 const schema = allActions.find(a => a.id === action.id);
@@ -502,9 +504,9 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
             <Steps
                 current={currentStep}
                 items={[
-                    { title: 'Trigger', icon: <ThunderboltOutlined /> },
-                    { title: 'Actions', icon: <PlayCircleOutlined /> },
-                    { title: 'Review', icon: <SaveOutlined /> },
+                    { title: t('UI_TRIGGER'), icon: <ThunderboltOutlined /> },
+                    { title: t('UI_ACTIONS'), icon: <PlayCircleOutlined /> },
+                    { title: t('UI_REVIEW'), icon: <SaveOutlined /> },
                 ]}
                 style={{ marginBottom: 24 }}
             />
@@ -518,11 +520,11 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
             <Divider />
 
             <Flex justify="space-between">
-                <Button onClick={onCancel}>Cancel</Button>
+                <Button onClick={onCancel}>{t('UI_CANCEL')}</Button>
                 <Space>
                     {currentStep > 0 && (
                         <Button onClick={() => setCurrentStep(prev => prev - 1)}>
-                            Previous
+                            {t('UI_PREVIOUS')}
                         </Button>
                     )}
                     {currentStep < 2 ? (
@@ -531,7 +533,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             onClick={() => setCurrentStep(prev => prev + 1)}
                             disabled={currentStep === 0 && !selectedTrigger}
                         >
-                            Next
+                            {t('UI_NEXT')}
                         </Button>
                     ) : (
                         <Button
@@ -541,7 +543,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             loading={createRule.isPending || updateRule.isPending}
                             disabled={actions.length === 0}
                         >
-                            {ruleToEdit ? 'Update Rule' : 'Create Rule'}
+                            {ruleToEdit ? t('UI_UPDATE_RULE') : t('UI_CREATE_RULE')}
                         </Button>
                     )}
                 </Space>

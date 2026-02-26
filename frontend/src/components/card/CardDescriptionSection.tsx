@@ -4,6 +4,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import { Button, Typography, Spin } from 'antd';
 import { AlignLeftOutlined, EditOutlined } from '@ant-design/icons';
+import { useTranslation } from '@/hooks/useLabels';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
@@ -33,12 +34,13 @@ export default function CardDescriptionSection({
     workspaceId,
     cardId,
 }: CardDescriptionSectionProps) {
+    const t = useTranslation();
     return (
         <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <AlignLeftOutlined />
-                    <Text strong>Description</Text>
+                    <Text strong>{t('UI_DESCRIPTION')}</Text>
                 </div>
                 {!isEditing && description && (
                     <Button
@@ -47,7 +49,7 @@ export default function CardDescriptionSection({
                         icon={<EditOutlined />}
                         onClick={onEditStart}
                     >
-                        Edit
+                        {t('UI_EDIT')}
                     </Button>
                 )}
             </div>
@@ -57,20 +59,20 @@ export default function CardDescriptionSection({
                         content={description}
                         onChange={onDescriptionChange}
                         editable={true}
-                        placeholder="Add a more detailed description..."
+                        placeholder={t('UI_PLACEHOLDER_DESCRIPTION')}
                         workspaceId={workspaceId}
                         cardId={cardId}
                     />
                     <div style={{ marginTop: 8 }}>
                         <Button type="primary" size="small" onClick={onSave}>
-                            Save
+                            {t('UI_SAVE')}
                         </Button>
                         <Button
                             size="small"
                             style={{ marginLeft: 8 }}
                             onClick={onCancel}
                         >
-                            Cancel
+                            {t('UI_CANCEL')}
                         </Button>
                     </div>
                 </div>
@@ -91,7 +93,7 @@ export default function CardDescriptionSection({
                             editable={false}
                         />
                     ) : (
-                        <Text type="secondary">Add a more detailed description...</Text>
+                        <Text type="secondary">{t('UI_PLACEHOLDER_DESCRIPTION')}</Text>
                     )}
                 </div>
             )}

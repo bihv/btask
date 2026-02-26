@@ -5,6 +5,7 @@ import { Button, Input } from 'antd';
 import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
 import styles from './KanbanBoard.module.css';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface AddListProps {
     boardId: string;
@@ -12,6 +13,7 @@ interface AddListProps {
 
 export default function AddList({ boardId }: AddListProps) {
     const { createList } = useBoardStore();
+    const t = useTranslation();
     const [isAdding, setIsAdding] = useState(false);
     const [title, setTitle] = useState('');
 
@@ -30,7 +32,7 @@ export default function AddList({ boardId }: AddListProps) {
                 onClick={() => setIsAdding(true)}
             >
                 <PlusOutlined />
-                Add another list
+                {t('UI_ADD_ANOTHER_LIST')}
             </div>
         );
     }
@@ -48,7 +50,7 @@ export default function AddList({ boardId }: AddListProps) {
             <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter list title..."
+                placeholder={t('UI_PLACEHOLDER_LIST_TITLE')}
                 autoFocus
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -62,7 +64,7 @@ export default function AddList({ boardId }: AddListProps) {
             />
             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                 <Button type="primary" onClick={handleAdd}>
-                    Add list
+                    {t('UI_ADD_LIST')}
                 </Button>
                 <Button
                     type="text"

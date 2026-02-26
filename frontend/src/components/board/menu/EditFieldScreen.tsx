@@ -6,6 +6,7 @@ import { DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { CustomField, CustomFieldOption } from '@/types';
 import { customFieldApi } from '@/lib/api';
 import { ScreenHeader } from './MenuShared';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -18,6 +19,7 @@ interface EditFieldScreenProps {
 
 export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: EditFieldScreenProps) {
     const { modal, message } = App.useApp();
+    const t = useTranslation();
     const [name, setName] = useState(field.name);
     const [showOnCard, setShowOnCard] = useState(field.show_on_card);
     const [options, setOptions] = useState<CustomFieldOption[]>(field.options || []);
@@ -27,7 +29,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
 
     const handleSave = async () => {
         if (!name.trim()) {
-            message.error('Please enter a field name');
+            message.error(t('ERROR_FIELD_NAME_REQUIRED'));
             return;
         }
 
@@ -39,7 +41,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
             });
             onUpdate(response.data.data);
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to update field');
+            message.error(error.response?.data?.error || t('ERROR_UPDATE_FIELD_FAILED'));
         } finally {
             setSaving(false);
         }
@@ -56,7 +58,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
             setOptions([...options, response.data.data]);
             setNewOption('');
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to add option');
+            message.error(error.response?.data?.error || t('ERROR_ADD_OPTION_FAILED'));
         } finally {
             setAddingOption(false);
         }
@@ -67,24 +69,24 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
             await customFieldApi.deleteOption(optionId);
             setOptions(options.filter(o => o.id !== optionId));
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to delete option');
+            message.error(error.response?.data?.error || t('ERROR_DELETE_OPTION_FAILED'));
         }
     };
 
     const handleDelete = () => {
         modal.confirm({
-            title: 'Delete this custom field?',
+            title: t('UI_DELETE_CUSTOM_FIELD'),
             icon: <ExclamationCircleOutlined />,
-            content: 'This will remove this field and all its values from all cards in this board.',
-            okText: 'Delete',
+            content: t('UI_DELETE_CUSTOM_FIELD_CONFIRM'),
+            okText: t('UI_DELETE'),
             okType: 'danger',
             onOk: async () => {
                 try {
                     await customFieldApi.delete(field.id);
-                    message.success('Field deleted');
+                    message.success(t('SUCCESS_FIELD_DELETED'));
                     onDelete();
                 } catch (error: any) {
-                    message.error(error.response?.data?.error || 'Failed to delete field');
+                    message.error(error.response?.data?.error || t('ERROR_DELETE_FIELD_FAILED'));
                 }
             },
         });
@@ -100,7 +102,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                 {/* Title */}
                 <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-                        Title
+                        {t('UI_TITLE')}
                     </label>
                     <Input
                         value={name}
@@ -111,7 +113,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                 {/* Type (read-only) */}
                 <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-                        Type
+                        {t('UI_TYPE')}
                     </label>
                     <Text type="secondary" style={{ textTransform: 'capitalize' }}>
                         {field.type}
@@ -122,7 +124,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                 {field.type === 'dropdown' && (
                     <div style={{ marginBottom: 16 }}>
                         <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-                            Options
+                            {t('UI_OPTIONS')}
                         </label>
 
                         {/* Existing options */}
@@ -169,7 +171,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                         {/* Add new option */}
                         <Space.Compact style={{ width: '100%' }}>
                             <Input
-                                placeholder="Add item..."
+                                placeholder={t('UI_PLACEHOLDER_ADD_ITEM')}
                                 value={newOption}
                                 onChange={(e) => setNewOption(e.target.value)}
                                 onPressEnter={handleAddOption}
@@ -179,7 +181,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                                 loading={addingOption}
                                 disabled={!newOption.trim()}
                             >
-                                Add
+                                {t('UI_ADD')}
                             </Button>
                         </Space.Compact>
                     </div>
@@ -191,7 +193,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                         checked={showOnCard}
                         onChange={(e) => setShowOnCard(e.target.checked)}
                     >
-                        Show field on front of card
+                        {t('UI_SHOW_FIELD_ON_CARD')}
                     </Checkbox>
                 </div>
 
@@ -204,7 +206,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                     disabled={!hasChanges}
                     style={{ marginBottom: 12 }}
                 >
-                    Save
+                    {t('UI_SAVE')}
                 </Button>
 
                 <Divider style={{ margin: '12px 0' }} />
@@ -216,7 +218,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                     icon={<DeleteOutlined />}
                     onClick={handleDelete}
                 >
-                    Delete field
+                    {t('UI_DELETE_FIELD')}
                 </Button>
             </div>
         </div>

@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useUserSuggest } from '@/hooks/useUsers';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -49,11 +50,12 @@ export default function ShareModal({
     const [isLoading, setIsLoading] = useState(false);
     const [isInviting, setIsInviting] = useState(false);
     const { message } = App.useApp();
+    const t = useTranslation();
 
     const isBoard = type === 'board';
     const entityId = isBoard ? boardId : workspaceId;
     const basePath = isBoard ? `/boards/${boardId}` : `/workspaces/${workspaceId}`;
-    const title = isBoard ? 'Share Board' : 'Share Workspace';
+    const title = isBoard ? t('UI_SHARE_BOARD') : t('UI_SHARE_WORKSPACE');
 
     // Debounce search query
     const debouncedQuery = useDebounce(email, 300);
@@ -97,7 +99,7 @@ export default function ShareModal({
 
     const handleInvite = async () => {
         if (!email.trim()) {
-            message.warning('Please enter an email');
+            message.warning(t('WARN_ENTER_EMAIL'));
             return;
         }
 
@@ -107,11 +109,11 @@ export default function ShareModal({
                 email: email.trim(),
                 role
             });
-            message.success('Member invited successfully');
+            message.success(t('SUCCESS_MEMBER_INVITED'));
             setEmail('');
             fetchMembers();
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to invite member');
+            message.error(error.response?.data?.error || t('ERROR_INVITE_MEMBER'));
         }
         setIsInviting(false);
     };
@@ -119,10 +121,10 @@ export default function ShareModal({
     const handleRemove = async (userId: string) => {
         try {
             await api.delete(`${basePath}/members/${userId}`);
-            message.success('Member removed');
+            message.success(t('SUCCESS_MEMBER_REMOVED'));
             fetchMembers();
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to remove member');
+            message.error(error.response?.data?.error || t('ERROR_REMOVE_MEMBER'));
         }
     };
 
@@ -144,7 +146,7 @@ export default function ShareModal({
             {isOwner && (
                 <div style={{ marginBottom: 24 }}>
                     <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                        Invite by email
+                        {t('UI_INVITE_BY_EMAIL')}
                     </Text>
                     <div style={{ display: 'flex', gap: 8 }}>
                         <AutoComplete
@@ -152,7 +154,7 @@ export default function ShareModal({
                             options={options}
                             onSelect={handleSelect}
                             onChange={setEmail}
-                            placeholder="Enter email address..."
+                            placeholder={t('UI_PLACEHOLDER_EMAIL_DOTS')}
                             style={{ flex: 1 }}
                             notFoundContent={isSearching ? <Spin size="small" /> : null}
                             onKeyDown={(e) => {
@@ -186,8 +188,8 @@ export default function ShareModal({
                             onChange={setRole}
                             style={{ width: 100 }}
                             options={[
-                                { value: 'member', label: 'Member' },
-                                { value: 'admin', label: 'Admin' },
+                                { value: 'member', label: t('UI_MEMBER') },
+                                { value: 'admin', label: t('UI_ADMIN') },
                             ]}
                         />
                         <Button
@@ -195,7 +197,7 @@ export default function ShareModal({
                             onClick={handleInvite}
                             loading={isInviting}
                         >
-                            Invite
+                            {t('UI_INVITE')}
                         </Button>
                     </div>
                 </div>
@@ -203,7 +205,7 @@ export default function ShareModal({
 
             <div>
                 <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                    Members ({members.length})
+                    {t('UI_MEMBERS')} ({members.length})
                 </Text>
 
                 {isLoading ? (

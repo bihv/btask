@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, Button, Select, Empty, Typography } from 'antd';
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -41,6 +42,7 @@ export default function CreateBoardModal({
     showWorkspaceSelect = false,
     onCreateWorkspace,
 }: CreateBoardModalProps) {
+    const t = useTranslation();
     const [form] = Form.useForm();
     const [selectedBackground, setSelectedBackground] = useState(DEFAULT_BACKGROUND);
     const [selectedImage, setSelectedImage] = useState('');
@@ -74,18 +76,18 @@ export default function CreateBoardModal({
     if (showWorkspaceSelect && (!workspaces || workspaces.length === 0)) {
         return (
             <Modal
-                title="Create Board"
+                title={t('UI_CREATE_BOARD')}
                 open={open}
                 onCancel={handleCancel}
                 footer={null}
             >
                 <Empty
-                    description="No workspaces found. Please create a workspace first."
+                    description={t('UI_NO_WORKSPACES')}
                     style={{ padding: '24px 0' }}
                 >
                     {onCreateWorkspace && (
                         <Button type="primary" onClick={onCreateWorkspace}>
-                            Create Workspace
+                            {t('UI_CREATE_WORKSPACE')}
                         </Button>
                     )}
                 </Empty>
@@ -116,7 +118,7 @@ export default function CreateBoardModal({
                     }}
                 >
                     <Text style={{ color: 'white', fontSize: 18, fontWeight: 600, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                        Preview
+                        {t('UI_PREVIEW')}
                     </Text>
                 </div>
 
@@ -124,11 +126,11 @@ export default function CreateBoardModal({
                 {showWorkspaceSelect && workspaces && (
                     <Form.Item
                         name="workspace_id"
-                        label="Workspace"
-                        rules={[{ required: true, message: 'Please select a workspace' }]}
+                        label={t('UI_WORKSPACE')}
+                        rules={[{ required: true, message: t('UI_REQUIRED_SELECT_WORKSPACE') }]}
                     >
                         <Select
-                            placeholder="Select a workspace"
+                            placeholder={t('UI_PLACEHOLDER_SELECT_WORKSPACE')}
                             options={workspaces.map((ws) => ({
                                 value: ws.id,
                                 label: ws.name,
@@ -140,14 +142,14 @@ export default function CreateBoardModal({
                 {/* Board Title */}
                 <Form.Item
                     name="title"
-                    label="Board Title"
-                    rules={[{ required: true, message: 'Please enter a board title' }]}
+                    label={t('UI_BOARD_TITLE')}
+                    rules={[{ required: true, message: t('UI_REQUIRED_BOARD_TITLE') }]}
                 >
                     <Input placeholder="e.g., Project Alpha" autoFocus={!showWorkspaceSelect} />
                 </Form.Item>
 
                 {/* Background Picker */}
-                <Form.Item label="Background">
+                <Form.Item label={t('UI_BACKGROUND')}>
                     <BackgroundPicker
                         value={selectedBackground}
                         imageValue={selectedImage}
@@ -159,10 +161,10 @@ export default function CreateBoardModal({
                 {/* Actions */}
                 <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
                     <Button onClick={handleCancel} style={{ marginRight: 8 }}>
-                        Cancel
+                        {t('UI_CANCEL')}
                     </Button>
                     <Button type="primary" htmlType="submit" loading={loading}>
-                        Create
+                        {t('UI_CREATE')}
                     </Button>
                 </Form.Item>
             </Form>

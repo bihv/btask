@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { BoardList as ListType, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import { ScreenHeader } from './MenuShared';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text, Link } = Typography;
 
@@ -19,6 +20,7 @@ interface ArchivedScreenProps {
 
 export default function ArchivedScreen({ boardId, onBack, onCardClick }: ArchivedScreenProps) {
     const { modal, message } = App.useApp();
+    const t = useTranslation();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('cards');
     const [archivedLists, setArchivedLists] = useState<ListType[]>([]);
@@ -53,7 +55,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             setArchivedLists(prev => prev.filter(l => l.id !== listId));
             fetchBoard(boardId);
         } catch (error) {
-            message.error('Failed to restore list');
+            message.error(t('ERROR_RESTORE_LIST_FAILED'));
         }
     };
 
@@ -63,7 +65,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             setArchivedCards(prev => prev.filter(c => c.id !== cardId));
             fetchBoard(boardId);
         } catch (error) {
-            message.error('Failed to restore card');
+            message.error(t('ERROR_RESTORE_CARD_FAILED'));
         }
     };
 
@@ -77,16 +79,16 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
 
     const handleDeleteCard = (cardId: string, cardTitle: string) => {
         modal.confirm({
-            title: 'Delete card permanently?',
-            content: `"${cardTitle}" will be permanently deleted. This cannot be undone.`,
-            okText: 'Delete',
+            title: t('UI_DELETE_CARD_PERMANENTLY'),
+            content: `"${cardTitle}" ${t('UI_DELETE_CARD_CONFIRM')}`,
+            okText: t('UI_DELETE'),
             okType: 'danger',
             onOk: async () => {
                 try {
                     await api.delete(`/cards/${cardId}`);
                     setArchivedCards(prev => prev.filter(c => c.id !== cardId));
                 } catch (error) {
-                    message.error('Failed to delete card');
+                    message.error(t('ERROR_DELETE_CARD_FAILED'));
                 }
             },
         });
@@ -94,16 +96,16 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
 
     const handleDeleteList = (listId: string, listTitle: string) => {
         modal.confirm({
-            title: 'Delete list permanently?',
-            content: `"${listTitle}" and all its cards will be permanently deleted. This cannot be undone.`,
-            okText: 'Delete',
+            title: t('UI_DELETE_LIST_PERMANENTLY'),
+            content: `"${listTitle}" ${t('UI_DELETE_LIST_CONFIRM')}`,
+            okText: t('UI_DELETE'),
             okType: 'danger',
             onOk: async () => {
                 try {
                     await api.delete(`/lists/${listId}`);
                     setArchivedLists(prev => prev.filter(l => l.id !== listId));
                 } catch (error) {
-                    message.error('Failed to delete list');
+                    message.error(t('ERROR_DELETE_LIST_FAILED'));
                 }
             },
         });
@@ -116,7 +118,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             children: loading ? (
                 <div style={{ textAlign: 'center', padding: 20 }}><Spin size="small" /></div>
             ) : archivedCards.length === 0 ? (
-                <Empty description="No archived cards" image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
+                <Empty description={t('UI_NO_ARCHIVED_CARDS')} image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
             ) : (
                 <div style={{ maxHeight: 300, overflow: 'auto' }}>
                     {archivedCards.map((card, index) => (
@@ -131,7 +133,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                                 </Link>
                             </Flex>
                             <Flex gap={4}>
-                                <Tooltip title="Restore">
+                                <Tooltip title={t('UI_RESTORE')}>
                                     <Button
                                         type="text"
                                         size="small"
@@ -139,7 +141,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                                         onClick={() => handleRestoreCard(card.id)}
                                     />
                                 </Tooltip>
-                                <Tooltip title="Delete permanently">
+                                <Tooltip title={t('UI_DELETE_PERMANENTLY')}>
                                     <Button
                                         type="text"
                                         size="small"
@@ -160,7 +162,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             children: loading ? (
                 <div style={{ textAlign: 'center', padding: 20 }}><Spin size="small" /></div>
             ) : archivedLists.length === 0 ? (
-                <Empty description="No archived lists" image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
+                <Empty description={t('UI_NO_ARCHIVED_LISTS')} image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
             ) : (
                 <div style={{ maxHeight: 300, overflow: 'auto' }}>
                     {archivedLists.map((list, index) => (
@@ -172,7 +174,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                                 </Text>
                             </Flex>
                             <Flex gap={4}>
-                                <Tooltip title="Restore">
+                                <Tooltip title={t('UI_RESTORE')}>
                                     <Button
                                         type="text"
                                         size="small"
@@ -180,7 +182,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                                         onClick={() => handleRestoreList(list.id)}
                                     />
                                 </Tooltip>
-                                <Tooltip title="Delete permanently">
+                                <Tooltip title={t('UI_DELETE_PERMANENTLY')}>
                                     <Button
                                         type="text"
                                         size="small"
@@ -199,7 +201,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
 
     return (
         <div style={{ width: 280 }}>
-            <ScreenHeader title="Archived items" onBack={onBack} />
+            <ScreenHeader title={t('UI_ARCHIVED_ITEMS')} onBack={onBack} />
             <div style={{ padding: '0 8px' }}>
                 <Tabs
                     activeKey={activeTab}

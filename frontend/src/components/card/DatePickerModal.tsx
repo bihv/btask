@@ -5,6 +5,7 @@ import { Modal, DatePicker, Checkbox, Button, Typography, App } from 'antd';
 import dayjs from 'dayjs';
 import api from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -31,6 +32,7 @@ export default function DatePickerModal({
 }: DatePickerModalProps) {
     const { message } = App.useApp();
     const queryClient = useQueryClient();
+    const t = useTranslation();
 
     const handleStartDateChange = async (date: dayjs.Dayjs | null) => {
         try {
@@ -39,7 +41,7 @@ export default function DatePickerModal({
             onUpdate({ start_date: newStartDate });
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error('Failed to update start date');
+            message.error(t('ERROR_UPDATE_START_DATE'));
         }
     };
 
@@ -50,7 +52,7 @@ export default function DatePickerModal({
             onUpdate({ due_date: newDueDate });
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error('Failed to update due date');
+            message.error(t('ERROR_UPDATE_DUE_DATE'));
         }
     };
 
@@ -60,13 +62,13 @@ export default function DatePickerModal({
             onUpdate({ is_completed: checked });
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error('Failed to update completion status');
+            message.error(t('ERROR_UPDATE_COMPLETION'));
         }
     };
 
     return (
         <Modal
-            title="Dates"
+            title={t('UI_DATES')}
             open={open}
             onCancel={onClose}
             footer={null}
@@ -76,14 +78,14 @@ export default function DatePickerModal({
                 {/* Start Date */}
                 <div>
                     <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                        Start date
+                        {t('UI_START_DATE')}
                     </Text>
                     <DatePicker
                         showTime
                         value={startDate ? dayjs(startDate) : null}
                         onChange={handleStartDateChange}
                         style={{ width: '100%' }}
-                        placeholder="Select start date"
+                        placeholder={t('UI_SELECT_START_DATE')}
                         disabledDate={dueDate ? (current) => current && current.isAfter(dayjs(dueDate), 'day') : undefined}
                     />
                 </div>
@@ -91,14 +93,14 @@ export default function DatePickerModal({
                 {/* Due Date */}
                 <div>
                     <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                        Due date
+                        {t('UI_DUE_DATE_LABEL')}
                     </Text>
                     <DatePicker
                         showTime
                         value={dueDate ? dayjs(dueDate) : null}
                         onChange={handleDueDateChange}
                         style={{ width: '100%' }}
-                        placeholder="Select due date"
+                        placeholder={t('UI_SELECT_DUE_DATE')}
                         disabledDate={startDate ? (current) => current && current.isBefore(dayjs(startDate), 'day') : undefined}
                     />
                 </div>
@@ -109,7 +111,7 @@ export default function DatePickerModal({
                             checked={isCompleted}
                             onChange={(e) => handleCompletedChange(e.target.checked)}
                         >
-                            Mark as complete
+                            {t('UI_MARK_COMPLETE')}
                         </Checkbox>
                     </div>
                 )}
@@ -128,11 +130,11 @@ export default function DatePickerModal({
                                 onUpdate({ start_date: undefined, due_date: undefined });
                                 queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
                             } catch (error) {
-                                message.error('Failed to remove dates');
+                                message.error(t('ERROR_REMOVE_DATES'));
                             }
                         }}
                     >
-                        Remove all dates
+                        {t('UI_REMOVE_ALL_DATES')}
                     </Button>
                 )}
             </div>

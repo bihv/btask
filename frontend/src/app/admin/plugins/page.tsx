@@ -7,6 +7,7 @@ import { SearchOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useAdminPlugins, useUpdatePluginStatus, useHardDeletePlugin } from '@/hooks/usePlugins';
 import { Plugin, PluginStatus } from '@/types';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -29,6 +30,7 @@ export default function AdminPluginsPage() {
     const router = useRouter();
     const { user } = useAuthStore();
     const { message, modal } = App.useApp();
+    const t = useTranslation();
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [selectedPlugin, setSelectedPlugin] = useState<Plugin | null>(null);
 
@@ -72,7 +74,7 @@ export default function AdminPluginsPage() {
             await updateStatus.mutateAsync({ id, status });
             message.success(`Plugin status updated to ${status}`);
         } catch {
-            message.error('Failed to update plugin status');
+            message.error(t('ERROR_UPDATE_PLUGIN_STATUS'));
         }
     };
 
@@ -81,13 +83,13 @@ export default function AdminPluginsPage() {
             await hardDelete.mutateAsync(plugin.id);
             message.success(`Plugin "${plugin.name}" has been permanently deleted`);
         } catch {
-            message.error('Failed to delete plugin');
+            message.error(t('ERROR_DELETE_PLUGIN'));
         }
     };
 
     const columns = [
         {
-            title: 'Name',
+            title: t('UI_NAME'),
             key: 'name',
             render: (_: unknown, record: Plugin) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -106,30 +108,30 @@ export default function AdminPluginsPage() {
             ),
         },
         {
-            title: 'Author',
+            title: t('UI_AUTHOR'),
             key: 'author',
             render: (_: unknown, record: Plugin) => record.author?.full_name || '-',
         },
         {
-            title: 'Version',
+            title: t('UI_VERSION'),
             dataIndex: 'version',
             key: 'version',
         },
 
         {
-            title: 'Installs',
+            title: t('UI_INSTALLS'),
             dataIndex: 'install_count',
             key: 'install_count',
             render: (count: number) => <Tag color="blue">{count}</Tag>,
         },
         {
-            title: 'Created',
+            title: t('UI_CREATED'),
             dataIndex: 'created_at',
             key: 'created_at',
             render: (date: string) => new Date(date).toLocaleDateString(),
         },
         {
-            title: 'Actions',
+            title: t('UI_ACTIONS'),
             key: 'actions',
             width: 200,
             render: (_: unknown, record: Plugin) => (
@@ -155,7 +157,7 @@ export default function AdminPluginsPage() {
                         icon={<DeleteOutlined />}
                         onClick={() => {
                             modal.confirm({
-                                title: 'Permanently delete this plugin?',
+                                title: t('UI_DELETE_PLUGIN_CONFIRM'),
                                 content: (
                                     <div>
                                         <p>This action will:</p>
@@ -167,7 +169,7 @@ export default function AdminPluginsPage() {
                                         <p><strong>This action cannot be undone!</strong></p>
                                     </div>
                                 ),
-                                okText: 'Delete Permanently',
+                                okText: t('UI_DELETE_PERMANENTLY'),
                                 okType: 'danger',
                                 onOk: () => handleHardDelete(record),
                             });
@@ -185,13 +187,13 @@ export default function AdminPluginsPage() {
     return (
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={2} style={{ margin: 0 }}>Plugins</Title>
+                <Title level={2} style={{ margin: 0 }}>{t('UI_PLUGINS')}</Title>
             </div>
 
             <Card size="small" style={{ marginBottom: 16 }}>
                 <Space wrap>
                     <Input
-                        placeholder="Search plugins..."
+                        placeholder={t('UI_SEARCH_PLUGINS')}
                         prefix={<SearchOutlined />}
                         value={searchText}
                         onChange={e => setSearchText(e.target.value)}
@@ -239,7 +241,7 @@ export default function AdminPluginsPage() {
             </Card>
 
             <Modal
-                title="Plugin Details"
+                title={t('UI_PLUGIN_DETAILS')}
                 open={detailModalOpen}
                 onCancel={() => {
                     setDetailModalOpen(false);
@@ -268,42 +270,42 @@ export default function AdminPluginsPage() {
                         </div>
 
                         <div>
-                            <Text strong>Description:</Text>
+                            <Text strong>{t('UI_DESCRIPTION')}:</Text>
                             <p>{selectedPlugin.description || 'No description'}</p>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                             <div>
-                                <Text type="secondary">Author</Text>
+                                <Text type="secondary">{t('UI_AUTHOR')}</Text>
                                 <div>{selectedPlugin.author?.full_name || '-'}</div>
                             </div>
                             <div>
-                                <Text type="secondary">Installs</Text>
+                                <Text type="secondary">{t('UI_INSTALLS')}</Text>
                                 <div>{selectedPlugin.install_count}</div>
                             </div>
                             <div>
-                                <Text type="secondary">Pricing</Text>
+                                <Text type="secondary">{t('UI_PRICING')}</Text>
                                 <div>{selectedPlugin.pricing_type}</div>
                             </div>
                             <div>
-                                <Text type="secondary">Public</Text>
-                                <div>{selectedPlugin.is_public ? 'Yes' : 'No'}</div>
+                                <Text type="secondary">{t('UI_PUBLIC')}</Text>
+                                <div>{selectedPlugin.is_public ? t('UI_YES') : t('UI_NO')}</div>
                             </div>
                         </div>
 
                         <div>
-                            <Text strong>URLs:</Text>
+                            <Text strong>{t('UI_URLS')}:</Text>
                             <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
-                                <li><Text type="secondary">Manifest:</Text> <a href={selectedPlugin.manifest_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.manifest_url}</a></li>
-                                <li><Text type="secondary">Client:</Text> <a href={selectedPlugin.client_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.client_url}</a></li>
-                                {selectedPlugin.server_url && <li><Text type="secondary">Server:</Text> <a href={selectedPlugin.server_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.server_url}</a></li>}
-                                {selectedPlugin.homepage_url && <li><Text type="secondary">Homepage:</Text> <a href={selectedPlugin.homepage_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.homepage_url}</a></li>}
+                                <li><Text type="secondary">{t('UI_MANIFEST')}:</Text> <a href={selectedPlugin.manifest_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.manifest_url}</a></li>
+                                <li><Text type="secondary">{t('UI_CLIENT')}:</Text> <a href={selectedPlugin.client_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.client_url}</a></li>
+                                {selectedPlugin.server_url && <li><Text type="secondary">{t('UI_SERVER')}:</Text> <a href={selectedPlugin.server_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.server_url}</a></li>}
+                                {selectedPlugin.homepage_url && <li><Text type="secondary">{t('UI_HOMEPAGE')}:</Text> <a href={selectedPlugin.homepage_url} target="_blank" rel="noopener noreferrer">{selectedPlugin.homepage_url}</a></li>}
                             </ul>
                         </div>
 
                         {selectedPlugin.capabilities && selectedPlugin.capabilities.length > 0 && (
                             <div>
-                                <Text strong>Capabilities:</Text>
+                                <Text strong>{t('UI_CAPABILITIES')}:</Text>
                                 <div style={{ marginTop: 8 }}>
                                     {selectedPlugin.capabilities.map(cap => (
                                         <Tag key={cap.id}>{cap.capability}</Tag>
@@ -314,7 +316,7 @@ export default function AdminPluginsPage() {
 
                         {selectedPlugin.permissions && selectedPlugin.permissions.length > 0 && (
                             <div>
-                                <Text strong>Permissions:</Text>
+                                <Text strong>{t('UI_PERMISSIONS')}:</Text>
                                 <div style={{ marginTop: 8 }}>
                                     {selectedPlugin.permissions.map(perm => (
                                         <Tag key={perm.id} color="orange">{perm.permission}</Tag>

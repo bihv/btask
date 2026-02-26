@@ -5,6 +5,7 @@ import { Typography, Modal, Select, Tag } from 'antd';
 import { UserOutlined, CalendarOutlined } from '@ant-design/icons';
 import { ChecklistItem, BoardList } from '@/types';
 import dayjs from 'dayjs';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -27,24 +28,25 @@ export default function ConvertToCardModal({
     onConvert,
     onCancel,
 }: ConvertToCardModalProps) {
+    const t = useTranslation();
     return (
         <Modal
-            title="Convert to Card"
+            title={t('UI_CONVERT_TO_CARD_TITLE')}
             open={visible}
             onOk={onConvert}
             onCancel={onCancel}
-            okText="Convert"
+            okText={t('UI_CONVERT')}
             okButtonProps={{ disabled: !selectedListId }}
         >
             {item && (
                 <div>
                     <div style={{ marginBottom: 16 }}>
-                        <Text strong>Converting: </Text>
+                        <Text strong>{t('UI_CONVERTING')} </Text>
                         <Text>{item.content}</Text>
                     </div>
                     {item.assignees && item.assignees.length > 0 && (
                         <div style={{ marginBottom: 8 }}>
-                            <Text type="secondary">Assignees will be added as card members: </Text>
+                            <Text type="secondary">{t('UI_ASSIGNEES_CARD_MEMBERS')} </Text>
                             {item.assignees.map(a => (
                                 <Tag key={a.id} icon={<UserOutlined />}>{a.user?.full_name}</Tag>
                             ))}
@@ -52,18 +54,18 @@ export default function ConvertToCardModal({
                     )}
                     {item.due_date && (
                         <div style={{ marginBottom: 16 }}>
-                            <Text type="secondary">Due date: </Text>
+                            <Text type="secondary">{t('UI_DUE_DATE_LABEL')}: </Text>
                             <Tag icon={<CalendarOutlined />}>{dayjs(item.due_date).format('MMM D, YYYY')}</Tag>
                         </div>
                     )}
                     <div style={{ marginBottom: 8 }}>
-                        <Text strong>Select target list:</Text>
+                        <Text strong>{t('UI_SELECT_TARGET_LIST')}</Text>
                     </div>
                     <Select
                         value={selectedListId}
                         onChange={onListChange}
                         style={{ width: '100%' }}
-                        placeholder="Select a list"
+                        placeholder={t('UI_PLACEHOLDER_SELECT_LIST')}
                     >
                         {lists.map(list => (
                             <Select.Option key={list.id} value={list.id}>
@@ -73,7 +75,7 @@ export default function ConvertToCardModal({
                     </Select>
                     {lists.length === 0 && (
                         <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
-                            No lists available. Please create a list first.
+                            {t('UI_NO_LISTS_AVAILABLE')}
                         </Text>
                     )}
                 </div>

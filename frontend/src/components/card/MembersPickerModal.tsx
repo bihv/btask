@@ -5,6 +5,7 @@ import { App } from 'antd';
 import { User, CardMember } from '@/types';
 import MemberPickerModal from '@/components/common/MemberPickerModal';
 import api from '@/lib/api';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface CardMembersPickerModalProps {
     open: boolean;
@@ -24,6 +25,7 @@ export default function MembersPickerModal({
     onUpdate,
 }: CardMembersPickerModalProps) {
     const { message } = App.useApp();
+    const t = useTranslation();
 
     const selectedMemberIds = cardMembers?.map((cm) => cm.user_id) || [];
 
@@ -38,7 +40,7 @@ export default function MembersPickerModal({
             }
             await onUpdate();
         } catch (error) {
-            message.error('Failed to update member');
+            message.error(t('ERROR_UPDATE_MEMBER'));
         }
     };
 
@@ -52,7 +54,7 @@ export default function MembersPickerModal({
             );
             await onUpdate();
         } catch (error) {
-            message.error('Failed to remove members');
+            message.error(t('ERROR_REMOVE_MEMBERS'));
         }
     };
 

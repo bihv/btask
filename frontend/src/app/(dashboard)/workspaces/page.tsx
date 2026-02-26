@@ -23,6 +23,7 @@ import { useWorkspaces, useDeleteWorkspace } from '@/hooks/useWorkspaces';
 import ShareModal from '@/components/workspace/ShareModal';
 import { useAuthStore } from '@/stores/authStore';
 import type { MenuProps } from 'antd';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text, Paragraph } = Typography;
 const { confirm } = Modal;
@@ -35,6 +36,7 @@ export default function WorkspacesPage() {
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
     const deleteWorkspace = useDeleteWorkspace();
+    const t = useTranslation();
 
     // React Query hooks
     const { data: workspaces = [], isLoading } = useWorkspaces();
@@ -54,18 +56,18 @@ export default function WorkspacesPage() {
 
     const handleDelete = (workspaceId: string, workspaceName: string) => {
         modal.confirm({
-            title: 'Delete Workspace',
+            title: t('UI_DELETE_WORKSPACE'),
             icon: <ExclamationCircleOutlined />,
             content: `Are you sure you want to delete "${workspaceName}"? This will delete all boards in this workspace. This action cannot be undone.`,
-            okText: 'Delete',
+            okText: t('UI_DELETE'),
             okType: 'danger',
-            cancelText: 'Cancel',
+            cancelText: t('UI_CANCEL'),
             onOk: async () => {
                 try {
                     await deleteWorkspace.mutateAsync(workspaceId);
-                    message.success('Workspace deleted');
+                    message.success(t('UI_WORKSPACE_DELETED'));
                 } catch (error: any) {
-                    message.error(error.response?.data?.error || 'Failed to delete workspace');
+                    message.error(error.response?.data?.error || t('ERROR_DELETE_WORKSPACE'));
                 }
             },
         });
@@ -73,12 +75,12 @@ export default function WorkspacesPage() {
 
     const getMenuItems = (workspaceId: string, workspaceName: string, ownerId: string): MenuProps['items'] => {
         const isOwner = user?.id === ownerId;
-        
+
         return [
             {
                 key: 'share',
                 icon: <TeamOutlined />,
-                label: 'Share / Invite',
+                label: t('UI_SHARE_INVITE'),
                 onClick: (e) => {
                     e.domEvent.stopPropagation();
                     handleShare(workspaceId);
@@ -87,7 +89,7 @@ export default function WorkspacesPage() {
             {
                 key: 'settings',
                 icon: <SettingOutlined />,
-                label: 'Settings',
+                label: t('UI_SETTINGS'),
                 onClick: (e) => {
                     e.domEvent.stopPropagation();
                     handleSettings(workspaceId);
@@ -97,7 +99,7 @@ export default function WorkspacesPage() {
             {
                 key: 'delete',
                 icon: <DeleteOutlined />,
-                label: 'Delete',
+                label: t('UI_DELETE'),
                 danger: true,
                 disabled: !isOwner,
                 onClick: (e) => {
@@ -112,7 +114,7 @@ export default function WorkspacesPage() {
     useEffect(() => {
         setHeaderContent(
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', justifyContent: 'space-between' }}>
-                <Title level={4} style={{ margin: 0 }}>Your Workspaces</Title>
+                <Title level={4} style={{ margin: 0 }}>{t('UI_YOUR_WORKSPACES_TITLE')}</Title>
 
             </div>
         );
@@ -131,11 +133,11 @@ export default function WorkspacesPage() {
         <div style={{ padding: 24 }}>
             {workspaces.length === 0 ? (
                 <Empty
-                    description="No workspaces yet"
+                    description={t('UI_NO_WORKSPACES_YET')}
                     style={{ marginTop: 48 }}
                 >
                     <Button type="primary" disabled>
-                        Use the "Create" button in the top bar to start
+                        {t('UI_USE_CREATE_BUTTON')}
                     </Button>
                 </Empty>
             ) : (

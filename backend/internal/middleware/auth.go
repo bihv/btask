@@ -50,6 +50,41 @@ func AuthMiddleware(cfg *config.Config) fiber.Handler {
 	}
 }
 
+// OptionalAuthMiddleware tries to extract user from token but does NOT reject unauthenticated requests.
+// If a valid token is present, userID and userEmail are set in context.
+// If not, the request continues without user context (Locals remain unset).
+func OptionalAuthMiddleware(cfg *config.Config) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		authHeader := c.Get("Authorization")
+		if authHeader == "" {
+			return c.Next()
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			return c.Next()
+		}
+
+		token, err := jwt.ParseWithClaims(parts[1], &Claims{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(cfg.JWTSecret), nil
+		})
+
+		if err != nil || !token.Valid {
+			return c.Next()
+		}
+
+		claims, ok := token.Claims.(*Claims)
+		if !ok {
+			return c.Next()
+		}
+
+		c.Locals("userID", claims.UserID)
+		c.Locals("userEmail", claims.Email)
+
+		return c.Next()
+	}
+}
+
 func GetUserID(c *fiber.Ctx) uuid.UUID {
 	userID, ok := c.Locals("userID").(uuid.UUID)
 	if !ok {

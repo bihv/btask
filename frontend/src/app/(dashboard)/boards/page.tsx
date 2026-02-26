@@ -28,25 +28,26 @@ import { useCreateBoard, useStarredBoards, useRecentlyViewedBoards, useUpdateBoa
 import BackgroundPicker from '@/components/board/BackgroundPicker';
 import BoardCard from '@/components/board/BoardCard';
 import styles from './boards.module.css';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
 
 
 // Create new board card
-function CreateBoardCard({ onClick }: { onClick: () => void }) {
+function CreateBoardCard({ onClick, label }: { onClick: () => void; label: string }) {
     return (
         <div className={styles.createBoardCard} onClick={onClick}>
-            <span>Create new board</span>
+            <span>{label}</span>
         </div>
     );
 }
 
 // View more boards card
-function ViewMoreCard({ hiddenCount, onClick }: { hiddenCount: number; onClick: () => void }) {
+function ViewMoreCard({ hiddenCount, onClick, label }: { hiddenCount: number; onClick: () => void; label: string }) {
     return (
         <div className={styles.createBoardCard} onClick={onClick}>
-            <span>+ {hiddenCount} more boards</span>
+            <span>+ {hiddenCount} {label}</span>
         </div>
     );
 }
@@ -63,6 +64,7 @@ function WorkspaceSection({
     router: ReturnType<typeof useRouter>;
     onToggleStar: (boardId: string, isStarred: boolean) => void;
 }) {
+    const t = useTranslation();
     const boards = workspace.boards || [];
     const initial = workspace.name.charAt(0).toUpperCase();
 
@@ -95,8 +97,8 @@ function WorkspaceSection({
     return (
         <div className={styles.workspaceSection}>
             <div className={styles.workspaceHeader}>
-                <div 
-                    className={styles.workspaceInfo} 
+                <div
+                    className={styles.workspaceInfo}
                     onClick={() => router.push(`/workspaces/${workspace.id}`)}
                 >
                     <div
@@ -116,7 +118,7 @@ function WorkspaceSection({
                         icon={<ProjectOutlined />}
                         onClick={() => router.push(`/workspace/${workspace.id}/boards`)}
                     >
-                        Boards
+                        {t('UI_BOARDS')}
                     </Button>
                     <Button
                         type="text"
@@ -124,7 +126,7 @@ function WorkspaceSection({
                         icon={<TeamOutlined />}
                         onClick={() => router.push(`/workspace/${workspace.id}/members`)}
                     >
-                        Members
+                        {t('UI_WORKSPACE_MEMBERS')}
                     </Button>
                     <Button
                         type="text"
@@ -132,7 +134,7 @@ function WorkspaceSection({
                         icon={<SettingOutlined />}
                         onClick={() => router.push(`/workspace/${workspace.id}/settings`)}
                     >
-                        Settings
+                        {t('UI_SETTINGS')}
                     </Button>
                 </div>
             </div>
@@ -147,12 +149,13 @@ function WorkspaceSection({
                     />
                 ))}
                 {showViewMore && (
-                    <ViewMoreCard 
-                        hiddenCount={hiddenCount} 
-                        onClick={() => router.push(`/workspace/${workspace.id}/boards`)} 
+                    <ViewMoreCard
+                        hiddenCount={hiddenCount}
+                        onClick={() => router.push(`/workspace/${workspace.id}/boards`)}
+                        label={t('UI_MORE_BOARDS')}
                     />
                 )}
-                <CreateBoardCard onClick={() => onCreateBoard(workspace.id)} />
+                <CreateBoardCard onClick={() => onCreateBoard(workspace.id)} label={t('UI_CREATE_NEW_BOARD')} />
             </div>
         </div>
     );
@@ -234,7 +237,7 @@ export default function BoardsPage() {
     const [createBoardModalOpen, setCreateBoardModalOpen] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
     const [boardForm] = Form.useForm();
-
+    const t = useTranslation();
 
     // Watch form values
     const backgroundColor = Form.useWatch('background_color', boardForm);
@@ -268,7 +271,7 @@ export default function BoardsPage() {
             boardForm.resetFields();
             router.push(`/boards/${newBoard.id}`);
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to create board');
+            message.error(error.response?.data?.error || t('ERROR_CREATE_BOARD'));
         }
     };
 
@@ -303,15 +306,15 @@ export default function BoardsPage() {
 
                 {workspaces.length === 0 ? (
                     <Empty
-                        description="No workspaces yet"
+                        description={t('UI_NO_WORKSPACES_YET')}
                         style={{ marginTop: 48, marginBottom: 48 }}
                     >
                         <Button
                             type="primary"
-                            onClick={() => {}} // User should use Header Create button
+                            onClick={() => { }} // User should use Header Create button
                             disabled
                         >
-                            Create your first workspace using the + button above
+                            {t('UI_CREATE_FIRST_WORKSPACE')}
                         </Button>
                     </Empty>
                 ) : (
@@ -331,7 +334,7 @@ export default function BoardsPage() {
 
             {/* Create Board Modal */}
             <Modal
-                title="Create board"
+                title={t('UI_CREATE_BOARD')}
                 open={createBoardModalOpen}
                 onCancel={() => {
                     setCreateBoardModalOpen(false);
@@ -343,15 +346,15 @@ export default function BoardsPage() {
                 <Form form={boardForm} layout="vertical" onFinish={handleCreateBoard} style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: 8 }}>
                     <Form.Item
                         name="title"
-                        label="Board title"
-                        rules={[{ required: true, message: 'Please enter a board title' }]}
+                        label={t('UI_BOARD_TITLE')}
+                        rules={[{ required: true, message: t('VALIDATE_BOARD_TITLE') }]}
                     >
-                        <Input placeholder="Enter board title" autoFocus />
+                        <Input placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')} autoFocus />
                     </Form.Item>
 
                     <div style={{ marginBottom: 16 }}>
                         <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
-                            Background
+                            {t('UI_BACKGROUND')}
                         </Typography.Text>
                         <Form.Item name="background_color" noStyle initialValue="#0079bf">
                             <Input type="hidden" />
@@ -389,7 +392,7 @@ export default function BoardsPage() {
                             block
                             loading={createBoardMutation.isPending}
                         >
-                            Create
+                            {t('UI_CREATE')}
                         </Button>
                     </Form.Item>
                 </Form>

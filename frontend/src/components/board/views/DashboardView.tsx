@@ -12,6 +12,7 @@ import { useBoardStore } from '@/stores/boardStore';
 import { Card as CardType } from '@/types';
 import dayjs from 'dayjs';
 import { isOverdue, isDueSoon } from '@/components/common/DueDateTag';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -21,6 +22,7 @@ interface DashboardViewProps {
 
 export default function DashboardView({ onCardClick }: DashboardViewProps) {
     const { lists, currentBoard } = useBoardStore();
+    const t = useTranslation();
 
     const stats = useMemo(() => {
         let total = 0;
@@ -34,13 +36,13 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
 
         lists.forEach((list) => {
             byList[list.id] = { title: list.title, count: 0, color: list.color };
-            
+
             (list.cards || []).forEach((card) => {
                 total++;
                 byList[list.id].count++;
-                
+
                 if (card.is_completed) complete++;
-                
+
                 if (card.due_date) {
                     if (isOverdue(card.due_date) && !card.is_completed) {
                         overdue++;
@@ -49,7 +51,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         dueSoon++;
                     }
                 }
-                
+
                 (card.labels || []).forEach((label) => {
                     if (label.label) {
                         if (!byLabel[label.label_id]) {
@@ -58,7 +60,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                         byLabel[label.label_id].count++;
                     }
                 });
-                
+
                 (card.members || []).forEach((member: { user_id: string; user?: { full_name: string; avatar_url?: string } }) => {
                     if (member.user) {
                         if (!byMember[member.user_id]) {
@@ -96,7 +98,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                 <Col xs={24} sm={12} md={6}>
                     <Card style={cardStyle}>
                         <Statistic
-                            title="Total Cards"
+                            title={t('UI_TOTAL_CARDS')}
                             value={stats.total}
                             prefix={<CheckCircleOutlined />}
                         />
@@ -105,7 +107,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                 <Col xs={24} sm={12} md={6}>
                     <Card style={cardStyle}>
                         <Statistic
-                            title="Completed"
+                            title={t('UI_COMPLETED')}
                             value={stats.complete}
                             suffix={`/ ${stats.total}`}
                             styles={{ content: { color: '#52c41a' } }}
@@ -116,7 +118,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                 <Col xs={24} sm={12} md={6}>
                     <Card style={cardStyle}>
                         <Statistic
-                            title="Overdue"
+                            title={t('UI_OVERDUE')}
                             value={stats.overdue}
                             styles={{ content: { color: stats.overdue > 0 ? '#ff4d4f' : undefined } }}
                             prefix={<ExclamationCircleOutlined />}
@@ -126,7 +128,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                 <Col xs={24} sm={12} md={6}>
                     <Card style={cardStyle}>
                         <Statistic
-                            title="Due Soon"
+                            title={t('UI_DUE_SOON')}
                             value={stats.dueSoon}
                             styles={{ content: { color: stats.dueSoon > 0 ? '#faad14' : undefined } }}
                             prefix={<ClockCircleOutlined />}
@@ -136,7 +138,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
 
                 {/* Cards by List */}
                 <Col xs={24} md={12}>
-                    <Card title="Cards by List" style={cardStyle}>
+                    <Card title={t('UI_CARDS_BY_LIST')} style={cardStyle}>
                         {stats.byList.length === 0 ? (
                             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         ) : (
@@ -160,9 +162,9 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
 
                 {/* Top Labels */}
                 <Col xs={24} md={12}>
-                    <Card title="Top Labels" style={cardStyle}>
+                    <Card title={t('UI_TOP_LABELS')} style={cardStyle}>
                         {stats.byLabel.length === 0 ? (
-                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No labels used" />
+                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('UI_NO_LABELS_USED')} />
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {stats.byLabel.map((item, index) => (
@@ -186,9 +188,9 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
 
                 {/* Top Members */}
                 <Col xs={24} md={12}>
-                    <Card title="Member Workload" style={cardStyle}>
+                    <Card title={t('UI_MEMBER_WORKLOAD')} style={cardStyle}>
                         {stats.byMember.length === 0 ? (
-                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No members assigned" />
+                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('UI_NO_MEMBERS_ASSIGNED')} />
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {stats.byMember.map((item, index) => (
@@ -205,7 +207,7 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                                             <Avatar src={item.avatar} icon={<UserOutlined />} />
                                             <Text>{item.name}</Text>
                                         </div>
-                                        <Text strong>{item.count} cards</Text>
+                                        <Text strong>{item.count} {t('UI_CARDS')}</Text>
                                     </div>
                                 ))}
                             </div>
@@ -216,11 +218,11 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                 {/* Overdue Cards */}
                 <Col xs={24} md={12}>
                     <Card
-                        title={<Text style={{ color: '#ff4d4f' }}>Overdue Cards</Text>}
+                        title={<Text style={{ color: '#ff4d4f' }}>{t('UI_OVERDUE_CARDS')}</Text>}
                         style={cardStyle}
                     >
                         {stats.overdueCards.length === 0 ? (
-                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No overdue cards" />
+                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('UI_NO_OVERDUE_CARDS')} />
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {stats.overdueCards.map((card, index) => (

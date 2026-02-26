@@ -6,6 +6,7 @@ import { Card, Typography, Spin, Result, Button } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title } = Typography;
 
@@ -14,6 +15,7 @@ export default function VerifyEmailPage() {
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
     const { setUser } = useAuthStore();
+    const t = useTranslation();
 
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [message, setMessage] = useState('');
@@ -25,7 +27,7 @@ export default function VerifyEmailPage() {
     useEffect(() => {
         if (!token) {
             setStatus('error');
-            setMessage('Invalid verification link. Token is missing.');
+            setMessage(t('ERROR_INVALID_VERIFICATION_LINK'));
             return;
         }
 
@@ -52,7 +54,7 @@ export default function VerifyEmailPage() {
             } catch (error: unknown) {
                 setStatus('error');
                 const err = error as { response?: { data?: { message?: string } } };
-                setMessage(err.response?.data?.message || 'Failed to verify email. The link may be invalid or expired.');
+                setMessage(err.response?.data?.message || t('ERROR_VERIFY_EMAIL_FAILED'));
             }
         };
 
@@ -78,36 +80,36 @@ export default function VerifyEmailPage() {
         }}>
             <Card style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
                 <Title level={3} style={{ marginBottom: 24 }}>
-                    Email Verification
+                    {t('UI_EMAIL_VERIFICATION')}
                 </Title>
 
                 {status === 'loading' && (
                     <div style={{ padding: '40px 0' }}>
                         <Spin size="large" />
-                        <p style={{ marginTop: 16 }}>Verifying your email...</p>
+                        <p style={{ marginTop: 16 }}>{t('UI_VERIFYING_EMAIL')}</p>
                     </div>
                 )}
 
                 {status === 'success' && (
                     <Result
                         icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                        title="Email Verified!"
+                        title={t('UI_EMAIL_VERIFIED')}
                         subTitle={
                             <>
                                 {message}
                                 {newEmail && (
                                     <p style={{ marginTop: 8 }}>
-                                        Your new email is: <strong>{newEmail}</strong>
+                                        {t('UI_YOUR_NEW_EMAIL')} <strong>{newEmail}</strong>
                                     </p>
                                 )}
                             </>
                         }
                         extra={[
                             <Button type="primary" key="settings" onClick={handleGoToSettings}>
-                                Go to Settings
+                                {t('UI_GO_TO_SETTINGS')}
                             </Button>,
                             <Button key="login" onClick={handleGoToLogin}>
-                                Login Again
+                                {t('UI_LOGIN_AGAIN')}
                             </Button>,
                         ]}
                     />
@@ -116,14 +118,14 @@ export default function VerifyEmailPage() {
                 {status === 'error' && (
                     <Result
                         icon={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                        title="Verification Failed"
+                        title={t('UI_VERIFICATION_FAILED')}
                         subTitle={message}
                         extra={[
                             <Button type="primary" key="settings" onClick={handleGoToSettings}>
-                                Go to Settings
+                                {t('UI_GO_TO_SETTINGS')}
                             </Button>,
                             <Button key="login" onClick={handleGoToLogin}>
-                                Go to Login
+                                {t('UI_GO_TO_LOGIN')}
                             </Button>,
                         ]}
                     />

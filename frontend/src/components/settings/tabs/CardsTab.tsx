@@ -8,6 +8,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useMyCards, useUpdateCard, CardFilters as ApiCardFilters } from '@/hooks/useCards';
 import { Card, CardLabel, BoardList, Board, Workspace } from '@/types';
 import dayjs from 'dayjs';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -73,12 +74,13 @@ export default function CardsTab() {
     const router = useRouter();
     const updateCard = useUpdateCard();
     const { message } = App.useApp();
+    const t = useTranslation();
     const [filterOpen, setFilterOpen] = useState(false);
-    
+
     // Separate pending filters (UI state in drawer) from applied filters (sent to API)
     const [appliedFilters, setAppliedFilters] = useState<UICardFilters>(defaultFilters);
     const [pendingFilters, setPendingFilters] = useState<UICardFilters>(defaultFilters);
-    
+
     // Only use applied filters for API calls - this prevents re-fetching on every checkbox change
     const apiFilters = useMemo(() => toApiFilters(appliedFilters), [appliedFilters]);
     const { data: cards = [], isLoading, refetch } = useMyCards(apiFilters);
@@ -144,7 +146,7 @@ export default function CardsTab() {
             });
             refetch();
         } catch {
-            message.error('Failed to update card');
+            message.error(t('ERROR_UPDATE_CARD'));
         }
     };
 
@@ -159,7 +161,7 @@ export default function CardsTab() {
             key: 'complete',
             width: 40,
             render: (_, record) => (
-                <div 
+                <div
                     onClick={(e) => handleToggleComplete(record, e)}
                     style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
@@ -177,13 +179,13 @@ export default function CardsTab() {
             ),
         },
         {
-            title: 'Card',
+            title: t('UI_CARD'),
             dataIndex: 'title',
             key: 'title',
             sorter: (a, b) => (a.title || '').localeCompare(b.title || ''),
             render: (title: string, record) => (
-                <Button 
-                    type="link" 
+                <Button
+                    type="link"
                     onClick={() => handleCardClick(record)}
                     style={{ padding: 0, height: 'auto', textAlign: 'left' }}
                 >
@@ -192,7 +194,7 @@ export default function CardsTab() {
             ),
         },
         {
-            title: 'List',
+            title: t('UI_LIST'),
             dataIndex: ['list', 'title'],
             key: 'list',
             width: 150,
@@ -202,7 +204,7 @@ export default function CardsTab() {
             ),
         },
         {
-            title: 'Labels',
+            title: t('UI_LABELS'),
             dataIndex: 'labels',
             key: 'labels',
             width: 200,
@@ -210,9 +212,9 @@ export default function CardsTab() {
             render: (labels: CardLabel[]) => (
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                     {labels?.map((cardLabel) => (
-                        <Tag 
+                        <Tag
                             key={cardLabel.id}
-                            style={{ 
+                            style={{
                                 backgroundColor: cardLabel.label?.color || '#666',
                                 color: '#fff',
                                 border: 'none',
@@ -226,7 +228,7 @@ export default function CardsTab() {
             ),
         },
         {
-            title: 'Due date',
+            title: t('UI_DUE_DATE'),
             dataIndex: 'due_date',
             key: 'due_date',
             width: 120,
@@ -239,15 +241,15 @@ export default function CardsTab() {
             defaultSortOrder: 'ascend',
             render: (dueDate: string, record) => {
                 if (!dueDate) return <Text style={{ color: 'var(--text-secondary)' }}>-</Text>;
-                
+
                 const date = dayjs(dueDate);
                 const now = dayjs();
                 const isOverdue = date.isBefore(now) && !record.is_completed;
                 const isDueSoon = date.diff(now, 'day') <= 1 && date.isAfter(now) && !record.is_completed;
-                
+
                 let bgColor = 'var(--bg-secondary)';
                 let textColor = 'var(--text-primary)';
-                
+
                 if (record.is_completed) {
                     bgColor = '#52c41a';
                     textColor = '#fff';
@@ -258,12 +260,12 @@ export default function CardsTab() {
                     bgColor = '#faad14';
                     textColor = '#fff';
                 }
-                
+
                 return (
-                    <Tag 
+                    <Tag
                         icon={<ClockCircleOutlined />}
-                        style={{ 
-                            backgroundColor: bgColor, 
+                        style={{
+                            backgroundColor: bgColor,
                             color: textColor,
                             border: 'none',
                         }}
@@ -274,7 +276,7 @@ export default function CardsTab() {
             },
         },
         {
-            title: 'Created',
+            title: t('UI_CREATED'),
             dataIndex: 'created_at',
             key: 'created_at',
             width: 100,
@@ -286,7 +288,7 @@ export default function CardsTab() {
             ),
         },
         {
-            title: 'Updated',
+            title: t('UI_UPDATED'),
             dataIndex: 'updated_at',
             key: 'updated_at',
             width: 100,
@@ -298,16 +300,16 @@ export default function CardsTab() {
             ),
         },
         {
-            title: 'Board',
+            title: t('UI_BOARD'),
             key: 'board',
             width: 220,
             sorter: (a, b) => (a.list?.board?.title || '').localeCompare(b.list?.board?.title || ''),
             render: (_, record) => {
                 const board = record.list?.board;
                 const workspace = board?.workspace;
-                
+
                 if (!board) return <Text style={{ color: 'var(--text-secondary)' }}>-</Text>;
-                
+
                 return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div
@@ -315,15 +317,15 @@ export default function CardsTab() {
                                 width: 48,
                                 height: 36,
                                 borderRadius: 4,
-                                background: board.background_image 
+                                background: board.background_image
                                     ? `url(${board.background_image}) center/cover`
                                     : board.background_color || '#0079bf',
                                 flexShrink: 0,
                             }}
                         />
                         <div style={{ minWidth: 0 }}>
-                            <Button 
-                                type="link" 
+                            <Button
+                                type="link"
                                 onClick={(e) => handleBoardClick(e, record)}
                                 style={{ padding: 0, height: 'auto', lineHeight: 1.3 }}
                             >
@@ -354,13 +356,13 @@ export default function CardsTab() {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Title level={3} style={{ margin: 0 }}>Cards</Title>
+                <Title level={3} style={{ margin: 0 }}>{t('UI_CARDS')}</Title>
                 <Badge count={activeFilterCount} size="small">
-                    <Button 
-                        icon={<FilterOutlined />} 
+                    <Button
+                        icon={<FilterOutlined />}
                         onClick={handleOpenFilter}
                     >
-                        Filter
+                        {t('UI_FILTER')}
                     </Button>
                 </Badge>
             </div>
@@ -371,12 +373,12 @@ export default function CardsTab() {
                     description={
                         <div>
                             <Title level={5} style={{ marginBottom: 8 }}>
-                                {activeFilterCount > 0 ? 'No cards match filters' : 'No cards assigned'}
+                                {activeFilterCount > 0 ? t('UI_NO_CARDS_MATCH') : t('UI_NO_CARDS_ASSIGNED')}
                             </Title>
                             <Text style={{ color: 'var(--text-secondary)' }}>
-                                {activeFilterCount > 0 
-                                    ? 'Try adjusting your filters.'
-                                    : 'Cards assigned to you will appear here.'
+                                {activeFilterCount > 0
+                                    ? t('UI_TRY_ADJUSTING_FILTERS')
+                                    : t('UI_CARDS_APPEAR_HERE')
                                 }
                             </Text>
                         </div>
@@ -388,7 +390,7 @@ export default function CardsTab() {
                     dataSource={cards as AssignedCard[]}
                     rowKey="id"
                     pagination={{ pageSize: 20, showSizeChanger: true }}
-                    style={{ 
+                    style={{
                         background: 'var(--bg-secondary)',
                         borderRadius: 8,
                     }}
@@ -397,29 +399,29 @@ export default function CardsTab() {
 
             {/* Filter Drawer */}
             <Drawer
-                title="Filter cards"
+                title={t('UI_FILTER_CARDS')}
                 open={filterOpen}
                 onClose={handleCloseFilter}
                 width={360}
                 extra={
                     activeFilterCount > 0 && (
                         <Button type="link" onClick={handleClearFilters}>
-                            Clear all
+                            {t('UI_CLEAR_ALL')}
                         </Button>
                     )
                 }
             >
                 {/* Card keyword */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>Card</Text>
+                    <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('UI_CARD')}</Text>
                     <Input
-                        placeholder="Enter a keyword..."
+                        placeholder={t('UI_ENTER_KEYWORD')}
                         value={pendingFilters.keyword}
                         onChange={(e) => setPendingFilters(prev => ({ ...prev, keyword: e.target.value }))}
                         allowClear
                     />
                     <Text style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
-                        Filter by card name keyword.
+                        {t('UI_FILTER_BY_KEYWORD')}
                     </Text>
                 </div>
 
@@ -427,7 +429,7 @@ export default function CardsTab() {
 
                 {/* Card status */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 12 }}>Card status</Text>
+                    <Text strong style={{ display: 'block', marginBottom: 12 }}>{t('UI_CARD_STATUS')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <Checkbox
                             checked={pendingFilters.status.complete}
@@ -437,7 +439,7 @@ export default function CardsTab() {
                             }))}
                         >
                             <CheckCircleFilled style={{ color: '#52c41a', marginRight: 8 }} />
-                            Marked as complete
+                            {t('UI_MARKED_COMPLETE')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.status.incomplete}
@@ -455,7 +457,7 @@ export default function CardsTab() {
                                 marginRight: 8,
                                 verticalAlign: 'middle',
                             }} />
-                            Not marked as complete
+                            {t('UI_NOT_MARKED_COMPLETE')}
                         </Checkbox>
                     </div>
                 </div>
@@ -464,7 +466,7 @@ export default function CardsTab() {
 
                 {/* Due date */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 12 }}>Due date</Text>
+                    <Text strong style={{ display: 'block', marginBottom: 12 }}>{t('UI_DUE_DATE')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <Checkbox
                             checked={pendingFilters.dueDate.noDates}
@@ -474,7 +476,7 @@ export default function CardsTab() {
                             }))}
                         >
                             <CalendarOutlined style={{ marginRight: 8, color: 'var(--text-secondary)' }} />
-                            No dates
+                            {t('UI_NO_DATES')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.dueDate.overdue}
@@ -484,7 +486,7 @@ export default function CardsTab() {
                             }))}
                         >
                             <ExclamationCircleOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
-                            Overdue
+                            {t('UI_OVERDUE')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.dueDate.dueNextDay}
@@ -494,7 +496,7 @@ export default function CardsTab() {
                             }))}
                         >
                             <ClockCircleOutlined style={{ marginRight: 8, color: '#faad14' }} />
-                            Due in the next day
+                            {t('UI_DUE_NEXT_DAY')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.dueDate.dueNextWeek}
@@ -504,7 +506,7 @@ export default function CardsTab() {
                             }))}
                         >
                             <ClockCircleOutlined style={{ marginRight: 8, color: 'var(--text-secondary)' }} />
-                            Due in the next seven days
+                            {t('UI_DUE_NEXT_WEEK')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.dueDate.dueNextMonth}
@@ -514,7 +516,7 @@ export default function CardsTab() {
                             }))}
                         >
                             <ClockCircleOutlined style={{ marginRight: 8, color: 'var(--text-secondary)' }} />
-                            Due in the next month
+                            {t('UI_DUE_NEXT_MONTH')}
                         </Checkbox>
                     </div>
                 </div>
@@ -523,10 +525,10 @@ export default function CardsTab() {
 
                 {/* Board */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>Board</Text>
+                    <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('UI_BOARD')}</Text>
                     <Select
                         mode="multiple"
-                        placeholder="Filter by Board..."
+                        placeholder={t('UI_FILTER_BY_BOARD')}
                         value={pendingFilters.boardIds}
                         onChange={(value) => setPendingFilters(prev => ({ ...prev, boardIds: value }))}
                         style={{ width: '100%' }}
@@ -542,7 +544,7 @@ export default function CardsTab() {
 
                 {/* Activity */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 12 }}>Activity</Text>
+                    <Text strong style={{ display: 'block', marginBottom: 12 }}>{t('UI_ACTIVITY')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <Checkbox
                             checked={pendingFilters.activity.lastDay}
@@ -551,7 +553,7 @@ export default function CardsTab() {
                                 activity: { ...prev.activity, lastDay: e.target.checked }
                             }))}
                         >
-                            Active in the last day
+                            {t('UI_ACTIVE_LAST_DAY')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.activity.lastWeek}
@@ -560,7 +562,7 @@ export default function CardsTab() {
                                 activity: { ...prev.activity, lastWeek: e.target.checked }
                             }))}
                         >
-                            Active in the last week
+                            {t('UI_ACTIVE_LAST_WEEK')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.activity.lastMonth}
@@ -569,7 +571,7 @@ export default function CardsTab() {
                                 activity: { ...prev.activity, lastMonth: e.target.checked }
                             }))}
                         >
-                            Active in the last month
+                            {t('UI_ACTIVE_LAST_MONTH')}
                         </Checkbox>
                         <Checkbox
                             checked={pendingFilters.activity.lastYear}
@@ -578,7 +580,7 @@ export default function CardsTab() {
                                 activity: { ...prev.activity, lastYear: e.target.checked }
                             }))}
                         >
-                            Active in the last year
+                            {t('UI_ACTIVE_LAST_YEAR')}
                         </Checkbox>
                     </div>
                 </div>

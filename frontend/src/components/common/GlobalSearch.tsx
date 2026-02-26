@@ -6,6 +6,7 @@ import { SearchOutlined, ProjectOutlined, CreditCardOutlined, TeamOutlined } fro
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '@/lib/api';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -18,6 +19,7 @@ interface SearchResult {
 export default function GlobalSearch() {
     const router = useRouter();
     const [query, setQuery] = useState('');
+    const t = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<SearchResult | null>(null);
@@ -86,7 +88,7 @@ export default function GlobalSearch() {
     return (
         <div ref={containerRef} style={{ position: 'relative', flex: 1, maxWidth: 600 }}>
             <Input
-                placeholder="Search boards, cards, workspaces..."
+                placeholder={t('UI_SEARCH_PLACEHOLDER')}
                 prefix={<SearchOutlined style={{ color: 'var(--text-secondary)' }} />}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -121,7 +123,7 @@ export default function GlobalSearch() {
                         </div>
                     ) : !hasResults ? (
                         <div style={{ padding: 24 }}>
-                            <Empty description="No results found" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                            <Empty description={t('UI_NO_RESULTS')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         </div>
                     ) : (
                         <>
@@ -136,7 +138,7 @@ export default function GlobalSearch() {
                                         textTransform: 'uppercase',
                                     }}>
                                         <TeamOutlined style={{ marginRight: 6 }} />
-                                        Workspaces
+                                        {t('UI_WORKSPACES')}
                                     </div>
                                     {results.workspaces.map((ws) => (
                                         <div
@@ -169,7 +171,7 @@ export default function GlobalSearch() {
                                         textTransform: 'uppercase',
                                     }}>
                                         <ProjectOutlined style={{ marginRight: 6 }} />
-                                        Boards
+                                        {t('UI_BOARDS')}
                                     </div>
                                     {results.boards.map((board) => (
                                         <div
@@ -188,7 +190,7 @@ export default function GlobalSearch() {
                                             <Text>{board.title}</Text>
                                             {board.workspace_name && (
                                                 <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
-                                                    in {board.workspace_name}
+                                                    {t('UI_IN')} {board.workspace_name}
                                                 </Text>
                                             )}
                                         </div>
@@ -207,7 +209,7 @@ export default function GlobalSearch() {
                                         textTransform: 'uppercase',
                                     }}>
                                         <CreditCardOutlined style={{ marginRight: 6 }} />
-                                        Cards
+                                        {t('UI_CARDS')}
                                     </div>
                                     {results.cards.map((card) => (
                                         <div
@@ -226,7 +228,7 @@ export default function GlobalSearch() {
                                             <Text>{card.title}</Text>
                                             {card.board_title && (
                                                 <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
-                                                    in {card.board_title}
+                                                    {t('UI_IN')} {card.board_title}
                                                 </Text>
                                             )}
                                         </div>

@@ -17,17 +17,19 @@ import {
     ThemeAppearanceSection,
     SessionsSecuritySection,
 } from '../sections';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
 export default function SettingsTab() {
+    const t = useTranslation();
     const items: CollapseProps['items'] = [
         {
             key: 'account',
             label: (
                 <Space>
                     <UserOutlined />
-                    <Text strong>Account Settings</Text>
+                    <Text strong>{t('UI_ACCOUNT_SETTINGS')}</Text>
                 </Space>
             ),
             children: <AccountSettingsSection />,
@@ -38,7 +40,7 @@ export default function SettingsTab() {
             label: (
                 <Space>
                     <BellOutlined />
-                    <Text strong>Notifications</Text>
+                    <Text strong>{t('UI_NOTIFICATIONS')}</Text>
                 </Space>
             ),
             children: <NotificationsSection />,
@@ -49,7 +51,7 @@ export default function SettingsTab() {
             label: (
                 <Space>
                     <GlobalOutlined />
-                    <Text strong>Language & Region</Text>
+                    <Text strong>{t('UI_LANGUAGE_REGION')}</Text>
                 </Space>
             ),
             children: <LanguageRegionSection />,
@@ -60,7 +62,7 @@ export default function SettingsTab() {
             label: (
                 <Space>
                     <BgColorsOutlined />
-                    <Text strong>Theme & Appearance</Text>
+                    <Text strong>{t('UI_THEME_APPEARANCE')}</Text>
                 </Space>
             ),
             children: <ThemeAppearanceSection />,
@@ -71,7 +73,7 @@ export default function SettingsTab() {
             label: (
                 <Space>
                     <SafetyOutlined />
-                    <Text strong>Sessions & Security</Text>
+                    <Text strong>{t('UI_SESSIONS_SECURITY')}</Text>
                 </Space>
             ),
             children: <SessionsSecuritySection />,
@@ -81,7 +83,7 @@ export default function SettingsTab() {
 
     return (
         <div>
-            <Title level={3} style={{ marginBottom: 24 }}>Settings</Title>
+            <Title level={3} style={{ marginBottom: 24 }}>{t('UI_SETTINGS')}</Title>
 
             <Collapse
                 defaultActiveKey={['account', 'notifications', 'region', 'theme', 'security']}

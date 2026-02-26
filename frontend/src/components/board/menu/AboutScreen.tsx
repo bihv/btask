@@ -5,6 +5,7 @@ import { Input, Button, Space, Avatar, Divider, Typography } from 'antd';
 import { UserOutlined, AlignLeftOutlined, EditOutlined } from '@ant-design/icons';
 import { Board, User } from '@/types';
 import { ScreenHeader } from './MenuShared';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text, Paragraph } = Typography;
 
@@ -16,6 +17,7 @@ interface AboutScreenProps {
 }
 
 export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateDescription }: AboutScreenProps) {
+    const t = useTranslation();
     const [isEditing, setIsEditing] = useState(false);
     const [descValue, setDescValue] = useState(board.description || '');
     const [saving, setSaving] = useState(false);
@@ -35,13 +37,13 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
 
     return (
         <div style={{ width: 280 }}>
-            <ScreenHeader title="About this board" onBack={onBack} />
+            <ScreenHeader title={t('UI_ABOUT_THIS_BOARD')} onBack={onBack} />
 
             {/* Board Admin */}
             <div style={{ padding: '8px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     <UserOutlined style={{ opacity: 0.6 }} />
-                    <Text strong style={{ fontSize: 12 }}>Board Admin</Text>
+                    <Text strong style={{ fontSize: 12 }}>{t('UI_BOARD_ADMIN')}</Text>
                 </div>
                 {admin ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 24 }}>
@@ -55,7 +57,7 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
                     </div>
                 ) : (
                     <Text type="secondary" style={{ marginLeft: 24, fontSize: 12 }}>
-                        No admin information available
+                        {t('UI_NO_ADMIN_INFO')}
                     </Text>
                 )}
             </div>
@@ -67,11 +69,11 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <Space size={8}>
                         <AlignLeftOutlined style={{ opacity: 0.6 }} />
-                        <Text strong style={{ fontSize: 12 }}>Description</Text>
+                        <Text strong style={{ fontSize: 12 }}>{t('UI_DESCRIPTION')}</Text>
                     </Space>
                     {!isEditing && (
                         <Button size="small" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
-                            Edit
+                            {t('UI_EDIT')}
                         </Button>
                     )}
                 </div>
@@ -81,23 +83,23 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
                             value={descValue}
                             onChange={(e) => setDescValue(e.target.value)}
                             rows={3}
-                            placeholder="Add a description..."
+                            placeholder={t('UI_PLACEHOLDER_ADD_DESCRIPTION')}
                             autoFocus
                             style={{ marginBottom: 8 }}
                         />
                         <Space>
                             <Button type="primary" size="small" loading={saving} onClick={handleSave}>
-                                Save
+                                {t('UI_SAVE')}
                             </Button>
                             <Button size="small" onClick={() => setIsEditing(false)}>
-                                Cancel
+                                {t('UI_CANCEL')}
                             </Button>
                         </Space>
                     </div>
                 ) : (
                     <div style={{ marginLeft: 24 }}>
                         <Paragraph type={board.description ? undefined : 'secondary'} style={{ fontSize: 13, margin: 0 }}>
-                            {board.description || 'No description yet.'}
+                            {board.description || t('UI_NO_DESCRIPTION')}
                         </Paragraph>
                     </div>
                 )}

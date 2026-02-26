@@ -15,6 +15,7 @@ import DueDateTag from '@/components/common/DueDateTag';
 import { useBoardStore } from '@/stores/boardStore';
 import { cardArchiveApi } from '@/lib/api';
 import { CardBackSectionRenderer, CardButtonRenderer } from '@/components/plugins';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -80,6 +81,7 @@ export default function CardMainContent({
     const router = useRouter();
     const { deleteCard } = useBoardStore();
     const { modal, message } = App.useApp();
+    const t = useTranslation();
 
     const handleArchive = async () => {
         try {
@@ -91,15 +93,15 @@ export default function CardMainContent({
                 onArchiveChange(true);
             }
         } catch (error) {
-            message.error('Failed to update card');
+            message.error(t('ERROR_UPDATE_CARD'));
         }
     };
 
     const handleDelete = () => {
         modal.confirm({
-            title: 'Delete card?',
-            content: 'This action cannot be undone.',
-            okText: 'Delete',
+            title: t('UI_DELETE_CARD'),
+            content: t('UI_ACTION_CANNOT_UNDO'),
+            okText: t('UI_DELETE'),
             okType: 'danger',
             onOk: () => {
                 deleteCard(cardId);
@@ -137,7 +139,7 @@ export default function CardMainContent({
                         {card.members && card.members.length > 0 && (
                             <div>
                                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-                                    Members
+                                    {t('UI_MEMBERS')}
                                 </Text>
                                 <div
                                     style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
@@ -168,7 +170,7 @@ export default function CardMainContent({
                         {card.labels && card.labels.length > 0 && (
                             <div>
                                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-                                    Labels
+                                    {t('UI_LABELS')}
                                 </Text>
                                 <div
                                     style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', cursor: 'pointer' }}
@@ -205,7 +207,7 @@ export default function CardMainContent({
                         {(card.start_date || card.due_date) && (
                             <div>
                                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-                                    Dates
+                                    {t('UI_DATES')}
                                 </Text>
                                 <div
                                     style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
@@ -242,7 +244,7 @@ export default function CardMainContent({
                         size="small"
                         onClick={onMembersClick}
                     >
-                        Members
+                        {t('UI_MEMBERS')}
                     </Button>
                 )}
                 {/* Show Labels button only when no labels */}
@@ -252,7 +254,7 @@ export default function CardMainContent({
                         size="small"
                         onClick={onLabelsClick}
                     >
-                        Labels
+                        {t('UI_LABELS')}
                     </Button>
                 )}
                 {/* Show Dates button only when no dates at all */}
@@ -262,7 +264,7 @@ export default function CardMainContent({
                         size="small"
                         onClick={onDueDateClick}
                     >
-                        Dates
+                        {t('UI_DATES')}
                     </Button>
                 )}
                 {/* Show Cover button when not a link card */}
@@ -272,7 +274,7 @@ export default function CardMainContent({
                         size="small"
                         onClick={onCoverClick}
                     >
-                        Cover
+                        {t('UI_COVER')}
                     </Button>
                 )}
                 <Button
@@ -280,14 +282,14 @@ export default function CardMainContent({
                     size="small"
                     onClick={onAddChecklistTriggered}
                 >
-                    Checklist
+                    {t('UI_CHECKLIST')}
                 </Button>
                 <Button
                     icon={<PaperClipOutlined />}
                     size="small"
                     onClick={() => attachmentButtonRef?.current?.click()}
                 >
-                    Attachment
+                    {t('UI_ATTACHMENT')}
                 </Button>
                 <ShareCardModal
                     cardId={cardId}
@@ -301,7 +303,7 @@ export default function CardMainContent({
                     size="small"
                     onClick={handleArchive}
                 >
-                    {isArchived ? 'Restore' : 'Archive'}
+                    {isArchived ? t('UI_RESTORE') : t('UI_ARCHIVE')}
                 </Button>
                 <Button
                     icon={<DeleteOutlined />}
@@ -309,7 +311,7 @@ export default function CardMainContent({
                     danger
                     onClick={handleDelete}
                 >
-                    Delete
+                    {t('UI_DELETE')}
                 </Button>
 
                 {/* Plugin Buttons */}

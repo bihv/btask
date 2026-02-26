@@ -3,6 +3,7 @@ import { Popover, Input, Button, Checkbox, Avatar, Badge, Space, Divider, Typogr
 import { FilterOutlined, SearchOutlined, UserOutlined, ClockCircleOutlined, TagOutlined } from '@ant-design/icons';
 import { Label, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useTranslation } from '@/hooks/useLabels';
 import dayjs from 'dayjs';
 
 const { Text, Title } = Typography;
@@ -53,6 +54,7 @@ export default function BoardFilterPopover({
     hideNoDateOption,
     children,
 }: BoardFilterPopoverProps) {
+    const t = useTranslation();
     const activeCount = [
         filters.search ? 1 : 0,
         (filters.labelIds.length > 0 || filters.noLabels) ? 1 : 0,
@@ -83,7 +85,7 @@ export default function BoardFilterPopover({
         <div style={{ width: 300, maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }}>
             <div style={{ padding: '0 4px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                    <Text strong style={{ fontSize: 14 }}>Filter Cards</Text>
+                    <Text strong style={{ fontSize: 14 }}>{t('UI_FILTER_CARDS')}</Text>
                     {activeCount > 0 && (
                         <Button
                             size="small"
@@ -92,15 +94,15 @@ export default function BoardFilterPopover({
                             onClick={() => onChange(defaultFilters)}
                             style={{ padding: 0 }}
                         >
-                            Clear filters
+                            {t('UI_CLEAR_FILTERS')}
                         </Button>
                     )}
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>KEYWORDS</Text>
+                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_KEYWORDS')}</Text>
                     <Input
-                        placeholder="Search cards..."
+                        placeholder={t('UI_PLACEHOLDER_SEARCH_CARDS')}
                         prefix={<SearchOutlined style={{ color: 'var(--text-secondary)' }} />}
                         value={filters.search}
                         onChange={(e) => onChange({ ...filters, search: e.target.value })}
@@ -109,7 +111,7 @@ export default function BoardFilterPopover({
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>MEMBERS</Text>
+                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_MEMBERS')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div
                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
@@ -118,7 +120,7 @@ export default function BoardFilterPopover({
                             <Checkbox checked={filters.noMembers} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <Avatar size="small" icon={<UserOutlined />} />
-                                <Text>No members</Text>
+                                <Text>{t('UI_NO_MEMBERS')}</Text>
                             </div>
                         </div>
                         {members.map(member => (
@@ -138,7 +140,7 @@ export default function BoardFilterPopover({
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>LABELS</Text>
+                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_LABELS_SECTION')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div
                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
@@ -147,7 +149,7 @@ export default function BoardFilterPopover({
                             <Checkbox checked={filters.noLabels} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <TagOutlined />
-                                <Text>No labels</Text>
+                                <Text>{t('UI_NO_LABELS')}</Text>
                             </div>
                         </div>
                         {labels.map(label => (
@@ -176,14 +178,14 @@ export default function BoardFilterPopover({
                 </div>
 
                 <div style={{ marginBottom: 8 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>DUE DATE</Text>
+                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_DUE_DATE')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div
                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
                             onClick={() => handleDueDateToggle(null)}
                         >
                             <Checkbox checked={filters.dueDate === null} />
-                            <Text>No filter</Text>
+                            <Text>{t('UI_NO_FILTER')}</Text>
                         </div>
                         <div
                             key="overdue"
@@ -193,7 +195,7 @@ export default function BoardFilterPopover({
                             <Checkbox checked={filters.dueDate === 'overdue'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <ClockCircleOutlined style={{ color: '#eb5a46' }} />
-                                <Text>Overdue</Text>
+                                <Text>{t('UI_OVERDUE')}</Text>
                             </div>
                         </div>
                         <div
@@ -204,7 +206,7 @@ export default function BoardFilterPopover({
                             <Checkbox checked={filters.dueDate === 'due_soon'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <ClockCircleOutlined style={{ color: '#f2d600' }} />
-                                <Text>Due soon</Text>
+                                <Text>{t('UI_DUE_SOON')}</Text>
                             </div>
                         </div>
                         <div
@@ -215,7 +217,7 @@ export default function BoardFilterPopover({
                             <Checkbox checked={filters.dueDate === 'due_later'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <ClockCircleOutlined style={{ color: '#5ba4cf' }} />
-                                <Text>Due Later</Text>
+                                <Text>{t('UI_DUE_LATER')}</Text>
                             </div>
                         </div>
                         {!hideNoDateOption && (
@@ -227,7 +229,7 @@ export default function BoardFilterPopover({
                                 <Checkbox checked={filters.dueDate === 'no_date'} />
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <div style={{ width: 14, height: 14, border: '2px dashed #999', borderRadius: '50%' }} />
-                                    <Text>No due date</Text>
+                                    <Text>{t('UI_NO_DUE_DATE')}</Text>
                                 </div>
                             </div>
                         )}

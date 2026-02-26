@@ -5,6 +5,7 @@ import { Modal, Button, Upload, Typography, Divider, App } from 'antd';
 import { PictureOutlined } from '@ant-design/icons';
 import api, { uploadFile } from '@/lib/api';
 import { extractDominantColor } from '@/utils/extractColor';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -33,6 +34,7 @@ export default function CoverImagePickerModal({
     onUpdate,
 }: CoverImagePickerModalProps) {
     const { message } = App.useApp();
+    const t = useTranslation();
 
     const imageAttachments = attachments.filter((a) =>
         IMAGE_EXTENSIONS.some((ext) => a.file_name.toLowerCase().endsWith(ext))
@@ -60,13 +62,13 @@ export default function CoverImagePickerModal({
             onUpdate(newCover);
             onClose();
         } catch (error) {
-            message.error('Failed to update cover image');
+            message.error(t('ERROR_UPDATE_COVER'));
         }
     };
 
     return (
         <Modal
-            title="Choose Cover"
+            title={t('UI_CHOOSE_COVER')}
             open={open}
             onCancel={onClose}
             footer={null}
@@ -77,7 +79,7 @@ export default function CoverImagePickerModal({
                 {imageAttachments.length > 0 && (
                     <>
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                            From attachments
+                            {t('UI_FROM_ATTACHMENTS')}
                         </Text>
                         <div
                             style={{
@@ -127,19 +129,19 @@ export default function CoverImagePickerModal({
                     showUploadList={false}
                     beforeUpload={async (file) => {
                         try {
-                            message.loading('Uploading...', 0);
+                            message.loading(t('UI_UPLOADING'), 0);
                             const url = await uploadFile(file);
                             message.destroy();
                             await handleSetCover(url);
                         } catch {
                             message.destroy();
-                            message.error('Upload failed');
+                            message.error(t('ERROR_UPLOAD_FAILED'));
                         }
                         return false;
                     }}
                 >
                     <Button type="dashed" block icon={<PictureOutlined />}>
-                        Upload Image
+                        {t('UI_UPLOAD_IMAGE')}
                     </Button>
                 </Upload>
 
@@ -152,7 +154,7 @@ export default function CoverImagePickerModal({
                             block
                             onClick={() => handleSetCover('')}
                         >
-                            Remove Cover
+                            {t('UI_REMOVE_COVER')}
                         </Button>
                     </>
                 )}

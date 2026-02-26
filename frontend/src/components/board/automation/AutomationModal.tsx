@@ -12,6 +12,7 @@ import {
 import AutomationRules from './AutomationRules';
 import AutomationScheduled from './AutomationScheduled';
 import AutomationDueDate from './AutomationDueDate';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title } = Typography;
 const { Sider, Content } = Layout;
@@ -25,6 +26,7 @@ interface AutomationModalProps {
 export default function AutomationModal({ open, onClose, boardId }: AutomationModalProps) {
     const [selectedKey, setSelectedKey] = useState('rules');
     const { token } = theme.useToken();
+    const t = useTranslation();
 
     const renderContent = () => {
         switch (selectedKey) {
@@ -49,7 +51,7 @@ export default function AutomationModal({ open, onClose, boardId }: AutomationMo
             <Layout style={{ height: '80vh', backgroundColor: 'transparent' }}>
                 <Sider style={{ backgroundColor: 'transparent' }}>
                     <Flex style={{ padding: '16px 24px' }} align="center">
-                        <Title level={4}>Automation</Title>
+                        <Title level={4}>{t('UI_AUTOMATION')}</Title>
                     </Flex>
                     <Menu
                         mode="inline"
@@ -58,16 +60,16 @@ export default function AutomationModal({ open, onClose, boardId }: AutomationMo
                         onClick={({ key }) => setSelectedKey(key)}
                         items={[
                             {
-                                key: 'grp_auto', label: 'Automations', type: 'group', children: [
-                                    { key: 'rules', label: 'Rules', icon: <ThunderboltOutlined /> },
-                                    { key: 'scheduled', label: 'Scheduled', icon: <ClockCircleOutlined /> }, // Enabled
-                                    { key: 'due_date', label: 'Due date', icon: <CalendarOutlined /> }, // Enabled
+                                key: 'grp_auto', label: t('UI_AUTOMATIONS'), type: 'group', children: [
+                                    { key: 'rules', label: t('UI_RULES'), icon: <ThunderboltOutlined /> },
+                                    { key: 'scheduled', label: t('UI_SCHEDULED'), icon: <ClockCircleOutlined /> },
+                                    { key: 'due_date', label: t('UI_DUE_DATE_LABEL'), icon: <CalendarOutlined /> },
                                 ]
                             },
                             {
-                                key: 'grp_btn', label: 'Custom buttons', type: 'group', children: [
-                                    { key: 'card_btn', label: 'Card buttons', icon: <AppstoreOutlined />, disabled: true },
-                                    { key: 'board_btn', label: 'Board buttons', icon: <AppstoreOutlined />, disabled: true },
+                                key: 'grp_btn', label: t('UI_CUSTOM_BUTTONS'), type: 'group', children: [
+                                    { key: 'card_btn', label: t('UI_CARD_BUTTONS'), icon: <AppstoreOutlined />, disabled: true },
+                                    { key: 'board_btn', label: t('UI_BOARD_BUTTONS'), icon: <AppstoreOutlined />, disabled: true },
                                 ]
                             },
                         ]}

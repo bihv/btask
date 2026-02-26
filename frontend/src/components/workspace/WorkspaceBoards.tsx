@@ -8,6 +8,7 @@ import { CreateBoardRequest, Workspace } from '@/types';
 import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
 import BoardCard from '@/components/board/BoardCard';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -18,9 +19,10 @@ interface WorkspaceBoardsProps {
 export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
     const router = useRouter();
     const { message } = App.useApp();
+    const t = useTranslation();
     const [createBoardModalOpen, setCreateBoardModalOpen] = useState(false);
     const [boardForm] = Form.useForm();
-    
+
     // Watch form values for background picker
     const backgroundColor = Form.useWatch('background_color', boardForm);
     const backgroundImage = Form.useWatch('background_image', boardForm);
@@ -39,7 +41,7 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
             boardForm.resetFields();
             router.push(`/boards/${newBoard.id}`);
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to create board');
+            message.error(error.response?.data?.error || t('ERROR_CREATE_BOARD'));
         }
     };
 
@@ -48,20 +50,20 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0 }}>Boards</Title>
-                <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />} 
+                <Title level={4} style={{ margin: 0 }}>{t('UI_BOARDS')}</Title>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
                     onClick={() => setCreateBoardModalOpen(true)}
                 >
-                    Create Board
+                    {t('UI_CREATE_BOARD')}
                 </Button>
             </div>
 
             {boards.length === 0 ? (
-                <Empty description="No boards in this workspace yet">
+                <Empty description={t('UI_NO_BOARDS_YET')}>
                     <Button type="primary" onClick={() => setCreateBoardModalOpen(true)}>
-                        Create your first board
+                        {t('UI_CREATE_FIRST_BOARD')}
                     </Button>
                 </Empty>
             ) : (
@@ -77,7 +79,7 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                         </Col>
                     ))}
                     <Col xs={24} sm={12} md={8} lg={6}>
-                        <div 
+                        <div
                             style={{
                                 height: 100,
                                 borderRadius: 4,
@@ -91,14 +93,14 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                             }}
                             onClick={() => setCreateBoardModalOpen(true)}
                         >
-                            <Text type="secondary">Create new board</Text>
+                            <Text type="secondary">{t('UI_CREATE_NEW_BOARD')}</Text>
                         </div>
                     </Col>
                 </Row>
             )}
 
             <Modal
-                title="Create board"
+                title={t('UI_CREATE_BOARD_MODAL')}
                 open={createBoardModalOpen}
                 onCancel={() => {
                     setCreateBoardModalOpen(false);
@@ -110,15 +112,15 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                 <Form form={boardForm} layout="vertical" onFinish={handleCreateBoard}>
                     <Form.Item
                         name="title"
-                        label="Board title"
-                        rules={[{ required: true, message: 'Please enter a board title' }]}
+                        label={t('UI_BOARD_TITLE')}
+                        rules={[{ required: true, message: t('VALIDATE_BOARD_TITLE') }]}
                     >
-                        <Input placeholder="Enter board title" autoFocus />
+                        <Input placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')} autoFocus />
                     </Form.Item>
 
                     <div style={{ marginBottom: 16 }}>
                         <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
-                            Background
+                            {t('UI_BACKGROUND')}
                         </Typography.Text>
                         <Form.Item name="background_color" noStyle initialValue={SOLID_COLORS[0]}>
                             <Input type="hidden" />
@@ -151,7 +153,7 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                             block
                             loading={createBoardMutation.isPending}
                         >
-                            Create
+                            {t('UI_CREATE')}
                         </Button>
                     </Form.Item>
                 </Form>

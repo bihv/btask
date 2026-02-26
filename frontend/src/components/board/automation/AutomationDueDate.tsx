@@ -2,11 +2,13 @@
 
 import { Typography, Button, theme, Flex } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Paragraph, Text } = Typography;
 
 export default function AutomationDueDate() {
     const { token } = theme.useToken();
+    const t = useTranslation();
 
     return (
         <Flex vertical align="center" justify="center" style={{ padding: '48px 24px', textAlign: 'center' }}>
@@ -24,16 +26,16 @@ export default function AutomationDueDate() {
                 <CalendarOutlined style={{ fontSize: 40, color: token.colorPrimary }} />
             </Flex>
 
-            <Title level={3}>Due Date Automation</Title>
+            <Title level={3}>{t('UI_DUE_DATE_AUTOMATION')}</Title>
             <Paragraph type="secondary" style={{ maxWidth: 500, marginBottom: 32 }}>
-                Automatically sort lists by due date, or trigger actions when a due date is approaching or overdue.
+                {t('UI_DUE_DATE_DESCRIPTION')}
             </Paragraph>
 
             <Button type="primary" size="large" disabled>
-                Create Due Date Automation
+                {t('UI_CREATE_DUE_DATE')}
             </Button>
             <Text type="secondary" style={{ marginTop: 16, fontSize: 12 }}>
-                Coming soon
+                {t('UI_COMING_SOON')}
             </Text>
         </Flex>
     );

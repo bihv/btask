@@ -6,6 +6,7 @@ import { Button, Typography, Spin } from 'antd';
 import { CommentOutlined, EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import { Comment, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useTranslation } from '@/hooks/useLabels';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
@@ -33,6 +34,7 @@ export default function ActivitySection({
     workspaceId,
     cardId,
 }: ActivitySectionProps) {
+    const t = useTranslation();
     const [newComment, setNewComment] = useState('');
     const [editorKey, setEditorKey] = useState(0);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -104,7 +106,7 @@ export default function ActivitySection({
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <CommentOutlined />
-                <Text strong>Activity</Text>
+                <Text strong>{t('UI_ACTIVITY')}</Text>
             </div>
 
             {/* Add Comment */}
@@ -120,7 +122,7 @@ export default function ActivitySection({
                         content=""
                         onChange={handleCommentChange}
                         editable={true}
-                        placeholder="Write a comment..."
+                        placeholder={t('UI_PLACEHOLDER_COMMENT')}
                         workspaceId={workspaceId}
                         cardId={cardId}
                     />
@@ -132,7 +134,7 @@ export default function ActivitySection({
                         disabled={isCommentEmpty}
                         loading={isLoading}
                     >
-                        Save
+                        {t('UI_SAVE')}
                     </Button>
                 </div>
             </div>
@@ -161,7 +163,7 @@ export default function ActivitySection({
                                     <Text type="secondary" style={{ marginLeft: 8, fontSize: 11 }}>
                                         {formatDate(comment.created_at)}
                                         {comment.updated_at !== comment.created_at && (
-                                            <span style={{ marginLeft: 4, fontStyle: 'italic' }}>(edited)</span>
+                                            <span style={{ marginLeft: 4, fontStyle: 'italic' }}>{t('UI_EDITED')}</span>
                                         )}
                                     </Text>
                                 </div>
@@ -182,7 +184,7 @@ export default function ActivitySection({
                                             content={editingContent}
                                             onChange={handleEditChange}
                                             editable={true}
-                                            placeholder="Edit comment..."
+                                            placeholder={t('UI_PLACEHOLDER_EDIT_COMMENT')}
                                             workspaceId={workspaceId}
                                             cardId={cardId}
                                         />
@@ -194,14 +196,14 @@ export default function ActivitySection({
                                                 onClick={handleEditSave}
                                                 loading={isSavingEdit}
                                             >
-                                                Save
+                                                {t('UI_SAVE')}
                                             </Button>
                                             <Button
                                                 size="small"
                                                 icon={<CloseOutlined />}
                                                 onClick={handleEditCancel}
                                             >
-                                                Cancel
+                                                {t('UI_CANCEL')}
                                             </Button>
                                         </div>
                                     </div>
@@ -219,7 +221,7 @@ export default function ActivitySection({
 
             {comments.length === 0 && (
                 <Text type="secondary" style={{ fontSize: 13 }}>
-                    No comments yet
+                    {t('UI_NO_COMMENTS')}
                 </Text>
             )}
         </div>

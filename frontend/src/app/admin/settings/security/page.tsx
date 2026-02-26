@@ -20,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/useAdmin';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -31,12 +32,13 @@ export default function SecuritySettingsPage() {
 
     const { data: settings, isLoading } = useSystemSettings();
     const updateSettings = useUpdateSystemSettings();
+    const t = useTranslation();
 
     // File types state
     const [allowedPrefixes, setAllowedPrefixes] = useState<string[]>([]);
     const [allowedTypes, setAllowedTypes] = useState<string[]>([]);
     const [blockedTypes, setBlockedTypes] = useState<string[]>([]);
-    
+
     // Input states
     const [inputPrefix, setInputPrefix] = useState('');
     const [inputType, setInputType] = useState('');
@@ -66,9 +68,9 @@ export default function SecuritySettingsPage() {
                     blocked_types: blockedTypes,
                 },
             });
-            message.success('Security settings saved successfully');
+            message.success(t('UI_SECURITY_SAVED'));
         } catch {
-            message.error('Failed to save settings');
+            message.error(t('ERROR_SAVE_SETTINGS'));
         }
     };
 
@@ -105,11 +107,11 @@ export default function SecuritySettingsPage() {
         <>
             <Title level={2} style={{ marginBottom: 24 }}>
                 <SafetyOutlined style={{ marginRight: 8 }} />
-                File Security
+                {t('UI_FILE_SECURITY_TITLE')}
             </Title>
-            
+
             <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
-                Configure allowed and blocked file types for uploads across the system.
+                {t('UI_FILE_SECURITY_DESC')}
             </Text>
 
             {isLoading ? (
@@ -117,7 +119,7 @@ export default function SecuritySettingsPage() {
                     <Spin size="large" />
                 </div>
             ) : (
-                <Card title="Allowed File Types">
+                <Card title={t('UI_ALLOWED_FILE_TYPES')}>
                     <Form
                         form={form}
                         layout="vertical"
@@ -131,7 +133,7 @@ export default function SecuritySettingsPage() {
                             style={{ marginBottom: 24 }}
                         />
 
-                        <Form.Item label="Allowed Prefixes" extra="Match any MIME type starting with these prefixes (e.g., image/, video/, audio/)">
+                        <Form.Item label={t('UI_ALLOWED_PREFIXES')} extra="Match any MIME type starting with these prefixes (e.g., image/, video/, audio/)">
                             <div style={{ border: '1px solid #d9d9d9', padding: '12px', borderRadius: '6px', marginBottom: 8, maxHeight: 120, overflowY: 'auto', background: 'var(--bg-secondary)' }}>
                                 {allowedPrefixes.length === 0 && <Text type="secondary" style={{ fontSize: 13 }}>No prefixes allowed</Text>}
                                 <Space wrap>
@@ -157,7 +159,7 @@ export default function SecuritySettingsPage() {
                             />
                         </Form.Item>
 
-                        <Form.Item label="Specific Allowed Types" extra="Specific MIME types to allow (e.g., application/pdf)">
+                        <Form.Item label={t('UI_SPECIFIC_ALLOWED')} extra="Specific MIME types to allow (e.g., application/pdf)">
                             <div style={{ border: '1px solid #d9d9d9', padding: '12px', borderRadius: '6px', marginBottom: 8, maxHeight: 150, overflowY: 'auto', background: 'var(--bg-secondary)' }}>
                                 {allowedTypes.length === 0 && <Text type="secondary" style={{ fontSize: 13 }}>No specific types allowed</Text>}
                                 <Space wrap>
@@ -183,8 +185,8 @@ export default function SecuritySettingsPage() {
                             />
                         </Form.Item>
 
-                        <Form.Item label="Blocked Types" extra="Block specific MIME types (overrides prefix matches)">
-                             <div style={{ border: '1px solid #d9d9d9', padding: '12px', borderRadius: '6px', marginBottom: 8, maxHeight: 120, overflowY: 'auto', background: '#fff1f0' }}>
+                        <Form.Item label={t('UI_BLOCKED_TYPES')} extra="Block specific MIME types (overrides prefix matches)">
+                            <div style={{ border: '1px solid #d9d9d9', padding: '12px', borderRadius: '6px', marginBottom: 8, maxHeight: 120, overflowY: 'auto', background: '#fff1f0' }}>
                                 {blockedTypes.length === 0 && <Text type="secondary" style={{ fontSize: 13 }}>No types blocked</Text>}
                                 <Space wrap>
                                     {blockedTypes.map((type) => (
@@ -215,7 +217,7 @@ export default function SecuritySettingsPage() {
                                 htmlType="submit"
                                 loading={updateSettings.isPending}
                             >
-                                Save Security Settings
+                                {t('UI_SAVE_SECURITY_SETTINGS')}
                             </Button>
                         </Form.Item>
                     </Form>

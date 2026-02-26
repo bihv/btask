@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button } from 'antd';
 import { ScreenHeader } from './MenuShared';
 import BackgroundPicker from '../BackgroundPicker';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface BackgroundScreenProps {
     initialColor: string;
@@ -13,6 +14,7 @@ interface BackgroundScreenProps {
 }
 
 export default function BackgroundScreen({ initialColor, initialImage, onBack, onSave }: BackgroundScreenProps) {
+    const t = useTranslation();
     const [selectedColor, setSelectedColor] = useState(initialColor);
     const [selectedImage, setSelectedImage] = useState(initialImage);
     const [saving, setSaving] = useState(false);
@@ -29,7 +31,7 @@ export default function BackgroundScreen({ initialColor, initialImage, onBack, o
 
     return (
         <div style={{ width: 280 }}>
-            <ScreenHeader title="Change background" onBack={onBack} />
+            <ScreenHeader title={t('UI_CHANGE_BACKGROUND')} onBack={onBack} />
             <div style={{ padding: '8px 12px' }}>
                 <BackgroundPicker
                     value={selectedColor}
@@ -39,7 +41,7 @@ export default function BackgroundScreen({ initialColor, initialImage, onBack, o
                 />
                 <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
                     <Button type="primary" size="small" loading={saving} onClick={handleSave}>
-                        Save
+                        {t('UI_SAVE')}
                     </Button>
                 </div>
             </div>

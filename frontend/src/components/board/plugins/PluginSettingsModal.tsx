@@ -2,6 +2,7 @@ import { Modal, Tabs, Form, Input, Button, App, Switch, InputNumber, Select, Ale
 import { useEffect } from 'react';
 import WebhookManager from './webhook/WebhookManager';
 import { useGetPluginSettings, useUpdatePluginSettings, usePluginManifest } from '@/hooks/usePluginSettings';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface PluginSettingsModalProps {
     open: boolean;
@@ -13,6 +14,7 @@ interface PluginSettingsModalProps {
 
 export default function PluginSettingsModal({ open, onClose, plugin, installationId, boardId }: PluginSettingsModalProps) {
     const { message } = App.useApp();
+    const t = useTranslation();
     const [form] = Form.useForm();
 
     // Fetch settings values from DB
@@ -37,10 +39,10 @@ export default function PluginSettingsModal({ open, onClose, plugin, installatio
                 installationId,
                 settings: values
             });
-            message.success('Settings updated');
+            message.success(t('SUCCESS_SETTINGS_UPDATED'));
         } catch (err) {
             console.error(err);
-            message.error('Failed to update settings');
+            message.error(t('ERROR_UPDATE_SETTINGS_FAILED'));
         }
     };
 
@@ -83,18 +85,18 @@ export default function PluginSettingsModal({ open, onClose, plugin, installatio
 
     return (
         <Modal
-            title={`Settings: ${plugin.name}`}
+            title={`${t('UI_SETTINGS')}: ${plugin.name}`}
             open={open}
             onCancel={onClose}
             footer={null}
             width={800}
         >
             <Tabs defaultActiveKey="general">
-                <Tabs.TabPane tab="General" key="general">
+                <Tabs.TabPane tab={t('UI_GENERAL')} key="general">
                     {isLoading ? (
                         <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
                     ) : !hasSettings ? (
-                        <Alert message="No configuration available for this plugin." type="info" showIcon />
+                        <Alert message={t('UI_NO_CONFIG_AVAILABLE')} type="info" showIcon />
                     ) : (
                         <Form
                             form={form}
@@ -111,13 +113,13 @@ export default function PluginSettingsModal({ open, onClose, plugin, installatio
 
                             <Form.Item>
                                 <Button type="primary" htmlType="submit" loading={updateSettings.isPending}>
-                                    Save Changes
+                                    {t('UI_SAVE_CHANGES')}
                                 </Button>
                             </Form.Item>
                         </Form>
                     )}
                 </Tabs.TabPane>
-                <Tabs.TabPane tab="Webhooks" key="webhooks">
+                <Tabs.TabPane tab={t('UI_WEBHOOKS')} key="webhooks">
                     <WebhookManager
                         pluginId={plugin.id}
                         installationId={installationId}

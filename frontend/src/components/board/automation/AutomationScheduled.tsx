@@ -2,11 +2,13 @@
 
 import { Typography, Button, theme, Flex } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Paragraph, Text } = Typography;
 
 export default function AutomationScheduled() {
     const { token } = theme.useToken();
+    const t = useTranslation();
 
     return (
         <Flex vertical align="center" justify="center" style={{ padding: '48px 24px', textAlign: 'center' }}>
@@ -24,16 +26,16 @@ export default function AutomationScheduled() {
                 <ClockCircleOutlined style={{ fontSize: 40, color: token.colorPrimary }} />
             </Flex>
 
-            <Title level={3}>Scheduled Automations</Title>
+            <Title level={3}>{t('UI_SCHEDULED_AUTOMATIONS')}</Title>
             <Paragraph type="secondary" style={{ maxWidth: 500, marginBottom: 32 }}>
-                Set up actions to happen on a schedule, like checking for overdue cards every morning or archiving completed cards every Friday.
+                {t('UI_SCHEDULED_DESCRIPTION')}
             </Paragraph>
 
             <Button type="primary" size="large" disabled>
-                Create Scheduled Automation
+                {t('UI_CREATE_SCHEDULED')}
             </Button>
             <Text type="secondary" style={{ marginTop: 16, fontSize: 12 }}>
-                Coming soon
+                {t('UI_COMING_SOON')}
             </Text>
         </Flex>
     );

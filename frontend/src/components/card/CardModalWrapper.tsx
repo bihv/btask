@@ -11,6 +11,7 @@ import 'yet-another-react-lightbox/styles.css';
 import CardPageContent from '@/app/boards/[id]/cards/[cardId]/CardPageContent';
 
 import { PluginProvider } from '@/components/plugins';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -23,6 +24,7 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
     const { currentBoard } = useBoardStore();
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const { data: cardData } = useCard(cardId);
+    const t = useTranslation();
 
 
 
@@ -92,7 +94,7 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                                 color: cardData?.cover_image ? 'white' : 'inherit',
                                 textShadow: cardData?.cover_image ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
                             }}>
-                                {currentBoard?.title || 'Board'}
+                                {currentBoard?.title || t('UI_BOARD')}
                             </Text>
                             <CloseOutlined
                                 onClick={onClose}

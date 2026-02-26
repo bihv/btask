@@ -25,6 +25,7 @@ import {
 } from '@ant-design/icons';
 import { Attachment } from '@/types';
 import { attachmentApi, uploadFile } from '@/lib/api';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -68,6 +69,7 @@ const formatFileSize = (bytes: number) => {
 export default function AttachmentSection({ cardId, attachments, onUpdate, currentCover, onSetCover, buttonRef }: AttachmentSectionProps) {
     const [uploading, setUploading] = useState(false);
     const { message } = App.useApp();
+    const t = useTranslation();
 
     const handleUpload = async (file: File) => {
         setUploading(true);
@@ -79,10 +81,10 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                 file_type: file.type,
                 file_size: file.size,
             });
-            message.success('File uploaded successfully');
+            message.success(t('SUCCESS_FILE_UPLOADED'));
             onUpdate();
         } catch (error) {
-            message.error('Failed to upload file');
+            message.error(t('ERROR_UPLOAD_FILE'));
         } finally {
             setUploading(false);
         }
@@ -93,7 +95,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
             await attachmentApi.delete(attachmentId);
             onUpdate();
         } catch (error) {
-            message.error('Failed to delete attachment');
+            message.error(t('ERROR_DELETE_ATTACHMENT'));
         }
     };
 
@@ -111,7 +113,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <PaperClipOutlined />
-                <Text strong>Attachments</Text>
+                <Text strong>{t('UI_ATTACHMENTS')}</Text>
                 <Text type="secondary" style={{ fontSize: 12 }}>({attachments.length})</Text>
             </div>
 
@@ -167,7 +169,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                                         size="small"
                                         icon={currentCover === attachment.file_url ? <CheckCircleFilled /> : <PictureOutlined />}
                                         onClick={() => onSetCover(attachment.file_url)}
-                                        title={currentCover === attachment.file_url ? 'Current Cover' : 'Set as Cover'}
+                                        title={currentCover === attachment.file_url ? t('UI_CURRENT_COVER') : t('UI_SET_AS_COVER')}
                                     />
                                 )}
                                 <Button
@@ -179,10 +181,10 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                                 />
                                 <Popconfirm
                                     key="delete"
-                                    title="Delete attachment?"
+                                    title={t('UI_DELETE_ATTACHMENT')}
                                     onConfirm={() => handleDelete(attachment.id)}
-                                    okText="Yes"
-                                    cancelText="No"
+                                    okText={t('UI_YES')}
+                                    cancelText={t('UI_NO')}
                                 >
                                     <Button type="text" size="small" danger icon={<DeleteOutlined />} />
                                 </Popconfirm>
@@ -208,7 +210,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                     style={{ marginTop: attachments.length > 0 ? 12 : 0 }}
                     ref={buttonRef as any}
                 >
-                    Add Attachment
+                    {t('UI_ADD_ATTACHMENT')}
                 </Button>
             </Upload>
         </div>

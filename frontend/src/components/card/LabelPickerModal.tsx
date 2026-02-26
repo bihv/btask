@@ -5,6 +5,7 @@ import { Modal, Input, Button, Typography, Divider, App } from 'antd';
 import { CheckOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Label } from '@/types';
 import api from '@/lib/api';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -38,8 +39,9 @@ export default function LabelPickerModal({
 }: LabelPickerModalProps) {
     const [view, setView] = useState<View>('list');
     const { message } = App.useApp();
+    const t = useTranslation();
     const [editingLabel, setEditingLabel] = useState<Label | null>(null);
-    
+
     // Form states
     const [name, setName] = useState('');
     const [color, setColor] = useState(LABEL_COLORS[0]);
@@ -70,7 +72,7 @@ export default function LabelPickerModal({
             onCardRefresh?.();
             onRefresh();
         } catch (error) {
-            message.error('Failed to update label');
+            message.error(t('ERROR_UPDATE_LABEL'));
         }
     };
 
@@ -102,7 +104,7 @@ export default function LabelPickerModal({
             onRefresh();
             handleBack();
         } catch (error) {
-            message.error('Failed to create label');
+            message.error(t('ERROR_CREATE_LABEL'));
         } finally {
             setLoading(false);
         }
@@ -120,7 +122,7 @@ export default function LabelPickerModal({
             onCardRefresh?.();
             handleBack();
         } catch (error) {
-            message.error('Failed to update label');
+            message.error(t('ERROR_UPDATE_LABEL'));
         } finally {
             setLoading(false);
         }
@@ -134,9 +136,9 @@ export default function LabelPickerModal({
             onRefresh();
             onCardRefresh?.();
             handleBack();
-            message.success('Label deleted');
+            message.success(t('SUCCESS_LABEL_DELETED'));
         } catch (error) {
-            message.error('Failed to delete label');
+            message.error(t('ERROR_DELETE_LABEL'));
         } finally {
             setLoading(false);
         }
@@ -181,7 +183,7 @@ export default function LabelPickerModal({
                                 size="small"
                                 icon={<EditOutlined />}
                                 onClick={(e) => handleStartEdit(label, e)}
-                                style={{ 
+                                style={{
                                     color: 'var(--text-secondary)',
                                     minWidth: 32,
                                 }}
@@ -191,7 +193,7 @@ export default function LabelPickerModal({
                 })}
             </div>
             <Button type="default" block onClick={handleStartCreate}>
-                Create a new label
+                {t('UI_CREATE_NEW_LABEL')}
             </Button>
         </div>
     );
@@ -207,7 +209,7 @@ export default function LabelPickerModal({
                     icon={<ArrowLeftOutlined />}
                     onClick={handleBack}
                 />
-                <Text strong>{view === 'create' ? 'Create label' : 'Edit label'}</Text>
+                <Text strong>{view === 'create' ? t('UI_CREATE_LABEL') : t('UI_EDIT_LABEL')}</Text>
             </div>
 
             {/* Preview */}
@@ -227,12 +229,12 @@ export default function LabelPickerModal({
             {/* Name input */}
             <div style={{ marginBottom: 12 }}>
                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                    Title
+                    {t('UI_TITLE')}
                 </Text>
                 <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Label name (optional)"
+                    placeholder={t('UI_PLACEHOLDER_LABEL_NAME')}
                     size="small"
                 />
             </div>
@@ -240,7 +242,7 @@ export default function LabelPickerModal({
             {/* Color picker */}
             <div style={{ marginBottom: 12 }}>
                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                    Select a color
+                    {t('UI_SELECT_COLOR')}
                 </Text>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                     {LABEL_COLORS.map((c) => (
@@ -274,7 +276,7 @@ export default function LabelPickerModal({
                     onClick={view === 'create' ? handleCreate : handleUpdate}
                     loading={loading}
                 >
-                    {view === 'create' ? 'Create' : 'Save'}
+                    {view === 'create' ? t('UI_CREATE') : t('UI_SAVE')}
                 </Button>
                 {view === 'edit' && (
                     <Button
@@ -283,7 +285,7 @@ export default function LabelPickerModal({
                         onClick={handleDelete}
                         loading={loading}
                     >
-                        Delete
+                        {t('UI_DELETE')}
                     </Button>
                 )}
             </div>
@@ -292,7 +294,7 @@ export default function LabelPickerModal({
 
     return (
         <Modal
-            title="Labels"
+            title={t('UI_LABELS')}
             open={open}
             onCancel={onClose}
             footer={null}

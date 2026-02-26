@@ -4,6 +4,7 @@ import React from 'react';
 import { Button, Checkbox } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import EditableTitle from '@/components/common/EditableTitle';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface CardHeaderProps {
     title: string;
@@ -22,6 +23,7 @@ export default function CardHeader({
     onBack,
     hideBackButton = false,
 }: CardHeaderProps) {
+    const t = useTranslation();
     return (
         <div
             style={{
@@ -48,7 +50,7 @@ export default function CardHeader({
             <EditableTitle
                 value={title}
                 onSave={onTitleSave}
-                placeholder="Enter card title..."
+                placeholder={t('UI_PLACEHOLDER_CARD_TITLE')}
                 strong
                 style={{ flex: 1 }}
                 textStyle={{ fontSize: 20 }}

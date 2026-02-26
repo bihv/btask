@@ -3,6 +3,7 @@
 import React from 'react';
 import type { SuggestionMenuProps, DefaultReactSuggestionItem } from '@blocknote/react';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useTranslation } from '@/hooks/useLabels';
 
 // Extended type for mention suggestion items
 export type MentionSuggestionItem = DefaultReactSuggestionItem & {
@@ -14,11 +15,12 @@ export type MentionSuggestionItem = DefaultReactSuggestionItem & {
 // Custom suggestion menu that displays displayName instead of title
 export function MentionSuggestionMenu(props: SuggestionMenuProps<MentionSuggestionItem>) {
     const { items, loadingState, selectedIndex, onItemClick } = props;
+    const t = useTranslation();
 
     if (loadingState === 'loading-initial') {
         return (
             <div className="bn-suggestion-menu" style={menuStyle}>
-                <div style={itemStyle}>Loading...</div>
+                <div style={itemStyle}>{t('UI_LOADING')}</div>
             </div>
         );
     }
@@ -26,7 +28,7 @@ export function MentionSuggestionMenu(props: SuggestionMenuProps<MentionSuggesti
     if (items.length === 0 && loadingState === 'loaded') {
         return (
             <div className="bn-suggestion-menu" style={menuStyle}>
-                <div style={emptyStyle}>No members found</div>
+                <div style={emptyStyle}>{t('UI_NO_MEMBERS_FOUND')}</div>
             </div>
         );
     }
@@ -61,7 +63,7 @@ export function MentionSuggestionMenu(props: SuggestionMenuProps<MentionSuggesti
                 </div>
             ))}
             {loadingState === 'loading' && (
-                <div style={itemStyle}>Loading more...</div>
+                <div style={itemStyle}>{t('UI_LOADING_MORE')}</div>
             )}
         </div>
     );

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Popover, Button, Divider, Modal, Input, App } from 'antd';
 import styles from './BoardMenuPopover.module.css';
+import { useTranslation } from '@/hooks/useLabels';
 import {
     ShareAltOutlined,
     InfoCircleOutlined,
@@ -64,6 +65,7 @@ export default function BoardMenuPopover({
     children,
 }: BoardMenuPopoverProps) {
     const { modal, message } = App.useApp();
+    const t = useTranslation();
     const [open, setOpen] = useState(false);
     const [screen, setScreen] = useState<MenuScreen>('main');
     const [copyModalOpen, setCopyModalOpen] = useState(false);
@@ -83,9 +85,9 @@ export default function BoardMenuPopover({
     const handleDelete = () => {
         setOpen(false);
         modal.confirm({
-            title: 'Delete this board?',
-            content: 'This action cannot be undone. All lists and cards will be permanently deleted.',
-            okText: 'Delete',
+            title: t('UI_DELETE_THIS_BOARD'),
+            content: t('UI_DELETE_BOARD_CONFIRM'),
+            okText: t('UI_DELETE'),
             okType: 'danger',
             onOk: onDeleteBoard,
         });
@@ -106,67 +108,67 @@ export default function BoardMenuPopover({
     // Main menu screen
     const renderMainScreen = () => (
         <div style={{ width: 280, maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }}>
-            <MenuTitle title="Menu" />
+            <MenuTitle title={t('UI_MENU')} />
 
             {/* Section 1 */}
-            <MenuItem icon={<ShareAltOutlined />} label="Share" onClick={() => { setOpen(false); onShareClick(); }} />
+            <MenuItem icon={<ShareAltOutlined />} label={t('UI_SHARE')} onClick={() => { setOpen(false); onShareClick(); }} />
 
             <Divider style={{ margin: '8px 0' }} />
 
             {/* Section 2: Board info */}
-            <MenuItem icon={<InfoCircleOutlined />} label="About this board" onClick={() => setScreen('about')} />
+            <MenuItem icon={<InfoCircleOutlined />} label={t('UI_ABOUT_THIS_BOARD')} onClick={() => setScreen('about')} />
             <MenuItem
                 icon={(board as any).visibility === 'public' ? <GlobalOutlined /> : <LockOutlined />}
-                label={`Visibility: ${(board as any).visibility === 'public' ? 'Public' : 'Private'}`}
+                label={`${t('UI_VISIBILITY')}: ${(board as any).visibility === 'public' ? t('UI_VISIBILITY_PUBLIC') : t('UI_VISIBILITY_PRIVATE')}`}
             />
             <MenuItem
                 icon={board.is_starred ? <StarFilled style={{ color: '#f5cd47' }} /> : <StarOutlined />}
-                label={board.is_starred ? 'Unstar' : 'Star'}
+                label={board.is_starred ? t('UI_UNSTAR') : t('UI_STAR')}
                 onClick={onToggleStar}
             />
 
             <Divider style={{ margin: '8px 0' }} />
 
             {/* Section 3: Settings */}
-            <MenuItem icon={<BgColorsOutlined />} label="Change background" onClick={() => setScreen('background')} />
+            <MenuItem icon={<BgColorsOutlined />} label={t('UI_CHANGE_BACKGROUND')} onClick={() => setScreen('background')} />
             <MenuItem
                 icon={board.show_card_covers ? <EyeOutlined /> : <EyeInvisibleOutlined />}
-                label={board.show_card_covers ? 'Hide card covers' : 'Show card covers'}
+                label={board.show_card_covers ? t('UI_HIDE_CARD_COVERS') : t('UI_SHOW_CARD_COVERS')}
                 onClick={handleToggleCardCovers}
             />
-            <MenuItem icon={<TagsOutlined />} label="Labels" onClick={() => message.info('Coming soon')} />
-            <MenuItem icon={<FormOutlined />} label="Custom Fields" onClick={() => setScreen('customFields')} />
+            <MenuItem icon={<TagsOutlined />} label={t('UI_LABELS')} onClick={() => message.info(t('UI_COMING_SOON'))} />
+            <MenuItem icon={<FormOutlined />} label={t('UI_CUSTOM_FIELDS')} onClick={() => setScreen('customFields')} />
 
             <Divider style={{ margin: '8px 0' }} />
 
             {/* Section 4: Archive */}
-            <MenuItem icon={<InboxOutlined />} label="Archived items" onClick={() => setScreen('archived')} />
+            <MenuItem icon={<InboxOutlined />} label={t('UI_ARCHIVED_ITEMS')} onClick={() => setScreen('archived')} />
 
             <Divider style={{ margin: '8px 0' }} />
 
             {/* Section 5: Board Actions */}
             <MenuItem
                 icon={board.is_watching ? <BellFilled style={{ color: '#1890ff' }} /> : <BellOutlined />}
-                label={board.is_watching ? 'Watching' : 'Watch'}
+                label={board.is_watching ? t('UI_WATCHING') : t('UI_WATCH')}
                 onClick={onToggleWatch}
             />
             <MenuItem
                 icon={<ColumnWidthOutlined />}
-                label="Expand all lists"
+                label={t('UI_EXPAND_ALL_LISTS')}
                 onClick={async () => {
                     await onExpandAllLists();
                 }}
             />
             <MenuItem
                 icon={<ColumnWidthOutlined style={{ transform: 'rotate(90deg)' }} />}
-                label="Collapse all lists"
+                label={t('UI_COLLAPSE_ALL_LISTS')}
                 onClick={async () => {
                     await onCollapseAllLists();
                 }}
             />
             <MenuItem
                 icon={<CopyOutlined />}
-                label="Copy board"
+                label={t('UI_COPY_BOARD')}
                 onClick={() => {
                     setCopyTitle(board.title + ' (copy)');
                     setCopyModalOpen(true);
@@ -175,14 +177,14 @@ export default function BoardMenuPopover({
             />
             <MenuItem
                 icon={<StopOutlined />}
-                label="Close board"
-                onClick={() => message.info('Close board coming soon')}
+                label={t('UI_CLOSE_BOARD')}
+                onClick={() => message.info(t('UI_CLOSE_BOARD_COMING_SOON'))}
             />
 
             <Divider style={{ margin: '8px 0' }} />
 
             {/* Section 6: Delete */}
-            <MenuItem icon={<DeleteOutlined />} label="Delete board" onClick={handleDelete} danger />
+            <MenuItem icon={<DeleteOutlined />} label={t('UI_DELETE_BOARD')} onClick={handleDelete} danger />
         </div>
     );
 
@@ -266,7 +268,7 @@ export default function BoardMenuPopover({
             </Popover>
 
             <Modal
-                title="Copy Board"
+                title={t('UI_COPY_BOARD')}
                 open={copyModalOpen}
                 onCancel={() => setCopyModalOpen(false)}
                 onOk={async () => {
@@ -275,14 +277,14 @@ export default function BoardMenuPopover({
                         setCopyModalOpen(false);
                     }
                 }}
-                okText="Create Copy"
+                okText={t('UI_CREATE_COPY')}
             >
                 <div style={{ marginTop: 16 }}>
-                    <label>Board title</label>
+                    <label>{t('UI_BOARD_TITLE')}</label>
                     <Input
                         value={copyTitle}
                         onChange={(e) => setCopyTitle(e.target.value)}
-                        placeholder="Enter board title"
+                        placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')}
                         style={{ marginTop: 8 }}
                     />
                 </div>

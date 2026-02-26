@@ -8,6 +8,7 @@ import { Workspace } from '@/types';
 import api from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useAuthStore } from '@/stores/authStore';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -33,8 +34,9 @@ export default function WorkspaceMembers({ workspace }: WorkspaceMembersProps) {
     const [role, setRole] = useState('member');
     const { message } = App.useApp();
     const { user } = useAuthStore();
+    const t = useTranslation();
     const queryClient = useQueryClient();
-    
+
     const isOwner = workspace.owner_id === user?.id;
 
     const { data: members = [], isLoading } = useQuery<Member[]>({
@@ -51,12 +53,12 @@ export default function WorkspaceMembers({ workspace }: WorkspaceMembersProps) {
             return api.post(`/workspaces/${workspace.id}/invite`, { email, role });
         },
         onSuccess: () => {
-            message.success('Member invited successfully');
+            message.success(t('SUCCESS_MEMBER_INVITED'));
             setEmail('');
             queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] });
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Failed to invite member');
+            message.error(error.response?.data?.error || t('ERROR_INVITE_MEMBER'));
         },
     });
 
@@ -65,17 +67,17 @@ export default function WorkspaceMembers({ workspace }: WorkspaceMembersProps) {
             return api.delete(`/workspaces/${workspace.id}/members/${userId}`);
         },
         onSuccess: () => {
-            message.success('Member removed');
+            message.success(t('SUCCESS_MEMBER_REMOVED'));
             queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] });
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Failed to remove member');
+            message.error(error.response?.data?.error || t('ERROR_REMOVE_MEMBER'));
         },
     });
 
     const handleInvite = () => {
         if (!email.trim()) {
-            message.warning('Please enter an email');
+            message.warning(t('WARN_ENTER_EMAIL'));
             return;
         }
         inviteMutation.mutate({ email: email.trim(), role });
@@ -92,17 +94,17 @@ export default function WorkspaceMembers({ workspace }: WorkspaceMembersProps) {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0 }}>Workspace Members</Title>
+                <Title level={4} style={{ margin: 0 }}>{t('UI_WORKSPACE_MEMBERS')}</Title>
             </div>
 
             {isOwner && (
                 <div style={{ marginBottom: 24, padding: 16, background: 'var(--bg-secondary)', borderRadius: 8 }}>
                     <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                        Invite by email
+                        {t('UI_INVITE_BY_EMAIL')}
                     </Text>
                     <Space.Compact style={{ width: '100%' }}>
                         <Input
-                            placeholder="Enter email address"
+                            placeholder={t('UI_PLACEHOLDER_EMAIL')}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             onPressEnter={handleInvite}
@@ -113,8 +115,8 @@ export default function WorkspaceMembers({ workspace }: WorkspaceMembersProps) {
                             onChange={setRole}
                             style={{ width: 120 }}
                             options={[
-                                { value: 'member', label: 'Member' },
-                                { value: 'admin', label: 'Admin' },
+                                { value: 'member', label: t('UI_MEMBER') },
+                                { value: 'admin', label: t('UI_ADMIN') },
                             ]}
                         />
                         <Button
@@ -123,61 +125,61 @@ export default function WorkspaceMembers({ workspace }: WorkspaceMembersProps) {
                             onClick={handleInvite}
                             loading={inviteMutation.isPending}
                         >
-                            Invite
+                            {t('UI_INVITE')}
                         </Button>
                     </Space.Compact>
                 </div>
             )}
 
             {members.length === 0 ? (
-                <Empty description="No members yet" />
+                <Empty description={t('UI_NO_MEMBERS_YET')} />
             ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {members.map((item) => (
-                    <div
-                        key={item.user_id}
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '12px 0',
-                            borderBottom: '1px solid var(--border-color, #f0f0f0)',
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                            <UserAvatar
-                                avatarUrl={item.user?.avatar_url}
-                                name={item.user?.full_name || item.user?.email}
-                                size={40}
-                            />
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <Space>
-                                    <Text strong>{item.user?.full_name || item.user?.email || 'Unknown'}</Text>
-                                    {item.role === 'owner' && (
-                                        <Tag color="gold" icon={<CrownOutlined />}>Owner</Tag>
-                                    )}
-                                    {item.role === 'admin' && (
-                                        <Tag color="blue">Admin</Tag>
-                                    )}
-                                </Space>
-                                <Text type="secondary" style={{ fontSize: '12px' }}>{item.user?.email}</Text>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {members.map((item) => (
+                        <div
+                            key={item.user_id}
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '12px 0',
+                                borderBottom: '1px solid var(--border-color, #f0f0f0)',
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                <UserAvatar
+                                    avatarUrl={item.user?.avatar_url}
+                                    name={item.user?.full_name || item.user?.email}
+                                    size={40}
+                                />
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <Space>
+                                        <Text strong>{item.user?.full_name || item.user?.email || t('UI_UNKNOWN')}</Text>
+                                        {item.role === 'owner' && (
+                                            <Tag color="gold" icon={<CrownOutlined />}>{t('UI_OWNER')}</Tag>
+                                        )}
+                                        {item.role === 'admin' && (
+                                            <Tag color="blue">{t('UI_ADMIN')}</Tag>
+                                        )}
+                                    </Space>
+                                    <Text type="secondary" style={{ fontSize: '12px' }}>{item.user?.email}</Text>
+                                </div>
                             </div>
+
+                            {isOwner && item.user_id !== user?.id && (
+                                <Button
+                                    type="text"
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => removeMutation.mutate(item.user_id)}
+                                    loading={removeMutation.isPending}
+                                >
+                                    {t('UI_REMOVE')}
+                                </Button>
+                            )}
                         </div>
-                        
-                        {isOwner && item.user_id !== user?.id && (
-                            <Button
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={() => removeMutation.mutate(item.user_id)}
-                                loading={removeMutation.isPending}
-                            >
-                                Remove
-                            </Button>
-                        )}
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
             )}
         </div>
     );

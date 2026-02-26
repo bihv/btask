@@ -6,12 +6,14 @@ import { Typography, Spin, Empty, Card, Row, Col } from 'antd';
 import { StarFilled } from '@ant-design/icons';
 import { useHeader } from '@/providers/HeaderProvider';
 import { useStarredBoards, useUpdateBoard } from '@/hooks/useBoards';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
 export default function StarredPage() {
     const router = useRouter();
     const { setHeaderContent } = useHeader();
+    const t = useTranslation();
 
     // React Query hooks
     const { data: boards = [], isLoading } = useStarredBoards();
@@ -19,7 +21,7 @@ export default function StarredPage() {
 
     useEffect(() => {
         setHeaderContent(
-            <Title level={4} style={{ margin: 0 }}>Starred Boards</Title>
+            <Title level={4} style={{ margin: 0 }}>{t('UI_STARRED_BOARDS')}</Title>
         );
         return () => setHeaderContent(null);
     }, [setHeaderContent]);
@@ -45,7 +47,7 @@ export default function StarredPage() {
             {boards.length === 0 ? (
                 <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="No starred boards yet"
+                    description={t('UI_NO_STARRED_BOARDS')}
                 />
             ) : (
                 <Row gutter={[16, 16]}>
@@ -54,7 +56,7 @@ export default function StarredPage() {
                             <Card
                                 hoverable
                                 style={{
-                                    background: board.background_image 
+                                    background: board.background_image
                                         ? `url(${board.background_image}) center/cover`
                                         : board.background_color || '#0079bf',
                                     borderRadius: 8,

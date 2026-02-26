@@ -3,11 +3,11 @@
 import { useState, useMemo, useCallback } from 'react';
 import { List, Button, Typography, Space, Card, Tag, Flex, App, Modal, Switch, Tooltip, Spin } from 'antd';
 import { DeleteOutlined, RightOutlined, RobotOutlined, EditOutlined, EyeOutlined, FilterOutlined, PlayCircleOutlined, PauseOutlined, ThunderboltOutlined } from '@ant-design/icons';
-import { 
-    useBoardRules, 
-    useDeleteRule, 
+import {
+    useBoardRules,
+    useDeleteRule,
     useToggleRule,
-    useAvailableTriggers, 
+    useAvailableTriggers,
     useAvailableActions,
     findTriggerById,
     findActionById,
@@ -17,6 +17,7 @@ import { useBoard, useAllBoards } from '@/hooks/useBoards';
 import { theme } from 'antd';
 import RuleBuilder from './RuleBuilder';
 import type { AutomationRule, RuleCondition } from '@/types/automation';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -26,6 +27,7 @@ interface AutomationRulesProps {
 
 export default function AutomationRules({ boardId }: AutomationRulesProps) {
     const { modal } = App.useApp();
+    const t = useTranslation();
     const [isCreating, setIsCreating] = useState(false);
     const [editingRule, setEditingRule] = useState<AutomationRule | null>(null);
     const [viewingRule, setViewingRule] = useState<AutomationRule | null>(null);
@@ -45,18 +47,18 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     const context = useMemo(() => ({
         lists: (board?.lists || []).map(l => ({ id: l.id, title: l.title })),
         labels: (board?.labels || []).map(l => ({ id: l.id, name: l.name || '', color: l.color })),
-        members: ((board as any)?.members || []).map((m: any) => ({ 
-            id: m.id, 
-            username: m.username, 
-            full_name: m.full_name 
+        members: ((board as any)?.members || []).map((m: any) => ({
+            id: m.id,
+            username: m.username,
+            full_name: m.full_name
         })),
         boards: (allBoards || []).map(b => ({ id: b.id, title: b.title })),
     }), [board, allBoards]);
 
     const handleDelete = (id: string) => {
         modal.confirm({
-            title: 'Delete Rule?',
-            content: 'This action cannot be undone.',
+            title: t('UI_DELETE_RULE'),
+            content: t('UI_CANNOT_UNDO'),
             okType: 'danger',
             onOk: () => deleteRule.mutateAsync(id),
         });
@@ -70,7 +72,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     const renderTriggerDescription = useCallback((rule: AutomationRule) => {
         const config = rule.trigger_config || {};
         const triggerId = config.id || rule.trigger_type;
-        
+
         const triggerSchema = findTriggerById(triggers, triggerId);
         if (triggerSchema && triggerSchema.sentence_template) {
             return (
@@ -92,7 +94,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     // Render action description
     const renderActionDescription = useCallback((action: any) => {
         const actionId = action.id || action.type;
-        
+
         const actionSchema = findActionById(actions, actionId);
         if (actionSchema && actionSchema.sentence_template) {
             return (
@@ -115,7 +117,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     const renderConditionsSummary = (conditions?: RuleCondition[]) => {
         if (!conditions || conditions.length === 0) return null;
         return (
-            <Tooltip title={`${conditions.length} condition(s) must be met`}>
+            <Tooltip title={`${conditions.length} ${t('UI_CONDITION_MUST_BE_MET')}`}>
                 <Tag color="orange" icon={<FilterOutlined />}>
                     {conditions.length} condition{conditions.length > 1 ? 's' : ''}
                 </Tag>
@@ -127,7 +129,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
         return (
             <div style={{ padding: '24px' }}>
                 <Button onClick={() => { setIsCreating(false); setEditingRule(null); }} style={{ marginBottom: 16 }}>
-                    Back to Rules
+                    {t('UI_BACK_TO_RULES')}
                 </Button>
                 <RuleBuilder
                     boardId={boardId}
@@ -147,9 +149,9 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
             {/* Header Section */}
             <Flex vertical gap={32} style={{ marginBottom: 32 }}>
                 <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-                    <Title level={3} style={{ margin: 0 }}>Rules</Title>
+                    <Title level={3} style={{ margin: 0 }}>{t('UI_RULES')}</Title>
                     <Button type="primary" onClick={() => setIsCreating(true)}>
-                        Create automation
+                        {t('UI_CREATE_AUTOMATION')}
                     </Button>
                 </Flex>
 
@@ -157,9 +159,9 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                     <Flex gap={24} align="start">
                         <div style={{ flex: 1 }}>
                             <Title level={5} style={{ marginTop: 0 }}>
-                                Rules are simple: when one thing happens, another thing happens automatically
+                                {t('UI_RULES_EXPLANATION')}
                             </Title>
-                            <Paragraph type="secondary">Examples:</Paragraph>
+                            <Paragraph type="secondary">{t('UI_EXAMPLES')}</Paragraph>
                             <ul style={{ color: token.colorTextSecondary, paddingLeft: 20 }}>
                                 <li style={{ marginBottom: 8 }}>
                                     When a <strong>card is created</strong> in list "To Do" by me, <strong>add the "Steps" checklist</strong>.
@@ -187,7 +189,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                         >
                             <div style={{ textAlign: 'center' }}>
                                 <RobotOutlined style={{ fontSize: 32, marginBottom: 8 }} />
-                                <div>How to create rules</div>
+                                <div>{t('UI_HOW_TO_CREATE_RULES')}</div>
                             </div>
                         </Flex>
                     </Flex>
@@ -196,7 +198,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
 
             {(rules.length > 0 || isLoading || schemaLoading) && (
                 <List
-                    header={<Text strong>Your Rules</Text>}
+                    header={<Text strong>{t('UI_YOUR_RULES')}</Text>}
                     loading={isLoading || schemaLoading}
                     dataSource={rules}
                     renderItem={(rule: AutomationRule) => (
@@ -207,7 +209,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                                         <div>
                                             <Space align="center" style={{ marginBottom: 4 }}>
                                                 <Text strong style={{ fontSize: 16 }}>{rule.name}</Text>
-                                                {!rule.is_enabled && <Tag color="default">Disabled</Tag>}
+                                                {!rule.is_enabled && <Tag color="default">{t('UI_DISABLED')}</Tag>}
                                             </Space>
                                             <div>
                                                 <Space size={4}>
@@ -215,19 +217,19 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                                                     {renderTriggerDescription(rule)}
                                                     {renderConditionsSummary(rule.conditions)}
                                                     <RightOutlined style={{ fontSize: 10, color: token.colorTextSecondary }} />
-                                                    <Tag color="green">{rule.actions?.length || 0} Action{(rule.actions?.length || 0) !== 1 ? 's' : ''}</Tag>
+                                                    <Tag color="green">{rule.actions?.length || 0} {t('UI_ACTION')}{(rule.actions?.length || 0) !== 1 ? 's' : ''}</Tag>
                                                 </Space>
                                             </div>
                                             {rule.run_count !== undefined && rule.run_count > 0 && (
                                                 <Text type="secondary" style={{ fontSize: 12 }}>
-                                                    Ran {rule.run_count} time{rule.run_count !== 1 ? 's' : ''}
+                                                    {t('UI_RAN')} {rule.run_count} {t('UI_TIMES')}
                                                     {rule.last_run_at && ` · Last: ${new Date(rule.last_run_at).toLocaleDateString()}`}
                                                 </Text>
                                             )}
                                         </div>
                                     </Space>
                                     <Space>
-                                        <Tooltip title={rule.is_enabled ? 'Disable' : 'Enable'}>
+                                        <Tooltip title={rule.is_enabled ? t('UI_DISABLE') : t('UI_ENABLE')}>
                                             <Switch
                                                 size="small"
                                                 checked={rule.is_enabled}
@@ -260,36 +262,36 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
             )}
 
             <Modal
-                title="Rule Summary"
+                title={t('UI_RULE_SUMMARY')}
                 open={!!viewingRule}
                 onCancel={() => setViewingRule(null)}
                 footer={[
                     <Button key="close" onClick={() => setViewingRule(null)}>
-                        Close
+                        {t('UI_CLOSE')}
                     </Button>,
                     <Button key="edit" type="primary" onClick={() => { setEditingRule(viewingRule); setViewingRule(null); }}>
-                        Edit Rule
+                        {t('UI_EDIT_RULE')}
                     </Button>
                 ]}
             >
                 {viewingRule && (
                     <Flex vertical gap={16}>
                         <div>
-                            <Text type="secondary">Rule Name</Text>
+                            <Text type="secondary">{t('UI_RULE_NAME')}</Text>
                             <Paragraph strong style={{ fontSize: 16, margin: 0 }}>{viewingRule.name}</Paragraph>
                         </div>
 
                         <div>
-                            <Text type="secondary">Status</Text>
+                            <Text type="secondary">{t('UI_STATUS')}</Text>
                             <div>
                                 <Tag color={viewingRule.is_enabled ? 'green' : 'default'}>
-                                    {viewingRule.is_enabled ? 'Enabled' : 'Disabled'}
+                                    {viewingRule.is_enabled ? t('UI_ENABLED') : t('UI_DISABLED')}
                                 </Tag>
                             </div>
                         </div>
 
                         <div>
-                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>Trigger</Text>
+                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>{t('UI_TRIGGER')}</Text>
                             <Card size="small">
                                 <Space>
                                     <ThunderboltOutlined />
@@ -301,7 +303,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                         {viewingRule.conditions && viewingRule.conditions.length > 0 && (
                             <div>
                                 <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                                    Conditions ({viewingRule.conditions.length})
+                                    {t('UI_CONDITIONS')} ({viewingRule.conditions.length})
                                 </Text>
                                 <Card size="small">
                                     <List
@@ -324,7 +326,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
 
                         <div>
                             <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                                Actions ({viewingRule.actions?.length || 0})
+                                {t('UI_ACTIONS')} ({viewingRule.actions?.length || 0})
                             </Text>
                             <List
                                 size="small"
@@ -343,13 +345,13 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
 
                         {(viewingRule.run_count !== undefined || viewingRule.last_run_at) && (
                             <div>
-                                <Text type="secondary">Statistics</Text>
+                                <Text type="secondary">{t('UI_STATISTICS')}</Text>
                                 <div>
                                     <Text>
-                                        Ran {viewingRule.run_count || 0} time{(viewingRule.run_count || 0) !== 1 ? 's' : ''}
+                                        {t('UI_RAN')} {viewingRule.run_count || 0} {t('UI_TIMES')}
                                     </Text>
                                     {viewingRule.last_run_at && (
-                                        <Text type="secondary"> · Last run: {new Date(viewingRule.last_run_at).toLocaleString()}</Text>
+                                        <Text type="secondary"> · {t('UI_LAST_RUN')} {new Date(viewingRule.last_run_at).toLocaleString()}</Text>
                                     )}
                                 </div>
                             </div>

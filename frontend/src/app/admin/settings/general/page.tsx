@@ -25,6 +25,7 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useSystemSettings, useUpdateSystemSettings, useRunCleanup } from '@/hooks/useAdmin';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Title, Text } = Typography;
 
@@ -37,6 +38,7 @@ export default function GeneralSettingsPage() {
     const { data: settings, isLoading, refetch } = useSystemSettings();
     const updateSettings = useUpdateSystemSettings();
     const runCleanup = useRunCleanup();
+    const t = useTranslation();
 
     useEffect(() => {
         if (!user?.is_admin) {
@@ -61,9 +63,9 @@ export default function GeneralSettingsPage() {
     }) => {
         try {
             await updateSettings.mutateAsync(values);
-            message.success('Settings saved successfully');
+            message.success(t('UI_SETTINGS_SAVED'));
         } catch {
-            message.error('Failed to save settings');
+            message.error(t('ERROR_SAVE_SETTINGS'));
         }
     };
 
@@ -73,7 +75,7 @@ export default function GeneralSettingsPage() {
             message.success(`Cleanup completed: ${result.deleted} files deleted, ${result.failed} failed`);
             refetch();
         } catch {
-            message.error('Failed to run cleanup');
+            message.error(t('ERROR_RUN_CLEANUP'));
         }
     };
 
@@ -85,7 +87,7 @@ export default function GeneralSettingsPage() {
         <>
             <Title level={2} style={{ marginBottom: 24 }}>
                 <SettingOutlined style={{ marginRight: 8 }} />
-                General Settings
+                {t('UI_GENERAL_SETTINGS')}
             </Title>
 
             {isLoading ? (
@@ -94,7 +96,7 @@ export default function GeneralSettingsPage() {
                 </div>
             ) : (
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
-                    <Card title="File Storage Settings">
+                    <Card title={t('UI_FILE_STORAGE_SETTINGS')}>
                         <Form
                             form={form}
                             layout="vertical"
@@ -102,7 +104,7 @@ export default function GeneralSettingsPage() {
                         >
                             <Title level={4} style={{ marginTop: 0, marginBottom: 16 }}>
                                 <DeleteOutlined style={{ marginRight: 8 }} />
-                                Orphan File Cleanup
+                                {t('UI_ORPHAN_FILE_CLEANUP')}
                             </Title>
 
                             <Alert
@@ -114,17 +116,17 @@ export default function GeneralSettingsPage() {
 
                             <Form.Item
                                 name="orphan_cleanup_enabled"
-                                label="Enable Automatic Cleanup"
+                                label={t('UI_ENABLE_AUTO_CLEANUP')}
                                 valuePropName="checked"
                             >
                                 <Switch
-                                    checkedChildren="Enabled"
-                                    unCheckedChildren="Disabled"
+                                    checkedChildren={t('UI_ENABLED')}
+                                    unCheckedChildren={t('UI_DISABLED')}
                                 />
                             </Form.Item>
 
                             <Form.Item
-                                label="Days Before Cleanup"
+                                label={t('UI_DAYS_BEFORE_CLEANUP')}
                                 extra="Number of days to wait before deleting orphan files."
                                 required
                             >
@@ -151,14 +153,14 @@ export default function GeneralSettingsPage() {
                                 </Space.Compact>
                             </Form.Item>
 
-                            <Form.Item label="Manual Cleanup">
+                            <Form.Item label={t('UI_MANUAL_CLEANUP')}>
                                 <Button
                                     danger
                                     icon={<DeleteOutlined />}
                                     onClick={handleRunCleanup}
                                     loading={runCleanup.isPending}
                                 >
-                                    Run Cleanup Now
+                                    {t('UI_RUN_CLEANUP_NOW')}
                                 </Button>
                                 <Text type="secondary" style={{ marginLeft: 12 }}>
                                     Delete files older than {settings?.orphan_cleanup_days || 7} days
@@ -169,11 +171,11 @@ export default function GeneralSettingsPage() {
 
                             <Title level={4} style={{ marginTop: 0, marginBottom: 16 }}>
                                 <CloudUploadOutlined style={{ marginRight: 8 }} />
-                                Upload Configuration
+                                {t('UI_UPLOAD_CONFIGURATION')}
                             </Title>
 
                             <Form.Item
-                                label="Maximum Upload Size"
+                                label={t('UI_MAX_UPLOAD_SIZE')}
                                 extra="Maximum file size allowed (1-500 MB)"
                                 required
                             >
@@ -206,31 +208,31 @@ export default function GeneralSettingsPage() {
                                     htmlType="submit"
                                     loading={updateSettings.isPending}
                                 >
-                                    Save Changes
+                                    {t('UI_SAVE_CHANGES')}
                                 </Button>
                             </Form.Item>
                         </Form>
                     </Card>
 
-                    <Card title="System Information">
+                    <Card title={t('UI_SYSTEM_INFORMATION')}>
                         <Descriptions column={1} bordered size="small">
                             <Descriptions.Item
                                 label={
                                     <>
                                         <ClockCircleOutlined style={{ marginRight: 8 }} />
-                                        Last Cleanup Run
+                                        {t('UI_LAST_CLEANUP_RUN')}
                                     </>
                                 }
                             >
                                 {settings?.last_orphan_cleanup_at
                                     ? new Date(settings.last_orphan_cleanup_at).toLocaleString()
-                                    : <Text type="secondary">Never</Text>
+                                    : <Text type="secondary">{t('UI_NEVER')}</Text>
                                 }
                             </Descriptions.Item>
-                            <Descriptions.Item label="Settings Last Updated">
+                            <Descriptions.Item label={t('UI_SETTINGS_LAST_UPDATED')}>
                                 {settings?.updated_at
                                     ? new Date(settings.updated_at).toLocaleString()
-                                    : <Text type="secondary">Unknown</Text>
+                                    : <Text type="secondary">{t('UI_NEVER')}</Text>
                                 }
                             </Descriptions.Item>
                         </Descriptions>

@@ -15,6 +15,7 @@ import { FilterState } from '@/components/board/BoardFilterPopover';
 import { isDueSoon, isDueLater, isOverdue } from '@/components/common/DueDateTag';
 import KanbanCard from './KanbanCard';
 import styles from './KanbanBoard.module.css';
+import { useTranslation } from '@/hooks/useLabels';
 
 const LIST_COLORS = [
     '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
@@ -79,6 +80,7 @@ function matchesFilters(card: Card, filters: FilterState): boolean {
 
 export default function KanbanList({ list, filters, readOnly = false, onCardClick, showCovers, onAddCard, onDeleteCard }: KanbanListProps) {
     const { modal } = App.useApp();
+    const t = useTranslation();
     const { updateList, updateListColor, deleteList, copyList, moveAllCards, sortCards, createCard, lists } = useBoardStore();
     const [isAddingCard, setIsAddingCard] = useState(false);
     const [newCardTitle, setNewCardTitle] = useState('');
@@ -222,7 +224,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                         onClick={() => handleColorChange(null)}
                         style={{ width: '100%' }}
                     >
-                        Remove color
+                        {t('UI_REMOVE_COLOR')}
                     </Button>
                 </>
             )}
@@ -245,19 +247,19 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
     const menuItems = [
         {
             key: 'watch',
-            label: isWatching ? 'Unwatch' : 'Watch',
+            label: isWatching ? t('UI_UNWATCH') : t('UI_WATCH'),
             icon: isWatching ? <EyeInvisibleOutlined /> : <EyeOutlined />,
             onClick: handleToggleWatch,
         },
         {
             key: 'copy',
-            label: 'Copy list',
+            label: t('UI_COPY_LIST'),
             icon: <CopyOutlined />,
             onClick: handleOpenCopyModal,
         },
         {
             key: 'move-all',
-            label: 'Move all cards',
+            label: t('UI_MOVE_ALL_CARDS'),
             icon: <SwapOutlined />,
             onClick: () => {
                 setMenuOpen(false);
@@ -267,44 +269,44 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         },
         {
             key: 'sort',
-            label: 'Sort by',
+            label: t('UI_SORT_BY'),
             icon: <SortAscendingOutlined />,
             children: [
                 {
                     key: 'sort-newest',
-                    label: 'Date created (newest first)',
+                    label: t('UI_SORT_DATE_NEWEST'),
                     onClick: () => sortCards(list.id, 'date_newest'),
                 },
                 {
                     key: 'sort-oldest',
-                    label: 'Date created (oldest first)',
+                    label: t('UI_SORT_DATE_OLDEST'),
                     onClick: () => sortCards(list.id, 'date_oldest'),
                 },
                 {
                     key: 'sort-alpha',
-                    label: 'Card name (alphabetically)',
+                    label: t('UI_SORT_ALPHABETICAL'),
                     onClick: () => sortCards(list.id, 'alphabetical'),
                 },
             ],
         },
         {
             key: 'color',
-            label: 'Change color',
+            label: t('UI_CHANGE_COLOR'),
             icon: <BgColorsOutlined />,
             onClick: handleOpenColorPicker,
         },
         { type: 'divider' as const },
         {
             key: 'archive-all-cards',
-            label: 'Archive all cards in this list',
+            label: t('UI_ARCHIVE_ALL_CARDS'),
             icon: <InboxOutlined />,
             onClick: () => {
                 setMenuOpen(false);
                 modal.confirm({
-                    title: 'Archive all cards',
-                    content: `Are you sure you want to archive all ${list.cards?.length || 0} cards in "${list.title}"?`,
-                    okText: 'Archive all',
-                    cancelText: 'Cancel',
+                    title: t('UI_ARCHIVE_ALL_CARDS_TITLE'),
+                    content: `${t('UI_ARCHIVE_ALL_CARDS_CONFIRM')} ${list.cards?.length || 0} ${t('UI_CARDS_IN')} "${list.title}"?`,
+                    okText: t('UI_ARCHIVE_ALL'),
+                    cancelText: t('UI_CANCEL'),
                     onOk: async () => {
                         try {
                             await api.post(`/lists/${list.id}/archive-all-cards`);
@@ -322,15 +324,15 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         },
         {
             key: 'archive-list',
-            label: 'Archive this list',
+            label: t('UI_ARCHIVE_THIS_LIST'),
             icon: <InboxOutlined />,
             onClick: () => {
                 setMenuOpen(false);
                 modal.confirm({
-                    title: 'Archive list',
-                    content: `Are you sure you want to archive "${list.title}"? It will be hidden from the board.`,
-                    okText: 'Archive',
-                    cancelText: 'Cancel',
+                    title: t('UI_ARCHIVE_LIST_TITLE'),
+                    content: `${t('UI_ARCHIVE_LIST_CONFIRM')} "${list.title}"? ${t('UI_HIDDEN_FROM_BOARD')}`,
+                    okText: t('UI_ARCHIVE'),
+                    cancelText: t('UI_CANCEL'),
                     onOk: async () => {
                         try {
                             await api.put(`/lists/${list.id}/archive`);
@@ -349,15 +351,15 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         { type: 'divider' as const },
         {
             key: 'delete',
-            label: 'Delete list',
+            label: t('UI_DELETE_LIST'),
             danger: true,
             icon: <DeleteOutlined />,
             onClick: () => {
                 setMenuOpen(false);
                 modal.confirm({
-                    title: 'Delete list?',
-                    content: `Are you sure you want to delete "${list.title}"? This action cannot be undone.`,
-                    okText: 'Delete',
+                    title: t('UI_DELETE_LIST_TITLE'),
+                    content: `${t('UI_DELETE_LIST_BODY')} "${list.title}"? ${t('UI_CANNOT_UNDO')}`,
+                    okText: t('UI_DELETE'),
                     okType: 'danger',
                     onOk: () => deleteList(list.id),
                 });
@@ -449,7 +451,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                 />
                 <Popover
                     content={colorPickerContent}
-                    title="List color"
+                    title={t('UI_LIST_COLOR')}
                     trigger="click"
                     open={colorPickerOpen}
                     onOpenChange={setColorPickerOpen}
@@ -464,7 +466,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                             size="small"
                             icon={<ColumnWidthOutlined />}
                             onClick={handleToggleCollapse}
-                            title="Collapse list"
+                            title={t('UI_COLLAPSE_LIST')}
                             style={list.color ? { color: '#fff' } : undefined}
                         />
                         <Dropdown
@@ -508,7 +510,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     <Input.TextArea
                         value={newCardTitle}
                         onChange={(e) => setNewCardTitle(e.target.value)}
-                        placeholder="Enter a title for this card..."
+                        placeholder={t('UI_PLACEHOLDER_CARD_TITLE')}
                         autoSize={{ minRows: 2, maxRows: 4 }}
                         autoFocus
                         onBlur={() => {
@@ -529,7 +531,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     />
                     <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                         <Button type="primary" size="small" onClick={handleAddCard}>
-                            Add card
+                            {t('UI_ADD_CARD')}
                         </Button>
                         <Button
                             size="small"
@@ -538,7 +540,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                                 setNewCardTitle('');
                             }}
                         >
-                            Cancel
+                            {t('UI_CANCEL')}
                         </Button>
                     </div>
                 </div>
@@ -553,24 +555,24 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                         ...(list.color ? { color: '#fff' } : {}),
                     }}
                 >
-                    Add a card
+                    {t('UI_ADD_A_CARD')}
                 </Button>
             ))}
 
             {/* Copy List Modal */}
             <Modal
-                title="Copy list"
+                title={t('UI_COPY_LIST')}
                 open={copyModalOpen}
                 onOk={handleCopyList}
                 onCancel={() => setCopyModalOpen(false)}
-                okText="Create list"
-                cancelText="Cancel"
+                okText={t('UI_CREATE_LIST')}
+                cancelText={t('UI_CANCEL')}
             >
-                <div style={{ marginBottom: 8 }}>Name</div>
+                <div style={{ marginBottom: 8 }}>{t('UI_NAME')}</div>
                 <Input
                     value={copyTitle}
                     onChange={(e) => setCopyTitle(e.target.value)}
-                    placeholder="Enter list name..."
+                    placeholder={t('UI_PLACEHOLDER_LIST_NAME')}
                     autoFocus
                     onPressEnter={handleCopyList}
                 />
@@ -578,7 +580,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
 
             {/* Move All Cards Modal */}
             <Modal
-                title="Move all cards in list"
+                title={t('UI_MOVE_ALL_CARDS_TITLE')}
                 open={moveModalOpen}
                 onOk={() => {
                     if (targetListId) {
@@ -587,15 +589,15 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     }
                 }}
                 onCancel={() => setMoveModalOpen(false)}
-                okText="Move"
-                cancelText="Cancel"
+                okText={t('UI_MOVE')}
+                cancelText={t('UI_CANCEL')}
                 okButtonProps={{ disabled: !targetListId }}
             >
-                <div style={{ marginBottom: 8 }}>Select destination list</div>
+                <div style={{ marginBottom: 8 }}>{t('UI_SELECT_DESTINATION_LIST')}</div>
                 <Select
                     value={targetListId || undefined}
                     onChange={setTargetListId}
-                    placeholder="Choose a list..."
+                    placeholder={t('UI_PLACEHOLDER_CHOOSE_LIST')}
                     style={{ width: '100%' }}
                     options={lists
                         .filter(l => l.id !== list.id)

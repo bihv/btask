@@ -26,7 +26,7 @@ import {
 } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useLabels } from '@/hooks/useLabels';
+import { useLabels, useTranslation } from '@/hooks/useLabels';
 import type { MenuProps } from 'antd';
 
 const { Sider, Content } = Layout;
@@ -72,6 +72,7 @@ export default function SettingsLayout({
 
     // Labels loading with React Query (auto-deduplication)
     const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
+    const t = useTranslation();
 
     // No need for userId since personal settings always use /me/
 
@@ -99,45 +100,45 @@ export default function SettingsLayout({
     }, [workspaces, workspaceId, selectedWorkspaceId]);
 
     const personalMenuItems: MenuItem[] = [
-        { key: 'profile', icon: <UserOutlined />, label: 'Profile and Visibility' },
-        { key: 'activity', icon: <HistoryOutlined />, label: 'Activity' },
-        { key: 'cards', icon: <CreditCardOutlined />, label: 'Cards' },
-        { key: 'plugins', icon: <ApiOutlined />, label: 'My Plugins' },
+        { key: 'profile', icon: <UserOutlined />, label: t('UI_PROFILE_VISIBILITY') },
+        { key: 'activity', icon: <HistoryOutlined />, label: t('UI_ACTIVITY') },
+        { key: 'cards', icon: <CreditCardOutlined />, label: t('UI_CARDS') },
+        { key: 'plugins', icon: <ApiOutlined />, label: t('UI_MY_PLUGINS') },
         {
             key: 'settings',
             icon: <SettingOutlined />,
-            label: 'Settings',
+            label: t('UI_SETTINGS'),
             children: [
-                { key: 'settings/account', icon: <UserOutlined />, label: 'Account' },
-                { key: 'settings/notifications', icon: <BellOutlined />, label: 'Notifications' },
-                { key: 'settings/language', icon: <GlobalOutlined />, label: 'Language & Region' },
-                { key: 'settings/appearance', icon: <BgColorsOutlined />, label: 'Appearance' },
-                { key: 'settings/security', icon: <SafetyOutlined />, label: 'Security' },
+                { key: 'settings/account', icon: <UserOutlined />, label: t('UI_ACCOUNT') },
+                { key: 'settings/notifications', icon: <BellOutlined />, label: t('UI_NOTIFICATIONS') },
+                { key: 'settings/language', icon: <GlobalOutlined />, label: t('UI_LANGUAGE_REGION') },
+                { key: 'settings/appearance', icon: <BgColorsOutlined />, label: t('UI_APPEARANCE') },
+                { key: 'settings/security', icon: <SafetyOutlined />, label: t('UI_SECURITY') },
             ],
         },
     ];
 
     const workspaceMenuItems: MenuItem[] = [
-        { key: 'ws-boards', icon: <AppstoreOutlined />, label: 'Boards' },
-        { key: 'ws-members', icon: <TeamOutlined />, label: 'Members' },
-        { key: 'ws-settings', icon: <SettingOutlined />, label: 'Settings' },
-        { key: 'ws-powerups', icon: <ThunderboltOutlined />, label: 'Power-Ups' },
-        { key: 'ws-billing', icon: <DollarOutlined />, label: 'Billing' },
-        { key: 'ws-export', icon: <ExportOutlined />, label: 'Export' },
+        { key: 'ws-boards', icon: <AppstoreOutlined />, label: t('UI_BOARDS') },
+        { key: 'ws-members', icon: <TeamOutlined />, label: t('UI_WORKSPACE_MEMBERS') },
+        { key: 'ws-settings', icon: <SettingOutlined />, label: t('UI_SETTINGS') },
+        { key: 'ws-powerups', icon: <ThunderboltOutlined />, label: t('UI_POWERUPS') },
+        { key: 'ws-billing', icon: <DollarOutlined />, label: t('UI_BILLING') },
+        { key: 'ws-export', icon: <ExportOutlined />, label: t('UI_EXPORT') },
     ];
 
     const adminMenuItems: MenuItem[] = [
-        { key: 'admin-users', icon: <CrownOutlined />, label: 'User Management' },
-        { key: 'admin-labels', icon: <TranslationOutlined />, label: 'System Labels' },
-        { key: 'admin-templates', icon: <BlockOutlined />, label: 'Templates' },
-        { key: 'admin-plugins', icon: <ApiOutlined />, label: 'Plugins' },
+        { key: 'admin-users', icon: <CrownOutlined />, label: t('UI_USER_MANAGEMENT') },
+        { key: 'admin-labels', icon: <TranslationOutlined />, label: t('UI_SYSTEM_LABELS') },
+        { key: 'admin-templates', icon: <BlockOutlined />, label: t('UI_TEMPLATES') },
+        { key: 'admin-plugins', icon: <ApiOutlined />, label: t('UI_PLUGINS') },
         {
             key: 'admin-settings',
             icon: <SettingOutlined />,
-            label: 'System Settings',
+            label: t('UI_SYSTEM_SETTINGS'),
             children: [
-                { key: 'admin-settings-general', label: 'General' },
-                { key: 'admin-settings-security', label: 'File Security' },
+                { key: 'admin-settings-general', label: t('UI_GENERAL') },
+                { key: 'admin-settings-security', label: t('UI_FILE_SECURITY') },
             ],
         },
     ];
@@ -183,11 +184,11 @@ export default function SettingsLayout({
             router.push(`/workspace/${value}/${currentTab}`);
         }
     };
-    
+
     // Determine active admin key based on path conventions
     const activeAdminKey = (() => {
         if (!pathname.startsWith('/admin')) return '';
-        
+
         // Handle settings sub-pages (e.g., /admin/settings/general -> admin-settings-general)
         if (pathname.includes('/settings/')) {
             return `admin-settings-${lastSegment}`;
@@ -196,7 +197,7 @@ export default function SettingsLayout({
         if (pathname === '/admin/settings') {
             return 'admin-settings-general';
         }
-        
+
         // Handle standard admin pages (e.g., /admin/users -> admin-users)
         return `admin-${lastSegment}`;
     })();
@@ -204,17 +205,17 @@ export default function SettingsLayout({
     // Determine active personal key
     const activePersonalKey = (() => {
         if (!pathname.startsWith('/me')) return '';
-        
+
         // Handle settings sub-pages
         if (pathname.includes('/me/settings/')) {
             return `settings/${lastSegment}`;
         }
-        
+
         // Handle root settings (redirects to account usually, but for highlighting)
         if (pathname === '/me/settings') {
             return 'settings/account';
         }
-        
+
         // Handle standard personal pages
         return lastSegment;
     })();
@@ -295,7 +296,7 @@ export default function SettingsLayout({
                         padding: '8px 12px',
                         marginBottom: 8,
                     }}>
-                        Workspace
+                        {t('UI_WORKSPACE')}
                     </div>
 
                     {/* Workspace Dropdown Selector */}
@@ -311,7 +312,7 @@ export default function SettingsLayout({
                                 style={{ width: '100%' }}
                                 suffixIcon={<DownOutlined />}
                                 optionLabelProp="label"
-                                placeholder="Select workspace"
+                                placeholder={t('UI_SELECT_WORKSPACE')}
                             >
                                 {workspaces.map((ws) => (
                                     <Select.Option key={ws.id} value={ws.id} label={

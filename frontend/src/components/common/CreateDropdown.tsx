@@ -9,10 +9,12 @@ import { useCreateWorkspace, useWorkspaces } from '@/hooks/useWorkspaces';
 import { CreateWorkspaceRequest } from '@/types';
 import api from '@/lib/api';
 import CreateBoardModal, { CreateBoardData } from '@/components/board/CreateBoardModal';
+import { useTranslation } from '@/hooks/useLabels';
 
 export default function CreateDropdown() {
     const router = useRouter();
     const { message } = App.useApp();
+    const t = useTranslation();
     const [createBoardOpen, setCreateBoardOpen] = useState(false);
     const [createWorkspaceOpen, setCreateWorkspaceOpen] = useState(false);
     const [workspaceForm] = Form.useForm();
@@ -30,11 +32,11 @@ export default function CreateDropdown() {
                 background_image: data.background_image,
             });
             const board = response.data.data;
-            message.success('Board created successfully');
+            message.success(t('SUCCESS_BOARD_CREATED'));
             setCreateBoardOpen(false);
             router.push(`/boards/${board.id}`);
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to create board');
+            message.error(error.response?.data?.error || t('ERROR_CREATE_BOARD'));
         } finally {
             setIsCreatingBoard(false);
         }
@@ -47,7 +49,7 @@ export default function CreateDropdown() {
             workspaceForm.resetFields();
             router.push(`/workspaces/${workspace.id}`);
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to create workspace');
+            message.error(error.response?.data?.error || t('ERROR_CREATE_WORKSPACE'));
         }
     };
 
@@ -55,27 +57,27 @@ export default function CreateDropdown() {
         {
             key: 'board',
             icon: <ProjectOutlined />,
-            label: 'Create Board',
+            label: t('UI_CREATE_BOARD'),
             onClick: () => setCreateBoardOpen(true),
         },
         {
             key: 'workspace',
             icon: <TeamOutlined />,
-            label: 'Create Workspace',
+            label: t('UI_CREATE_WORKSPACE'),
             onClick: () => setCreateWorkspaceOpen(true),
         },
         { type: 'divider' },
         {
             key: 'view',
             icon: <AppstoreOutlined />,
-            label: 'Workspace View',
+            label: t('UI_WORKSPACE_VIEW'),
             disabled: true,
             onClick: () => message.info('Coming soon'),
         },
         {
             key: 'template',
             icon: <FileOutlined />,
-            label: 'Start with Template',
+            label: t('UI_START_WITH_TEMPLATE'),
             disabled: true,
             onClick: () => message.info('Coming soon'),
         },
@@ -85,7 +87,7 @@ export default function CreateDropdown() {
         <>
             <Dropdown menu={{ items }} trigger={['click']} placement="bottomRight">
                 <Button type="primary" icon={<PlusOutlined />}>
-                    Create
+                    {t('UI_CREATE')}
                 </Button>
             </Dropdown>
 
@@ -105,7 +107,7 @@ export default function CreateDropdown() {
 
             {/* Create Workspace Modal */}
             <Modal
-                title="Create Workspace"
+                title={t('UI_CREATE_WORKSPACE')}
                 open={createWorkspaceOpen}
                 onCancel={() => {
                     setCreateWorkspaceOpen(false);
@@ -116,13 +118,13 @@ export default function CreateDropdown() {
                 <Form form={workspaceForm} layout="vertical" onFinish={handleCreateWorkspace}>
                     <Form.Item
                         name="name"
-                        label="Workspace Name"
-                        rules={[{ required: true, message: 'Please enter a workspace name' }]}
+                        label={t('UI_WORKSPACE_NAME')}
+                        rules={[{ required: true, message: t('VALIDATE_WORKSPACE_NAME_REQ') }]}
                     >
-                        <Input placeholder="e.g., My Team" autoFocus />
+                        <Input placeholder={t('UI_PLACEHOLDER_WORKSPACE_NAME')} autoFocus />
                     </Form.Item>
-                    <Form.Item name="description" label="Description">
-                        <Input.TextArea placeholder="Optional description" rows={3} />
+                    <Form.Item name="description" label={t('UI_DESCRIPTION')}>
+                        <Input.TextArea placeholder={t('UI_OPTIONAL_DESCRIPTION')} rows={3} />
                     </Form.Item>
                     <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
                         <Button
@@ -132,14 +134,14 @@ export default function CreateDropdown() {
                             }}
                             style={{ marginRight: 8 }}
                         >
-                            Cancel
+                            {t('UI_CANCEL')}
                         </Button>
                         <Button
                             type="primary"
                             htmlType="submit"
                             loading={createWorkspaceMutation.isPending}
                         >
-                            Create
+                            {t('UI_CREATE')}
                         </Button>
                     </Form.Item>
                 </Form>

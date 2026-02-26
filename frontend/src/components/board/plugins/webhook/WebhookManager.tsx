@@ -5,6 +5,7 @@ import { Button, List, Tag, Space, Typography, Popconfirm, Empty, App, Modal } f
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useWebhooks, useDeleteWebhook, Webhook } from '@/hooks/useWebhooks';
 import WebhookForm from './WebhookForm';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -15,6 +16,7 @@ interface WebhookManagerProps {
 
 export default function WebhookManager({ pluginId, installationId }: WebhookManagerProps) {
     const { message } = App.useApp();
+    const t = useTranslation();
     const { data: webhooks = [], isLoading } = useWebhooks(pluginId, installationId);
     const deleteWebhook = useDeleteWebhook();
 
@@ -24,9 +26,9 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
     const handleDelete = async (id: string) => {
         try {
             await deleteWebhook.mutateAsync(id);
-            message.success('Webhook deleted');
+            message.success(t('SUCCESS_WEBHOOK_DELETED'));
         } catch {
-            message.error('Failed to delete webhook');
+            message.error(t('ERROR_DELETE_WEBHOOK_FAILED'));
         }
     };
 
@@ -34,7 +36,7 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
         <div>
             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text type="secondary">
-                    Webhooks allow external services to be notified when certain events happen on this board.
+                    {t('UI_WEBHOOKS_DESCRIPTION')}
                 </Text>
                 <Button
                     type="primary"
@@ -44,14 +46,14 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
                         setIsModalOpen(true);
                     }}
                 >
-                    Add Webhook
+                    {t('UI_ADD_WEBHOOK')}
                 </Button>
             </div>
 
             <List
                 loading={isLoading}
                 dataSource={webhooks}
-                locale={{ emptyText: <Empty description="No webhooks configured" /> }}
+                locale={{ emptyText: <Empty description={t('UI_NO_WEBHOOKS')} /> }}
                 renderItem={(item) => (
                     <List.Item
                         actions={[
@@ -64,13 +66,13 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
                                     setIsModalOpen(true);
                                 }}
                             >
-                                Edit
+                                {t('UI_EDIT')}
                             </Button>,
                             <Popconfirm
-                                title="Delete webhook?"
-                                description="This action cannot be undone."
+                                title={t('UI_DELETE_WEBHOOK')}
+                                description={t('UI_CANNOT_UNDO')}
                                 onConfirm={() => handleDelete(item.id)}
-                                okText="Delete"
+                                okText={t('UI_DELETE')}
                                 okType="danger"
                                 key="delete"
                             >
@@ -83,8 +85,8 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
                                 <Space>
                                     <Text strong style={{ wordBreak: 'break-all' }}>{item.callback_url}</Text>
                                     {item.is_active ?
-                                        <Tag color="success" icon={<CheckCircleOutlined />}>Active</Tag> :
-                                        <Tag color="error" icon={<CloseCircleOutlined />}>Inactive</Tag>
+                                        <Tag color="success" icon={<CheckCircleOutlined />}>{t('UI_ACTIVE')}</Tag> :
+                                        <Tag color="error" icon={<CloseCircleOutlined />}>{t('UI_INACTIVE')}</Tag>
                                     }
                                 </Space>
                             }
@@ -97,8 +99,8 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
                                     </Space>
                                     {item.last_triggered_at && (
                                         <Text type="secondary" style={{ fontSize: 12 }}>
-                                            <HistoryOutlined /> Last triggered: {new Date(item.last_triggered_at).toLocaleString()}
-                                            {item.last_error && <span style={{ color: '#ff4d4f', marginLeft: 8 }}>(Error: {item.last_error})</span>}
+                                            {t('UI_LAST_TRIGGERED')} {new Date(item.last_triggered_at).toLocaleString()}
+                                            {item.last_error && <span style={{ color: '#ff4d4f', marginLeft: 8 }}>({t('UI_ERROR_LABEL')} {item.last_error})</span>}
                                         </Text>
                                     )}
                                 </Space>
@@ -109,7 +111,7 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
             />
 
             <Modal
-                title={editingWebhook ? "Edit Webhook" : "Add Webhook"}
+                title={editingWebhook ? t('UI_EDIT_WEBHOOK') : t('UI_ADD_WEBHOOK')}
                 open={isModalOpen}
                 onCancel={() => {
                     setIsModalOpen(false);

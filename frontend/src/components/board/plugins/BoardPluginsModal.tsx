@@ -6,6 +6,7 @@ import { ThunderboltOutlined, SettingOutlined, PlusOutlined, DeleteOutlined, Sea
 import { useBoardPlugins, usePublishedPlugins, useInstallPluginToBoard, useUninstallPluginFromBoard } from '@/hooks/usePlugins';
 import PluginSettingsModal from './PluginSettingsModal';
 import { Plugin } from '@/types';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -18,6 +19,7 @@ interface BoardPluginsModalProps {
 
 export default function BoardPluginsModal({ open, onClose, boardId, workspaceId }: BoardPluginsModalProps) {
     const { modal, message } = App.useApp();
+    const t = useTranslation();
     const [activeTab, setActiveTab] = useState('installed');
     const [searchText, setSearchText] = useState('');
 
@@ -45,10 +47,10 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
     const handleInstall = async (plugin: Plugin) => {
         try {
             await installPlugin.mutateAsync({ boardId, slug: plugin.slug });
-            message.success(`${plugin.name} installed to board`);
+            message.success(`${plugin.name} ${t('SUCCESS_PLUGIN_INSTALLED')}`);
             setActiveTab('installed');
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to install plugin');
+            message.error(error.response?.data?.error || t('ERROR_INSTALL_PLUGIN_FAILED'));
         }
     };
 
@@ -56,21 +58,21 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
         const isInherited = !!installation.workspace_id;
 
         if (isInherited) {
-            message.info('This plugin is installed at the workspace level. Please go to Workspace Settings to manage it.');
+            message.info(t('UI_WORKSPACE_PLUGIN_INFO'));
             return;
         }
 
         modal.confirm({
             title: `Uninstall ${installation.plugin.name}?`,
-            content: 'This will remove the plugin from this board. Data may be retained for a short period.',
-            okText: 'Uninstall',
+            content: t('UI_PLUGIN_UNINSTALL_CONFIRM'),
+            okText: t('UI_UNINSTALL'),
             okType: 'danger',
             onOk: async () => {
                 try {
                     await uninstallPlugin.mutateAsync({ boardId, slug: installation.plugin.slug });
-                    message.success('Plugin uninstalled');
+                    message.success(t('SUCCESS_PLUGIN_UNINSTALLED'));
                 } catch {
-                    message.error('Failed to uninstall plugin');
+                    message.error(t('ERROR_UNINSTALL_PLUGIN_FAILED'));
                 }
             },
         });
@@ -80,7 +82,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
         <List
             loading={loadingInstalled}
             dataSource={installedPlugins}
-            locale={{ emptyText: <Empty description="No plugins enabled on this board" /> }}
+            locale={{ emptyText: <Empty description={t('UI_NO_PLUGINS_ENABLED')} /> }}
             renderItem={(item: any) => {
                 const isInherited = !!item.workspace_id;
                 return (
@@ -94,10 +96,10 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                                     setSettingsOpen(true);
                                 }}
                             >
-                                Settings
+                                {t('UI_SETTINGS')}
                             </Button>,
                             isInherited ? (
-                                <Tooltip title="Installed on Workspace (Inherited)">
+                                <Tooltip title={t('UI_WORKSPACE_INHERITED')}>
                                     <Button disabled icon={<DeleteOutlined />} />
                                 </Tooltip>
                             ) : (
@@ -140,7 +142,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
         <div>
             <div style={{ marginBottom: 16 }}>
                 <Input
-                    placeholder="Search plugins..."
+                    placeholder={t('UI_PLACEHOLDER_SEARCH_PLUGINS')}
                     prefix={<SearchOutlined />}
                     value={searchText}
                     onChange={e => setSearchText(e.target.value)}
@@ -149,7 +151,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
             </div>
 
             {filteredAvailable.length === 0 ? (
-                <Empty description="No new plugins available" />
+                <Empty description={t('UI_NO_NEW_PLUGINS')} />
             ) : (
                 <List
                     grid={{ gutter: 16, column: 2 }}
@@ -169,7 +171,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                                         onClick={() => handleInstall(plugin)}
                                         loading={installPlugin.isPending && installPlugin.variables?.slug === plugin.slug}
                                     >
-                                        Add
+                                        {t('UI_ADD')}
                                     </Button>
                                 ]}
                             >
@@ -196,7 +198,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                 title={
                     <Space>
                         <ThunderboltOutlined />
-                        <span>Board Power-Ups</span>
+                        <span>{t('UI_BOARD_POWER_UPS')}</span>
                     </Space>
                 }
                 open={open}
@@ -217,7 +219,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                             key: 'installed',
                             label: (
                                 <span>
-                                    <CheckCircleOutlined /> Installed
+                                    <CheckCircleOutlined /> {t('UI_INSTALLED')}
                                 </span>
                             ),
                             children: <InstalledTab />,
@@ -226,7 +228,7 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                             key: 'available',
                             label: (
                                 <span>
-                                    <ShopOutlined /> Browse Marketplace
+                                    <ShopOutlined /> {t('UI_BROWSE_MARKETPLACE')}
                                 </span>
                             ),
                             children: <AvailableTab />,

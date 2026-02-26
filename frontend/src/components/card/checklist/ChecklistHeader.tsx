@@ -3,6 +3,7 @@
 import React from 'react';
 import { Typography, Progress, Dropdown, Button } from 'antd';
 import { CheckSquareOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -17,6 +18,7 @@ export default function ChecklistHeader({
     progress,
     onDelete,
 }: ChecklistHeaderProps) {
+    const t = useTranslation();
     return (
         <>
             {/* Checklist Header */}
@@ -28,7 +30,7 @@ export default function ChecklistHeader({
                         items: [
                             {
                                 key: 'delete',
-                                label: 'Delete',
+                                label: t('UI_DELETE'),
                                 danger: true,
                                 icon: <DeleteOutlined />,
                                 onClick: onDelete,

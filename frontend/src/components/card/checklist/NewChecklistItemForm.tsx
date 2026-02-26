@@ -14,6 +14,7 @@ import { User } from '@/types';
 import dayjs from 'dayjs';
 import MemberPickerContent from '@/components/common/MemberPickerContent';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface NewChecklistItemFormProps {
     checklistId: string;
@@ -47,6 +48,7 @@ export default function NewChecklistItemForm({
     onCancel,
 }: NewChecklistItemFormProps) {
     const [localAssigneeIds, setLocalAssigneeIds] = useState<string[]>(assigneeIds);
+    const t = useTranslation();
 
     useEffect(() => {
         setLocalAssigneeIds(assigneeIds);
@@ -77,12 +79,12 @@ export default function NewChecklistItemForm({
 
     const renderDueDatePicker = () => (
         <div style={{ padding: 8 }}>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>Due Date</div>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>{t('UI_DUE_DATE_LABEL')}</div>
             <DatePicker
                 value={dueDate ? dayjs(dueDate) : null}
                 onChange={(date) => onDueDateChange(date ? date.toISOString() : null)}
                 style={{ width: '100%' }}
-                placeholder="Select due date"
+                placeholder={t('UI_SELECT_DUE_DATE')}
             />
             {dueDate && (
                 <Button
@@ -91,7 +93,7 @@ export default function NewChecklistItemForm({
                     style={{ marginTop: 8, width: '100%' }}
                     onClick={() => onDueDateChange(null)}
                 >
-                    Remove due date
+                    {t('UI_REMOVE_DUE_DATE')}
                 </Button>
             )}
         </div>
@@ -100,7 +102,7 @@ export default function NewChecklistItemForm({
     return (
         <div style={{ marginTop: 8 }}>
             <Input.TextArea
-                placeholder="Add an item"
+                placeholder={t('UI_PLACEHOLDER_ADD_ITEM')}
                 value={content}
                 onChange={(e) => {
                     onContentChange(e.target.value);
@@ -172,10 +174,10 @@ export default function NewChecklistItemForm({
                             onClick={onSubmit}
                             disabled={!content.trim()}
                         >
-                            Add
+                            {t('UI_ADD')}
                         </Button>
                         <Button size="small" onClick={onCancel}>
-                            Cancel
+                            {t('UI_CANCEL')}
                         </Button>
                     </Space>
                     <Space>
@@ -192,7 +194,7 @@ export default function NewChecklistItemForm({
                                     color: assigneeIds.length > 0 ? '#1677ff' : undefined
                                 }}
                             >
-                                Assign
+                                {t('UI_ASSIGN')}
                             </Button>
                         </Popover>
                         <Popover
@@ -208,7 +210,7 @@ export default function NewChecklistItemForm({
                                     color: dueDate ? '#1677ff' : undefined
                                 }}
                             >
-                                Due date
+                                {t('UI_DUE_DATE_LABEL')}
                             </Button>
                         </Popover>
                     </Space>

@@ -9,6 +9,7 @@ import {
     DashboardOutlined,
 } from '@ant-design/icons';
 import styles from './BoardViewSwitcher.module.css';
+import { useTranslation } from '@/hooks/useLabels';
 
 export type BoardViewMode = 'board' | 'table' | 'calendar' | 'dashboard';
 
@@ -17,14 +18,15 @@ interface BoardViewSwitcherProps {
     onChange: (value: BoardViewMode) => void;
 }
 
-const viewOptions = [
-    { value: 'board', icon: <AppstoreOutlined />, label: 'Board' },
-    { value: 'table', icon: <TableOutlined />, label: 'Table' },
-    { value: 'calendar', icon: <CalendarOutlined />, label: 'Calendar' },
-    { value: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
-];
-
 export default function BoardViewSwitcher({ value, onChange }: BoardViewSwitcherProps) {
+    const t = useTranslation();
+
+    const viewOptions = [
+        { value: 'board', icon: <AppstoreOutlined />, label: t('UI_VIEW_BOARD') },
+        { value: 'table', icon: <TableOutlined />, label: t('UI_VIEW_TABLE') },
+        { value: 'calendar', icon: <CalendarOutlined />, label: t('UI_VIEW_CALENDAR') },
+        { value: 'dashboard', icon: <DashboardOutlined />, label: t('UI_VIEW_DASHBOARD') },
+    ];
     return (
         <Segmented
             value={value}
@@ -32,10 +34,10 @@ export default function BoardViewSwitcher({ value, onChange }: BoardViewSwitcher
             options={viewOptions.map((opt) => ({
                 value: opt.value,
                 label: (
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 6, 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
                         padding: '0 4px',
                         color: 'inherit',
                     }}>

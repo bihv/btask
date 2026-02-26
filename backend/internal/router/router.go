@@ -54,6 +54,10 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	publicAutomation.Get("/conditions/operators", automationHandler.GetConditionOperators)
 	publicAutomation.Get("/conditions/fields", automationHandler.GetConditionFields)
 
+	// Public labels endpoint for i18n (optional auth - uses user language if logged in, defaults to English)
+	systemLabelHandler := handlers.NewSystemLabelHandler()
+	api.Get("/labels", middleware.OptionalAuthMiddleware(cfg), systemLabelHandler.GetLabels)
+
 	// Protected routes
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware(cfg))
@@ -71,7 +75,6 @@ func Setup(app *fiber.App, cfg *config.Config) {
 
 	// Admin routes (requires admin middleware)
 	adminHandler := handlers.NewAdminHandler()
-	systemLabelHandler := handlers.NewSystemLabelHandler()
 	admin := protected.Group("/admin")
 	admin.Use(middleware.AdminMiddleware())
 	admin.Get("/users", adminHandler.ListUsers)
@@ -114,9 +117,6 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	templates.Get("/:id", templateHandler.GetByID)
 	templates.Post("/:id/copy", templateHandler.IncrementCopies)
 	templates.Post("/:id/use", templateHandler.UseTemplate)
-
-	// Labels endpoint for i18n (protected to access user language preference)
-	protected.Get("/labels", systemLabelHandler.GetLabels)
 
 	// Global search endpoint
 	searchHandler := handlers.NewSearchHandler()

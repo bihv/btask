@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTheme } from '@/providers/ThemeProvider';
 import { Input, Button, Space, App } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { useTranslation } from '@/hooks/useLabels';
 import { Checklist, ChecklistItem, User, BoardList } from '@/types';
 import { checklistApi } from '@/lib/api';
 import api from '@/lib/api';
@@ -38,6 +39,7 @@ export default function ChecklistSection({
 }: ChecklistSectionProps) {
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
     const { message } = App.useApp();
+    const t = useTranslation();
     const [showAddChecklist, setShowAddChecklist] = useState(false);
     const [newItemContent, setNewItemContent] = useState<Record<string, string>>({});
     const [newItemAssignees, setNewItemAssignees] = useState<Record<string, string[]>>({});
@@ -70,7 +72,7 @@ export default function ChecklistSection({
             setShowAddChecklist(false);
             onUpdate();
         } catch (error) {
-            message.error('Failed to create checklist');
+            message.error(t('ERROR_CREATE_CHECKLIST'));
         }
     };
 
@@ -79,7 +81,7 @@ export default function ChecklistSection({
             await checklistApi.delete(checklistId);
             onUpdate();
         } catch (error) {
-            message.error('Failed to delete checklist');
+            message.error(t('ERROR_DELETE_CHECKLIST'));
         }
     };
 
@@ -95,7 +97,7 @@ export default function ChecklistSection({
             clearNewItemForm(checklistId);
             onUpdate();
         } catch (error) {
-            message.error('Failed to add item');
+            message.error(t('ERROR_ADD_ITEM'));
         }
     };
 
@@ -111,7 +113,7 @@ export default function ChecklistSection({
             await checklistApi.toggleItem(checklistId, itemId);
             onUpdate();
         } catch (error) {
-            message.error('Failed to update item');
+            message.error(t('ERROR_UPDATE_ITEM'));
         }
     };
 
@@ -123,7 +125,7 @@ export default function ChecklistSection({
             setEditingContent('');
             onUpdate();
         } catch (error) {
-            message.error('Failed to update item');
+            message.error(t('ERROR_UPDATE_ITEM'));
         }
     };
 
@@ -132,7 +134,7 @@ export default function ChecklistSection({
             await checklistApi.deleteItem(checklistId, itemId);
             onUpdate();
         } catch (error) {
-            message.error('Failed to delete item');
+            message.error(t('ERROR_DELETE_ITEM'));
         }
     };
 
@@ -145,7 +147,7 @@ export default function ChecklistSection({
             await checklistApi.updateItem(checklistId, itemId, { assignee_ids: newAssigneeIds });
             onUpdate();
         } catch (error) {
-            message.error('Failed to update assignees');
+            message.error(t('ERROR_UPDATE_ASSIGNEES'));
         }
     };
 
@@ -154,7 +156,7 @@ export default function ChecklistSection({
             await checklistApi.updateItem(checklistId, itemId, { assignee_ids: [] });
             onUpdate();
         } catch (error) {
-            message.error('Failed to remove assignees');
+            message.error(t('ERROR_REMOVE_ASSIGNEES'));
         }
     };
 
@@ -163,7 +165,7 @@ export default function ChecklistSection({
             await checklistApi.updateItem(checklistId, itemId, { due_date: date });
             onUpdate();
         } catch (error) {
-            message.error('Failed to update due date');
+            message.error(t('ERROR_UPDATE_DUE_DATE'));
         }
     };
 
@@ -176,7 +178,7 @@ export default function ChecklistSection({
             setSelectedListId('');
             onUpdate();
         } catch (error) {
-            message.error('Failed to convert to card');
+            message.error(t('ERROR_CONVERT_CARD'));
         }
     };
 
@@ -277,7 +279,7 @@ export default function ChecklistSection({
             {showAddChecklist ? (
                 <div style={{ marginTop: 16 }}>
                     <Input
-                        placeholder="Checklist title..."
+                        placeholder={t('UI_PLACEHOLDER_CHECKLIST_TITLE')}
                         value={newChecklistTitle}
                         onChange={(e) => setNewChecklistTitle(e.target.value)}
                         onPressEnter={handleAddChecklist}
@@ -285,13 +287,13 @@ export default function ChecklistSection({
                     />
                     <Space style={{ marginTop: 8 }}>
                         <Button type="primary" onClick={handleAddChecklist}>
-                            Add
+                            {t('UI_ADD')}
                         </Button>
                         <Button onClick={() => {
                             setShowAddChecklist(false);
                             setNewChecklistTitle('');
                         }}>
-                            Cancel
+                            {t('UI_CANCEL')}
                         </Button>
                     </Space>
                 </div>
@@ -303,7 +305,7 @@ export default function ChecklistSection({
                     onClick={() => setShowAddChecklist(true)}
                     style={{ marginTop: checklists.length > 0 ? 16 : 0 }}
                 >
-                    Add Checklist
+                    {t('UI_ADD_CHECKLIST')}
                 </Button>
             )}
 

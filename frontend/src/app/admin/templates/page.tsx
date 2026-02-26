@@ -10,6 +10,7 @@ import { Template, TemplateList as TemplateListType, TemplateCard as TemplateCar
 import TemplateBoardEditor, { TemplateListInput } from '@/components/admin/TemplateBoardEditor';
 import BackgroundPicker from '@/components/board/BackgroundPicker';
 import dynamic from 'next/dynamic';
+import { useTranslation } from '@/hooks/useLabels';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
@@ -27,6 +28,7 @@ export default function AdminTemplatesPage() {
     const [templateModalOpen, setTemplateModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
     const [templateForm] = Form.useForm();
+    const t = useTranslation();
     const [templateLists, setTemplateLists] = useState<TemplateListInput[]>([]);
     const [fullDescription, setFullDescription] = useState('');
     const [coverColor, setCoverColor] = useState('#0079bf');
@@ -109,14 +111,14 @@ export default function AdminTemplatesPage() {
     const handleUpdate = async (values: { title?: string; author?: string; description?: string; category?: string; is_featured?: boolean; is_active?: boolean }) => {
         if (!editingTemplate) return;
         try {
-            await updateTemplate.mutateAsync({ 
-                id: editingTemplate.id, 
+            await updateTemplate.mutateAsync({
+                id: editingTemplate.id,
                 data: {
                     ...values,
                     cover_color: coverColor,
                     cover_url: coverImage,
                     full_description: fullDescription,
-                } 
+                }
             });
             // Update lists if changed
             if (templateLists.length > 0) {
@@ -167,7 +169,7 @@ export default function AdminTemplatesPage() {
 
     const columns = [
         {
-            title: 'Title',
+            title: t('UI_TITLE'),
             dataIndex: 'title',
             key: 'title',
             render: (title: string, record: Template) => (
@@ -177,7 +179,7 @@ export default function AdminTemplatesPage() {
                             width: 32,
                             height: 24,
                             borderRadius: 4,
-                            background: record.cover_url 
+                            background: record.cover_url
                                 ? `url(${record.cover_url}) center/cover`
                                 : record.cover_color || '#0079bf',
                         }}
@@ -187,18 +189,18 @@ export default function AdminTemplatesPage() {
             ),
         },
         {
-            title: 'Author',
+            title: t('UI_AUTHOR'),
             dataIndex: 'author',
             key: 'author',
         },
         {
-            title: 'Category',
+            title: t('UI_CATEGORY'),
             dataIndex: 'category',
             key: 'category',
             render: (cat: string) => <Tag>{cat || 'Other'}</Tag>,
         },
         {
-            title: 'Stats',
+            title: t('UI_STATS'),
             key: 'stats',
             render: (_: unknown, record: Template) => (
                 <Space>
@@ -208,19 +210,19 @@ export default function AdminTemplatesPage() {
             ),
         },
         {
-            title: 'Featured',
+            title: t('UI_FEATURED'),
             dataIndex: 'is_featured',
             key: 'is_featured',
-            render: (featured: boolean) => featured ? <Tag color="gold">Featured</Tag> : null,
+            render: (featured: boolean) => featured ? <Tag color="gold">{t('UI_FEATURED')}</Tag> : null,
         },
         {
             title: 'Active',
             dataIndex: 'is_active',
             key: 'is_active',
-            render: (active: boolean) => <Tag color={active ? 'green' : 'default'}>{active ? 'Active' : 'Inactive'}</Tag>,
+            render: (active: boolean) => <Tag color={active ? 'green' : 'default'}>{active ? t('UI_ACTIVE') : t('UI_INACTIVE')}</Tag>,
         },
         {
-            title: 'Actions',
+            title: t('UI_ACTIONS'),
             key: 'actions',
             width: 150,
             render: (_: unknown, record: Template) => (
@@ -276,9 +278,9 @@ export default function AdminTemplatesPage() {
                         icon={<DeleteOutlined />}
                         onClick={() => {
                             modal.confirm({
-                                title: 'Delete this template?',
+                                title: t('UI_DELETE_TEMPLATE_CONFIRM'),
                                 content: 'This action cannot be undone.',
-                                okText: 'Delete',
+                                okText: t('UI_DELETE'),
                                 okType: 'danger',
                                 onOk: () => handleDelete(record.id),
                             });
@@ -296,7 +298,7 @@ export default function AdminTemplatesPage() {
     return (
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={2} style={{ margin: 0 }}>Templates</Title>
+                <Title level={2} style={{ margin: 0 }}>{t('UI_TEMPLATES')}</Title>
                 <Button
                     type="primary"
                     icon={<PlusOutlined />}
@@ -310,14 +312,14 @@ export default function AdminTemplatesPage() {
                         setTemplateModalOpen(true);
                     }}
                 >
-                    Add Template
+                    {t('UI_ADD_TEMPLATE')}
                 </Button>
             </div>
 
             <Card size="small" style={{ marginBottom: 16 }}>
                 <Space wrap>
                     <Input
-                        placeholder="Search templates..."
+                        placeholder={t('UI_SEARCH_TEMPLATES')}
                         prefix={<SearchOutlined />}
                         value={searchText}
                         onChange={e => setSearchText(e.target.value)}
@@ -359,7 +361,7 @@ export default function AdminTemplatesPage() {
             </Card>
 
             <Modal
-                title={editingTemplate ? 'Edit Template' : 'Create Template'}
+                title={editingTemplate ? t('UI_EDIT_TEMPLATE') : t('UI_CREATE_TEMPLATE')}
                 open={templateModalOpen}
                 onCancel={() => {
                     setTemplateModalOpen(false);
@@ -383,27 +385,27 @@ export default function AdminTemplatesPage() {
                         items={[
                             {
                                 key: 'basic',
-                                label: 'Basic Info',
+                                label: t('UI_BASIC_INFO'),
                                 children: (
                                     <>
-                                        <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+                                        <Form.Item name="title" label={t('UI_TITLE')} rules={[{ required: true }]}>
                                             <Input placeholder="Template title" />
                                         </Form.Item>
                                         <div style={{ display: 'flex', gap: 16 }}>
-                                            <Form.Item name="author" label="Author" style={{ flex: 1 }}>
+                                            <Form.Item name="author" label={t('UI_AUTHOR')} style={{ flex: 1 }}>
                                                 <Input placeholder="Author name" />
                                             </Form.Item>
-                                            <Form.Item name="category" label="Category" style={{ flex: 1 }}>
-                                                <Select placeholder="Select category">
+                                            <Form.Item name="category" label={t('UI_CATEGORY')} style={{ flex: 1 }}>
+                                                <Select placeholder={t('UI_SELECT_CATEGORY')}>
                                                     {CATEGORIES.map(c => <Select.Option key={c} value={c}>{c}</Select.Option>)}
                                                 </Select>
                                             </Form.Item>
                                         </div>
-                                        <Form.Item name="description" label="Description">
+                                        <Form.Item name="description" label={t('UI_DESCRIPTION')}>
                                             <Input.TextArea placeholder="Short description" rows={2} />
                                         </Form.Item>
                                         <div style={{ marginBottom: 16 }}>
-                                            <Text style={{ marginBottom: 8, display: 'block' }}>Full Description</Text>
+                                            <Text style={{ marginBottom: 8, display: 'block' }}>{t('UI_FULL_DESCRIPTION')}</Text>
                                             <RichTextEditor
                                                 content={fullDescription}
                                                 onChange={setFullDescription}
@@ -412,11 +414,11 @@ export default function AdminTemplatesPage() {
                                             />
                                         </div>
                                         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
-                                            <Form.Item name="is_featured" label="Featured" valuePropName="checked">
+                                            <Form.Item name="is_featured" label={t('UI_FEATURED')} valuePropName="checked">
                                                 <Switch />
                                             </Form.Item>
                                             {editingTemplate && (
-                                                <Form.Item name="is_active" label="Active" valuePropName="checked">
+                                                <Form.Item name="is_active" label={t('UI_ACTIVE')} valuePropName="checked">
                                                     <Switch />
                                                 </Form.Item>
                                             )}
@@ -426,11 +428,11 @@ export default function AdminTemplatesPage() {
                             },
                             {
                                 key: 'cover',
-                                label: 'Cover',
+                                label: t('UI_COVER'),
                                 children: (
                                     <div>
                                         <Text type="secondary" style={{ marginBottom: 12, display: 'block' }}>
-                                            Choose a cover color or image for your template:
+                                            {t('UI_CHOOSE_COVER')}
                                         </Text>
                                         <BackgroundPicker
                                             value={coverColor}
@@ -443,11 +445,11 @@ export default function AdminTemplatesPage() {
                             },
                             {
                                 key: 'board',
-                                label: 'Board Structure',
+                                label: t('UI_BOARD_STRUCTURE'),
                                 children: (
                                     <div>
                                         <Text type="secondary" style={{ marginBottom: 12, display: 'block' }}>
-                                            Add lists and cards that will be created when using this template:
+                                            {t('UI_ADD_LISTS_CARDS')}
                                         </Text>
                                         <TemplateBoardEditor lists={templateLists} onChange={setTemplateLists} />
                                     </div>
@@ -457,7 +459,7 @@ export default function AdminTemplatesPage() {
                     />
                     <div style={{ marginTop: 16 }}>
                         <Button type="primary" htmlType="submit" block loading={createTemplate.isPending || updateTemplate.isPending}>
-                            {editingTemplate ? 'Update Template' : 'Create Template'}
+                            {editingTemplate ? t('UI_UPDATE_TEMPLATE') : t('UI_CREATE_TEMPLATE')}
                         </Button>
                     </div>
                 </Form>

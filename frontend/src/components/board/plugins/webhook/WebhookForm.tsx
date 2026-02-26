@@ -3,15 +3,9 @@
 import { Form, Input, Button, Select, Switch, App, Alert } from 'antd';
 import { useCreateWebhook, useUpdateWebhook, Webhook } from '@/hooks/useWebhooks';
 import { useEffect } from 'react';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Option } = Select;
-
-const EVENTS = [
-    { label: 'Card Created', value: 'card:created' },
-    { label: 'Card Updated', value: 'card:updated' },
-    { label: 'Card Deleted', value: 'card:deleted' },
-    { label: 'Card Moved', value: 'card:moved' },
-];
 
 interface WebhookFormProps {
     pluginId: string;
@@ -22,7 +16,15 @@ interface WebhookFormProps {
 
 export default function WebhookForm({ pluginId, installationId, initialValues, onSuccess }: WebhookFormProps) {
     const { message } = App.useApp();
+    const t = useTranslation();
     const [form] = Form.useForm();
+
+    const EVENTS = [
+        { label: t('UI_EVENT_CARD_CREATED'), value: 'card:created' },
+        { label: t('UI_EVENT_CARD_UPDATED'), value: 'card:updated' },
+        { label: t('UI_EVENT_CARD_DELETED'), value: 'card:deleted' },
+        { label: t('UI_EVENT_CARD_MOVED'), value: 'card:moved' },
+    ];
     const createWebhook = useCreateWebhook();
     const updateWebhook = useUpdateWebhook();
 
@@ -49,7 +51,7 @@ export default function WebhookForm({ pluginId, installationId, initialValues, o
                         secret: values.secret || undefined, // Only send if provided
                     },
                 });
-                message.success('Webhook updated');
+                message.success(t('SUCCESS_WEBHOOK_UPDATED'));
             } else {
                 await createWebhook.mutateAsync({
                     pluginId,
@@ -61,12 +63,12 @@ export default function WebhookForm({ pluginId, installationId, initialValues, o
                         // board_id is handled by backend logic for now based on installation
                     },
                 });
-                message.success('Webhook created');
+                message.success(t('SUCCESS_WEBHOOK_CREATED'));
             }
             form.resetFields();
             onSuccess();
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to save webhook');
+            message.error(error.response?.data?.error || t('ERROR_SAVE_WEBHOOK_FAILED'));
         }
     };
 
@@ -81,34 +83,34 @@ export default function WebhookForm({ pluginId, installationId, initialValues, o
         >
             <Form.Item
                 name="callback_url"
-                label="Callback URL"
+                label={t('UI_CALLBACK_URL')}
                 rules={[
                     { required: true, message: 'Please enter a valid URL' },
                     { type: 'url', message: 'Must be a valid URL' }
                 ]}
-                extra="The URL where we'll send POST requests."
+                extra={t('UI_CALLBACK_URL_EXTRA')}
             >
                 <Input placeholder="https://api.example.com/webhook" />
             </Form.Item>
 
             <Form.Item
                 name="secret"
-                label="Secret"
+                label={t('UI_SECRET')}
                 rules={[
                     { required: !initialValues, message: 'Secret is required for new webhooks' },
                     { min: 16, message: 'Secret must be al least 16 characters' }
                 ]}
-                extra={initialValues ? "Leave blank to keep existing secret." : "Used to sign requests (HMAC-SHA256). Must be at least 16 chars."}
+                extra={initialValues ? t('UI_SECRET_EXTRA_EDIT') : t('UI_SECRET_EXTRA_NEW')}
             >
                 <Input.Password placeholder="Enter a strong secret..." />
             </Form.Item>
 
             <Form.Item
                 name="events"
-                label="Events"
+                label={t('UI_EVENTS')}
                 rules={[{ required: true, message: 'Please select at least one event' }]}
             >
-                <Select mode="multiple" placeholder="Select events to trigger this webhook">
+                <Select mode="multiple" placeholder={t('UI_PLACEHOLDER_SELECT_EVENTS')}>
                     {EVENTS.map(e => (
                         <Option key={e.value} value={e.value}>{e.label}</Option>
                     ))}
@@ -116,14 +118,14 @@ export default function WebhookForm({ pluginId, installationId, initialValues, o
             </Form.Item>
 
             {initialValues && (
-                <Form.Item name="is_active" label="Status" valuePropName="checked">
-                    <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
+                <Form.Item name="is_active" label={t('UI_STATUS')} valuePropName="checked">
+                    <Switch checkedChildren={t('UI_ACTIVE')} unCheckedChildren={t('UI_INACTIVE')} />
                 </Form.Item>
             )}
 
             <Form.Item>
                 <Button type="primary" htmlType="submit" loading={isLoading} block>
-                    {initialValues ? 'Save Changes' : 'Create Webhook'}
+                    {initialValues ? t('UI_SAVE_CHANGES') : t('UI_CREATE_WEBHOOK')}
                 </Button>
             </Form.Item>
         </Form>

@@ -6,6 +6,7 @@ import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { CustomField, CustomFieldType } from '@/types';
 import { customFieldApi } from '@/lib/api';
 import { ScreenHeader } from './MenuShared';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Option } = Select;
 
@@ -25,6 +26,7 @@ interface NewFieldScreenProps {
 
 export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldScreenProps) {
     const { message } = App.useApp();
+    const t = useTranslation();
     const [name, setName] = useState('');
     const [type, setType] = useState<CustomFieldType>('text');
     const [showOnCard, setShowOnCard] = useState(true);
@@ -45,12 +47,12 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            message.error('Please enter a field name');
+            message.error(t('ERROR_FIELD_NAME_REQUIRED'));
             return;
         }
 
         if (type === 'dropdown' && options.length === 0) {
-            message.error('Please add at least one option for dropdown field');
+            message.error(t('ERROR_DROPDOWN_OPTIONS_REQUIRED'));
             return;
         }
 
@@ -64,7 +66,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
             });
             onCreate(response.data.data);
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to create field');
+            message.error(error.response?.data?.error || t('ERROR_CREATE_FIELD_FAILED'));
         } finally {
             setCreating(false);
         }
@@ -74,16 +76,16 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
 
     return (
         <div style={{ width: 280 }}>
-            <ScreenHeader title="New field" onBack={onBack} />
+            <ScreenHeader title={t('UI_NEW_FIELD')} onBack={onBack} />
 
             <div style={{ padding: '12px' }}>
                 {/* Title */}
                 <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-                        Title
+                        {t('UI_TITLE')}
                     </label>
                     <Input
-                        placeholder="Add a title..."
+                        placeholder={t('UI_PLACEHOLDER_ADD_TITLE')}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         autoFocus
@@ -93,7 +95,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                 {/* Type */}
                 <div style={{ marginBottom: 16 }}>
                     <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-                        Type
+                        {t('UI_TYPE')}
                     </label>
                     <Select
                         value={type}
@@ -112,7 +114,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                 {type === 'dropdown' && (
                     <div style={{ marginBottom: 16 }}>
                         <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-                            Options
+                            {t('UI_OPTIONS')}
                         </label>
 
                         {/* Existing options */}
@@ -134,7 +136,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                         {/* Add new option */}
                         <Space.Compact style={{ width: '100%' }}>
                             <Input
-                                placeholder="Add item..."
+                                placeholder={t('UI_PLACEHOLDER_ADD_ITEM')}
                                 value={newOption}
                                 onChange={(e) => setNewOption(e.target.value)}
                                 onPressEnter={handleAddOption}
@@ -143,7 +145,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                                 onClick={handleAddOption}
                                 disabled={!newOption.trim()}
                             >
-                                Add
+                                {t('UI_ADD')}
                             </Button>
                         </Space.Compact>
                     </div>
@@ -155,7 +157,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                         checked={showOnCard}
                         onChange={(e) => setShowOnCard(e.target.checked)}
                     >
-                        Show field on front of card
+                        {t('UI_SHOW_FIELD_ON_CARD')}
                     </Checkbox>
                 </div>
 
@@ -167,7 +169,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                     loading={creating}
                     disabled={!isValid}
                 >
-                    Create
+                    {t('UI_CREATE')}
                 </Button>
             </div>
         </div>

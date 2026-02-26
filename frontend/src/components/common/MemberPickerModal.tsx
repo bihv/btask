@@ -4,6 +4,7 @@ import React from 'react';
 import { Modal } from 'antd';
 import { User } from '@/types';
 import MemberPickerContent from './MemberPickerContent';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface MemberPickerModalProps {
     open: boolean;
@@ -22,9 +23,10 @@ export default function MemberPickerModal({
     onToggleMember,
     onRemoveAll,
 }: MemberPickerModalProps) {
+    const t = useTranslation();
     return (
         <Modal
-            title="Members"
+            title={t('UI_MEMBERS')}
             open={open}
             onCancel={onClose}
             footer={null}

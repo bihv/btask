@@ -5,6 +5,7 @@ import { Input, Button, Typography, Divider, App } from 'antd';
 import { CheckOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Label } from '@/types';
 import api from '@/lib/api';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -34,8 +35,9 @@ export default function LabelPicker({
 }: LabelPickerProps) {
     const [view, setView] = useState<View>('list');
     const { message } = App.useApp();
+    const t = useTranslation();
     const [editingLabel, setEditingLabel] = useState<Label | null>(null);
-    
+
     // Form states
     const [name, setName] = useState('');
     const [color, setColor] = useState(LABEL_COLORS[0]);
@@ -75,7 +77,7 @@ export default function LabelPicker({
             onRefresh();
             handleBack();
         } catch (error) {
-            message.error('Failed to create label');
+            message.error(t('ERROR_CREATE_LABEL'));
         } finally {
             setLoading(false);
         }
@@ -93,7 +95,7 @@ export default function LabelPicker({
             onCardRefresh?.();  // Refresh card to show updated label
             handleBack();
         } catch (error) {
-            message.error('Failed to update label');
+            message.error(t('ERROR_UPDATE_LABEL'));
         } finally {
             setLoading(false);
         }
@@ -107,9 +109,9 @@ export default function LabelPicker({
             onRefresh();
             onCardRefresh?.();  // Refresh card to remove deleted label
             handleBack();
-            message.success('Label deleted');
+            message.success(t('SUCCESS_LABEL_DELETED'));
         } catch (error) {
-            message.error('Failed to delete label');
+            message.error(t('ERROR_DELETE_LABEL'));
         } finally {
             setLoading(false);
         }
@@ -119,7 +121,7 @@ export default function LabelPicker({
     if (view === 'list') {
         return (
             <div style={{ width: 280 }}>
-                <Text strong style={{ display: 'block', marginBottom: 8 }}>Labels</Text>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('UI_LABELS')}</Text>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
                     {labels.map((label) => {
                         const isSelected = selectedLabelIds.includes(label.id);
@@ -156,7 +158,7 @@ export default function LabelPicker({
                                     size="small"
                                     icon={<EditOutlined />}
                                     onClick={(e) => handleStartEdit(label, e)}
-                                    style={{ 
+                                    style={{
                                         color: 'var(--text-secondary)',
                                         minWidth: 32,
                                     }}
@@ -166,7 +168,7 @@ export default function LabelPicker({
                     })}
                 </div>
                 <Button type="default" block onClick={handleStartCreate}>
-                    Create a new label
+                    {t('UI_CREATE_NEW_LABEL')}
                 </Button>
             </div>
         );
@@ -183,7 +185,7 @@ export default function LabelPicker({
                     icon={<ArrowLeftOutlined />}
                     onClick={handleBack}
                 />
-                <Text strong>{view === 'create' ? 'Create label' : 'Edit label'}</Text>
+                <Text strong>{view === 'create' ? t('UI_CREATE_LABEL') : t('UI_EDIT_LABEL')}</Text>
             </div>
 
             {/* Preview */}
@@ -203,12 +205,12 @@ export default function LabelPicker({
             {/* Name input */}
             <div style={{ marginBottom: 12 }}>
                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                    Title
+                    {t('UI_TITLE')}
                 </Text>
                 <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Label name (optional)"
+                    placeholder={t('UI_PLACEHOLDER_LABEL_NAME')}
                     size="small"
                 />
             </div>
@@ -216,7 +218,7 @@ export default function LabelPicker({
             {/* Color picker */}
             <div style={{ marginBottom: 12 }}>
                 <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                    Select a color
+                    {t('UI_SELECT_COLOR')}
                 </Text>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                     {LABEL_COLORS.map((c) => (
@@ -250,7 +252,7 @@ export default function LabelPicker({
                     onClick={view === 'create' ? handleCreate : handleUpdate}
                     loading={loading}
                 >
-                    {view === 'create' ? 'Create' : 'Save'}
+                    {view === 'create' ? t('UI_CREATE') : t('UI_SAVE')}
                 </Button>
                 {view === 'edit' && (
                     <Button
@@ -259,7 +261,7 @@ export default function LabelPicker({
                         onClick={handleDelete}
                         loading={loading}
                     >
-                        Delete
+                        {t('UI_DELETE')}
                     </Button>
                 )}
             </div>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Input, Typography, Divider, QRCode, App, Space } from 'antd';
 import { ShareAltOutlined, CopyOutlined, QrcodeOutlined, PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
 import { Card } from '@/types';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -19,6 +20,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
     const [open, setOpen] = useState(false);
     const [showQR, setShowQR] = useState(false);
     const { message } = App.useApp();
+    const t = useTranslation();
 
     // Generate card URL
     const cardUrl = typeof window !== 'undefined'
@@ -30,7 +32,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
 
     const handleCopy = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
-        message.success(`${label} copied to clipboard`);
+        message.success(`${label} ${t('SUCCESS_COPIED')}`);
     };
 
     const handlePrint = () => {
@@ -62,17 +64,17 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        message.success('JSON exported');
+        message.success(t('SUCCESS_JSON_EXPORTED'));
         setOpen(false);
     };
 
     return (
         <>
             <Button icon={<ShareAltOutlined />} size="small" onClick={() => setOpen(true)}>
-                Share
+                {t('UI_SHARE')}
             </Button>
             <Modal
-                title="Share"
+                title={t('UI_SHARE')}
                 open={open}
                 onCancel={() => setOpen(false)}
                 footer={null}
@@ -82,10 +84,10 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                     {/* Print & Export */}
                     <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
                         <Button icon={<PrinterOutlined />} onClick={handlePrint} style={{ flex: 1 }}>
-                            Print
+                            {t('UI_PRINT')}
                         </Button>
                         <Button icon={<DownloadOutlined />} onClick={handleExportJSON} style={{ flex: 1 }}>
-                            Export JSON
+                            {t('UI_EXPORT_JSON')}
                         </Button>
                     </div>
 
@@ -93,7 +95,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
 
                     {/* Card Link */}
                     <div style={{ marginBottom: 16 }}>
-                        <Text strong>Link to this card</Text>
+                        <Text strong>{t('UI_LINK_TO_CARD')}</Text>
                         <Space.Compact style={{ marginTop: 8, width: '100%' }}>
                             <Input
                                 value={cardUrl}
@@ -115,7 +117,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                             onClick={() => setShowQR(!showQR)}
                             style={{ padding: 0 }}
                         >
-                            {showQR ? 'Hide QR Code' : 'Show QR Code'}
+                            {showQR ? t('UI_HIDE_QR') : t('UI_SHOW_QR')}
                         </Button>
                         {showQR && (
                             <div style={{ marginTop: 12, textAlign: 'center' }}>
@@ -128,7 +130,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
 
                     {/* Embed Code */}
                     <div style={{ marginBottom: 16 }}>
-                        <Text strong>Embed this card</Text>
+                        <Text strong>{t('UI_EMBED_CARD')}</Text>
                         <Space.Compact style={{ marginTop: 8, width: '100%' }}>
                             <Input
                                 value={embedCode}
@@ -141,7 +143,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                             />
                         </Space.Compact>
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                            Paste this HTML code where you want the card link to appear
+                            {t('UI_EMBED_HINT')}
                         </Text>
                     </div>
                 </div>

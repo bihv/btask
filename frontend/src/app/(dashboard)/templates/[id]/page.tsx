@@ -10,6 +10,7 @@ import BoardPreview from '@/components/templates/BoardPreview';
 import TemplateCard from '@/components/templates/TemplateCard';
 import UseTemplateModal from '@/components/templates/UseTemplateModal';
 import dynamic from 'next/dynamic';
+import { useTranslation } from '@/hooks/useLabels';
 
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
@@ -25,6 +26,7 @@ export default function TemplateDetailPage() {
     const id = params.id as string;
 
     const [showUseTemplateModal, setShowUseTemplateModal] = useState(false);
+    const t = useTranslation();
 
     const { data: template, isLoading, error } = useTemplate(id);
     const { data: templatesData } = useTemplates({ limit: 4 });
@@ -45,9 +47,9 @@ export default function TemplateDetailPage() {
     if (error || !template) {
         return (
             <div style={{ padding: '48px', textAlign: 'center' }}>
-                <Title level={3}>Template not found</Title>
+                <Title level={3}>{t('UI_TEMPLATE_NOT_FOUND')}</Title>
                 <Button type="primary" onClick={() => router.push('/templates')}>
-                    Back to Templates
+                    {t('UI_BACK_TO_TEMPLATES')}
                 </Button>
             </div>
         );
@@ -65,7 +67,7 @@ export default function TemplateDetailPage() {
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
-        message.success('Link copied to clipboard!');
+        message.success(t('UI_LINK_COPIED'));
     };
 
     // Convert API lists format to BoardPreview format
@@ -95,7 +97,7 @@ export default function TemplateDetailPage() {
             <Breadcrumb
                 style={{ marginBottom: '24px' }}
                 items={[
-                    { title: <a onClick={() => router.push('/templates')}>Template gallery</a> },
+                    { title: <a onClick={() => router.push('/templates')}>{t('UI_TEMPLATE_GALLERY')}</a> },
                     { title: template.category || 'Templates' },
                     { title: template.title },
                 ]}
@@ -109,7 +111,7 @@ export default function TemplateDetailPage() {
                         style={{
                             width: '48px',
                             height: '48px',
-                            background: template.cover_url 
+                            background: template.cover_url
                                 ? `url(${template.cover_url}) center/cover`
                                 : template.cover_color || '#0079bf',
                             borderRadius: '8px',
@@ -125,15 +127,15 @@ export default function TemplateDetailPage() {
 
                     <div>
                         <Title level={2} style={{ margin: 0, marginBottom: '4px' }}>{template.title}</Title>
-                        <Text type="secondary">Created by {template.author || 'Mello'}</Text>
+                        <Text type="secondary">{t('UI_CREATED_BY')} {template.author || 'Mello'}</Text>
                         <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <CopyOutlined style={{ color: 'var(--text-secondary)' }} />
-                                <Text type="secondary">{formatNumber(template.copies)} Copies</Text>
+                                <Text type="secondary">{formatNumber(template.copies)} {t('UI_COPIES')}</Text>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <EyeOutlined style={{ color: 'var(--text-secondary)' }} />
-                                <Text type="secondary">{formatNumber((template.views || 0) + 1)} Views</Text>
+                                <Text type="secondary">{formatNumber((template.views || 0) + 1)} {t('UI_VIEWS')}</Text>
                             </div>
                         </div>
                     </div>
@@ -142,39 +144,39 @@ export default function TemplateDetailPage() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <Button icon={<ShareAltOutlined />} onClick={handleShare}>
-                        Share
+                        {t('UI_SHARE')}
                     </Button>
                     <Button type="primary" onClick={handleUseTemplate}>
-                        Use template
+                        {t('UI_USE_TEMPLATE')}
                     </Button>
                 </div>
             </div>
 
             {/* About section */}
             <div style={{ marginBottom: '32px' }}>
-                <Title level={4} style={{ marginBottom: '16px' }}>About this template</Title>
+                <Title level={4} style={{ marginBottom: '16px' }}>{t('UI_ABOUT_THIS_TEMPLATE')}</Title>
                 {template.full_description ? (
                     <RichTextEditor
                         content={template.full_description}
                         editable={false}
                     />
                 ) : (
-                    <Text type="secondary">{template.description || 'No description available.'}</Text>
+                    <Text type="secondary">{template.description || t('UI_NO_DESCRIPTION')}</Text>
                 )}
             </div>
 
             {/* Board Preview */}
             {previewLists.length > 0 && (
                 <div style={{ marginBottom: '32px' }}>
-                    <BoardPreview 
-                        lists={previewLists} 
-                        title={template.title} 
+                    <BoardPreview
+                        lists={previewLists}
+                        title={template.title}
                         backgroundColor={template.cover_color}
                         backgroundImage={template.cover_url}
                     />
                     <div style={{ textAlign: 'right', marginTop: '8px' }}>
                         <Button type="link" style={{ padding: 0 }}>
-                            View template →
+                            {t('UI_VIEW_TEMPLATE')} →
                         </Button>
                     </div>
                 </div>
@@ -192,13 +194,13 @@ export default function TemplateDetailPage() {
                             padding: '24px',
                         }}
                     >
-                        <Title level={4} style={{ marginBottom: '24px', color: '#172b4d' }}>Related templates</Title>
+                        <Title level={4} style={{ marginBottom: '24px', color: '#172b4d' }}>{t('UI_RELATED_TEMPLATES')}</Title>
                         <Row gutter={[24, 24]}>
                             {relatedTemplates.map((t: Template) => (
                                 <Col key={t.id} xs={24} sm={12} md={8}>
-                                    <TemplateCard 
-                                        template={t} 
-                                        onClick={() => router.push(`/templates/${t.id}`)} 
+                                    <TemplateCard
+                                        template={t}
+                                        onClick={() => router.push(`/templates/${t.id}`)}
                                     />
                                 </Col>
                             ))}

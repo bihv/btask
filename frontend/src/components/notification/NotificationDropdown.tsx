@@ -7,6 +7,7 @@ import { useNotificationStore, Notification } from '@/stores/notificationStore';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Link from 'next/link';
+import { useTranslation } from '@/hooks/useLabels';
 
 dayjs.extend(relativeTime);
 
@@ -28,6 +29,7 @@ export default function NotificationDropdown() {
     const setUnreadOnly = useNotificationStore((state) => state.setUnreadOnly);
 
     const [open, setOpen] = useState(false);
+    const t = useTranslation();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -87,16 +89,16 @@ export default function NotificationDropdown() {
                 justifyContent: 'space-between',
                 alignItems: 'center'
             }}>
-                <Text strong>Notifications</Text>
+                <Text strong>{t('UI_NOTIFICATIONS')}</Text>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Tooltip title="Only show unread">
+                    <Tooltip title={t('UI_ONLY_UNREAD')}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                             <Switch
                                 size="small"
                                 checked={unreadOnly}
                                 onChange={(checked) => setUnreadOnly(checked)}
                             />
-                            <Text type="secondary" style={{ fontSize: 12 }}>Unread</Text>
+                            <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_UNREAD')}</Text>
                         </div>
                     </Tooltip>
                     {unreadCount > 0 && (
@@ -109,7 +111,7 @@ export default function NotificationDropdown() {
                                 markAllAsRead();
                             }}
                         >
-                            Mark all read
+                            {t('UI_MARK_ALL_READ')}
                         </Button>
                     )}
                 </div>
@@ -127,7 +129,7 @@ export default function NotificationDropdown() {
                 {notifications.length === 0 && !isLoading ? (
                     <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={unreadOnly ? "No unread notifications" : "No notifications"}
+                        description={unreadOnly ? t('UI_NO_UNREAD_NOTIFICATIONS') : t('UI_NO_NOTIFICATIONS')}
                         style={{ padding: 40 }}
                     />
                 ) : (
@@ -178,7 +180,7 @@ export default function NotificationDropdown() {
                                             </div>
                                         )}
                                     </div>
-                                    <Tooltip title={notification.is_read ? 'Mark as unread' : 'Mark as read'}>
+                                    <Tooltip title={notification.is_read ? t('UI_MARK_AS_UNREAD') : t('UI_MARK_AS_READ')}>
                                         <Button
                                             type="text"
                                             size="small"
@@ -201,7 +203,7 @@ export default function NotificationDropdown() {
                         )}
                         {!hasMore && notifications.length > 0 && (
                             <div style={{ padding: 12, textAlign: 'center' }}>
-                                <Text type="secondary" style={{ fontSize: 12 }}>No more notifications</Text>
+                                <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_NO_MORE_NOTIFICATIONS')}</Text>
                             </div>
                         )}
                     </>

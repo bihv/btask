@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 import MemberPickerModal from '@/components/common/MemberPickerModal';
 import { checklistApi } from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -64,6 +65,7 @@ function DueDatePickerContent({
     onClose: () => void;
 }) {
     const { message } = App.useApp();
+    const t = useTranslation();
     const handleDateChange = async (date: dayjs.Dayjs | null) => {
         try {
             await checklistApi.updateItem(checklistId, item.id, {
@@ -75,7 +77,7 @@ function DueDatePickerContent({
                 onClose();
             }, 0);
         } catch (error) {
-            message.error('Failed to update due date');
+            message.error(t('ERROR_UPDATE_DUE_DATE'));
         }
     };
 
@@ -88,18 +90,18 @@ function DueDatePickerContent({
                 onClose();
             }, 0);
         } catch (error) {
-            message.error('Failed to remove due date');
+            message.error(t('ERROR_UPDATE_DUE_DATE'));
         }
     };
 
     return (
         <div style={{ padding: 8 }}>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>Due Date</div>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>{t('UI_DUE_DATE_LABEL')}</div>
             <DatePicker
                 value={item.due_date ? dayjs(item.due_date) : null}
                 onChange={handleDateChange}
                 style={{ width: '100%' }}
-                placeholder="Select due date"
+                placeholder={t('UI_SELECT_DUE_DATE')}
             />
             {item.due_date && (
                 <Button
@@ -108,7 +110,7 @@ function DueDatePickerContent({
                     style={{ marginTop: 8, width: '100%' }}
                     onClick={handleRemoveDueDate}
                 >
-                    Remove due date
+                    {t('UI_REMOVE_DUE_DATE')}
                 </Button>
             )}
         </div>
@@ -138,6 +140,7 @@ export default function ChecklistItemRow({
     onUpdateData,
 }: ChecklistItemRowProps) {
     const { message } = App.useApp();
+    const t2 = useTranslation();
     const [dueDateModalOpen, setDueDateModalOpen] = useState(false);
     const [memberModalOpen, setMemberModalOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<string[]>(
@@ -172,7 +175,7 @@ export default function ChecklistItemRow({
         } catch (error) {
             // Rollback on error
             setSelectedIds(selectedIds);
-            message.error('Failed to update assignees');
+            message.error(t2('ERROR_UPDATE_ASSIGNEES'));
         }
     };
 
@@ -187,7 +190,7 @@ export default function ChecklistItemRow({
         } catch (error) {
             // Rollback on error
             setSelectedIds(previousIds);
-            message.error('Failed to remove assignees');
+            message.error(t2('ERROR_REMOVE_ASSIGNEES'));
         }
     };
 
@@ -204,7 +207,7 @@ export default function ChecklistItemRow({
         {
             key: 'assign',
             icon: <UserOutlined />,
-            label: 'Assign member',
+            label: t2('UI_ASSIGN_MEMBER'),
             onClick: () => {
                 setMemberModalOpen(true);
             },
@@ -212,7 +215,7 @@ export default function ChecklistItemRow({
         {
             key: 'duedate',
             icon: <CalendarOutlined />,
-            label: 'Set due date',
+            label: t2('UI_SET_DUE_DATE'),
             onClick: () => {
                 setDueDateModalOpen(true);
             },
@@ -220,14 +223,14 @@ export default function ChecklistItemRow({
         { type: 'divider' as const },
         {
             key: 'convert',
-            label: 'Convert to card',
+            label: t2('UI_CONVERT_TO_CARD'),
             icon: <SwapOutlined />,
             onClick: onConvertToCard,
         },
         { type: 'divider' as const },
         {
             key: 'delete',
-            label: 'Delete',
+            label: t2('UI_DELETE'),
             danger: true,
             icon: <DeleteOutlined />,
             onClick: onDelete,
@@ -269,10 +272,10 @@ export default function ChecklistItemRow({
                         />
                         <Space style={{ marginTop: 4 }}>
                             <Button type="primary" size="small" onClick={onSaveEdit}>
-                                Save
+                                {t2('UI_SAVE')}
                             </Button>
                             <Button size="small" onClick={onCancelEdit}>
-                                Cancel
+                                {t2('UI_CANCEL')}
                             </Button>
                         </Space>
                     </div>
@@ -363,7 +366,7 @@ export default function ChecklistItemRow({
 
             {/* Due Date Modal */}
             <Modal
-                title="Set Due Date"
+                title={t2('UI_SET_DUE_DATE')}
                 open={dueDateModalOpen}
                 onCancel={closeDueDateModal}
                 footer={null}

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useTemplateToBoard } from '@/hooks/useTemplates';
 import type { Template } from '@/types';
+import { useTranslation } from '@/hooks/useLabels';
 
 interface UseTemplateModalProps {
     template: Template;
@@ -17,16 +18,17 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
     const [form] = Form.useForm();
     const router = useRouter();
     const { message } = App.useApp();
-    
+    const t = useTranslation();
+
     const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
     const { mutate: createFromTemplate, isPending } = useTemplateToBoard();
-    
+
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
 
     const handleSubmit = () => {
         form.validateFields().then((values) => {
             if (!selectedWorkspaceId) {
-                message.error('Please select a workspace');
+                message.error(t('VALIDATE_SELECT_WORKSPACE'));
                 return;
             }
 
@@ -44,7 +46,7 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                         router.push(`/boards/${board.id}`);
                     },
                     onError: (error: any) => {
-                        const errorMsg = error?.response?.data?.message || 'Failed to create board from template';
+                        const errorMsg = error?.response?.data?.message || t('ERROR_CREATE_FROM_TEMPLATE');
                         message.error(errorMsg);
                     },
                 }
@@ -60,13 +62,13 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
 
     return (
         <Modal
-            title="Use template"
+            title={t('UI_USE_TEMPLATE')}
             open={open}
             onOk={handleSubmit}
             onCancel={handleCancel}
             confirmLoading={isPending}
-            okText="Create board"
-            cancelText="Cancel"
+            okText={t('UI_CREATE_BOARD')}
+            cancelText={t('UI_CANCEL')}
             width={500}
         >
             <div style={{ marginBottom: '16px' }}>
@@ -75,8 +77,8 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                         style={{
                             width: '40px',
                             height: '40px',
-                            background: template.cover_url 
-                                ? `url(${template.cover_url}) center/cover` 
+                            background: template.cover_url
+                                ? `url(${template.cover_url}) center/cover`
                                 : template.cover_color || '#0079bf',
                             borderRadius: '6px',
                             display: 'flex',
@@ -86,10 +88,10 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                         }}
                     >
                         {!template.cover_url && (
-                            <img 
-                                src="/mello-icon-only.svg" 
-                                alt="Template" 
-                                style={{ width: '24px', height: '24px', filter: 'brightness(0) invert(1)' }} 
+                            <img
+                                src="/mello-icon-only.svg"
+                                alt="Template"
+                                style={{ width: '24px', height: '24px', filter: 'brightness(0) invert(1)' }}
                             />
                         )}
                     </div>
@@ -110,9 +112,9 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                 }}
             >
                 <Form.Item
-                    label="Workspace"
+                    label={t('UI_WORKSPACE')}
                     name="workspaceId"
-                    rules={[{ required: true, message: 'Please select a workspace' }]}
+                    rules={[{ required: true, message: t('VALIDATE_SELECT_WORKSPACE') }]}
                 >
                     {isLoadingWorkspaces ? (
                         <div style={{ textAlign: 'center', padding: '12px' }}>
@@ -120,11 +122,11 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                         </div>
                     ) : workspaces.length === 0 ? (
                         <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                            No workspaces available. Please create a workspace first.
+                            {t('UI_NO_WORKSPACES')}
                         </div>
                     ) : (
                         <Select
-                            placeholder="Select a workspace"
+                            placeholder={t('UI_PLACEHOLDER_WORKSPACE')}
                             size="large"
                             value={selectedWorkspaceId || undefined}
                             onChange={setSelectedWorkspaceId}
@@ -137,15 +139,15 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                 </Form.Item>
 
                 <Form.Item
-                    label="Board title"
+                    label={t('UI_BOARD_TITLE')}
                     name="boardTitle"
                     rules={[
-                        { required: true, message: 'Please enter a board title' },
-                        { min: 1, max: 100, message: 'Title must be between 1 and 100 characters' },
+                        { required: true, message: t('VALIDATE_BOARD_TITLE') },
+                        { min: 1, max: 100, message: t('VALIDATE_TITLE_LENGTH') },
                     ]}
                 >
                     <Input
-                        placeholder="Enter board title"
+                        placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')}
                         size="large"
                         maxLength={100}
                     />

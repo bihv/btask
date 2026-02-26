@@ -36,6 +36,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { CustomField } from '@/types';
 import { customFieldApi } from '@/lib/api';
 import { ScreenHeader } from './MenuShared';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -143,8 +144,8 @@ function SortableFieldItem({ field, onEditField }: SortableFieldItemProps) {
             >
                 <HolderOutlined />
             </div>
-            
-            <div 
+
+            <div
                 style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}
                 onClick={() => onEditField(field)}
             >
@@ -153,8 +154,8 @@ function SortableFieldItem({ field, onEditField }: SortableFieldItemProps) {
                 </span>
                 <Text>{field.name}</Text>
             </div>
-            <RightOutlined 
-                style={{ fontSize: 12, opacity: 0.5, cursor: 'pointer' }} 
+            <RightOutlined
+                style={{ fontSize: 12, opacity: 0.5, cursor: 'pointer' }}
                 onClick={() => onEditField(field)}
             />
         </div>
@@ -164,6 +165,7 @@ function SortableFieldItem({ field, onEditField }: SortableFieldItemProps) {
 export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEditField }: CustomFieldsScreenProps) {
     const [fields, setFields] = useState<CustomField[]>([]);
     const { message } = App.useApp();
+    const t = useTranslation();
     const [loading, setLoading] = useState(true);
     const [addingDefault, setAddingDefault] = useState<string | null>(null);
 
@@ -208,12 +210,12 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
             try {
                 // Update positions sequentially 
                 await Promise.all(
-                    newFields.map((field, index) => 
+                    newFields.map((field, index) =>
                         customFieldApi.update(field.id, { position: index })
                     )
                 );
             } catch (error) {
-                message.error('Failed to reorder field');
+                message.error(t('ERROR_REORDER_FIELD_FAILED'));
                 loadFields(); // Revert on error
             }
         }
@@ -225,7 +227,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
             await customFieldApi.addDefaultField(boardId, fieldKey);
             loadFields();
         } catch (error: any) {
-            message.error(error.response?.data?.error || 'Failed to add field');
+            message.error(error.response?.data?.error || t('ERROR_ADD_FIELD_FAILED'));
         } finally {
             setAddingDefault(null);
         }
@@ -247,16 +249,16 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
 
     return (
         <div style={{ width: 280 }}>
-            <ScreenHeader title="Custom Fields" onBack={onBack} />
+            <ScreenHeader title={t('UI_CUSTOM_FIELDS')} onBack={onBack} />
 
             {/* Info button */}
             <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '4px 12px 8px' }}>
-                <Tooltip 
-                    title="Custom Fields let you add extra info to cards. Use them to track priority, status, estimates, and more."
+                <Tooltip
+                    title={t('UI_CUSTOM_FIELDS_TOOLTIP')}
                     placement="bottom"
                 >
                     <Button type="text" size="small" icon={<InfoCircleOutlined />} style={{ color: 'var(--text-secondary)' }}>
-                        About custom fields
+                        {t('UI_ABOUT_CUSTOM_FIELDS')}
                     </Button>
                 </Tooltip>
             </div>
@@ -291,7 +293,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
                     <Divider style={{ margin: '8px 0' }} />
                     <div style={{ padding: '8px 12px' }}>
                         <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                            Suggested Fields
+                            {t('UI_SUGGESTED_FIELDS')}
                         </Text>
                     </div>
                     {availableSuggestedFields.map((sf) => (
@@ -313,7 +315,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
                                 loading={addingDefault === sf.key}
                                 onClick={() => handleAddDefaultField(sf.key)}
                             >
-                                Add
+                                {t('UI_ADD')}
                             </Button>
                         </div>
                     ))}
@@ -335,7 +337,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
                         height: 40,
                     }}
                 >
-                    New field
+                    {t('UI_NEW_FIELD')}
                 </Button>
             </div>
         </div>

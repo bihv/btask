@@ -2,7 +2,6 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { useAuthStore } from '@/stores/authStore';
 
 // Query Keys
 export const labelKeys = {
@@ -17,12 +16,9 @@ async function fetchLabels(): Promise<Record<string, string>> {
 
 // Main hook for fetching labels
 export function useLabels() {
-    const isAuthenticated = useAuthStore((state) => !!state.user);
-
     return useQuery({
         queryKey: labelKeys.all,
         queryFn: fetchLabels,
-        enabled: isAuthenticated,
         staleTime: 5 * 60 * 1000, // 5 minutes - labels don't change often
         gcTime: 30 * 60 * 1000, // 30 minutes cache
     });

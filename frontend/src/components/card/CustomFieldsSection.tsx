@@ -15,6 +15,7 @@ import dayjs from 'dayjs';
 import { useQueryClient } from '@tanstack/react-query';
 import { CustomField, CardCustomFieldValue } from '@/types';
 import { customFieldApi } from '@/lib/api';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -50,6 +51,7 @@ const getFieldIcon = (field: CustomField) => {
 export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSectionProps) {
     const queryClient = useQueryClient();
     const { message } = App.useApp();
+    const t = useTranslation();
     const [fields, setFields] = useState<CustomField[]>([]);
     const [values, setValues] = useState<CardCustomFieldValue[]>([]);
     const [loading, setLoading] = useState(true);
@@ -119,7 +121,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
             // Invalidate board cache so card shows updated values
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error('Failed to update field');
+            message.error(t('ERROR_UPDATE_FIELD'));
         } finally {
             setSaving(null);
         }
@@ -131,24 +133,24 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
         try {
             await customFieldApi.clearCardValue(cardId, field.id);
             setValues(prev => prev.filter(v => v.custom_field_id !== field.id));
-            
+
             // Invalidate board cache
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error('Failed to clear field');
+            message.error(t('ERROR_CLEAR_FIELD'));
         } finally {
             setSaving(null);
         }
     };
 
     // Text field component with local state to avoid re-renders
-    const TextFieldInput = ({ field, initialValue, isSaving }: { 
-        field: CustomField; 
-        initialValue: string; 
-        isSaving: boolean 
+    const TextFieldInput = ({ field, initialValue, isSaving }: {
+        field: CustomField;
+        initialValue: string;
+        isSaving: boolean
     }) => {
         const [localValue, setLocalValue] = useState(initialValue);
-        
+
         const handleSave = () => {
             if (localValue !== initialValue) {
                 handleValueChange(field, localValue);
@@ -161,7 +163,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
                 onChange={(e) => setLocalValue(e.target.value)}
                 onBlur={handleSave}
                 onPressEnter={handleSave}
-                placeholder="Enter text..."
+                placeholder={t('UI_PLACEHOLDER_ENTER_TEXT')}
                 size="small"
                 disabled={isSaving}
             />
@@ -169,13 +171,13 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
     };
 
     // Number field component with local state
-    const NumberFieldInput = ({ field, initialValue, isSaving }: { 
-        field: CustomField; 
-        initialValue: number | undefined; 
-        isSaving: boolean 
+    const NumberFieldInput = ({ field, initialValue, isSaving }: {
+        field: CustomField;
+        initialValue: number | undefined;
+        isSaving: boolean
     }) => {
         const [localValue, setLocalValue] = useState(initialValue);
-        
+
         const handleSave = () => {
             const newValue = localValue?.toString();
             const oldValue = initialValue?.toString();
@@ -190,7 +192,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
                 onChange={(value) => setLocalValue(value ?? undefined)}
                 onBlur={handleSave}
                 onPressEnter={handleSave}
-                placeholder="Enter number..."
+                placeholder={t('UI_PLACEHOLDER_ENTER_NUMBER')}
                 size="small"
                 style={{ width: '100%' }}
                 disabled={isSaving}
@@ -222,7 +224,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
                         onChange={(value) => handleValueChange(field, undefined, value)}
                         allowClear
                         onClear={() => handleClearValue(field)}
-                        placeholder="Select..."
+                        placeholder={t('UI_PLACEHOLDER_SELECT')}
                         size="small"
                         style={{ width: '100%' }}
                         loading={isSaving}
@@ -249,21 +251,21 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
 
             case 'text':
                 return (
-                    <TextFieldInput 
+                    <TextFieldInput
                         key={field.id}
-                        field={field} 
-                        initialValue={fieldValue?.value || ''} 
-                        isSaving={isSaving} 
+                        field={field}
+                        initialValue={fieldValue?.value || ''}
+                        isSaving={isSaving}
                     />
                 );
 
             case 'number':
                 return (
-                    <NumberFieldInput 
+                    <NumberFieldInput
                         key={field.id}
-                        field={field} 
-                        initialValue={fieldValue?.value ? Number(fieldValue.value) : undefined} 
-                        isSaving={isSaving} 
+                        field={field}
+                        initialValue={fieldValue?.value ? Number(fieldValue.value) : undefined}
+                        isSaving={isSaving}
                     />
                 );
 
@@ -301,7 +303,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
         <div style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <FlagOutlined style={{ color: 'var(--text-secondary)' }} />
-                <Text type="secondary" style={{ fontSize: 12 }}>Custom Fields</Text>
+                <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_CUSTOM_FIELDS')}</Text>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

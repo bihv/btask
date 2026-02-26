@@ -6,6 +6,7 @@ import { LinkOutlined, ReloadOutlined } from '@ant-design/icons';
 import { linkPreviewApi } from '@/lib/api';
 import EditableTitle from '@/components/common/EditableTitle';
 import styles from './LinkPreviewCard.module.css';
+import { useTranslation } from '@/hooks/useLabels';
 
 const { Text } = Typography;
 
@@ -41,6 +42,7 @@ export default function LinkPreviewCard({
     readOnly = false,
 }: LinkPreviewCardProps) {
     const { message } = App.useApp();
+    const t = useTranslation();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const hostname = linkUrl ? new URL(linkUrl).hostname : '';
 
@@ -54,7 +56,7 @@ export default function LinkPreviewCard({
                 await onRefresh();
             }
         } catch (error: any) {
-            message.error(error.response?.data?.message || 'Failed to refresh link preview');
+            message.error(error.response?.data?.message || t('ERROR_REFRESH_LINK'));
         } finally {
             setIsRefreshing(false);
         }
@@ -121,7 +123,7 @@ export default function LinkPreviewCard({
                         }}
                         inputStyle={{ fontSize: 11 }}
                         size="small"
-                        placeholder="Enter URL"
+                        placeholder={t('UI_PLACEHOLDER_ENTER_URL')}
                     />
                 </div>
             )}
@@ -170,7 +172,7 @@ export default function LinkPreviewCard({
                     </Text>
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
-                    <Tooltip title="Refresh link preview">
+                    <Tooltip title={t('UI_REFRESH_LINK_PREVIEW')}>
                         <div
                             onClick={handleRefreshClick}
                             style={{
@@ -191,7 +193,7 @@ export default function LinkPreviewCard({
                         </div>
                     </Tooltip>
                     {onExternalClick && (
-                        <Tooltip title="Open link in new tab">
+                        <Tooltip title={t('UI_OPEN_LINK_NEW_TAB')}>
                             <div
                                 onClick={onExternalClick}
                                 style={{
