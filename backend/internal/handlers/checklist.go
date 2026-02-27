@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/events"
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/repository"
@@ -15,10 +16,10 @@ type ChecklistHandler struct {
 	cardService *services.CardService
 }
 
-func NewChecklistHandler() *ChecklistHandler {
+func NewChecklistHandler(eventBus *events.EventBus) *ChecklistHandler {
 	return &ChecklistHandler{
 		repo:        repository.NewChecklistRepository(),
-		cardService: services.NewCardService(services.NewAutomationService()),
+		cardService: services.NewCardService(eventBus),
 	}
 }
 

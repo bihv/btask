@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/database"
+	"github.com/mello/backend/internal/events"
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/repository"
@@ -23,10 +24,10 @@ type CardHandler struct {
 	webhookService      *services.WebhookService
 }
 
-func NewCardHandler(automationService *services.AutomationService) *CardHandler {
+func NewCardHandler(eventBus *events.EventBus) *CardHandler {
 	webhookRepo := repository.NewWebhookRepository(database.DB)
 	return &CardHandler{
-		service:             services.NewCardService(automationService),
+		service:             services.NewCardService(eventBus),
 		listService:         services.NewListService(),
 		notificationService: services.NewNotificationService(),
 		linkPreviewService:  services.NewLinkPreviewService(),

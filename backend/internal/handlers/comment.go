@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/events"
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/services"
@@ -19,10 +20,10 @@ type CommentHandler struct {
 	notificationService *services.NotificationService
 }
 
-func NewCommentHandler() *CommentHandler {
+func NewCommentHandler(eventBus *events.EventBus) *CommentHandler {
 	return &CommentHandler{
 		service:             services.NewCommentService(),
-		cardService:         services.NewCardService(services.NewAutomationService()),
+		cardService:         services.NewCardService(eventBus),
 		listService:         services.NewListService(),
 		notificationService: services.NewNotificationService(),
 	}

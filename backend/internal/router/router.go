@@ -4,8 +4,10 @@ import (
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	triggerhandlers "github.com/mello/backend/internal/automation/handlers"
 	"github.com/mello/backend/internal/config"
 	"github.com/mello/backend/internal/database"
+	"github.com/mello/backend/internal/events"
 	"github.com/mello/backend/internal/handlers"
 	"github.com/mello/backend/internal/middleware"
 	"github.com/mello/backend/internal/repository"
@@ -41,9 +43,16 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Email verification (public - user clicks link from email)
 	api.Get("/users/verify-email", userHandler.VerifyEmailChange)
 
+	// Event Bus (core decoupling layer)
+	eventBus := events.NewEventBus()
+
 	// Automation Service (initialize early for public schema endpoints)
 	automationService := services.NewAutomationService()
 	automationHandler := handlers.NewAutomationHandler(automationService)
+
+	// Register Salesforce-style trigger handler: EventBus → AutomationService
+	cardTriggerHandler := triggerhandlers.NewCardTriggerHandler(automationService)
+	cardTriggerHandler.Register(eventBus)
 
 	// Public automation schema endpoints (no auth required)
 	// These are read-only schema endpoints used by the UI builder
@@ -123,7 +132,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	protected.Get("/search", searchHandler.Search)
 
 	// User routes (automationService already initialized above for public schema endpoints)
-	cardHandler := handlers.NewCardHandler(automationService)
+	cardHandler := handlers.NewCardHandler(eventBus)
 	users := protected.Group("/users")
 	users.Get("/me", userHandler.GetMe)
 	users.Get("/me/cards", cardHandler.GetMyCards)
@@ -239,7 +248,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	cards.Delete("/:cardId/custom-fields/:fieldId", customFieldHandler.ClearCardValue)
 
 	// Comment routes
-	commentHandler := handlers.NewCommentHandler()
+	commentHandler := handlers.NewCommentHandler(eventBus)
 	cards.Get("/:cardId/comments", commentHandler.GetByCardID)
 	cards.Post("/:cardId/comments", commentHandler.Create)
 
@@ -248,7 +257,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	comments.Delete("/:id", commentHandler.Delete)
 
 	// Checklist routes
-	checklistHandler := handlers.NewChecklistHandler()
+	checklistHandler := handlers.NewChecklistHandler(eventBus)
 	cards.Get("/:cardId/checklists", checklistHandler.GetByCardID)
 	cards.Post("/:cardId/checklists", checklistHandler.Create)
 

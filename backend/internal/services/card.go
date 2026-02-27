@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/mello/backend/internal/events"
 	"github.com/mello/backend/internal/models"
 	"github.com/mello/backend/internal/repository"
 )
@@ -15,17 +16,17 @@ type CardService struct {
 	boardRepo          *repository.BoardRepository
 	workspaceRepo      *repository.WorkspaceRepository
 	linkPreviewService *LinkPreviewService
-	automationService  *AutomationService
+	eventBus           *events.EventBus
 }
 
-func NewCardService(automationService *AutomationService) *CardService {
+func NewCardService(eventBus *events.EventBus) *CardService {
 	return &CardService{
 		cardRepo:           repository.NewCardRepository(),
 		listRepo:           repository.NewListRepository(),
 		boardRepo:          repository.NewBoardRepository(),
 		workspaceRepo:      repository.NewWorkspaceRepository(),
 		linkPreviewService: NewLinkPreviewService(),
-		automationService:  automationService,
+		eventBus:           eventBus,
 	}
 }
 
@@ -78,13 +79,14 @@ func (s *CardService) Create(listID uuid.UUID, userID uuid.UUID, req models.Crea
 		return nil, err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.created", list.BoardID, map[string]interface{}{
-		"card_id":   card.ID.String(),
-		"list_id":   listID.String(),
-		"board_id":  list.BoardID.String(),
-		"list_name": list.Title, // Changed from Name to Title
-		"user_id":   userID.String(),
+	// Emit domain event (decoupled from automation)
+	s.eventBus.Publish(events.CardCreatedEvent{
+		CardID:   card.ID,
+		ListID:   listID,
+		BoardID:  list.BoardID,
+		ListName: list.Title,
+		UserID:   userID,
+		Context:  events.NewUserContext(),
 	})
 
 	return card, nil
@@ -170,31 +172,28 @@ func (s *CardService) Update(cardID uuid.UUID, userID uuid.UUID, req models.Upda
 		return nil, err
 	}
 
-	// Trigger Automation for due date change
+	// Emit domain events for field changes
 	dueDateChanged := (oldDueDate == nil && card.DueDate != nil) ||
 		(oldDueDate != nil && card.DueDate == nil) ||
 		(oldDueDate != nil && card.DueDate != nil && !oldDueDate.Equal(*card.DueDate))
 	if dueDateChanged {
-		s.automationService.ProcessEvent("card.due_date_changed", list.BoardID, map[string]interface{}{
-			"card_id":  cardID.String(),
-			"list_id":  card.ListID.String(),
-			"board_id": list.BoardID.String(),
-			"user_id":  userID.String(),
+		s.eventBus.Publish(events.CardDueDateChangedEvent{
+			CardID:  cardID,
+			ListID:  card.ListID,
+			BoardID: list.BoardID,
+			UserID:  userID,
+			Context: events.NewUserContext(),
 		})
 	}
 
-	// Trigger Automation for completion status change
 	if oldIsCompleted != card.IsCompleted {
-		eventType := "card.completed"
-		if !card.IsCompleted {
-			eventType = "card.incomplete"
-		}
-		s.automationService.ProcessEvent(eventType, list.BoardID, map[string]interface{}{
-			"card_id":      cardID.String(),
-			"list_id":      card.ListID.String(),
-			"board_id":     list.BoardID.String(),
-			"is_completed": card.IsCompleted,
-			"user_id":      userID.String(),
+		s.eventBus.Publish(events.CardCompletedEvent{
+			CardID:      cardID,
+			ListID:      card.ListID,
+			BoardID:     list.BoardID,
+			IsCompleted: card.IsCompleted,
+			UserID:      userID,
+			Context:     events.NewUserContext(),
 		})
 	}
 
@@ -249,13 +248,14 @@ func (s *CardService) Move(cardID uuid.UUID, userID uuid.UUID, req models.MoveCa
 		return err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.moved", list.BoardID, map[string]interface{}{
-		"card_id":     cardID.String(),
-		"old_list_id": list.ID.String(),    // Source list (matches trigger config)
-		"list_id":     req.ListID.String(), // Target list
-		"board_id":    list.BoardID.String(),
-		"user_id":     userID.String(),
+	// Emit domain event
+	s.eventBus.Publish(events.CardMovedEvent{
+		CardID:    cardID,
+		OldListID: list.ID,
+		NewListID: req.ListID,
+		BoardID:   list.BoardID,
+		UserID:    userID,
+		Context:   events.NewUserContext(),
 	})
 
 	return nil
@@ -286,12 +286,13 @@ func (s *CardService) AddLabel(cardID uuid.UUID, labelID uuid.UUID, userID uuid.
 		return err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.label_added", list.BoardID, map[string]interface{}{
-		"card_id":  cardID.String(),
-		"label_id": labelID.String(),
-		"board_id": list.BoardID.String(),
-		"user_id":  userID.String(),
+	// Emit domain event
+	s.eventBus.Publish(events.CardLabelAddedEvent{
+		CardID:  cardID,
+		LabelID: labelID,
+		BoardID: list.BoardID,
+		UserID:  userID,
+		Context: events.NewUserContext(),
 	})
 
 	return nil
@@ -322,12 +323,13 @@ func (s *CardService) RemoveLabel(cardID uuid.UUID, labelID uuid.UUID, userID uu
 		return err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.label_removed", list.BoardID, map[string]interface{}{
-		"card_id":  cardID.String(),
-		"label_id": labelID.String(),
-		"board_id": list.BoardID.String(),
-		"user_id":  userID.String(),
+	// Emit domain event
+	s.eventBus.Publish(events.CardLabelRemovedEvent{
+		CardID:  cardID,
+		LabelID: labelID,
+		BoardID: list.BoardID,
+		UserID:  userID,
+		Context: events.NewUserContext(),
 	})
 
 	return nil
@@ -358,12 +360,13 @@ func (s *CardService) AddMember(cardID uuid.UUID, memberUserID uuid.UUID, userID
 		return err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.member_added", list.BoardID, map[string]interface{}{
-		"card_id":   cardID.String(),
-		"member_id": memberUserID.String(),
-		"board_id":  list.BoardID.String(),
-		"user_id":   userID.String(),
+	// Emit domain event
+	s.eventBus.Publish(events.CardMemberAddedEvent{
+		CardID:   cardID,
+		MemberID: memberUserID,
+		BoardID:  list.BoardID,
+		UserID:   userID,
+		Context:  events.NewUserContext(),
 	})
 
 	return nil
@@ -394,12 +397,13 @@ func (s *CardService) RemoveMember(cardID uuid.UUID, memberUserID uuid.UUID, use
 		return err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.member_removed", list.BoardID, map[string]interface{}{
-		"card_id":   cardID.String(),
-		"member_id": memberUserID.String(),
-		"board_id":  list.BoardID.String(),
-		"user_id":   userID.String(),
+	// Emit domain event
+	s.eventBus.Publish(events.CardMemberRemovedEvent{
+		CardID:   cardID,
+		MemberID: memberUserID,
+		BoardID:  list.BoardID,
+		UserID:   userID,
+		Context:  events.NewUserContext(),
 	})
 
 	return nil
@@ -430,12 +434,13 @@ func (s *CardService) Archive(cardID uuid.UUID, userID uuid.UUID) error {
 		return err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.archived", list.BoardID, map[string]interface{}{
-		"card_id":  cardID.String(),
-		"list_id":  card.ListID.String(),
-		"board_id": list.BoardID.String(),
-		"user_id":  userID.String(),
+	// Emit domain event
+	s.eventBus.Publish(events.CardArchivedEvent{
+		CardID:  cardID,
+		ListID:  card.ListID,
+		BoardID: list.BoardID,
+		UserID:  userID,
+		Context: events.NewUserContext(),
 	})
 
 	return nil
@@ -466,12 +471,13 @@ func (s *CardService) Unarchive(cardID uuid.UUID, userID uuid.UUID) error {
 		return err
 	}
 
-	// Trigger Automation
-	s.automationService.ProcessEvent("card.unarchived", list.BoardID, map[string]interface{}{
-		"card_id":  cardID.String(),
-		"list_id":  card.ListID.String(),
-		"board_id": list.BoardID.String(),
-		"user_id":  userID.String(),
+	// Emit domain event
+	s.eventBus.Publish(events.CardUnarchivedEvent{
+		CardID:  cardID,
+		ListID:  card.ListID,
+		BoardID: list.BoardID,
+		UserID:  userID,
+		Context: events.NewUserContext(),
 	})
 
 	return nil
