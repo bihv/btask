@@ -1,17 +1,15 @@
 'use client';
 
-import { Typography, Button, theme, Flex } from 'antd';
-import { ClockCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Title, Paragraph, Text } = Typography;
+import { Text, Title, Button, Flex } from '@mantine/core';
+import { IconClock } from '@tabler/icons-react';
 
 export default function AutomationScheduled() {
-    const { token } = theme.useToken();
     const t = useTranslation();
 
     return (
-        <Flex vertical align="center" justify="center" style={{ padding: '48px 24px', textAlign: 'center' }}>
+        <Flex direction="column" align="center" justify="center" style={{ padding: '48px 24px', textAlign: 'center' }}>
             <Flex
                 align="center"
                 justify="center"
@@ -19,22 +17,22 @@ export default function AutomationScheduled() {
                     width: 80,
                     height: 80,
                     borderRadius: '50%',
-                    background: token.colorFillSecondary,
+                    background: 'var(--mantine-color-default-hover)',
                     marginBottom: 24
                 }}
             >
-                <ClockCircleOutlined style={{ fontSize: 40, color: token.colorPrimary }} />
+                <IconClock size={40} />
             </Flex>
 
-            <Title level={3}>{t('UI_SCHEDULED_AUTOMATIONS')}</Title>
-            <Paragraph type="secondary" style={{ maxWidth: 500, marginBottom: 32 }}>
+            <Title order={3}>{t('UI_SCHEDULED_AUTOMATIONS')}</Title>
+            <Text c="dimmed" style={{ maxWidth: 500, marginBottom: 32 }}>
                 {t('UI_SCHEDULED_DESCRIPTION')}
-            </Paragraph>
+            </Text>
 
-            <Button type="primary" size="large" disabled>
+            <Button size="lg" disabled>
                 {t('UI_CREATE_SCHEDULED')}
             </Button>
-            <Text type="secondary" style={{ marginTop: 16, fontSize: 12 }}>
+            <Text c="dimmed" style={{ marginTop: 16, fontSize: 12 }}>
                 {t('UI_COMING_SOON')}
             </Text>
         </Flex>

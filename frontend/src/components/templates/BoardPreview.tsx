@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Typography } from 'antd';
 import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 import TemplateCardModal from './TemplateCardModal';
 import { TemplateList, TemplateCard, BoardList, Card } from '@/types';
 import { useAppToken } from '@/hooks/useAppToken';
 
-const { Text } = Typography;
-
+import { Text, Title } from '@mantine/core';
 interface BoardPreviewProps {
     lists: TemplateList[];
     title?: string;
@@ -110,7 +108,7 @@ export default function BoardPreview({ lists, title, backgroundColor = '#0079bf'
                             backdropFilter: 'blur(8px)',
                         }}
                     >
-                        <Text strong style={{ color: token.colorWhite, fontSize: '14px' }}>{title}</Text>
+                        <Text fw={700} style={{ color: token.colorWhite, fontSize: '14px' }}>{title}</Text>
                         <span
                             style={{
                                 backgroundColor: 'rgba(255,255,255,0.3)',

@@ -1,14 +1,12 @@
 import React from 'react';
-import { Popover, Input, Button, Checkbox, Avatar, Badge, Space, Divider, Typography } from 'antd';
-import { FilterOutlined, SearchOutlined, UserOutlined, ClockCircleOutlined, TagOutlined } from '@ant-design/icons';
 import { Label, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
 import dayjs from 'dayjs';
 
-const { Text, Title } = Typography;
-
+import { Popover, TextInput, Button, Checkbox, Avatar, Badge, Group, Divider, Text, Title } from '@mantine/core';
+import { IconFilter, IconSearch, IconUser, IconClock, IconTag } from '@tabler/icons-react';
 export interface FilterState {
     search: string;
     labelIds: string[];
@@ -87,12 +85,12 @@ export default function BoardFilterPopover({
         <div style={{ width: 300, maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }}>
             <div style={{ padding: '0 4px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                    <Text strong style={{ fontSize: 14 }}>{t('UI_FILTER_CARDS')}</Text>
+                    <Text fw={700} style={{ fontSize: 14 }}>{t('UI_FILTER_CARDS')}</Text>
                     {activeCount > 0 && (
                         <Button
-                            size="small"
-                            type="link"
-                            danger
+                            size="sm"
+                            variant="transparent"
+                            color="red"
                             onClick={() => onChange(defaultFilters)}
                             style={{ padding: 0 }}
                         >
@@ -102,18 +100,18 @@ export default function BoardFilterPopover({
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_KEYWORDS')}</Text>
-                    <Input
+                    <Text c="dimmed" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_KEYWORDS')}</Text>
+                    <TextInput
                         placeholder={t('UI_PLACEHOLDER_SEARCH_CARDS')}
-                        prefix={<SearchOutlined style={{ color: 'var(--text-secondary)' }} />}
+                        leftSection={<IconSearch size={16} style={{ color: 'var(--text-secondary)' }} />}
                         value={filters.search}
                         onChange={(e) => onChange({ ...filters, search: e.target.value })}
-                        allowClear
+
                     />
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_MEMBERS')}</Text>
+                    <Text c="dimmed" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_MEMBERS')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div
                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
@@ -121,7 +119,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.noMembers} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Avatar size="small" icon={<UserOutlined />} />
+                                <Avatar size="sm" />
                                 <Text>{t('UI_NO_MEMBERS')}</Text>
                             </div>
                         </div>
@@ -142,7 +140,7 @@ export default function BoardFilterPopover({
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_LABELS_SECTION')}</Text>
+                    <Text c="dimmed" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_LABELS_SECTION')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div
                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
@@ -150,7 +148,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.noLabels} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <TagOutlined />
+                                <IconTag size={16} />
                                 <Text>{t('UI_NO_LABELS')}</Text>
                             </div>
                         </div>
@@ -180,7 +178,7 @@ export default function BoardFilterPopover({
                 </div>
 
                 <div style={{ marginBottom: 8 }}>
-                    <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_DUE_DATE')}</Text>
+                    <Text c="dimmed" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8 }}>{t('UI_DUE_DATE')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div
                             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}
@@ -196,7 +194,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.dueDate === 'overdue'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <ClockCircleOutlined style={{ color: token.colorOverdue }} />
+                                <IconClock size={16} style={{ color: token.colorOverdue }} />
                                 <Text>{t('UI_OVERDUE')}</Text>
                             </div>
                         </div>
@@ -207,7 +205,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.dueDate === 'due_soon'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <ClockCircleOutlined style={{ color: token.colorDueSoon }} />
+                                <IconClock size={16} style={{ color: token.colorDueSoon }} />
                                 <Text>{t('UI_DUE_SOON')}</Text>
                             </div>
                         </div>
@@ -218,7 +216,7 @@ export default function BoardFilterPopover({
                         >
                             <Checkbox checked={filters.dueDate === 'due_later'} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <ClockCircleOutlined style={{ color: token.colorDueComplete }} />
+                                <IconClock size={16} style={{ color: token.colorDueComplete }} />
                                 <Text>{t('UI_DUE_LATER')}</Text>
                             </div>
                         </div>
@@ -242,13 +240,13 @@ export default function BoardFilterPopover({
     );
 
     return (
-        <Popover
-            content={content}
-            trigger="click"
-            placement="bottomRight"
-            styles={{ content: { padding: 16 } }}
-        >
-            {children}
+        <Popover position="bottom-end" shadow="md">
+            <Popover.Target>
+                {children}
+            </Popover.Target>
+            <Popover.Dropdown style={{ padding: 16 }}>
+                {content}
+            </Popover.Dropdown>
         </Popover>
     );
 }

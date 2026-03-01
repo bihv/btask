@@ -1,5 +1,5 @@
 /* Board Menu Popover Styles */
-.popover :global(.ant-popover-inner) {
+.popover :global(.mantine-Popover-dropdown) {
     background: var(--bg-secondary);
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -7,7 +7,7 @@
     border: none;
 }
 
-:global([data-theme='dark']) .popover :global(.ant-popover-inner) {
+:global([data-mantine-color-scheme='dark']) .popover :global(.mantine-Popover-dropdown) {
     background: var(--bg-secondary);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }

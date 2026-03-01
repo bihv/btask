@@ -2,33 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-    Typography,
-    Card,
-    Spin,
-    Form,
-    Button,
-    App,
-    Alert,
-    Tag,
-    Input,
-    Space,
-} from 'antd';
-import {
-    SafetyOutlined,
-    PlusOutlined,
-} from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/useAdmin';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Title, Text } = Typography;
-
+import { Text, Title, Card, Loader, Button, Alert, Badge, TextInput, Group, CloseButton, ActionIcon } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconShieldCheck, IconPlus } from '@tabler/icons-react';
 export default function SecuritySettingsPage() {
     const router = useRouter();
     const { user } = useAuthStore();
-    const { message } = App.useApp();
-    const [form] = Form.useForm();
 
     const { data: settings, isLoading } = useSystemSettings();
     const updateSettings = useUpdateSystemSettings();
@@ -68,9 +51,9 @@ export default function SecuritySettingsPage() {
                     blocked_types: blockedTypes,
                 },
             });
-            message.success(t('UI_SECURITY_SAVED'));
+            notifications.show({ message: t('UI_SECURITY_SAVED'), color: 'green' });
         } catch {
-            message.error(t('ERROR_SAVE_SETTINGS'));
+            notifications.show({ title: 'Error', message: t('ERROR_SAVE_SETTINGS'), color: 'red' });
         }
     };
 
@@ -105,122 +88,136 @@ export default function SecuritySettingsPage() {
 
     return (
         <>
-            <Title level={2} style={{ marginBottom: 24 }}>
-                <SafetyOutlined style={{ marginRight: 8 }} />
+            <Title order={2} style={{ marginBottom: 24 }}>
+                <IconShieldCheck size={24} style={{ marginRight: 8 }} />
                 {t('UI_FILE_SECURITY_TITLE')}
             </Title>
 
-            <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
+            <Text c="dimmed" style={{ display: 'block', marginBottom: 24 }}>
                 {t('UI_FILE_SECURITY_DESC')}
             </Text>
 
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: 40 }}>
-                    <Spin size="large" />
+                    <Loader size="lg" />
                 </div>
             ) : (
                 <Card title={t('UI_ALLOWED_FILE_TYPES')}>
-                    <Form
-                        form={form}
-                        layout="vertical"
-                        onFinish={handleSubmit}
+                    <form
+
+                        onSubmit={handleSubmit}
                     >
                         <Alert
                             title="File Type Logic"
-                            description="Prefixes match any type starting with that pattern (e.g., 'image/'). Blocked types override checking."
-                            type="info"
-                            showIcon
+                            color="blue"
                             style={{ marginBottom: 24 }}
-                        />
+                        >
+                            Prefixes match any type starting with that pattern (e.g., &apos;image/&apos;). Blocked types override checking.
+                        </Alert>
 
-                        <Form.Item label={t('UI_ALLOWED_PREFIXES')} extra="Match any MIME type starting with these prefixes (e.g., image/, video/, audio/)">
+                        <div>
                             <div style={{ border: '1px solid #d9d9d9', padding: '12px', borderRadius: '6px', marginBottom: 8, maxHeight: 120, overflowY: 'auto', background: 'var(--bg-secondary)' }}>
-                                {allowedPrefixes.length === 0 && <Text type="secondary" style={{ fontSize: 13 }}>No prefixes allowed</Text>}
-                                <Space wrap>
+                                {allowedPrefixes.length === 0 && <Text c="dimmed" style={{ fontSize: 13 }}>No prefixes allowed</Text>}
+                                <Group wrap="wrap">
                                     {allowedPrefixes.map((prefix) => (
-                                        <Tag
+                                        <Badge
                                             key={prefix}
-                                            closable
                                             color="blue"
-                                            onClose={() => setAllowedPrefixes(allowedPrefixes.filter((p) => p !== prefix))}
+                                            rightSection={
+                                                <CloseButton size="xs" variant="transparent" c="white" onClick={() => setAllowedPrefixes(allowedPrefixes.filter((p) => p !== prefix))} />
+                                            }
                                         >
                                             {prefix}
-                                        </Tag>
+                                        </Badge>
                                     ))}
-                                </Space>
+                                </Group>
                             </div>
-                            <Input.Search
-                                placeholder="Add prefix (e.g., image/)"
-                                enterButton={<PlusOutlined />}
-                                value={inputPrefix}
-                                onChange={(e) => setInputPrefix(e.target.value)}
-                                onSearch={handleAddPrefix}
-                                style={{ width: 300 }}
-                            />
-                        </Form.Item>
+                            <Group gap="xs">
+                                <TextInput
+                                    placeholder="Add prefix (e.g., image/)"
+                                    value={inputPrefix}
+                                    onChange={(e) => setInputPrefix(e.currentTarget.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddPrefix())}
+                                    style={{ width: 250 }}
+                                />
+                                <ActionIcon variant="filled" onClick={handleAddPrefix}>
+                                    <IconPlus size={16} />
+                                </ActionIcon>
+                            </Group>
+                        </div>
 
-                        <Form.Item label={t('UI_SPECIFIC_ALLOWED')} extra="Specific MIME types to allow (e.g., application/pdf)">
+                        <div>
                             <div style={{ border: '1px solid #d9d9d9', padding: '12px', borderRadius: '6px', marginBottom: 8, maxHeight: 150, overflowY: 'auto', background: 'var(--bg-secondary)' }}>
-                                {allowedTypes.length === 0 && <Text type="secondary" style={{ fontSize: 13 }}>No specific types allowed</Text>}
-                                <Space wrap>
+                                {allowedTypes.length === 0 && <Text c="dimmed" style={{ fontSize: 13 }}>No specific types allowed</Text>}
+                                <Group wrap="wrap">
                                     {allowedTypes.map((type) => (
-                                        <Tag
+                                        <Badge
                                             key={type}
-                                            closable
                                             color="green"
-                                            onClose={() => setAllowedTypes(allowedTypes.filter((t) => t !== type))}
+                                            rightSection={
+                                                <CloseButton size="xs" variant="transparent" c="white" onClick={() => setAllowedTypes(allowedTypes.filter((t) => t !== type))} />
+                                            }
                                         >
                                             {type}
-                                        </Tag>
+                                        </Badge>
                                     ))}
-                                </Space>
+                                </Group>
                             </div>
-                            <Input.Search
-                                placeholder="Add MIME type (e.g., application/pdf)"
-                                enterButton={<PlusOutlined />}
-                                value={inputType}
-                                onChange={(e) => setInputType(e.target.value)}
-                                onSearch={handleAddType}
-                                style={{ width: 350 }}
-                            />
-                        </Form.Item>
+                            <Group gap="xs">
+                                <TextInput
+                                    placeholder="Add MIME type (e.g., application/pdf)"
+                                    value={inputType}
+                                    onChange={(e) => setInputType(e.currentTarget.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddType())}
+                                    style={{ width: 300 }}
+                                />
+                                <ActionIcon variant="filled" onClick={handleAddType}>
+                                    <IconPlus size={16} />
+                                </ActionIcon>
+                            </Group>
+                        </div>
 
-                        <Form.Item label={t('UI_BLOCKED_TYPES')} extra="Block specific MIME types (overrides prefix matches)">
+                        <div>
                             <div style={{ border: '1px solid #d9d9d9', padding: '12px', borderRadius: '6px', marginBottom: 8, maxHeight: 120, overflowY: 'auto', background: '#fff1f0' }}>
-                                {blockedTypes.length === 0 && <Text type="secondary" style={{ fontSize: 13 }}>No types blocked</Text>}
-                                <Space wrap>
+                                {blockedTypes.length === 0 && <Text c="dimmed" style={{ fontSize: 13 }}>No types blocked</Text>}
+                                <Group wrap="wrap">
                                     {blockedTypes.map((type) => (
-                                        <Tag
+                                        <Badge
                                             key={type}
-                                            closable
                                             color="red"
-                                            onClose={() => setBlockedTypes(blockedTypes.filter((t) => t !== type))}
+                                            rightSection={
+                                                <CloseButton size="xs" variant="transparent" c="white" onClick={() => setBlockedTypes(blockedTypes.filter((t) => t !== type))} />
+                                            }
                                         >
                                             {type}
-                                        </Tag>
+                                        </Badge>
                                     ))}
-                                </Space>
+                                </Group>
                             </div>
-                            <Input.Search
-                                placeholder="Block MIME type (e.g., image/svg+xml)"
-                                enterButton={<PlusOutlined />}
-                                value={inputBlocked}
-                                onChange={(e) => setInputBlocked(e.target.value)}
-                                onSearch={handleAddBlocked}
-                                style={{ width: 350 }}
-                            />
-                        </Form.Item>
+                            <Group gap="xs">
+                                <TextInput
+                                    placeholder="Block MIME type (e.g., image/svg+xml)"
+                                    value={inputBlocked}
+                                    onChange={(e) => setInputBlocked(e.currentTarget.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddBlocked())}
+                                    style={{ width: 300 }}
+                                />
+                                <ActionIcon variant="filled" onClick={handleAddBlocked}>
+                                    <IconPlus size={16} />
+                                </ActionIcon>
+                            </Group>
+                        </div>
 
-                        <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+                        <div>
                             <Button
-                                type="primary"
-                                htmlType="submit"
+
+                                type="submit"
                                 loading={updateSettings.isPending}
                             >
                                 {t('UI_SAVE_SECURITY_SETTINGS')}
                             </Button>
-                        </Form.Item>
-                    </Form>
+                        </div>
+                    </form>
                 </Card>
             )}
         </>

@@ -1,10 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Input, Typography } from 'antd';
-import type { InputProps } from 'antd';
-
-const { Text } = Typography;
+import { TextInput, Textarea, Text } from '@mantine/core';
 
 interface EditableTitleProps {
     value: string;
@@ -13,7 +10,7 @@ interface EditableTitleProps {
     style?: React.CSSProperties;
     textStyle?: React.CSSProperties;
     inputStyle?: React.CSSProperties;
-    size?: InputProps['size'];
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     strong?: boolean;
     disabled?: boolean;
     multiline?: boolean;
@@ -42,7 +39,7 @@ export default function EditableTitle({
 
     const handleSave = async () => {
         const trimmed = text.trim();
-        
+
         // Revert if empty
         if (!trimmed) {
             setText(value);
@@ -73,11 +70,13 @@ export default function EditableTitle({
     if (isEditing) {
         if (multiline) {
             return (
-                <Input.TextArea
+                <Textarea
                     autoFocus
-                    autoSize={{ minRows: 1, maxRows: 6 }}
+                    autosize
+                    minRows={1}
+                    maxRows={6}
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => setText(e.currentTarget.value)}
                     onBlur={handleSave}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -97,13 +96,15 @@ export default function EditableTitle({
         }
 
         return (
-            <Input
+            <TextInput
                 autoFocus
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => setText(e.currentTarget.value)}
                 onBlur={handleSave}
-                onPressEnter={handleSave}
                 onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        handleSave();
+                    }
                     if (e.key === 'Escape') {
                         handleCancel();
                     }
@@ -118,7 +119,7 @@ export default function EditableTitle({
 
     return (
         <Text
-            strong={strong}
+            fw={700}
             onClick={() => !disabled && setIsEditing(true)}
             style={{
                 cursor: disabled ? 'default' : 'pointer',

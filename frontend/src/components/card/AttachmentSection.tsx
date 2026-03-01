@@ -1,35 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-    Typography,
-    Button,
-    Upload,
-    Image,
-    Popconfirm,
-    Space,
-    App,
-} from 'antd';
-import {
-    PaperClipOutlined,
-    DeleteOutlined,
-    DownloadOutlined,
-    FileOutlined,
-    FileImageOutlined,
-    FilePdfOutlined,
-    FileWordOutlined,
-    FileExcelOutlined,
-    UploadOutlined,
-    PictureOutlined,
-    CheckCircleFilled,
-} from '@ant-design/icons';
 import { Attachment } from '@/types';
 import { attachmentApi, uploadFile } from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
 
-const { Text } = Typography;
-
+import { Text, Title, Button, FileButton, Modal, Group, Image } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconPaperclip, IconTrash, IconDownload, IconFile, IconFileTypePng, IconFileTypePdf, IconFileTypeDoc, IconFileTypeXls, IconUpload, IconPhoto, IconCircleCheckFilled } from '@tabler/icons-react';
 interface AttachmentSectionProps {
     cardId: string;
     attachments: Attachment[];
@@ -43,18 +22,18 @@ const getFileIcon = (fileName: string, fileType?: string, colors?: { primary: st
     const ext = fileName.split('.').pop()?.toLowerCase();
     const c = colors || { primary: '#1890ff', error: '#ff4d4f', success: '#52c41a', muted: '#666' };
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '')) {
-        return <FileImageOutlined style={{ fontSize: 24, color: c.primary }} />;
+        return <IconFileTypePng size={24} style={{ color: c.primary }} />;
     }
     if (ext === 'pdf') {
-        return <FilePdfOutlined style={{ fontSize: 24, color: c.error }} />;
+        return <IconFileTypePdf size={24} style={{ color: c.error }} />;
     }
     if (['doc', 'docx'].includes(ext || '')) {
-        return <FileWordOutlined style={{ fontSize: 24, color: c.primary }} />;
+        return <IconFileTypeDoc size={24} style={{ color: c.primary }} />;
     }
     if (['xls', 'xlsx'].includes(ext || '')) {
-        return <FileExcelOutlined style={{ fontSize: 24, color: c.success }} />;
+        return <IconFileTypeXls size={24} style={{ color: c.success }} />;
     }
-    return <FileOutlined style={{ fontSize: 24, color: c.muted }} />;
+    return <IconFile size={24} />;
 };
 
 const isImageFile = (fileName: string) => {
@@ -70,7 +49,6 @@ const formatFileSize = (bytes: number) => {
 
 export default function AttachmentSection({ cardId, attachments, onUpdate, currentCover, onSetCover, buttonRef }: AttachmentSectionProps) {
     const [uploading, setUploading] = useState(false);
-    const { message } = App.useApp();
     const t = useTranslation();
     const token = useAppToken();
     const fileIconColors = { primary: token.colorPrimary, error: token.colorError, success: token.colorSuccess, muted: token.colorMutedText };
@@ -85,10 +63,10 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                 file_type: file.type,
                 file_size: file.size,
             });
-            message.success(t('SUCCESS_FILE_UPLOADED'));
+            notifications.show({ message: t('SUCCESS_FILE_UPLOADED'), color: 'green' });
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_UPLOAD_FILE'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPLOAD_FILE'), color: 'red' });
         } finally {
             setUploading(false);
         }
@@ -99,7 +77,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
             await attachmentApi.delete(attachmentId);
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_DELETE_ATTACHMENT'));
+            notifications.show({ title: 'Error', message: t('ERROR_DELETE_ATTACHMENT'), color: 'red' });
         }
     };
 
@@ -116,9 +94,9 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
     return (
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <PaperClipOutlined />
-                <Text strong>{t('UI_ATTACHMENTS')}</Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>({attachments.length})</Text>
+                <IconPaperclip size={16} />
+                <Text fw={700}>{t('UI_ATTACHMENTS')}</Text>
+                <Text c="dimmed" style={{ fontSize: 12 }}>({attachments.length})</Text>
             </div>
 
             {attachments.length > 0 && (
@@ -139,10 +117,10 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                                     <Image
                                         src={attachment.file_url}
                                         alt={attachment.file_name}
-                                        width={60}
-                                        height={40}
-                                        style={{ objectFit: 'cover', borderRadius: 4 }}
-                                        preview={true}
+                                        w={60}
+                                        h={40}
+                                        fit="cover"
+                                        radius="sm"
                                     />
                                 ) : (
                                     getFileIcon(attachment.file_name, attachment.file_type, fileIconColors)
@@ -157,7 +135,7 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                                     >
                                         {attachment.file_name}
                                     </Text>
-                                    <Text type="secondary" style={{ fontSize: 11 }}>
+                                    <Text c="dimmed" style={{ fontSize: 11 }}>
                                         {attachment.file_size ? formatFileSize(attachment.file_size) : ''}
                                         {attachment.uploader?.full_name && (
                                             <> • {attachment.uploader.full_name}</>
@@ -169,54 +147,55 @@ export default function AttachmentSection({ cardId, attachments, onUpdate, curre
                                 {isImageFile(attachment.file_name) && onSetCover && (
                                     <Button
                                         key="cover"
-                                        type={currentCover === attachment.file_url ? 'primary' : 'text'}
-                                        size="small"
-                                        icon={currentCover === attachment.file_url ? <CheckCircleFilled /> : <PictureOutlined />}
+                                        variant={currentCover === attachment.file_url ? 'filled' : 'subtle'}
+                                        size="sm"
+                                        leftSection={currentCover === attachment.file_url ? <IconCircleCheckFilled size={16} /> : <IconPhoto size={16} />}
                                         onClick={() => onSetCover(attachment.file_url)}
                                         title={currentCover === attachment.file_url ? t('UI_CURRENT_COVER') : t('UI_SET_AS_COVER')}
                                     />
                                 )}
                                 <Button
                                     key="download"
-                                    type="text"
-                                    size="small"
-                                    icon={<DownloadOutlined />}
+                                    variant="subtle"
+                                    size="sm"
+                                    leftSection={<IconDownload size={16} />}
                                     onClick={() => handleDownload(attachment.file_url, attachment.file_name)}
                                 />
-                                <Popconfirm
+                                <Button
                                     key="delete"
                                     title={t('UI_DELETE_ATTACHMENT')}
-                                    onConfirm={() => handleDelete(attachment.id)}
-                                    okText={t('UI_YES')}
-                                    cancelText={t('UI_NO')}
-                                >
-                                    <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-                                </Popconfirm>
+                                    variant="subtle"
+                                    size="sm"
+                                    color="red"
+                                    onClick={() => handleDelete(attachment.id)}
+                                    leftSection={<IconTrash size={16} />}
+                                />
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            <Upload
-                beforeUpload={(file) => {
-                    handleUpload(file);
-                    return false;
+            <FileButton
+                onChange={(file) => {
+                    if (file) handleUpload(file);
                 }}
-                showUploadList={false}
                 accept="*/*"
             >
-                <Button
-                    type="dashed"
-                    block
-                    icon={<UploadOutlined />}
-                    loading={uploading}
-                    style={{ marginTop: attachments.length > 0 ? 12 : 0 }}
-                    ref={buttonRef as any}
-                >
-                    {t('UI_ADD_ATTACHMENT')}
-                </Button>
-            </Upload>
+                {(props) => (
+                    <Button
+                        {...props}
+                        variant="default"
+                        fullWidth
+                        leftSection={<IconUpload size={16} />}
+                        loading={uploading}
+                        style={{ marginTop: attachments.length > 0 ? 12 : 0 }}
+                        ref={buttonRef as any}
+                    >
+                        {t('UI_ADD_ATTACHMENT')}
+                    </Button>
+                )}
+            </FileButton>
         </div>
     );
 }

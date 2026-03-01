@@ -1,11 +1,12 @@
 'use client';
 
-import { Form, Input, Button, Select, Switch, App, Alert } from 'antd';
+import { useState, useEffect } from 'react';
 import { useCreateWebhook, useUpdateWebhook, Webhook } from '@/hooks/useWebhooks';
-import { useEffect } from 'react';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Option } = Select;
+import { TextInput, Button, MultiSelect, Switch, PasswordInput } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
 
 interface WebhookFormProps {
     pluginId: string;
@@ -15,9 +16,7 @@ interface WebhookFormProps {
 }
 
 export default function WebhookForm({ pluginId, installationId, initialValues, onSuccess }: WebhookFormProps) {
-    const { message } = App.useApp();
     const t = useTranslation();
-    const [form] = Form.useForm();
 
     const EVENTS = [
         { label: t('UI_EVENT_CARD_CREATED'), value: 'card:created' },
@@ -25,109 +24,110 @@ export default function WebhookForm({ pluginId, installationId, initialValues, o
         { label: t('UI_EVENT_CARD_DELETED'), value: 'card:deleted' },
         { label: t('UI_EVENT_CARD_MOVED'), value: 'card:moved' },
     ];
+
+    // Form state
+    const form = useForm({
+        initialValues: {
+            callbackUrl: '',
+            secret: '',
+            events: [] as string[],
+            isActive: true,
+        },
+        validate: {
+            callbackUrl: (value) => (!value ? 'Callback URL is required' : null),
+        },
+    });
+
     const createWebhook = useCreateWebhook();
     const updateWebhook = useUpdateWebhook();
 
     useEffect(() => {
         if (initialValues) {
-            form.setFieldsValue({
-                callback_url: initialValues.callback_url,
-                events: initialValues.events,
-                is_active: initialValues.is_active,
-                // Secret cannot be retrieved, so usually left blank on edit unless changing
+            form.setValues({
+                callbackUrl: initialValues.callback_url,
+                secret: '', // We usually don't populate secrets
+                events: initialValues.events || [],
+                isActive: initialValues.is_active,
             });
         }
-    }, [initialValues, form]);
+    }, [initialValues]);
 
-    const handleSubmit = async (values: any) => {
+    const handleSubmit = async (values: typeof form.values) => {
         try {
             if (initialValues) {
                 await updateWebhook.mutateAsync({
                     id: initialValues.id,
                     data: {
-                        callback_url: values.callback_url,
+                        callback_url: values.callbackUrl,
                         events: values.events,
-                        is_active: values.is_active,
-                        secret: values.secret || undefined, // Only send if provided
+                        is_active: values.isActive,
+                        secret: values.secret || undefined,
                     },
                 });
-                message.success(t('SUCCESS_WEBHOOK_UPDATED'));
+                notifications.show({ message: t('SUCCESS_WEBHOOK_UPDATED'), color: 'green' });
             } else {
                 await createWebhook.mutateAsync({
                     pluginId,
                     installationId,
                     data: {
-                        callback_url: values.callback_url,
+                        callback_url: values.callbackUrl,
                         events: values.events,
                         secret: values.secret,
-                        // board_id is handled by backend logic for now based on installation
                     },
                 });
-                message.success(t('SUCCESS_WEBHOOK_CREATED'));
+                notifications.show({ message: t('SUCCESS_WEBHOOK_CREATED'), color: 'green' });
             }
-            form.resetFields();
+            form.reset();
             onSuccess();
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_SAVE_WEBHOOK_FAILED'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_SAVE_WEBHOOK_FAILED'), color: 'red' });
         }
     };
 
     const isLoading = createWebhook.isPending || updateWebhook.isPending;
 
     return (
-        <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            initialValues={{ is_active: true }}
-        >
-            <Form.Item
-                name="callback_url"
-                label={t('UI_CALLBACK_URL')}
-                rules={[
-                    { required: true, message: 'Please enter a valid URL' },
-                    { type: 'url', message: 'Must be a valid URL' }
-                ]}
-                extra={t('UI_CALLBACK_URL_EXTRA')}
-            >
-                <Input placeholder="https://api.example.com/webhook" />
-            </Form.Item>
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+            <div style={{ marginBottom: 12 }}>
+                <TextInput
+                    label="Callback URL"
+                    placeholder="https://api.example.com/webhook"
+                    required
+                    {...form.getInputProps('callbackUrl')}
+                />
+            </div>
 
-            <Form.Item
-                name="secret"
-                label={t('UI_SECRET')}
-                rules={[
-                    { required: !initialValues, message: 'Secret is required for new webhooks' },
-                    { min: 16, message: 'Secret must be al least 16 characters' }
-                ]}
-                extra={initialValues ? t('UI_SECRET_EXTRA_EDIT') : t('UI_SECRET_EXTRA_NEW')}
-            >
-                <Input.Password placeholder="Enter a strong secret..." />
-            </Form.Item>
+            <div style={{ marginBottom: 12 }}>
+                <PasswordInput
+                    label="Secret"
+                    placeholder="Enter a strong secret..."
+                    {...form.getInputProps('secret')}
+                />
+            </div>
 
-            <Form.Item
-                name="events"
-                label={t('UI_EVENTS')}
-                rules={[{ required: true, message: 'Please select at least one event' }]}
-            >
-                <Select mode="multiple" placeholder={t('UI_PLACEHOLDER_SELECT_EVENTS')}>
-                    {EVENTS.map(e => (
-                        <Option key={e.value} value={e.value}>{e.label}</Option>
-                    ))}
-                </Select>
-            </Form.Item>
+            <div style={{ marginBottom: 12 }}>
+                <MultiSelect
+                    label="Events"
+                    placeholder={t('UI_PLACEHOLDER_SELECT_EVENTS')}
+                    data={EVENTS}
+                    {...form.getInputProps('events')}
+                />
+            </div>
 
             {initialValues && (
-                <Form.Item name="is_active" label={t('UI_STATUS')} valuePropName="checked">
-                    <Switch checkedChildren={t('UI_ACTIVE')} unCheckedChildren={t('UI_INACTIVE')} />
-                </Form.Item>
+                <div style={{ marginBottom: 12 }}>
+                    <Switch
+                        label={form.values.isActive ? t('UI_ACTIVE') : t('UI_INACTIVE')}
+                        {...form.getInputProps('isActive', { type: 'checkbox' })}
+                    />
+                </div>
             )}
 
-            <Form.Item>
-                <Button type="primary" htmlType="submit" loading={isLoading} block>
+            <div>
+                <Button type="submit" loading={isLoading} fullWidth>
                     {initialValues ? t('UI_SAVE_CHANGES') : t('UI_CREATE_WEBHOOK')}
                 </Button>
-            </Form.Item>
-        </Form>
+            </div>
+        </form>
     );
 }

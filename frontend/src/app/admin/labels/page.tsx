@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Table, Button, Input, Select, Modal, Form, Typography, Card, Spin, Tag, Space, App } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
+import { Button, TextInput, Select, Modal, Text, Title, Card, Loader, Badge, Group, Textarea, Pagination } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconPlus, IconEdit, IconTrash, IconSearch, IconDownload, IconUpload } from '@tabler/icons-react';
 import {
     useAdminLabels,
     useUpdateLabel,
@@ -16,8 +18,6 @@ import {
     SystemLabel,
 } from '@/hooks/useAdmin';
 import { useTranslation } from '@/hooks/useLabels';
-
-const { Title, Text } = Typography;
 
 const LANGUAGES = ['vi-VN'];
 
@@ -36,10 +36,8 @@ const CATEGORIES = ['error', 'ui', 'notification', 'email', 'other'];
 export default function AdminLabelsPage() {
     const router = useRouter();
     const { user } = useAuthStore();
-    const { message, modal } = App.useApp();
     const [labelModalOpen, setLabelModalOpen] = useState(false);
     const [editingLabel, setEditingLabel] = useState<SystemLabel | null>(null);
-    const [labelForm] = Form.useForm();
     const t = useTranslation();
 
     // Server-side pagination state
@@ -83,22 +81,39 @@ export default function AdminLabelsPage() {
         }
     }, [user, router]);
 
+    // Form state
+    const form = useForm({
+        initialValues: {
+            key: '',
+            category: '',
+            default_value: '',
+            description: '',
+        }
+    });
 
+    useEffect(() => {
+        if (editingLabel) {
+            form.setValues({
+                key: editingLabel.key,
+                category: editingLabel.category || '',
+                default_value: editingLabel.default_value,
+                description: editingLabel.description || '',
+            });
+        }
+    }, [editingLabel]);
 
-    const handleUpdateLabel = async (values: { key: string; category: string; default_value: string; description: string }) => {
+    const handleUpdateLabel = async (values: typeof form.values) => {
         if (!editingLabel) return;
         try {
             await updateLabel.mutateAsync({ id: editingLabel.id, data: values });
-            message.success('Label updated');
+            notifications.show({ message: 'Label updated', color: 'green' });
             setLabelModalOpen(false);
             setEditingLabel(null);
-            labelForm.resetFields();
+            form.reset();
         } catch {
-            message.error('Failed to update label');
+            notifications.show({ title: 'Error', message: 'Failed to update label', color: 'red' });
         }
     };
-
-
 
     const handleSaveTranslation = async (labelId: string, language: string, value: string, existingId?: string) => {
         try {
@@ -107,18 +122,18 @@ export default function AdminLabelsPage() {
             } else {
                 await createTranslation.mutateAsync({ label_id: labelId, language, value });
             }
-            message.success('Translation saved');
+            notifications.show({ message: 'Translation saved', color: 'green' });
         } catch {
-            message.error('Failed to save translation');
+            notifications.show({ title: 'Error', message: 'Failed to save translation', color: 'red' });
         }
     };
 
     const handleDeleteTranslation = async (id: string) => {
         try {
             await deleteTranslation.mutateAsync(id);
-            message.success('Translation deleted');
+            notifications.show({ message: 'Translation deleted', color: 'green' });
         } catch {
-            message.error('Failed to delete translation');
+            notifications.show({ title: 'Error', message: 'Failed to delete translation', color: 'red' });
         }
     };
 
@@ -126,7 +141,7 @@ export default function AdminLabelsPage() {
         try {
             await exportLabels();
         } catch {
-            message.error('Failed to export labels');
+            notifications.show({ title: 'Error', message: 'Failed to export labels', color: 'red' });
         }
     };
 
@@ -137,7 +152,7 @@ export default function AdminLabelsPage() {
         try {
             await importLabels.mutateAsync(file);
         } catch {
-            message.error('Failed to import labels');
+            notifications.show({ title: 'Error', message: 'Failed to import labels', color: 'red' });
         } finally {
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
@@ -163,7 +178,7 @@ export default function AdminLabelsPage() {
             dataIndex: 'category',
             key: 'category',
             width: 120,
-            render: (cat: string) => <Tag>{cat || 'other'}</Tag>,
+            render: (cat: string) => <Badge>{cat || 'other'}</Badge>,
         },
         {
             title: t('UI_TRANSLATIONS'),
@@ -171,7 +186,7 @@ export default function AdminLabelsPage() {
             width: 120,
             render: (_: unknown, record: SystemLabel) => {
                 const count = record.translations?.length || 0;
-                return <Tag color={count > 0 ? 'green' : 'default'}>{count}/{LANGUAGES.length}</Tag>;
+                return <Badge color={count > 0 ? 'green' : 'gray'}>{count}/{LANGUAGES.length}</Badge>;
             },
         },
         {
@@ -179,17 +194,16 @@ export default function AdminLabelsPage() {
             key: 'actions',
             width: 100,
             render: (_: unknown, record: SystemLabel) => (
-                <Space>
+                <Group>
                     <Button
-                        size="small"
-                        icon={<EditOutlined />}
+                        size="sm"
+                        leftSection={<IconEdit size={16} />}
                         onClick={() => {
                             setEditingLabel(record);
-                            labelForm.setFieldsValue(record);
                             setLabelModalOpen(true);
                         }}
                     />
-                </Space>
+                </Group>
             ),
         },
     ];
@@ -211,7 +225,6 @@ export default function AdminLabelsPage() {
                             labelId={record.id}
                             onSave={handleSaveTranslation}
                             onDelete={handleDeleteTranslation}
-                            confirmDelete={modal.confirm}
                         />
                     );
                 })}
@@ -226,10 +239,10 @@ export default function AdminLabelsPage() {
     return (
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={4} style={{ margin: 0 }}>System Labels</Title>
-                <Space>
-                    <Button icon={<DownloadOutlined />} onClick={handleExport}>Export</Button>
-                    <Button icon={<UploadOutlined />} onClick={() => fileInputRef.current?.click()}>Import</Button>
+                <Title order={4} style={{ margin: 0 }}>System Labels</Title>
+                <Group>
+                    <Button leftSection={<IconDownload size={16} />} onClick={handleExport}>Export</Button>
+                    <Button leftSection={<IconUpload size={16} />} onClick={() => fileInputRef.current?.click()}>Import</Button>
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -237,102 +250,128 @@ export default function AdminLabelsPage() {
                         accept=".json"
                         onChange={handleImport}
                     />
-                </Space>
+                </Group>
             </div>
 
             {/* Filter Section */}
-            <Card size="small" style={{ marginBottom: 16 }}>
-                <Space wrap>
-                    <Input
+            <Card style={{ marginBottom: 16 }}>
+                <Group wrap="wrap">
+                    <TextInput
                         placeholder={t('UI_SEARCH_KEY_VALUE')}
-                        prefix={<SearchOutlined />}
+                        leftSection={<IconSearch size={16} />}
                         value={searchText}
                         onChange={e => setSearchText(e.target.value)}
                         style={{ width: 300 }}
-                        allowClear
+
                     />
                     <Select
                         placeholder={t('UI_FILTER_BY_CATEGORY')}
                         value={categoryFilter}
                         onChange={(val) => {
-                            setCategoryFilter(val);
+                            setCategoryFilter(val || undefined);
                             setPage(1); // Reset to first page on category change
                         }}
                         style={{ width: 180 }}
-                        allowClear
-                    >
-                        {CATEGORIES.map(c => <Select.Option key={c} value={c}>{c}</Select.Option>)}
-                    </Select>
-                    <Text type="secondary">
+
+                        data={CATEGORIES} />
+                    <Text c="dimmed">
                         Showing {labels.length} of {total} labels
                     </Text>
-                </Space>
+                </Group>
             </Card>
 
             <Card>
                 {isLoading ? (
                     <div style={{ textAlign: 'center', padding: 40 }}>
-                        <Spin size="large" />
+                        <Loader size="lg" />
                     </div>
                 ) : (
-                    <Table
-                        dataSource={labels}
-                        columns={columns}
-                        rowKey="id"
-                        expandable={{ expandedRowRender }}
-                        pagination={{
-                            current: page,
-                            pageSize: pageSize,
-                            total: total,
-                            showSizeChanger: true,
-                            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} labels`,
-                            onChange: (newPage, newPageSize) => {
-                                setPage(newPage);
-                                if (newPageSize !== pageSize) {
-                                    setPageSize(newPageSize);
-                                    setPage(1);
-                                }
-                            },
-                        }}
-                    />
+                    <>
+                        <div style={{ overflow: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                        <th style={{ padding: '8px', textAlign: 'left', width: 200 }}>{t('UI_KEY')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'left' }}>{t('UI_DEFAULT_EN')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', width: 120 }}>{t('UI_CATEGORY')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', width: 120 }}>{t('UI_TRANSLATIONS')}</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', width: 100 }}>{t('UI_ACTIONS')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {labels.map((record: SystemLabel) => (
+                                        <React.Fragment key={record.id}>
+                                            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                                <td style={{ padding: '8px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{record.key}</td>
+                                                <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{record.default_value}</td>
+                                                <td style={{ padding: '8px' }}><Badge>{record.category || 'other'}</Badge></td>
+                                                <td style={{ padding: '8px' }}>
+                                                    <Badge color={(record.translations?.length || 0) > 0 ? 'green' : 'gray'}>
+                                                        {record.translations?.length || 0}/{LANGUAGES.length}
+                                                    </Badge>
+                                                </td>
+                                                <td style={{ padding: '8px' }}>
+                                                    <Button
+                                                        size="sm"
+                                                        leftSection={<IconEdit size={16} />}
+                                                        onClick={() => {
+                                                            setEditingLabel(record);
+                                                            setLabelModalOpen(true);
+                                                        }}
+                                                    />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colSpan={5} style={{ padding: '0 8px 8px 8px' }}>
+                                                    {expandedRowRender(record)}
+                                                </td>
+                                            </tr>
+                                        </React.Fragment>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {total > pageSize && (
+                            <Group justify="center" mt="md">
+                                <Pagination
+                                    total={Math.ceil(total / pageSize)}
+                                    value={page}
+                                    onChange={(newPage: number) => setPage(newPage)}
+                                />
+                            </Group>
+                        )}
+                    </>
                 )}
             </Card>
 
             <Modal
                 title={t('UI_EDIT_LABEL')}
-                open={labelModalOpen}
-                onCancel={() => {
+                opened={labelModalOpen}
+                onClose={() => {
                     setLabelModalOpen(false);
                     setEditingLabel(null);
-                    labelForm.resetFields();
+                    form.reset();
                 }}
-                footer={null}
             >
-                <Form
-                    form={labelForm}
-                    layout="vertical"
-                    onFinish={handleUpdateLabel}
-                >
-                    <Form.Item name="key" label="Key" rules={[{ required: true }]}>
-                        <Input placeholder="ERROR_EMAIL_IN_USE" disabled />
-                    </Form.Item>
-                    <Form.Item name="category" label="Category">
-                        <Select placeholder="Select category" disabled>
-                            {CATEGORIES.map(c => <Select.Option key={c} value={c}>{c}</Select.Option>)}
-                        </Select>
-                    </Form.Item>
-                    <Form.Item name="default_value" label="Default Value (EN)" rules={[{ required: true }]}>
-                        <Input.TextArea placeholder="English text" />
-                    </Form.Item>
-                    <Form.Item name="description" label="Description">
-                        <Input.TextArea placeholder="Description for admin" />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit" block loading={updateLabel.isPending}>
+                <form onSubmit={form.onSubmit(handleUpdateLabel)}>
+                    <div>
+                        <TextInput placeholder="ERROR_EMAIL_IN_USE" disabled {...form.getInputProps('key')} />
+                    </div>
+                    <div>
+                        <Select placeholder="Select category" disabled data={CATEGORIES} {...form.getInputProps('category')} />
+                    </div>
+                    <div>
+                        <Textarea placeholder="English text" {...form.getInputProps('default_value')} />
+                    </div>
+                    <div>
+                        <Textarea placeholder="Description for admin" {...form.getInputProps('description')} />
+                    </div>
+                    <div>
+                        <Button type="submit" fullWidth loading={updateLabel.isPending}>
                             {t('UI_UPDATE')}
                         </Button>
-                    </Form.Item>
-                </Form>
+                    </div>
+                </form>
             </Modal>
         </>
     );
@@ -346,7 +385,6 @@ function TranslationRow({
     labelId,
     onSave,
     onDelete,
-    confirmDelete,
 }: {
     language: string;
     value: string;
@@ -354,7 +392,6 @@ function TranslationRow({
     labelId: string;
     onSave: (labelId: string, language: string, value: string, existingId?: string) => void;
     onDelete: (id: string) => void;
-    confirmDelete: (config: { title: string; okText: string; okType: 'danger'; onOk: () => void }) => void;
 }) {
     const [editing, setEditing] = useState(false);
     const [inputValue, setInputValue] = useState(value);
@@ -368,19 +405,19 @@ function TranslationRow({
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-            <Tag style={{ minWidth: 60, textAlign: 'center' }}>
+            <Badge style={{ minWidth: 60, textAlign: 'center' }}>
                 {getFlag(language)} {language.split('-')[0]}
-            </Tag>
+            </Badge>
             {editing ? (
                 <>
-                    <Input
+                    <TextInput
                         value={inputValue}
                         onChange={e => setInputValue(e.target.value)}
                         style={{ flex: 1 }}
-                        onPressEnter={handleSave}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
                     />
-                    <Button size="small" type="primary" onClick={handleSave}>Save</Button>
-                    <Button size="small" onClick={() => setEditing(false)}>Cancel</Button>
+                    <Button size="sm" onClick={handleSave}>Save</Button>
+                    <Button size="sm" onClick={() => setEditing(false)}>Cancel</Button>
                 </>
             ) : (
                 <>
@@ -388,8 +425,8 @@ function TranslationRow({
                         {value || '(not translated)'}
                     </Text>
                     <Button
-                        size="small"
-                        icon={value ? <EditOutlined /> : <PlusOutlined />}
+                        size="sm"
+                        leftSection={value ? <IconEdit size={16} /> : <IconPlus size={16} />}
                         onClick={() => { setInputValue(value); setEditing(true); }}
                     />
 

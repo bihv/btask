@@ -2,18 +2,16 @@
 
 import React, { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Button, Typography, Spin } from 'antd';
-import { CommentOutlined, EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import { Comment, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
 
+import { Button, Text, Title, Loader } from '@mantine/core';
+import { IconMessage, IconEdit, IconX, IconCheck } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
-    loading: () => <Spin size="small" />,
+    loading: () => <Loader size="sm" />,
 });
-
-const { Text } = Typography;
 
 interface ActivitySectionProps {
     comments: Comment[];
@@ -105,8 +103,8 @@ export default function ActivitySection({
     return (
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <CommentOutlined />
-                <Text strong>{t('UI_ACTIVITY')}</Text>
+                <IconMessage size={16} />
+                <Text fw={700}>{t('UI_ACTIVITY')}</Text>
             </div>
 
             {/* Add Comment */}
@@ -127,8 +125,8 @@ export default function ActivitySection({
                         cardId={cardId}
                     />
                     <Button
-                        type="primary"
-                        size="small"
+
+                        size="sm"
                         style={{ marginTop: 8 }}
                         onClick={handleSubmit}
                         disabled={isCommentEmpty}
@@ -157,10 +155,10 @@ export default function ActivitySection({
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div>
-                                    <Text strong style={{ fontSize: 13 }}>
+                                    <Text fw={700} style={{ fontSize: 13 }}>
                                         {comment.user?.full_name}
                                     </Text>
-                                    <Text type="secondary" style={{ marginLeft: 8, fontSize: 11 }}>
+                                    <Text c="dimmed" style={{ marginLeft: 8, fontSize: 11 }}>
                                         {formatDate(comment.created_at)}
                                         {comment.updated_at !== comment.created_at && (
                                             <span style={{ marginLeft: 4, fontStyle: 'italic' }}>{t('UI_EDITED')}</span>
@@ -169,9 +167,9 @@ export default function ActivitySection({
                                 </div>
                                 {isOwn && !isEditing && onUpdateComment && (
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<EditOutlined />}
+                                        variant="subtle"
+                                        size="sm"
+                                        leftSection={<IconEdit size={16} />}
                                         onClick={() => handleEditStart(comment)}
                                         style={{ opacity: 0.6 }}
                                     />
@@ -190,17 +188,17 @@ export default function ActivitySection({
                                         />
                                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                                             <Button
-                                                type="primary"
-                                                size="small"
-                                                icon={<CheckOutlined />}
+
+                                                size="sm"
+                                                leftSection={<IconCheck size={16} />}
                                                 onClick={handleEditSave}
                                                 loading={isSavingEdit}
                                             >
                                                 {t('UI_SAVE')}
                                             </Button>
                                             <Button
-                                                size="small"
-                                                icon={<CloseOutlined />}
+                                                size="sm"
+                                                leftSection={<IconX size={16} />}
                                                 onClick={handleEditCancel}
                                             >
                                                 {t('UI_CANCEL')}
@@ -220,7 +218,7 @@ export default function ActivitySection({
             })}
 
             {comments.length === 0 && (
-                <Text type="secondary" style={{ fontSize: 13 }}>
+                <Text c="dimmed" style={{ fontSize: 13 }}>
                     {t('UI_NO_COMMENTS')}
                 </Text>
             )}

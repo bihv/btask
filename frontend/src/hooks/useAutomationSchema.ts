@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { App } from 'antd';
+import { notifications } from '@mantine/notifications';
 import api from '@/lib/api';
 import type {
     AutomationSchema,
@@ -21,9 +21,6 @@ import type {
 
 // Transform backend TriggerInfo to frontend TriggerSchema
 function transformTrigger(raw: any): TriggerSchema {
-    // Backend returns: { id, name, description, events, schema: { properties: {...}, order: [...] }, metadata: { category, icon } }
-    // Frontend expects: { id, name, description, category, events, properties: [...], sentence_template }
-    
     const properties: PropertySchema[] = [];
     if (raw.schema?.properties) {
         const order = raw.schema.order || Object.keys(raw.schema.properties);
@@ -43,7 +40,7 @@ function transformTrigger(raw: any): TriggerSchema {
             }
         }
     }
-    
+
     return {
         id: raw.id,
         name: raw.name,
@@ -57,9 +54,6 @@ function transformTrigger(raw: any): TriggerSchema {
 
 // Transform backend ActionInfo to frontend ActionSchema
 function transformAction(raw: any): ActionSchema {
-    // Backend returns: { id, name, description, schema: { properties: {...}, ... }, metadata: { category, icon } }
-    // Frontend expects: { id, name, description, category, properties: [...], sentence_template }
-    
     const properties: PropertySchema[] = [];
     if (raw.schema?.properties) {
         const order = raw.schema.order || Object.keys(raw.schema.properties);
@@ -79,7 +73,7 @@ function transformAction(raw: any): ActionSchema {
             }
         }
     }
-    
+
     return {
         id: raw.id,
         name: raw.name,
@@ -115,7 +109,6 @@ export const useAvailableTriggers = () => {
         queryKey: ['automation', 'triggers'],
         queryFn: async () => {
             const { data } = await api.get('/automation/triggers');
-            // API returns { data: [...] } - transform each trigger
             const rawTriggers = data.data || data.triggers || [];
             return rawTriggers.map(transformTrigger);
         },
@@ -131,7 +124,6 @@ export const useAvailableActions = () => {
         queryKey: ['automation', 'actions'],
         queryFn: async () => {
             const { data } = await api.get('/automation/actions');
-            // API returns { data: [...] } - transform each action
             const rawActions = data.data || data.actions || [];
             return rawActions.map(transformAction);
         },
@@ -147,7 +139,6 @@ export const useConditionOperators = () => {
         queryKey: ['automation', 'operators'],
         queryFn: async () => {
             const { data } = await api.get('/automation/conditions/operators');
-            // API returns { data: { operators: [...] } }
             return data.data?.operators || data.data || [];
         },
         staleTime: SCHEMA_STALE_TIME,
@@ -162,7 +153,6 @@ export const useConditionFields = () => {
         queryKey: ['automation', 'fields'],
         queryFn: async () => {
             const { data } = await api.get('/automation/conditions/fields');
-            // API returns { data: { fields: [...] } }
             return data.data?.fields || data.data || [];
         },
         staleTime: SCHEMA_STALE_TIME,
@@ -174,7 +164,7 @@ export const useConditionFields = () => {
  */
 export const useTriggersByCategory = () => {
     const { data: triggers, ...rest } = useAvailableTriggers();
-    
+
     const grouped: TriggersByCategory = triggers?.reduce((acc, trigger) => {
         if (!acc[trigger.category]) {
             acc[trigger.category] = [];
@@ -191,7 +181,7 @@ export const useTriggersByCategory = () => {
  */
 export const useActionsByCategory = () => {
     const { data: actions, ...rest } = useAvailableActions();
-    
+
     const grouped: ActionsByCategory = actions?.reduce((acc, action) => {
         if (!acc[action.category]) {
             acc[action.category] = [];
@@ -219,15 +209,13 @@ export interface ValidateRuleInput {
  * Validate a rule before saving
  */
 export const useValidateRule = () => {
-    const { message } = App.useApp();
-
     return useMutation<ValidationResult, Error, ValidateRuleInput>({
         mutationFn: async (rule) => {
             const { data } = await api.post('/automation/validate', rule);
             return data.data || data;
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Validation failed');
+            notifications.show({ title: 'Error', message: error.response?.data?.error || 'Validation failed', color: 'red' });
         },
     });
 };
@@ -279,7 +267,6 @@ export interface CreateRuleInput {
  * Create a new rule
  */
 export const useCreateRule = () => {
-    const { message } = App.useApp();
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -289,11 +276,11 @@ export const useCreateRule = () => {
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['automation', 'rules', variables.board_id] });
-            queryClient.invalidateQueries({ queryKey: ['rules'] }); // Legacy
-            message.success('Rule created successfully');
+            queryClient.invalidateQueries({ queryKey: ['rules'] });
+            notifications.show({ message: 'Rule created successfully', color: 'green' });
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Failed to create rule');
+            notifications.show({ title: 'Error', message: error.response?.data?.error || 'Failed to create rule', color: 'red' });
         },
     });
 };
@@ -307,7 +294,6 @@ export interface UpdateRuleInput {
  * Update an existing rule
  */
 export const useUpdateRule = () => {
-    const { message } = App.useApp();
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -317,11 +303,11 @@ export const useUpdateRule = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['automation', 'rules'] });
-            queryClient.invalidateQueries({ queryKey: ['rules'] }); // Legacy
-            message.success('Rule updated successfully');
+            queryClient.invalidateQueries({ queryKey: ['rules'] });
+            notifications.show({ message: 'Rule updated successfully', color: 'green' });
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Failed to update rule');
+            notifications.show({ title: 'Error', message: error.response?.data?.error || 'Failed to update rule', color: 'red' });
         },
     });
 };
@@ -330,7 +316,6 @@ export const useUpdateRule = () => {
  * Delete a rule
  */
 export const useDeleteRule = () => {
-    const { message } = App.useApp();
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -339,11 +324,11 @@ export const useDeleteRule = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['automation', 'rules'] });
-            queryClient.invalidateQueries({ queryKey: ['rules'] }); // Legacy
-            message.success('Rule deleted successfully');
+            queryClient.invalidateQueries({ queryKey: ['rules'] });
+            notifications.show({ message: 'Rule deleted successfully', color: 'green' });
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Failed to delete rule');
+            notifications.show({ title: 'Error', message: error.response?.data?.error || 'Failed to delete rule', color: 'red' });
         },
     });
 };
@@ -352,7 +337,6 @@ export const useDeleteRule = () => {
  * Toggle rule enabled/disabled
  */
 export const useToggleRule = () => {
-    const { message } = App.useApp();
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -362,11 +346,11 @@ export const useToggleRule = () => {
         },
         onSuccess: (_, { enabled }) => {
             queryClient.invalidateQueries({ queryKey: ['automation', 'rules'] });
-            queryClient.invalidateQueries({ queryKey: ['rules'] }); // Legacy
-            message.success(enabled ? 'Rule enabled' : 'Rule disabled');
+            queryClient.invalidateQueries({ queryKey: ['rules'] });
+            notifications.show({ message: enabled ? 'Rule enabled' : 'Rule disabled', color: 'green' });
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Failed to toggle rule');
+            notifications.show({ title: 'Error', message: error.response?.data?.error || 'Failed to toggle rule', color: 'red' });
         },
     });
 };
@@ -375,18 +359,16 @@ export const useToggleRule = () => {
  * Run a rule manually
  */
 export const useRunRule = () => {
-    const { message } = App.useApp();
-
     return useMutation({
         mutationFn: async ({ ruleId, cardId }: { ruleId: string; cardId?: string }) => {
             const { data } = await api.post(`/automation/rules/${ruleId}/run`, { card_id: cardId });
             return data.data || data;
         },
         onSuccess: () => {
-            message.success('Rule executed successfully');
+            notifications.show({ message: 'Rule executed successfully', color: 'green' });
         },
         onError: (error: any) => {
-            message.error(error.response?.data?.error || 'Failed to run rule');
+            notifications.show({ title: 'Error', message: error.response?.data?.error || 'Failed to run rule', color: 'red' });
         },
     });
 };
@@ -430,20 +412,17 @@ export const buildDescription = (
     if (!template) return '';
 
     let result = template;
-    
-    // Replace {property} placeholders with values
+
     const placeholders = template.match(/\{(\w+)\}/g) || [];
-    
+
     for (const placeholder of placeholders) {
         const key = placeholder.slice(1, -1);
         let value = config[key];
-        
-        // Use custom resolver if provided
+
         if (resolvers && resolvers[key]) {
             value = resolvers[key](value);
         }
-        
-        // Convert value to display string
+
         if (value === undefined || value === null) {
             value = `{${key}}`;
         } else if (typeof value === 'boolean') {
@@ -451,9 +430,9 @@ export const buildDescription = (
         } else if (Array.isArray(value)) {
             value = value.join(', ');
         }
-        
+
         result = result.replace(placeholder, String(value));
     }
-    
+
     return result;
 };

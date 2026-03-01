@@ -1,13 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Typography, Progress, Dropdown, Button } from 'antd';
-import { CheckSquareOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
 
-const { Text } = Typography;
-
+import { Text, Title, Progress, Menu, Button } from '@mantine/core';
+import { modals } from '@mantine/modals';
+import { IconCheckbox, IconTrash, IconDots } from '@tabler/icons-react';
 interface ChecklistHeaderProps {
     title: string;
     progress: number;
@@ -25,36 +24,50 @@ export default function ChecklistHeader({
         <>
             {/* Checklist Header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <CheckSquareOutlined />
-                <Text strong style={{ flex: 1 }}>{title}</Text>
-                <Dropdown
-                    menu={{
-                        items: [
-                            {
-                                key: 'delete',
-                                label: t('UI_DELETE'),
-                                danger: true,
-                                icon: <DeleteOutlined />,
-                                onClick: onDelete,
-                            },
-                        ],
-                    }}
-                    trigger={['click']}
+                <IconCheckbox size={16} />
+                <Text fw={700} style={{ flex: 1 }}>{title}</Text>
+                <Menu
+                    trigger="click"
+                    position="bottom-end"
                 >
-                    <Button type="text" size="small" icon={<MoreOutlined />} />
-                </Dropdown>
+                    <Menu.Target>
+                        <Button variant="subtle" size="sm" leftSection={<IconDots size={16} />} />
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                        <Menu.Item
+                            leftSection={<IconTrash size={16} />}
+                            color="red"
+                            onClick={() => {
+                                modals.openConfirmModal({
+                                    title: t('UI_CONFIRM_DELETE'),
+                                    centered: true,
+                                    children: (
+                                        <Text size="sm">
+                                            {t('UI_CONFIRM_DELETE_CHECKLIST_MSG')}
+                                        </Text>
+                                    ),
+                                    labels: { confirm: t('UI_DELETE'), cancel: t('UI_CANCEL') },
+                                    confirmProps: { color: 'red' },
+                                    onConfirm: onDelete,
+                                });
+                            }}
+                        >
+                            {t('UI_DELETE')}
+                        </Menu.Item>
+                    </Menu.Dropdown>
+                </Menu>
             </div>
 
             {/* Progress Bar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Text type="secondary" style={{ fontSize: 11, minWidth: 32 }}>
+                <Text c="dimmed" style={{ fontSize: 11, minWidth: 32 }}>
                     {progress}%
                 </Text>
                 <Progress
-                    percent={progress}
-                    showInfo={false}
-                    size="small"
-                    strokeColor={progress === 100 ? token.colorSuccess : undefined}
+                    style={{ flex: 1 }}
+                    value={progress}
+                    size="sm"
+                    color={progress === 100 ? token.colorSuccess : undefined}
                 />
             </div>
         </>

@@ -2526,6 +2526,24 @@ var DefaultLabels = []models.LabelSeed{
 		DefaultValue: "Delete card?",
 		Translations: map[string]string{"vi": "Xóa thẻ?"},
 	},
+	{
+		Key:          "UI_CONFIRM_DELETE",
+		Category:     "ui",
+		DefaultValue: "Confirm Delete",
+		Translations: map[string]string{"vi": "Xác nhận xóa"},
+	},
+	{
+		Key:          "UI_CONFIRM_DELETE_CHECKLIST_MSG",
+		Category:     "ui",
+		DefaultValue: "Are you sure you want to delete this checklist? This action cannot be undone.",
+		Translations: map[string]string{"vi": "Bạn có chắc chắn muốn xóa checklist này không? Hành động này không thể hoàn tác."},
+	},
+	{
+		Key:          "UI_CONFIRM_DELETE_CHECKLIST_ITEM_MSG",
+		Category:     "ui",
+		DefaultValue: "Are you sure you want to delete this item?",
+		Translations: map[string]string{"vi": "Bạn có chắc chắn muốn xóa mục này không?"},
+	},
 	// Error messages for card components
 	{
 		Key:          "ERROR_CREATE_CHECKLIST",

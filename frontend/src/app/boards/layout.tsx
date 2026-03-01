@@ -2,20 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Button, Dropdown, Typography, Spin, Divider } from 'antd';
-import {
-    LogoutOutlined,
-    SunOutlined,
-    MoonOutlined,
-    UserOutlined,
-    HistoryOutlined,
-    CreditCardOutlined,
-    QuestionCircleOutlined,
-    ThunderboltOutlined,
-    TeamOutlined,
-    ExportOutlined,
-    SettingOutlined,
-} from '@ant-design/icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/providers/ThemeProvider';
 import NotificationDropdown from '@/components/notification/NotificationDropdown';
@@ -25,8 +11,8 @@ import GlobalSearch from '@/components/common/GlobalSearch';
 import CreateDropdown from '@/components/common/CreateDropdown';
 import { useLabels } from '@/hooks/useLabels';
 
-const { Header, Content } = Layout;
-const { Text } = Typography;
+import { Button, Menu, Text, Title, Loader, Divider } from '@mantine/core';
+import { IconLogout, IconSun, IconMoon, IconUser, IconHistory, IconCreditCard, IconHelp, IconBolt, IconUsers, IconExternalLink, IconSettings } from '@tabler/icons-react';
 
 export default function BoardsLayout({
     children,
@@ -55,92 +41,13 @@ export default function BoardsLayout({
     if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
 
-    const avatarDropdownContent = (
-        <div className="avatar-dropdown-menu">
-            {/* User Info */}
-            <div className="dropdown-section">
-                <div className="dropdown-user-info">
-                    <UserAvatar
-                        avatarUrl={user?.avatar_url}
-                        name={user?.full_name}
-                        size={40}
-                    />
-                    <div className="dropdown-user-details">
-                        <div className="dropdown-user-name">{user?.full_name || 'User'}</div>
-                        <div className="dropdown-user-email">{user?.email}</div>
-                    </div>
-                </div>
-            </div>
-
-            <Divider style={{ margin: '8px 0' }} />
-
-            {/* Account Section */}
-            <div className="dropdown-section">
-                <div className="dropdown-section-label">Account</div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/profile')}>
-                    <UserOutlined />
-                    <span>Profile and visibility</span>
-                </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/activity')}>
-                    <HistoryOutlined />
-                    <span>Activity</span>
-                </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/cards')}>
-                    <CreditCardOutlined />
-                    <span>Cards</span>
-                </div>
-                <div className="dropdown-menu-item" onClick={() => router.push('/me/settings')}>
-                    <SettingOutlined />
-                    <span>Settings</span>
-                </div>
-            </div>
-
-            <Divider style={{ margin: '8px 0' }} />
-
-            <div className="dropdown-section">
-                <div className="dropdown-menu-item" onClick={() => router.push('/workspaces')}>
-                    <TeamOutlined />
-                    <span>Create Workspace</span>
-                </div>
-            </div>
-
-            <Divider style={{ margin: '8px 0' }} />
-
-            <div className="dropdown-section">
-                <div className="dropdown-menu-item" onClick={() => { }}>
-                    <QuestionCircleOutlined />
-                    <span>Help</span>
-                </div>
-                <div className="dropdown-menu-item" onClick={() => { }}>
-                    <ThunderboltOutlined />
-                    <span>Shortcuts</span>
-                </div>
-            </div>
-
-            <Divider style={{ margin: '8px 0' }} />
-
-            <div className="dropdown-section">
-                <div
-                    className="dropdown-menu-item logout-item"
-                    onClick={() => {
-                        logout();
-                        router.push('/login');
-                    }}
-                >
-                    <LogoutOutlined />
-                    <span>Log out</span>
-                </div>
-            </div>
-        </div>
-    );
-
     return (
-        <Layout style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden' }}>
+        <div style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <style jsx global>{`
                 .avatar-dropdown-menu {
                     width: 304px;
@@ -205,8 +112,8 @@ export default function BoardsLayout({
                 }
             `}</style>
 
-            {/* Top Bar - Row 1 */}
-            <Header
+            {/* Top Bar */}
+            <header
                 style={{
                     height: 48,
                     display: 'flex',
@@ -216,6 +123,7 @@ export default function BoardsLayout({
                     borderBottom: '1px solid var(--border-color)',
                     background: 'var(--bg-primary)',
                     lineHeight: '32px',
+                    flexShrink: 0,
                 }}
             >
                 {/* Left: Logo + App Name */}
@@ -245,35 +153,92 @@ export default function BoardsLayout({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <CreateDropdown />
                     <Button
-                        type="text"
-                        icon={resolvedTheme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+                        variant="subtle"
+                        leftSection={resolvedTheme === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />}
                         onClick={() => {
                             const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
                             setTheme(nextTheme);
                         }}
                     />
                     <NotificationDropdown />
-                    <Dropdown
-                        popupRender={() => avatarDropdownContent}
-                        placement="bottomRight"
-                        trigger={['click']}
-                    >
-                        <div style={{ cursor: 'pointer' }}>
-                            <UserAvatar
-                                avatarUrl={user?.avatar_url}
-                                name={user?.full_name}
-                                size={32}
-                                style={{ cursor: 'pointer' }}
-                            />
-                        </div>
-                    </Dropdown>
-                </div>
-            </Header>
+                    <Menu position="bottom-end" shadow="md" width={304}>
+                        <Menu.Target>
+                            <div style={{ cursor: 'pointer' }}>
+                                <UserAvatar
+                                    avatarUrl={user?.avatar_url}
+                                    name={user?.full_name}
+                                    size={32}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            </div>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                            <div className="dropdown-section">
+                                <div className="dropdown-user-info">
+                                    <UserAvatar
+                                        avatarUrl={user?.avatar_url}
+                                        name={user?.full_name}
+                                        size={40}
+                                    />
+                                    <div className="dropdown-user-details">
+                                        <div className="dropdown-user-name">{user?.full_name || 'User'}</div>
+                                        <div className="dropdown-user-email">{user?.email}</div>
+                                    </div>
+                                </div>
+                            </div>
 
-            {/* Content - Full width, no sidebar */}
-            <Content style={{ overflow: 'hidden', height: 'calc(100vh - 48px)' }}>
+                            <Menu.Divider />
+
+                            <Menu.Label>Account</Menu.Label>
+                            <Menu.Item leftSection={<IconUser size={16} />} onClick={() => router.push('/me/profile')}>
+                                Profile and visibility
+                            </Menu.Item>
+                            <Menu.Item leftSection={<IconHistory size={16} />} onClick={() => router.push('/me/activity')}>
+                                Activity
+                            </Menu.Item>
+                            <Menu.Item leftSection={<IconCreditCard size={16} />} onClick={() => router.push('/me/cards')}>
+                                Cards
+                            </Menu.Item>
+                            <Menu.Item leftSection={<IconSettings size={16} />} onClick={() => router.push('/me/settings')}>
+                                Settings
+                            </Menu.Item>
+
+                            <Menu.Divider />
+
+                            <Menu.Item leftSection={<IconUsers size={16} />} onClick={() => router.push('/workspaces')}>
+                                Create Workspace
+                            </Menu.Item>
+
+                            <Menu.Divider />
+
+                            <Menu.Item leftSection={<IconHelp size={16} />} onClick={() => { }}>
+                                Help
+                            </Menu.Item>
+                            <Menu.Item leftSection={<IconBolt size={16} />} onClick={() => { }}>
+                                Shortcuts
+                            </Menu.Item>
+
+                            <Menu.Divider />
+
+                            <Menu.Item
+                                color="red"
+                                leftSection={<IconLogout size={16} />}
+                                onClick={() => {
+                                    logout();
+                                    router.push('/login');
+                                }}
+                            >
+                                Log out
+                            </Menu.Item>
+                        </Menu.Dropdown>
+                    </Menu>
+                </div>
+            </header>
+
+            {/* Content */}
+            <main style={{ overflow: 'hidden', flex: 1 }}>
                 {children}
-            </Content>
-        </Layout>
+            </main>
+        </div>
     );
 }

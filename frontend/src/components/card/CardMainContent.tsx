@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Button, Typography, Tooltip, App, Tag } from 'antd';
-import { TagOutlined, ClockCircleOutlined, CheckSquareOutlined, UserOutlined, PaperClipOutlined, PictureOutlined, DeleteOutlined, InboxOutlined, UndoOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import { Card, User, Checklist, Attachment, BoardList } from '@/types';
@@ -18,8 +16,9 @@ import { CardBackSectionRenderer, CardButtonRenderer } from '@/components/plugin
 import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
 
-const { Text } = Typography;
-
+import { Button, Text, Title, Tooltip, Badge } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconTag, IconClock, IconCheckbox, IconUser, IconPaperclip, IconPhoto, IconTrash, IconInbox, IconArrowBack } from '@tabler/icons-react';
 interface CardMainContentProps {
     card: Card;
     cardId: string;
@@ -81,7 +80,6 @@ export default function CardMainContent({
 }: CardMainContentProps) {
     const router = useRouter();
     const { deleteCard } = useBoardStore();
-    const { modal, message } = App.useApp();
     const t = useTranslation();
     const token = useAppToken();
 
@@ -95,21 +93,13 @@ export default function CardMainContent({
                 onArchiveChange(true);
             }
         } catch (error) {
-            message.error(t('ERROR_UPDATE_CARD'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_CARD'), color: 'red' });
         }
     };
 
     const handleDelete = () => {
-        modal.confirm({
-            title: t('UI_DELETE_CARD'),
-            content: t('UI_ACTION_CANNOT_UNDO'),
-            okText: t('UI_DELETE'),
-            okType: 'danger',
-            onOk: () => {
-                deleteCard(cardId);
-                router.push(`/boards/${boardId}`);
-            },
-        });
+        deleteCard(cardId);
+        router.push(`/boards/${boardId}`);
     };
 
     return (
@@ -140,7 +130,7 @@ export default function CardMainContent({
                         {/* Members Section */}
                         {card.members && card.members.length > 0 && (
                             <div>
-                                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+                                <Text c="dimmed" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
                                     {t('UI_MEMBERS')}
                                 </Text>
                                 <div
@@ -148,7 +138,7 @@ export default function CardMainContent({
                                     onClick={onMembersClick}
                                 >
                                     {card.members.map((cm) => (
-                                        <Tooltip key={cm.id} title={cm.user?.full_name}>
+                                        <Tooltip key={cm.id} label={cm.user?.full_name}>
                                             <div>
                                                 <UserAvatar
                                                     avatarUrl={cm.user?.avatar_url}
@@ -159,9 +149,9 @@ export default function CardMainContent({
                                         </Tooltip>
                                     ))}
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<span style={{ fontSize: 16 }}>+</span>}
+                                        variant="subtle"
+                                        size="sm"
+                                        leftSection={<span style={{ fontSize: 16 }}>+</span>}
                                         style={{ width: 32, height: 32, padding: 0 }}
                                     />
                                 </div>
@@ -171,7 +161,7 @@ export default function CardMainContent({
                         {/* Labels Section */}
                         {card.labels && card.labels.length > 0 && (
                             <div>
-                                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+                                <Text c="dimmed" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
                                     {t('UI_LABELS')}
                                 </Text>
                                 <div
@@ -196,9 +186,9 @@ export default function CardMainContent({
                                         </div>
                                     ))}
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<span style={{ fontSize: 16 }}>+</span>}
+                                        variant="subtle"
+                                        size="sm"
+                                        leftSection={<span style={{ fontSize: 16 }}>+</span>}
                                         style={{ width: 32, height: 32, padding: 0 }}
                                     />
                                 </div>
@@ -208,7 +198,7 @@ export default function CardMainContent({
                         {/* Dates Section */}
                         {(card.start_date || card.due_date) && (
                             <div>
-                                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+                                <Text c="dimmed" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
                                     {t('UI_DATES')}
                                 </Text>
                                 <div
@@ -216,9 +206,9 @@ export default function CardMainContent({
                                     onClick={onDueDateClick}
                                 >
                                     {card.start_date && (
-                                        <Tag>
+                                        <Badge>
                                             {dayjs(card.start_date).format('MMM D YYYY hh:mm A')}
-                                        </Tag>
+                                        </Badge>
                                     )}
                                     {card.start_date && card.due_date && (
                                         <span style={{ color: 'var(--text-secondary)' }}>→</span>
@@ -242,8 +232,8 @@ export default function CardMainContent({
                 {/* Show Members button only when no members */}
                 {(!card.members || card.members.length === 0) && (
                     <Button
-                        icon={<UserOutlined />}
-                        size="small"
+                        leftSection={<IconUser size={16} />}
+                        size="sm"
                         onClick={onMembersClick}
                     >
                         {t('UI_MEMBERS')}
@@ -252,8 +242,8 @@ export default function CardMainContent({
                 {/* Show Labels button only when no labels */}
                 {(!card.labels || card.labels.length === 0) && (
                     <Button
-                        icon={<TagOutlined />}
-                        size="small"
+                        leftSection={<IconTag size={16} />}
+                        size="sm"
                         onClick={onLabelsClick}
                     >
                         {t('UI_LABELS')}
@@ -262,8 +252,8 @@ export default function CardMainContent({
                 {/* Show Dates button only when no dates at all */}
                 {!card.due_date && !card.start_date && (
                     <Button
-                        icon={<ClockCircleOutlined />}
-                        size="small"
+                        leftSection={<IconClock size={16} />}
+                        size="sm"
                         onClick={onDueDateClick}
                     >
                         {t('UI_DATES')}
@@ -272,23 +262,23 @@ export default function CardMainContent({
                 {/* Show Cover button when not a link card */}
                 {!card.link_url && (
                     <Button
-                        icon={<PictureOutlined />}
-                        size="small"
+                        leftSection={<IconPhoto size={16} />}
+                        size="sm"
                         onClick={onCoverClick}
                     >
                         {t('UI_COVER')}
                     </Button>
                 )}
                 <Button
-                    icon={<CheckSquareOutlined />}
-                    size="small"
+                    leftSection={<IconCheckbox size={16} />}
+                    size="sm"
                     onClick={onAddChecklistTriggered}
                 >
                     {t('UI_CHECKLIST')}
                 </Button>
                 <Button
-                    icon={<PaperClipOutlined />}
-                    size="small"
+                    leftSection={<IconPaperclip size={16} />}
+                    size="sm"
                     onClick={() => attachmentButtonRef?.current?.click()}
                 >
                     {t('UI_ATTACHMENT')}
@@ -301,16 +291,16 @@ export default function CardMainContent({
                     onPrint={onPrint}
                 />
                 <Button
-                    icon={isArchived ? <UndoOutlined /> : <InboxOutlined />}
-                    size="small"
+                    leftSection={isArchived ? <IconArrowBack size={16} /> : <IconInbox size={16} />}
+                    size="sm"
                     onClick={handleArchive}
                 >
                     {isArchived ? t('UI_RESTORE') : t('UI_ARCHIVE')}
                 </Button>
                 <Button
-                    icon={<DeleteOutlined />}
-                    size="small"
-                    danger
+                    leftSection={<IconTrash size={16} />}
+                    size="sm"
+                    color="red"
                     onClick={handleDelete}
                 >
                     {t('UI_DELETE')}

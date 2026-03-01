@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Button, Checkbox } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import EditableTitle from '@/components/common/EditableTitle';
 import { useTranslation } from '@/hooks/useLabels';
 
+import { Button, Checkbox } from '@mantine/core';
+import { IconArrowLeft } from '@tabler/icons-react';
 interface CardHeaderProps {
     title: string;
     isCompleted?: boolean;
@@ -36,8 +36,8 @@ export default function CardHeader({
         >
             {!hideBackButton && (
                 <Button
-                    type="text"
-                    icon={<ArrowLeftOutlined />}
+                    variant="subtle"
+                    leftSection={<IconArrowLeft size={16}  />}
                     onClick={onBack}
                     style={{ marginTop: 4 }}
                 />

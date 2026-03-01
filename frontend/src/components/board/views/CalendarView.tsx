@@ -1,314 +1,184 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { Calendar, Badge, Popover, Typography, Tag, Empty, Button, Tooltip } from 'antd';
-import { CloseOutlined, LinkOutlined } from '@ant-design/icons';
-import type { Dayjs } from 'dayjs';
-import type { CalendarMode } from 'antd/es/calendar/generateCalendar';
+import React, { useMemo, useCallback, useState } from 'react';
 import dayjs from 'dayjs';
+import { Calendar, dayjsLocalizer, type Event, type View, type EventProps, type NavigateAction } from 'react-big-calendar';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card } from '@/types';
 import { FilterState } from '@/components/board/BoardFilterPopover';
-import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
+import { isOverdue } from '@/components/common/DueDateTag';
 import styles from './CalendarView.module.css';
 import { useAppToken } from '@/hooks/useAppToken';
+import { Badge, Text } from '@mantine/core';
+import { IconLink } from '@tabler/icons-react';
 
-const { Text } = Typography;
+const localizer = dayjsLocalizer(dayjs);
 
 interface CalendarViewProps {
     filters?: FilterState;
     onCardClick?: (cardId: string) => void;
 }
 
+interface CardEvent extends Event {
+    resource: Card & { listTitle: string; listColor?: string };
+}
+
 // Filter helper function
 const filterCard = (card: Card, filters: FilterState | undefined): boolean => {
     if (!filters) return true;
 
-    // Search filter
     if (filters.search && !card.title.toLowerCase().includes(filters.search.toLowerCase())) {
         return false;
     }
-    // Label filter
     if (filters.labelIds.length > 0 || filters.noLabels) {
         const cardLabelIds = card.labels?.map(l => l.label_id) || [];
         const matchesNoLabels = filters.noLabels && cardLabelIds.length === 0;
         const matchesSpecific = filters.labelIds.length > 0 && filters.labelIds.some(id => cardLabelIds.includes(id));
-        if (!matchesNoLabels && !matchesSpecific) {
-            return false;
-        }
+        if (!matchesNoLabels && !matchesSpecific) return false;
     }
-    // Member filter
     if (filters.memberIds.length > 0 || filters.noMembers) {
         const cardMemberIds = card.members?.map(m => m.user_id) || [];
         const matchesNoMembers = filters.noMembers && cardMemberIds.length === 0;
         const matchesSpecific = filters.memberIds.length > 0 && filters.memberIds.some(id => cardMemberIds.includes(id));
-        if (!matchesNoMembers && !matchesSpecific) {
-            return false;
-        }
+        if (!matchesNoMembers && !matchesSpecific) return false;
     }
     if (filters.dueDate) {
         const now = dayjs();
         const dueDate = card.due_date ? dayjs(card.due_date) : null;
-        if (filters.dueDate === 'overdue' && (!dueDate || !dueDate.isBefore(now))) {
-            return false;
-        }
-        if (filters.dueDate === 'due_soon' && (!card.due_date || !isDueSoon(card.due_date))) {
-            return false;
-        }
-        if (filters.dueDate === 'due_later' && (!card.due_date || !isDueLater(card.due_date))) {
-            return false;
-        }
-        if (filters.dueDate === 'no_date' && card.due_date) {
-            return false;
-        }
+        if (filters.dueDate === 'overdue' && (!dueDate || !dueDate.isBefore(now))) return false;
+        if (filters.dueDate === 'due_soon' && (!dueDate || !dueDate.isAfter(now) || !dueDate.isBefore(now.add(72, 'hour')))) return false;
+        if (filters.dueDate === 'due_later' && (!dueDate || !dueDate.isAfter(now.add(72, 'hour')))) return false;
+        if (filters.dueDate === 'no_date' && card.due_date) return false;
     }
     return true;
 };
 
-export default function CalendarView({ filters, onCardClick }: CalendarViewProps) {
-    const { lists } = useBoardStore();
-    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-    const [calendarMode, setCalendarMode] = useState<CalendarMode>('month');
-    const [panelDate, setPanelDate] = useState<Dayjs>(dayjs());
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const token = useAppToken();
-
-    // Get all cards with due dates (filtered)
-    const cardsByDate = useMemo(() => {
-        const map: Record<string, (Card & { listTitle: string; listColor?: string })[]> = {};
-        lists.forEach((list) => {
-            (list.cards || []).forEach((card) => {
-                if (card.due_date && filterCard(card, filters)) {
-                    const dateKey = dayjs(card.due_date).format('YYYY-MM-DD');
-                    if (!map[dateKey]) map[dateKey] = [];
-                    map[dateKey].push({ ...card, listTitle: list.title, listColor: list.color });
-                }
-            });
-        });
-        return map;
-    }, [lists, filters]);
-
-    // Get cards for a specific month
-    const getCardsForMonth = (date: Dayjs) => {
-        const monthKey = date.format('YYYY-MM');
-        const cards: (Card & { listTitle: string; listColor?: string })[] = [];
-        Object.keys(cardsByDate).forEach((dateKey) => {
-            if (dateKey.startsWith(monthKey)) {
-                cards.push(...cardsByDate[dateKey]);
-            }
-        });
-        return cards.sort((a, b) =>
-            dayjs(a.due_date).valueOf() - dayjs(b.due_date).valueOf()
-        );
-    };
-
-    const dateCellRender = (value: Dayjs) => {
-        const dateKey = value.format('YYYY-MM-DD');
-        const cards = cardsByDate[dateKey] || [];
-
-        if (cards.length === 0) return null;
-
-        const isOverdue = value.isBefore(dayjs(), 'day');
-
-        return (
-            <Popover
-                content={
-                    <div className={styles.popoverContent}>
-                        {cards.map((card) => (
-                            <div
-                                key={card.id}
-                                className={styles.popoverCardItem}
-                                onClick={() => onCardClick?.(card.id)}
-                            >
-                                <div>
-                                    <Text strong style={{ fontSize: 12 }}>
-                                        {card.link_url && <LinkOutlined style={{ marginRight: 4, color: 'var(--text-secondary)' }} />}
-                                        {card.link_title || card.title}
-                                    </Text>
-                                    <div className={styles.popoverCardTags}>
-                                        <Tag
-                                            style={{
-                                                fontSize: 10,
-                                                backgroundColor: card.listColor || undefined,
-                                                color: card.listColor ? token.colorWhite : undefined,
-                                                border: 'none',
-                                            }}
-                                        >
-                                            {card.listTitle}
-                                        </Tag>
-                                        {card.is_completed && <Tag color="green" style={{ fontSize: 10 }}>Done</Tag>}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                }
-                title={`Cards due ${value.format('MMM D')}`}
-                trigger="hover"
-            >
-                <div className={styles.badgeWrapper}>
-                    <Badge
-                        count={cards.length}
-                        style={{
-                            backgroundColor: isOverdue ? token.colorError : token.colorPrimary,
-                            cursor: 'pointer',
-                        }}
-                    />
-                </div>
-            </Popover>
-        );
-    };
-
-    const monthCellRender = (value: Dayjs) => {
-        const cards = getCardsForMonth(value);
-
-        if (cards.length === 0) return null;
-
-        const now = dayjs();
-        const overdue = cards.filter(card =>
-            card.due_date && dayjs(card.due_date).isBefore(now, 'day') && !card.is_completed
-        ).length;
-        const completed = cards.filter(card => card.is_completed).length;
-        const pending = cards.length - overdue - completed;
-
-        return (
-            <div className={styles.monthBadges}>
-                {overdue > 0 && (
-                    <Tooltip title={`${overdue} overdue`}>
-                        <Badge
-                            count={overdue}
-                            style={{ backgroundColor: token.colorError }}
-                        />
-                    </Tooltip>
-                )}
-                {pending > 0 && (
-                    <Tooltip title={`${pending} pending`}>
-                        <Badge
-                            count={pending}
-                            style={{ backgroundColor: token.colorPrimary }}
-                        />
-                    </Tooltip>
-                )}
-                {completed > 0 && (
-                    <Tooltip title={`${completed} completed`}>
-                        <Badge
-                            count={completed}
-                            style={{ backgroundColor: token.colorSuccess }}
-                        />
-                    </Tooltip>
-                )}
-            </div>
-        );
-    };
-
-    // Get cards to display in sidebar based on mode
-    const displayCards = useMemo(() => {
-        if (calendarMode === 'year' && panelDate) {
-            // In year mode, show cards for the selected month
-            return getCardsForMonth(panelDate);
-        } else if (selectedDate) {
-            // In month mode, show cards for the selected date
-            return cardsByDate[selectedDate.format('YYYY-MM-DD')] || [];
-        }
-        return [];
-    }, [calendarMode, panelDate, selectedDate, cardsByDate]);
-
-    const sidebarTitle = useMemo(() => {
-        if (calendarMode === 'year' && panelDate) {
-            return panelDate.format('MMMM YYYY');
-        } else if (selectedDate) {
-            return selectedDate.format('MMMM D, YYYY');
-        }
-        return '';
-    }, [calendarMode, panelDate, selectedDate]);
-
-    const handleSelect = (date: Dayjs, selectInfo: { source: 'year' | 'month' | 'date' | 'customize' }) => {
-        // Only update selection when actually clicking on a date/month cell
-        // Ignore auto-selection from panel navigation
-        if (selectInfo.source === 'date') {
-            // Clicked on a specific date in month mode
-            setSelectedDate(date);
-            setSidebarOpen(true);
-        } else if (selectInfo.source === 'month') {
-            // Clicked on a month in year mode
-            setPanelDate(date);
-            setSidebarOpen(true);
-        }
-        // Ignore 'year' and 'customize' sources (navigation actions)
-    };
-
-    const handlePanelChange = (date: Dayjs, mode: CalendarMode) => {
-        setPanelDate(date);
-        setCalendarMode(mode);
-    };
+// Custom event component for rendering cards in the calendar
+function CalendarEvent({ event }: EventProps<CardEvent>) {
+    const card = event.resource;
+    const overdue = card.due_date ? isOverdue(card.due_date) : false;
+    const isLink = !!card.link_url;
 
     return (
-        <div className={styles.container}>
-            <div className={styles.calendarWrapper}>
-                <Calendar
-                    cellRender={(current, info) => {
-                        if (info.type === 'date') return dateCellRender(current);
-                        if (info.type === 'month') return monthCellRender(current);
-                        return info.originNode;
-                    }}
-                    onSelect={handleSelect}
-                    onPanelChange={handlePanelChange}
-                />
-            </div>
-
-            {sidebarOpen && (
-                <div className={styles.sidebar}>
-                    <div className={styles.sidebarHeader}>
-                        <Text strong>
-                            {sidebarTitle}
-                        </Text>
-                        <Button
-                            type="text"
-                            size="small"
-                            icon={<CloseOutlined />}
-                            onClick={() => setSidebarOpen(false)}
-                        />
-                    </div>
-                    {displayCards.length === 0 ? (
-                        <Empty description="No cards due" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                    ) : (
-                        <div className={styles.cardsList}>
-                            <div className={styles.cardsListInner}>
-                                {displayCards.map((card) => (
-                                    <div
-                                        key={card.id}
-                                        className={styles.cardItem}
-                                        onClick={() => onCardClick?.(card.id)}
-                                    >
-                                        <div>
-                                            <Text strong>
-                                                {card.link_url && <LinkOutlined style={{ marginRight: 4, color: 'var(--text-secondary)' }} />}
-                                                {card.link_title || card.title}
-                                            </Text>
-                                            <div className={styles.cardTags}>
-                                                <Tag
-                                                    style={{
-                                                        backgroundColor: card.listColor || undefined,
-                                                        color: card.listColor ? token.colorWhite : undefined,
-                                                        border: 'none',
-                                                    }}
-                                                >
-                                                    {card.listTitle}
-                                                </Tag>
-                                                {card.is_completed && <Tag color="green">Done</Tag>}
-                                                <DueDateTag
-                                                    dueDate={card.due_date!}
-                                                    isCompleted={card.is_completed}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
+        <div
+            className={`${styles.calendarEvent} ${card.is_completed ? styles.eventCompleted : ''} ${overdue && !card.is_completed ? styles.eventOverdue : ''}`}
+            style={{
+                borderLeftColor: card.listColor || 'var(--primary-color)',
+            }}
+        >
+            <Text size="xs" fw={600} lineClamp={1} className={styles.eventTitle}>
+                {isLink && <IconLink size={12} className={styles.eventLinkIcon} />}
+                {card.link_title || card.title}
+            </Text>
+            <Badge
+                size="xs"
+                variant="light"
+                className={styles.eventBadge}
+                style={{
+                    backgroundColor: card.listColor ? `${card.listColor}20` : undefined,
+                    color: card.listColor || undefined,
+                    border: card.listColor ? `1px solid ${card.listColor}40` : undefined,
+                }}
+            >
+                {card.listTitle}
+            </Badge>
         </div>
     );
 }
+
+export default function CalendarView({ filters, onCardClick }: CalendarViewProps) {
+    const { lists } = useBoardStore();
+    const token = useAppToken();
+
+    // Controlled state for calendar navigation
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
+    const [currentView, setCurrentView] = useState<View>('month');
+
+    // Map cards to react-big-calendar events
+    const events: CardEvent[] = useMemo(() => {
+        const result: CardEvent[] = [];
+        lists.forEach((list) => {
+            (list.cards || []).forEach((card) => {
+                if (card.due_date && filterCard(card, filters)) {
+                    const start = card.start_date
+                        ? dayjs(card.start_date).toDate()
+                        : dayjs(card.due_date).toDate();
+                    const end = dayjs(card.due_date).toDate();
+
+                    result.push({
+                        title: card.link_title || card.title,
+                        start,
+                        end,
+                        allDay: true,
+                        resource: { ...card, listTitle: list.title, listColor: list.color },
+                    });
+                }
+            });
+        });
+        return result;
+    }, [lists, filters]);
+
+    const handleSelectEvent = useCallback(
+        (event: CardEvent) => {
+            onCardClick?.(event.resource.id);
+        },
+        [onCardClick]
+    );
+
+    const handleNavigate = useCallback((newDate: Date, view: View, action: NavigateAction) => {
+        setCurrentDate(newDate);
+    }, []);
+
+    const handleViewChange = useCallback((view: View) => {
+        setCurrentView(view);
+    }, []);
+
+    // Style events based on their status
+    const eventPropGetter = useCallback(
+        (event: CardEvent) => {
+            const card = event.resource;
+            const overdue = card.due_date ? isOverdue(card.due_date) : false;
+
+            let className = styles.eventWrapper;
+            if (card.is_completed) {
+                className += ` ${styles.eventWrapperCompleted}`;
+            } else if (overdue) {
+                className += ` ${styles.eventWrapperOverdue}`;
+            }
+
+            return { className, style: {} };
+        },
+        []
+    );
+
+    return (
+        <div className={styles.container}>
+            <Calendar<CardEvent>
+                localizer={localizer}
+                events={events}
+                startAccessor="start"
+                endAccessor="end"
+                date={currentDate}
+                view={currentView}
+                onNavigate={handleNavigate}
+                onView={handleViewChange}
+                onSelectEvent={handleSelectEvent}
+                eventPropGetter={eventPropGetter}
+                views={['month', 'week', 'day', 'agenda']}
+                popup
+                selectable={false}
+                components={{
+                    event: CalendarEvent,
+                }}
+                style={{ height: '100%' }}
+                formats={{
+                    monthHeaderFormat: (date: Date) => dayjs(date).format('MMMM YYYY'),
+                    dayHeaderFormat: (date: Date) => dayjs(date).format('dddd, MMMM D'),
+                    dayRangeHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
+                        `${dayjs(start).format('MMM D')} – ${dayjs(end).format('MMM D, YYYY')}`,
+                }}
+            />
+        </div>
+    );
+}
+

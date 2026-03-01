@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Spin, Empty, Typography } from 'antd';
-import { SearchOutlined, ProjectOutlined, CreditCardOutlined, TeamOutlined } from '@ant-design/icons';
+import { TextInput, Loader, Text } from '@mantine/core';
+import { IconSearch, IconLayoutBoard, IconCreditCard, IconUsers } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
-
-const { Text } = Typography;
 
 interface SearchResult {
     workspaces: Array<{ id: string; name: string }>;
@@ -26,7 +24,6 @@ export default function GlobalSearch() {
     const containerRef = useRef<HTMLDivElement>(null);
     const debouncedQuery = useDebounce(query, 300);
 
-    // Search when debounced query changes
     useEffect(() => {
         if (debouncedQuery.trim().length < 2) {
             setResults(null);
@@ -49,7 +46,6 @@ export default function GlobalSearch() {
         search();
     }, [debouncedQuery]);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -87,17 +83,17 @@ export default function GlobalSearch() {
 
     return (
         <div ref={containerRef} style={{ position: 'relative', flex: 1, maxWidth: 600 }}>
-            <Input
+            <TextInput
                 placeholder={t('UI_SEARCH_PLACEHOLDER')}
-                prefix={<SearchOutlined style={{ color: 'var(--text-secondary)' }} />}
+                leftSection={<IconSearch size={16} color="var(--text-secondary)" />}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => setQuery(e.currentTarget.value)}
                 onFocus={() => setIsOpen(true)}
                 style={{
                     borderRadius: 8,
-                    background: 'var(--bg-tertiary)',
                 }}
-                allowClear
+                styles={{ input: { background: 'var(--bg-tertiary)' } }}
+                rightSection={query ? undefined : undefined}
             />
 
             {isOpen && query.trim().length >= 2 && (
@@ -119,11 +115,11 @@ export default function GlobalSearch() {
                 >
                     {loading ? (
                         <div style={{ padding: 24, textAlign: 'center' }}>
-                            <Spin size="small" />
+                            <Loader size="sm" />
                         </div>
                     ) : !hasResults ? (
-                        <div style={{ padding: 24 }}>
-                            <Empty description={t('UI_NO_RESULTS')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                        <div style={{ padding: 24, textAlign: 'center' }}>
+                            <Text c="dimmed">{t('UI_NO_RESULTS')}</Text>
                         </div>
                     ) : (
                         <>
@@ -136,8 +132,11 @@ export default function GlobalSearch() {
                                         fontWeight: 600,
                                         color: 'var(--text-secondary)',
                                         textTransform: 'uppercase',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 6,
                                     }}>
-                                        <TeamOutlined style={{ marginRight: 6 }} />
+                                        <IconUsers size={12} />
                                         {t('UI_WORKSPACES')}
                                     </div>
                                     {results.workspaces.map((ws) => (
@@ -169,8 +168,11 @@ export default function GlobalSearch() {
                                         fontWeight: 600,
                                         color: 'var(--text-secondary)',
                                         textTransform: 'uppercase',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 6,
                                     }}>
-                                        <ProjectOutlined style={{ marginRight: 6 }} />
+                                        <IconLayoutBoard size={12} />
                                         {t('UI_BOARDS')}
                                     </div>
                                     {results.boards.map((board) => (
@@ -189,7 +191,7 @@ export default function GlobalSearch() {
                                         >
                                             <Text>{board.title}</Text>
                                             {board.workspace_name && (
-                                                <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                                                <Text c="dimmed" size="xs" ml="xs">
                                                     {t('UI_IN')} {board.workspace_name}
                                                 </Text>
                                             )}
@@ -207,8 +209,11 @@ export default function GlobalSearch() {
                                         fontWeight: 600,
                                         color: 'var(--text-secondary)',
                                         textTransform: 'uppercase',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 6,
                                     }}>
-                                        <CreditCardOutlined style={{ marginRight: 6 }} />
+                                        <IconCreditCard size={12} />
                                         {t('UI_CARDS')}
                                     </div>
                                     {results.cards.map((card) => (
@@ -227,7 +232,7 @@ export default function GlobalSearch() {
                                         >
                                             <Text>{card.title}</Text>
                                             {card.board_title && (
-                                                <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                                                <Text c="dimmed" size="xs" ml="xs">
                                                     {t('UI_IN')} {card.board_title}
                                                 </Text>
                                             )}

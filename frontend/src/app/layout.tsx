@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
-import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { ColorSchemeScript } from '@mantine/core';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { HeaderProvider } from '@/providers/HeaderProvider';
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
+import '@mantine/notifications/styles.css';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -23,14 +26,15 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                <ColorSchemeScript />
+            </head>
             <body>
-                <AntdRegistry>
-                    <QueryProvider>
-                        <ThemeProvider>
-                            <HeaderProvider>{children}</HeaderProvider>
-                        </ThemeProvider>
-                    </QueryProvider>
-                </AntdRegistry>
+                <QueryProvider>
+                    <ThemeProvider>
+                        <HeaderProvider>{children}</HeaderProvider>
+                    </ThemeProvider>
+                </QueryProvider>
             </body>
         </html>
     );

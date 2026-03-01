@@ -1,17 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Segmented } from 'antd';
-import {
-    AppstoreOutlined,
-    TableOutlined,
-    CalendarOutlined,
-    DashboardOutlined,
-} from '@ant-design/icons';
 import styles from './BoardViewSwitcher.module.css';
 import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
 
+import { SegmentedControl } from '@mantine/core';
+import { IconApps, IconTable, IconCalendar, IconDashboard } from '@tabler/icons-react';
 export type BoardViewMode = 'board' | 'table' | 'calendar' | 'dashboard';
 
 interface BoardViewSwitcherProps {
@@ -24,16 +19,16 @@ export default function BoardViewSwitcher({ value, onChange }: BoardViewSwitcher
     const token = useAppToken();
 
     const viewOptions = [
-        { value: 'board', icon: <AppstoreOutlined />, label: t('UI_VIEW_BOARD') },
-        { value: 'table', icon: <TableOutlined />, label: t('UI_VIEW_TABLE') },
-        { value: 'calendar', icon: <CalendarOutlined />, label: t('UI_VIEW_CALENDAR') },
-        { value: 'dashboard', icon: <DashboardOutlined />, label: t('UI_VIEW_DASHBOARD') },
+        { value: 'board', icon: <IconApps size={16} />, label: t('UI_VIEW_BOARD') },
+        { value: 'table', icon: <IconTable size={16} />, label: t('UI_VIEW_TABLE') },
+        { value: 'calendar', icon: <IconCalendar size={16} />, label: t('UI_VIEW_CALENDAR') },
+        { value: 'dashboard', icon: <IconDashboard size={16} />, label: t('UI_VIEW_DASHBOARD') },
     ];
     return (
-        <Segmented
+        <SegmentedControl
             value={value}
             onChange={(val) => onChange(val as BoardViewMode)}
-            options={viewOptions.map((opt) => ({
+            data={viewOptions.map((opt) => ({
                 value: opt.value,
                 label: (
                     <div style={{

@@ -1,21 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, Layout, Menu, Button, Typography, theme, Flex } from 'antd';
-import {
-    ThunderboltOutlined,
-    CalendarOutlined,
-    ClockCircleOutlined,
-    AppstoreOutlined,
-    DeleteOutlined
-} from '@ant-design/icons';
 import AutomationRules from './AutomationRules';
 import AutomationScheduled from './AutomationScheduled';
 import AutomationDueDate from './AutomationDueDate';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Title } = Typography;
-const { Sider, Content } = Layout;
+import { Modal, Button, Text, Title, Flex, NavLink } from '@mantine/core';
+import { IconBolt, IconCalendar, IconClock, IconApps } from '@tabler/icons-react';
 
 interface AutomationModalProps {
     open: boolean;
@@ -25,7 +17,6 @@ interface AutomationModalProps {
 
 export default function AutomationModal({ open, onClose, boardId }: AutomationModalProps) {
     const [selectedKey, setSelectedKey] = useState('rules');
-    const { token } = theme.useToken();
     const t = useTranslation();
 
     const renderContent = () => {
@@ -43,42 +34,55 @@ export default function AutomationModal({ open, onClose, boardId }: AutomationMo
 
     return (
         <Modal
-            open={open}
-            onCancel={onClose}
-            footer={null}
-            width={'90vw'}
+            opened={open}
+            onClose={onClose}
+            size="90vw"
         >
-            <Layout style={{ height: '80vh', backgroundColor: 'transparent' }}>
-                <Sider style={{ backgroundColor: 'transparent' }}>
-                    <Flex style={{ padding: '16px 24px' }} align="center">
-                        <Title level={4}>{t('UI_AUTOMATION')}</Title>
+            <div style={{ display: 'flex', height: '80vh' }}>
+                {/* Sidebar */}
+                <div style={{ width: 240, borderRight: '1px solid var(--mantine-color-default-border)', paddingRight: 16 }}>
+                    <Flex style={{ padding: '16px 0' }} align="center">
+                        <Title order={4}>{t('UI_AUTOMATION')}</Title>
                     </Flex>
-                    <Menu
-                        mode="inline"
-                        selectedKeys={[selectedKey]}
-                        style={{ borderRight: 0 }}
-                        onClick={({ key }) => setSelectedKey(key)}
-                        items={[
-                            {
-                                key: 'grp_auto', label: t('UI_AUTOMATIONS'), type: 'group', children: [
-                                    { key: 'rules', label: t('UI_RULES'), icon: <ThunderboltOutlined /> },
-                                    { key: 'scheduled', label: t('UI_SCHEDULED'), icon: <ClockCircleOutlined /> },
-                                    { key: 'due_date', label: t('UI_DUE_DATE_LABEL'), icon: <CalendarOutlined /> },
-                                ]
-                            },
-                            {
-                                key: 'grp_btn', label: t('UI_CUSTOM_BUTTONS'), type: 'group', children: [
-                                    { key: 'card_btn', label: t('UI_CARD_BUTTONS'), icon: <AppstoreOutlined />, disabled: true },
-                                    { key: 'board_btn', label: t('UI_BOARD_BUTTONS'), icon: <AppstoreOutlined />, disabled: true },
-                                ]
-                            },
-                        ]}
+
+                    <Text size="xs" fw={600} c="dimmed" mb="xs">{t('UI_AUTOMATIONS')}</Text>
+                    <NavLink
+                        label={t('UI_RULES')}
+                        leftSection={<IconBolt size={16} />}
+                        active={selectedKey === 'rules'}
+                        onClick={() => setSelectedKey('rules')}
                     />
-                </Sider>
-                <Content style={{ overflow: 'auto', height: '100%' }}>
+                    <NavLink
+                        label={t('UI_SCHEDULED')}
+                        leftSection={<IconClock size={16} />}
+                        active={selectedKey === 'scheduled'}
+                        onClick={() => setSelectedKey('scheduled')}
+                    />
+                    <NavLink
+                        label={t('UI_DUE_DATE_LABEL')}
+                        leftSection={<IconCalendar size={16} />}
+                        active={selectedKey === 'due_date'}
+                        onClick={() => setSelectedKey('due_date')}
+                    />
+
+                    <Text size="xs" fw={600} c="dimmed" mt="md" mb="xs">{t('UI_CUSTOM_BUTTONS')}</Text>
+                    <NavLink
+                        label={t('UI_CARD_BUTTONS')}
+                        leftSection={<IconApps size={16} />}
+                        disabled
+                    />
+                    <NavLink
+                        label={t('UI_BOARD_BUTTONS')}
+                        leftSection={<IconApps size={16} />}
+                        disabled
+                    />
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, overflow: 'auto', paddingLeft: 16 }}>
                     {renderContent()}
-                </Content>
-            </Layout>
+                </div>
+            </div>
         </Modal>
     );
 }

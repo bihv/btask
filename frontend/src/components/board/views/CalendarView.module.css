@@ -1,101 +1,332 @@
+/* ============================================
+   CalendarView — react-big-calendar theme
+   ============================================ */
+
 .container {
     padding: 16px;
     height: 100%;
     overflow: hidden;
     display: flex;
-    gap: 16px;
-}
-
-.calendarWrapper {
-    flex: 1;
-    border-radius: 8px;
-    padding: 16px;
-    background: var(--ant-color-bg-container);
-    overflow: auto;
-    min-height: 0;
-}
-
-.sidebar {
-    width: 300px;
-    border-radius: 8px;
-    padding: 16px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    display: flex;
     flex-direction: column;
-    max-height: 100%;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin: 8px;
+}
+
+/* ---- Toolbar ---- */
+.container :global(.rbc-toolbar) {
+    padding: 8px 4px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.container :global(.rbc-toolbar button) {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.container :global(.rbc-toolbar button:hover) {
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.container :global(.rbc-toolbar button.rbc-active) {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.container :global(.rbc-toolbar-label) {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+/* ---- Month view grid ---- */
+.container :global(.rbc-month-view) {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     overflow: hidden;
 }
 
-.sidebarHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    flex-shrink: 0;
+.container :global(.rbc-month-header) {
+    background: var(--bg-tertiary);
 }
 
-.cardsList {
-    flex: 1;
-    overflow: auto;
+.container :global(.rbc-header) {
+    padding: 8px 6px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
 }
 
-.cardsListInner {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.container :global(.rbc-header:first-child) {
+    border-left: none;
 }
 
-.cardItem {
-    cursor: pointer;
-    padding: 12px;
+.container :global(.rbc-month-row) {
+    border-top: 1px solid var(--border-color);
+}
+
+.container :global(.rbc-day-bg) {
+    background: var(--bg-secondary);
+    transition: background 0.15s ease;
+}
+
+.container :global(.rbc-day-bg:hover) {
+    background: var(--bg-tertiary);
+}
+
+.container :global(.rbc-day-bg + .rbc-day-bg) {
+    border-left: 1px solid var(--border-color);
+}
+
+.container :global(.rbc-off-range-bg) {
     background: var(--bg-primary);
-    border-radius: 8px;
+    opacity: 0.6;
+}
+
+.container :global(.rbc-today) {
+    background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-secondary));
+}
+
+.container :global(.rbc-date-cell) {
+    padding: 4px 8px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.container :global(.rbc-date-cell.rbc-now) {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.container :global(.rbc-off-range) {
+    color: var(--text-secondary);
+    opacity: 0.4;
+}
+
+/* ---- Week / Day view ---- */
+.container :global(.rbc-time-view) {
     border: 1px solid var(--border-color);
-    transition: all 0.2s;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.cardItem:hover {
-    border-color: var(--primary-color, #1890ff);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.container :global(.rbc-time-header-content) {
+    border-left: 1px solid var(--border-color);
 }
 
-.cardTags {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+.container :global(.rbc-time-content) {
+    border-top: 1px solid var(--border-color);
 }
 
-.popoverContent {
-    max-height: 200px;
-    overflow: auto;
-    min-width: 200px;
-    display: flex;
-    flex-direction: column;
+.container :global(.rbc-timeslot-group) {
+    border-bottom: 1px solid var(--border-color);
 }
 
-.popoverCardItem {
+.container :global(.rbc-time-slot) {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.container :global(.rbc-day-slot .rbc-time-slot) {
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 40%, transparent);
+}
+
+.container :global(.rbc-current-time-indicator) {
+    background-color: var(--primary-color);
+    height: 2px;
+}
+
+/* ---- Agenda view ---- */
+.container :global(.rbc-agenda-view) {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table) {
+    border: none;
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table thead > tr > th) {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table tbody > tr > td) {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table tbody > tr:hover > td) {
+    background: var(--bg-tertiary);
+}
+
+/* ---- Popup ("+N more") ---- */
+.container :global(.rbc-overlay) {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    z-index: 100;
+}
+
+.container :global(.rbc-overlay-header) {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 4px 8px 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 4px;
+}
+
+/* ---- Show more link ---- */
+.container :global(.rbc-show-more) {
+    color: var(--primary-color);
+    font-size: 11px;
+    font-weight: 600;
+    background: transparent;
+    margin-top: 2px;
+}
+
+.container :global(.rbc-show-more:hover) {
+    text-decoration: underline;
+}
+
+/* ---- Event wrapper ---- */
+.container :global(.rbc-event) {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.container :global(.rbc-event:focus) {
+    outline: none !important;
+}
+
+.container :global(.rbc-event.rbc-selected) {
+    background: transparent !important;
+}
+
+.container :global(.rbc-event-content) {
+    overflow: visible;
+}
+
+.container :global(.rbc-row-segment) {
+    padding: 1px 4px;
+}
+
+/* ---- Custom event component ---- */
+.calendarEvent {
+    padding: 3px 6px;
+    border-radius: 4px;
+    border-left: 3px solid var(--primary-color);
+    background: var(--bg-primary);
     cursor: pointer;
-    padding: 4px 0;
-}
-
-.popoverCardTags {
+    transition: all 0.15s ease;
+    overflow: hidden;
+    min-height: 22px;
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 4px;
 }
 
-.badgeWrapper {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
+.calendarEvent:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
 }
 
-.monthBadges {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    display: flex;
-    gap: 2px;
+.eventCompleted {
+    opacity: 0.6;
+    text-decoration: line-through;
+    border-left-color: var(--text-secondary) !important;
+}
+
+.eventOverdue {
+    background: color-mix(in srgb, #eb5a46 10%, var(--bg-primary));
+}
+
+.eventTitle {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.eventLinkIcon {
+    flex-shrink: 0;
+    margin-right: 2px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+.eventBadge {
+    flex-shrink: 0;
+    font-size: 9px !important;
+    height: 16px;
+    max-width: 60px;
+    overflow: hidden;
+}
+
+/* Wrapper-level status classes (via eventPropGetter) */
+.eventWrapper {
+    /* base styles — enhanced by modifier classes below */
+    cursor: pointer;
+}
+
+.eventWrapperCompleted :global(.rbc-event-content) {
+    opacity: 0.55;
+}
+
+
+/* ---- Dark mode overrides ---- */
+[data-theme='dark'] .container :global(.rbc-toolbar button) {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme='dark'] .container :global(.rbc-toolbar button:hover) {
+    background: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .container :global(.rbc-overlay) {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .calendarEvent {
+    background: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .calendarEvent:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }

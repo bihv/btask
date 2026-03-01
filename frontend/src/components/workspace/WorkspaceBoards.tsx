@@ -2,30 +2,35 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Typography, Button, Modal, Form, Input, Empty, Row, Col, App } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
 import { CreateBoardRequest, Workspace } from '@/types';
 import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
 import BoardCard from '@/components/board/BoardCard';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Title, Text } = Typography;
-
+import { Text, Title, Button, Modal, TextInput, Center, SimpleGrid } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
 interface WorkspaceBoardsProps {
     workspace: Workspace;
 }
 
 export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
     const router = useRouter();
-    const { message } = App.useApp();
     const t = useTranslation();
     const [createBoardModalOpen, setCreateBoardModalOpen] = useState(false);
-    const [boardForm] = Form.useForm();
 
-    // Watch form values for background picker
-    const backgroundColor = Form.useWatch('background_color', boardForm);
-    const backgroundImage = Form.useWatch('background_image', boardForm);
+    const form = useForm({
+        initialValues: {
+            boardTitle: '',
+            backgroundColor: '',
+            backgroundImage: '',
+        },
+        validate: {
+            boardTitle: (value) => (!value.trim() ? t('UI_PLACEHOLDER_BOARD_TITLE') + ' is required' : null),
+        },
+    });
 
     const updateMutation = useUpdateBoard();
     const createBoardMutation = useCreateBoard(workspace.id);
@@ -34,14 +39,19 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
         updateMutation.mutate({ id: boardId, data: { is_starred: !isStarred } });
     };
 
-    const handleCreateBoard = async (values: CreateBoardRequest) => {
+    const handleCreateBoard = async (values: typeof form.values) => {
+        if (!values.boardTitle.trim()) return;
         try {
-            const newBoard = await createBoardMutation.mutateAsync(values);
+            const newBoard = await createBoardMutation.mutateAsync({
+                title: values.boardTitle,
+                background_color: values.backgroundColor,
+                background_image: values.backgroundImage,
+            });
             setCreateBoardModalOpen(false);
-            boardForm.resetFields();
+            form.reset();
             router.push(`/boards/${newBoard.id}`);
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_CREATE_BOARD'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_CREATE_BOARD'), color: 'red' });
         }
     };
 
@@ -50,10 +60,10 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Title level={4} style={{ margin: 0 }}>{t('UI_BOARDS')}</Title>
+                <Title order={4} style={{ margin: 0 }}>{t('UI_BOARDS')}</Title>
                 <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
+
+                    leftSection={<IconPlus size={16} />}
                     onClick={() => setCreateBoardModalOpen(true)}
                 >
                     {t('UI_CREATE_BOARD')}
@@ -61,24 +71,27 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
             </div>
 
             {boards.length === 0 ? (
-                <Empty description={t('UI_NO_BOARDS_YET')}>
-                    <Button type="primary" onClick={() => setCreateBoardModalOpen(true)}>
-                        {t('UI_CREATE_FIRST_BOARD')}
-                    </Button>
-                </Empty>
+                <Center py={48}>
+                    <div style={{ textAlign: 'center' }}>
+                        <Text c="dimmed" mb={16}>{t('UI_NO_BOARDS_YET')}</Text>
+                        <Button onClick={() => setCreateBoardModalOpen(true)}>
+                            {t('UI_CREATE_FIRST_BOARD')}
+                        </Button>
+                    </div>
+                </Center>
             ) : (
-                <Row gutter={[16, 16]}>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                     {boards.map((board) => (
-                        <Col xs={24} sm={12} md={8} lg={6} key={board.id}>
+                        <div>
                             <BoardCard
                                 board={board}
                                 onClick={() => router.push(`/boards/${board.id}`)}
                                 onToggleStar={toggleStar}
                                 style={{ minHeight: 100 }}
                             />
-                        </Col>
+                        </div>
                     ))}
-                    <Col xs={24} sm={12} md={8} lg={6}>
+                    <div>
                         <div
                             style={{
                                 height: 100,
@@ -93,70 +106,58 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                             }}
                             onClick={() => setCreateBoardModalOpen(true)}
                         >
-                            <Text type="secondary">{t('UI_CREATE_NEW_BOARD')}</Text>
+                            <Text c="dimmed">{t('UI_CREATE_NEW_BOARD')}</Text>
                         </div>
-                    </Col>
-                </Row>
+                    </div>
+                </SimpleGrid>
             )}
 
             <Modal
                 title={t('UI_CREATE_BOARD_MODAL')}
-                open={createBoardModalOpen}
-                onCancel={() => {
+                opened={createBoardModalOpen}
+                onClose={() => {
                     setCreateBoardModalOpen(false);
-                    boardForm.resetFields();
+                    form.reset();
                 }}
-                footer={null}
-                width={400}
+                size="md"
             >
-                <Form form={boardForm} layout="vertical" onFinish={handleCreateBoard}>
-                    <Form.Item
-                        name="title"
-                        label={t('UI_BOARD_TITLE')}
-                        rules={[{ required: true, message: t('VALIDATE_BOARD_TITLE') }]}
-                    >
-                        <Input placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')} autoFocus />
-                    </Form.Item>
+                <form onSubmit={form.onSubmit(handleCreateBoard)}>
+                    <div>
+                        <TextInput
+                            placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')}
+                            autoFocus
+                            {...form.getInputProps('boardTitle')}
+                        />
+                    </div>
 
                     <div style={{ marginBottom: 16 }}>
-                        <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+                        <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>
                             {t('UI_BACKGROUND')}
-                        </Typography.Text>
-                        <Form.Item name="background_color" noStyle initialValue={SOLID_COLORS[0]}>
-                            <Input type="hidden" />
-                        </Form.Item>
-                        <Form.Item name="background_image" noStyle>
-                            <Input type="hidden" />
-                        </Form.Item>
+                        </Text>
                         <BackgroundPicker
-                            value={backgroundColor || SOLID_COLORS[0]}
-                            imageValue={backgroundImage}
+                            value={form.values.backgroundColor || SOLID_COLORS[0]}
+                            imageValue={form.values.backgroundImage}
                             onChange={(color) => {
-                                boardForm.setFieldsValue({
-                                    background_color: color,
-                                    background_image: '',
-                                });
+                                form.setFieldValue('backgroundColor', color);
+                                form.setFieldValue('backgroundImage', '');
                             }}
                             onImageChange={(url) => {
-                                boardForm.setFieldsValue({
-                                    background_image: url,
-                                    background_color: '',
-                                });
+                                form.setFieldValue('backgroundImage', url);
+                                form.setFieldValue('backgroundColor', '');
                             }}
                         />
                     </div>
 
-                    <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
+                    <div>
                         <Button
-                            type="primary"
-                            htmlType="submit"
-                            block
+                            type="submit"
+                            fullWidth
                             loading={createBoardMutation.isPending}
                         >
                             {t('UI_CREATE')}
                         </Button>
-                    </Form.Item>
-                </Form>
+                    </div>
+                </form>
             </Modal>
         </div>
     );

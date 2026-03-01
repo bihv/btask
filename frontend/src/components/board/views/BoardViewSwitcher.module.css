@@ -1,17 +1,16 @@
 /* Board View Switcher - White text for visibility on board backgrounds */
-.switcher :global(.ant-segmented) {
-    --ant-segmented-label-color: rgba(255, 255, 255, 0.85);
-    --ant-segmented-label-hover-color: var(--board-toolbar-text, #fff);
+.switcher :global(.mantine-SegmentedControl-root) {
+    --sc-label-color: rgba(255, 255, 255, 0.85);
 }
 
-.switcher :global(.ant-segmented-item-label) {
+.switcher :global(.mantine-SegmentedControl-label) {
     color: rgba(255, 255, 255, 0.85);
 }
 
-.switcher :global(.ant-segmented-item:hover .ant-segmented-item-label) {
+.switcher :global(.mantine-SegmentedControl-control:hover .mantine-SegmentedControl-label) {
     color: var(--board-toolbar-text, #fff);
 }
 
-.switcher :global(.ant-segmented-item-selected .ant-segmented-item-label) {
+.switcher :global(.mantine-SegmentedControl-indicator + .mantine-SegmentedControl-label) {
     color: var(--text-primary);
 }

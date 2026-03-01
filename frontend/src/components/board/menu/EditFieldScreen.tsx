@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Checkbox, Space, Tag, Modal, Typography, Divider, App } from 'antd';
-import { DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { CustomField, CustomFieldOption } from '@/types';
 import { customFieldApi } from '@/lib/api';
 import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Text } = Typography;
-
+import { TextInput, Button, Checkbox, Group, Badge, Modal, Text, Title, Divider } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconTrash, IconAlertCircle } from '@tabler/icons-react';
 interface EditFieldScreenProps {
     field: CustomField;
     onBack: () => void;
@@ -18,7 +17,6 @@ interface EditFieldScreenProps {
 }
 
 export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: EditFieldScreenProps) {
-    const { modal, message } = App.useApp();
     const t = useTranslation();
     const [name, setName] = useState(field.name);
     const [showOnCard, setShowOnCard] = useState(field.show_on_card);
@@ -29,7 +27,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
 
     const handleSave = async () => {
         if (!name.trim()) {
-            message.error(t('ERROR_FIELD_NAME_REQUIRED'));
+            notifications.show({ title: 'Error', message: t('ERROR_FIELD_NAME_REQUIRED'), color: 'red' });
             return;
         }
 
@@ -41,7 +39,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
             });
             onUpdate(response.data.data);
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_UPDATE_FIELD_FAILED'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_UPDATE_FIELD_FAILED'), color: 'red' });
         } finally {
             setSaving(false);
         }
@@ -58,7 +56,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
             setOptions([...options, response.data.data]);
             setNewOption('');
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_ADD_OPTION_FAILED'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_ADD_OPTION_FAILED'), color: 'red' });
         } finally {
             setAddingOption(false);
         }
@@ -69,27 +67,18 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
             await customFieldApi.deleteOption(optionId);
             setOptions(options.filter(o => o.id !== optionId));
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_DELETE_OPTION_FAILED'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_DELETE_OPTION_FAILED'), color: 'red' });
         }
     };
 
-    const handleDelete = () => {
-        modal.confirm({
-            title: t('UI_DELETE_CUSTOM_FIELD'),
-            icon: <ExclamationCircleOutlined />,
-            content: t('UI_DELETE_CUSTOM_FIELD_CONFIRM'),
-            okText: t('UI_DELETE'),
-            okType: 'danger',
-            onOk: async () => {
-                try {
-                    await customFieldApi.delete(field.id);
-                    message.success(t('SUCCESS_FIELD_DELETED'));
-                    onDelete();
-                } catch (error: any) {
-                    message.error(error.response?.data?.error || t('ERROR_DELETE_FIELD_FAILED'));
-                }
-            },
-        });
+    const handleDelete = async () => {
+        try {
+            await customFieldApi.delete(field.id);
+            notifications.show({ message: t('SUCCESS_FIELD_DELETED'), color: 'green' });
+            onDelete();
+        } catch (error: any) {
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_DELETE_FIELD_FAILED'), color: 'red' });
+        }
     };
 
     const hasChanges = name !== field.name || showOnCard !== field.show_on_card;
@@ -104,7 +93,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                     <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
                         {t('UI_TITLE')}
                     </label>
-                    <Input
+                    <TextInput
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
@@ -115,7 +104,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                     <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
                         {t('UI_TYPE')}
                     </label>
-                    <Text type="secondary" style={{ textTransform: 'capitalize' }}>
+                    <Text c="dimmed" style={{ textTransform: 'capitalize' }}>
                         {field.type}
                     </Text>
                 </div>
@@ -157,10 +146,10 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                                             <Text>{opt.value}</Text>
                                         </div>
                                         <Button
-                                            type="text"
-                                            size="small"
-                                            icon={<DeleteOutlined />}
-                                            danger
+                                            variant="subtle"
+                                            size="sm"
+                                            leftSection={<IconTrash size={16} />}
+                                            color="red"
                                             onClick={() => handleDeleteOption(opt.id)}
                                         />
                                     </div>
@@ -169,12 +158,12 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                         )}
 
                         {/* Add new option */}
-                        <Space.Compact style={{ width: '100%' }}>
-                            <Input
+                        <div style={{ width: '100%' }}>
+                            <TextInput
                                 placeholder={t('UI_PLACEHOLDER_ADD_ITEM')}
                                 value={newOption}
                                 onChange={(e) => setNewOption(e.target.value)}
-                                onPressEnter={handleAddOption}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleAddOption(); }}
                             />
                             <Button
                                 onClick={handleAddOption}
@@ -183,7 +172,7 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                             >
                                 {t('UI_ADD')}
                             </Button>
-                        </Space.Compact>
+                        </div>
                     </div>
                 )}
 
@@ -192,15 +181,14 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
                     <Checkbox
                         checked={showOnCard}
                         onChange={(e) => setShowOnCard(e.target.checked)}
-                    >
-                        {t('UI_SHOW_FIELD_ON_CARD')}
-                    </Checkbox>
+                        label={t('UI_SHOW_FIELD_ON_CARD')}
+                    />
                 </div>
 
                 {/* Save button */}
                 <Button
-                    type="primary"
-                    block
+
+                    fullWidth
                     onClick={handleSave}
                     loading={saving}
                     disabled={!hasChanges}
@@ -213,9 +201,9 @@ export default function EditFieldScreen({ field, onBack, onUpdate, onDelete }: E
 
                 {/* Delete button */}
                 <Button
-                    danger
-                    block
-                    icon={<DeleteOutlined />}
+                    color="red"
+                    fullWidth
+                    leftSection={<IconTrash size={16} />}
                     onClick={handleDelete}
                 >
                     {t('UI_DELETE_FIELD')}

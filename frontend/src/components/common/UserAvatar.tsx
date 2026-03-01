@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Avatar } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { Avatar } from '@mantine/core';
+import { IconUser } from '@tabler/icons-react';
 
 // System avatars definition - shared with ProfileVisibilityTab
 export const SYSTEM_AVATARS = [
@@ -102,13 +102,13 @@ export const getInitials = (name: string): string => {
 // Helper to parse avatar URL and get emoji data
 export const parseAvatarUrl = (avatarUrl?: string) => {
     if (!avatarUrl) return { isEmoji: false, emoji: null, imageUrl: null };
-    
+
     if (avatarUrl.startsWith('emoji:')) {
         const emojiId = avatarUrl.replace('emoji:', '');
         const emojiData = SYSTEM_AVATARS.find(a => a.id === emojiId);
         return { isEmoji: true, emoji: emojiData, imageUrl: null };
     }
-    
+
     return { isEmoji: false, emoji: null, imageUrl: avatarUrl };
 };
 
@@ -136,15 +136,15 @@ export default function UserAvatar({
     className,
 }: UserAvatarProps) {
     const { isEmoji, emoji, imageUrl } = parseAvatarUrl(avatarUrl);
-    
+
     // Calculate numeric size
-    const numericSize = typeof size === 'number' 
-        ? size 
+    const numericSize = typeof size === 'number'
+        ? size
         : size === 'small' ? 24 : size === 'large' ? 40 : 32;
-    
+
     // Calculate emoji font size (roughly half of avatar size)
     const emojiFontSize = Math.floor(numericSize * 0.5);
-    
+
     // Render emoji avatar
     if (isEmoji && emoji) {
         return (
@@ -169,23 +169,22 @@ export default function UserAvatar({
             </div>
         );
     }
-    
+
     // Render image avatar or fallback
     return (
         <Avatar
             className={className}
             size={numericSize}
             src={imageUrl}
-            icon={!imageUrl && !name ? <UserOutlined /> : undefined}
             onClick={onClick}
+            color="blue"
             style={{
-                backgroundColor: '#0052cc',
                 cursor: onClick ? 'pointer' : 'default',
                 flexShrink: 0,
                 ...style,
             }}
         >
-            {!imageUrl && name ? getInitials(name) : null}
+            {!imageUrl && name ? getInitials(name) : (!imageUrl ? <IconUser size={numericSize * 0.5} /> : null)}
         </Avatar>
     );
 }

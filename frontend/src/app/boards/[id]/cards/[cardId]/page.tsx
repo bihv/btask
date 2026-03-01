@@ -1,11 +1,11 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { Spin } from 'antd';
 import { useCard } from '@/hooks/useCards';
 import BoardPage from '../../page';
 import CardModalWrapper from '@/components/card/CardModalWrapper';
 
+import { Loader } from '@mantine/core';
 export default function CardPage() {
     const router = useRouter();
     const params = useParams();
@@ -17,7 +17,7 @@ export default function CardPage() {
     if (isLoading) {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }

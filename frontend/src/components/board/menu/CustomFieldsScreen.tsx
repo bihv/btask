@@ -1,21 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Spin, Divider, Tooltip, App } from 'antd';
-import {
-    CheckSquareOutlined,
-    FlagOutlined,
-    ThunderboltOutlined,
-    WarningOutlined,
-    RightOutlined,
-    PlusOutlined,
-    InfoCircleOutlined,
-    CalendarOutlined,
-    NumberOutlined,
-    FontSizeOutlined,
-    AppstoreOutlined,
-    HolderOutlined,
-} from '@ant-design/icons';
+import { Text, Title, Button, Loader, Divider, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconCheckbox, IconFlag, IconBolt, IconAlertTriangle, IconChevronRight, IconPlus, IconInfoCircle, IconCalendar, IconHash, IconLetterCase, IconApps, IconGripVertical } from '@tabler/icons-react';
 import {
     DndContext,
     closestCenter,
@@ -38,31 +26,29 @@ import { customFieldApi } from '@/lib/api';
 import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Text } = Typography;
-
 // Icons for different field types
 const getFieldIcon = (type: string, name?: string) => {
     // For default fields, use specific icons
     const nameLower = name?.toLowerCase() || '';
-    if (nameLower === 'priority') return <ThunderboltOutlined />;
-    if (nameLower === 'status') return <FlagOutlined />;
-    if (nameLower === 'risk') return <WarningOutlined />;
-    if (nameLower === 'effort') return <ThunderboltOutlined style={{ transform: 'scaleX(-1)' }} />;
+    if (nameLower === 'priority') return <IconBolt size={16} />;
+    if (nameLower === 'status') return <IconFlag size={16} />;
+    if (nameLower === 'risk') return <IconAlertTriangle size={16} />;
+    if (nameLower === 'effort') return <IconBolt size={16} style={{ transform: 'scaleX(-1)' }} />;
 
     // For custom fields, use icons based on type
     switch (type) {
         case 'checkbox':
-            return <CheckSquareOutlined />;
+            return <IconCheckbox size={16} />;
         case 'dropdown':
-            return <AppstoreOutlined />;
+            return <IconApps size={16} />;
         case 'text':
-            return <FontSizeOutlined />;
+            return <IconLetterCase size={16} />;
         case 'number':
-            return <NumberOutlined />;
+            return <IconHash size={16} />;
         case 'date':
-            return <CalendarOutlined />;
+            return <IconCalendar size={16} />;
         default:
-            return <FlagOutlined />;
+            return <IconFlag size={16} />;
     }
 };
 
@@ -73,10 +59,10 @@ interface SuggestedField {
 }
 
 const suggestedFields: SuggestedField[] = [
-    { key: 'priority', name: 'Priority', icon: <ThunderboltOutlined /> },
-    { key: 'status', name: 'Status', icon: <FlagOutlined /> },
-    { key: 'risk', name: 'Risk', icon: <WarningOutlined /> },
-    { key: 'effort', name: 'Effort', icon: <ThunderboltOutlined style={{ transform: 'scaleX(-1)' }} /> },
+    { key: 'priority', name: 'Priority', icon: <IconBolt size={16} /> },
+    { key: 'status', name: 'Status', icon: <IconFlag size={16} /> },
+    { key: 'risk', name: 'Risk', icon: <IconAlertTriangle size={16} /> },
+    { key: 'effort', name: 'Effort', icon: <IconBolt size={16} style={{ transform: 'scaleX(-1)' }} /> },
 ];
 
 interface CustomFieldsScreenProps {
@@ -142,7 +128,7 @@ function SortableFieldItem({ field, onEditField }: SortableFieldItemProps) {
                     alignItems: 'center',
                 }}
             >
-                <HolderOutlined />
+                <IconGripVertical size={14} />
             </div>
 
             <div
@@ -154,17 +140,14 @@ function SortableFieldItem({ field, onEditField }: SortableFieldItemProps) {
                 </span>
                 <Text>{field.name}</Text>
             </div>
-            <RightOutlined
-                style={{ fontSize: 12, opacity: 0.5, cursor: 'pointer' }}
-                onClick={() => onEditField(field)}
-            />
+            <IconChevronRight size={12} style={{ cursor: 'pointer' }}
+                onClick={() => onEditField(field)} />
         </div>
     );
 }
 
 export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEditField }: CustomFieldsScreenProps) {
     const [fields, setFields] = useState<CustomField[]>([]);
-    const { message } = App.useApp();
     const t = useTranslation();
     const [loading, setLoading] = useState(true);
     const [addingDefault, setAddingDefault] = useState<string | null>(null);
@@ -215,7 +198,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
                     )
                 );
             } catch (error) {
-                message.error(t('ERROR_REORDER_FIELD_FAILED'));
+                notifications.show({ title: 'Error', message: t('ERROR_REORDER_FIELD_FAILED'), color: 'red' });
                 loadFields(); // Revert on error
             }
         }
@@ -227,7 +210,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
             await customFieldApi.addDefaultField(boardId, fieldKey);
             loadFields();
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_ADD_FIELD_FAILED'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_ADD_FIELD_FAILED'), color: 'red' });
         } finally {
             setAddingDefault(null);
         }
@@ -242,7 +225,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
     if (loading) {
         return (
             <div style={{ width: 280, padding: 40, textAlign: 'center' }}>
-                <Spin />
+                <Loader />
             </div>
         );
     }
@@ -253,11 +236,10 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
 
             {/* Info button */}
             <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '4px 12px 8px' }}>
-                <Tooltip
-                    title={t('UI_CUSTOM_FIELDS_TOOLTIP')}
-                    placement="bottom"
+                <Tooltip label={t('UI_CUSTOM_FIELDS_TOOLTIP')}
+                    position="bottom"
                 >
-                    <Button type="text" size="small" icon={<InfoCircleOutlined />} style={{ color: 'var(--text-secondary)' }}>
+                    <Button variant="subtle" size="sm" leftSection={<IconInfoCircle size={16} />} style={{ color: 'var(--text-secondary)' }}>
                         {t('UI_ABOUT_CUSTOM_FIELDS')}
                     </Button>
                 </Tooltip>
@@ -292,7 +274,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
                 <>
                     <Divider style={{ margin: '8px 0' }} />
                     <div style={{ padding: '8px 12px' }}>
-                        <Text type="secondary" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        <Text c="dimmed" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                             {t('UI_SUGGESTED_FIELDS')}
                         </Text>
                     </div>
@@ -311,7 +293,7 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
                                 <Text>{sf.name}</Text>
                             </div>
                             <Button
-                                size="small"
+                                size="sm"
                                 loading={addingDefault === sf.key}
                                 onClick={() => handleAddDefaultField(sf.key)}
                             >
@@ -326,10 +308,10 @@ export default function CustomFieldsScreen({ boardId, onBack, onNewField, onEdit
             <Divider style={{ margin: '8px 0' }} />
             <div style={{ padding: '8px 12px' }}>
                 <Button
-                    type="default"
-                    icon={<PlusOutlined />}
+                    variant="default"
+                    leftSection={<IconPlus size={16} />}
                     onClick={onNewField}
-                    block
+                    fullWidth
                     style={{
                         display: 'flex',
                         alignItems: 'center',

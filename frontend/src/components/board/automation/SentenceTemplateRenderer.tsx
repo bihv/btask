@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Select, Input, InputNumber, DatePicker, Tag, Tooltip, theme } from 'antd';
 import type { PropertySchema, SelectOption } from '@/types/automation';
 
-const { useToken } = theme;
+import { Select, TextInput, NumberInput, Badge, Tooltip } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
+
 
 // ============================================================================
 // Types
@@ -95,7 +96,7 @@ function getDisplayValue(
     context: SentenceTemplateRendererProps['context']
 ): { text: string; isEmpty: boolean } {
     const widget = property.widget || 'input';
-    
+
     // Handle empty values with descriptive placeholder
     if (value === undefined || value === null || value === '') {
         switch (widget) {
@@ -156,7 +157,7 @@ function getDisplayValue(
         default:
             displayText = String(value);
     }
-    
+
     return { text: displayText, isEmpty: false };
 }
 
@@ -172,7 +173,7 @@ export default function SentenceTemplateRenderer({
     context = {},
     readOnly = false,
 }: SentenceTemplateRendererProps) {
-    const { token } = useToken();
+
 
     // Parse template into parts
     const parts = useMemo(() => parseTemplate(template), [template]);
@@ -181,12 +182,12 @@ export default function SentenceTemplateRenderer({
     const renderPlaceholder = (part: ParsedPart) => {
         const propertyKey = part.propertyKey!;
         const property = properties[propertyKey];
-        
+
         if (!property) {
             // Property not found in schema, show as editable text
             return (
-                <Input
-                    size="small"
+                <TextInput
+                    size="sm"
                     placeholder={propertyKey}
                     value={config[propertyKey] || ''}
                     onChange={e => onChange(propertyKey, e.target.value)}
@@ -202,16 +203,16 @@ export default function SentenceTemplateRenderer({
         if (readOnly) {
             const displayValue = getDisplayValue(value, property, context);
             return (
-                <Tooltip title={property.description}>
-                    <Tag 
-                        color="blue" 
-                        style={{ 
+                <Tooltip label={property.description}>
+                    <Badge
+                        color="blue"
+                        style={{
                             margin: '0 2px',
                             cursor: 'default',
                         }}
                     >
-                        {displayValue}
-                    </Tag>
+                        {displayValue.text}
+                    </Badge>
                 </Tooltip>
             );
         }
@@ -221,12 +222,12 @@ export default function SentenceTemplateRenderer({
             case 'select':
                 return (
                     <Select
-                        size="small"
+                        size="sm"
                         placeholder={property.label}
                         value={value}
                         onChange={v => onChange(propertyKey, v)}
                         style={{ minWidth: 120, margin: '0 4px' }}
-                        options={property.options?.map(o => ({ value: o.value, label: o.label }))}
+                        data={property.options?.map(o => ({ value: o.value, label: o.label })) || []}
                     />
                 );
 
@@ -234,14 +235,13 @@ export default function SentenceTemplateRenderer({
             case 'list_picker':
                 return (
                     <Select
-                        size="small"
+                        size="sm"
                         placeholder={property.label || 'Select list'}
                         value={value}
                         onChange={v => onChange(propertyKey, v)}
                         style={{ minWidth: 140, margin: '0 4px' }}
-                        showSearch
-                        optionFilterProp="label"
-                        options={context.lists?.map(l => ({ value: l.id, label: l.title }))}
+                        searchable
+                        data={context.lists?.map(l => ({ value: l.id, label: l.title })) || []}
                     />
                 );
 
@@ -249,31 +249,16 @@ export default function SentenceTemplateRenderer({
             case 'label_picker':
                 return (
                     <Select
-                        size="small"
+                        size="sm"
                         placeholder={property.label || 'Select label'}
                         value={value}
                         onChange={v => onChange(propertyKey, v)}
                         style={{ minWidth: 140, margin: '0 4px' }}
-                        showSearch
-                        optionFilterProp="label"
-                        options={context.labels?.map(l => ({
+                        searchable
+                        data={context.labels?.map(l => ({
                             value: l.id,
-                            label: (
-                                <span>
-                                    <span
-                                        style={{
-                                            display: 'inline-block',
-                                            width: 12,
-                                            height: 12,
-                                            borderRadius: 2,
-                                            backgroundColor: l.color || '#ccc',
-                                            marginRight: 8,
-                                        }}
-                                    />
-                                    {l.name}
-                                </span>
-                            ),
-                        }))}
+                            label: l.name || l.id,
+                        })) || []}
                     />
                 );
 
@@ -283,17 +268,16 @@ export default function SentenceTemplateRenderer({
             case 'user_picker':
                 return (
                     <Select
-                        size="small"
+                        size="sm"
                         placeholder={property.label || 'Select member'}
                         value={value}
                         onChange={v => onChange(propertyKey, v)}
                         style={{ minWidth: 140, margin: '0 4px' }}
-                        showSearch
-                        optionFilterProp="label"
-                        options={context.members?.map(m => ({
+                        searchable
+                        data={context.members?.map(m => ({
                             value: m.id,
                             label: m.full_name || m.username || m.id,
-                        }))}
+                        })) || []}
                     />
                 );
 
@@ -301,21 +285,20 @@ export default function SentenceTemplateRenderer({
             case 'board_picker':
                 return (
                     <Select
-                        size="small"
+                        size="sm"
                         placeholder={property.label || 'Select board'}
                         value={value}
                         onChange={v => onChange(propertyKey, v)}
                         style={{ minWidth: 160, margin: '0 4px' }}
-                        showSearch
-                        optionFilterProp="label"
-                        options={context.boards?.map(b => ({ value: b.id, label: b.title }))}
+                        searchable
+                        data={context.boards?.map(b => ({ value: b.id, label: b.title })) || []}
                     />
                 );
 
             case 'number':
                 return (
-                    <InputNumber
-                        size="small"
+                    <NumberInput
+                        size="sm"
                         placeholder={property.label}
                         value={value}
                         onChange={v => onChange(propertyKey, v)}
@@ -328,13 +311,12 @@ export default function SentenceTemplateRenderer({
             case 'date':
             case 'datetime':
                 return (
-                    <DatePicker
-                        size="small"
+                    <DatePickerInput
+                        size="sm"
                         placeholder={property.label}
                         value={value}
                         onChange={v => onChange(propertyKey, v)}
                         style={{ margin: '0 4px' }}
-                        showTime={widget === 'datetime'}
                     />
                 );
 
@@ -342,8 +324,8 @@ export default function SentenceTemplateRenderer({
             case 'textarea':
             default:
                 return (
-                    <Input
-                        size="small"
+                    <TextInput
+                        size="sm"
                         placeholder={property.label || property.placeholder}
                         value={value || ''}
                         onChange={e => onChange(propertyKey, e.target.value)}
@@ -368,7 +350,7 @@ export default function SentenceTemplateRenderer({
             {parts.map((part, index) => (
                 <React.Fragment key={index}>
                     {part.type === 'static' ? (
-                        <span style={{ color: token.colorTextSecondary }}>
+                        <span style={{ color: 'var(--mantine-color-dimmed)' }}>
                             {part.value}
                         </span>
                     ) : (

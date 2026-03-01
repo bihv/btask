@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Typography, Tooltip, App } from 'antd';
-import { LinkOutlined, ReloadOutlined } from '@ant-design/icons';
 import { linkPreviewApi } from '@/lib/api';
 import EditableTitle from '@/components/common/EditableTitle';
 import styles from './LinkPreviewCard.module.css';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Text } = Typography;
-
+import { Text, Title, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconLink, IconRefresh } from '@tabler/icons-react';
 interface LinkPreviewCardProps {
     cardId: string;
     cardTitle?: string; // The actual card title (URL)
@@ -41,7 +40,6 @@ export default function LinkPreviewCard({
     onUrlSave,
     readOnly = false,
 }: LinkPreviewCardProps) {
-    const { message } = App.useApp();
     const t = useTranslation();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const hostname = linkUrl ? new URL(linkUrl).hostname : '';
@@ -56,7 +54,7 @@ export default function LinkPreviewCard({
                 await onRefresh();
             }
         } catch (error: any) {
-            message.error(error.response?.data?.message || t('ERROR_REFRESH_LINK'));
+            notifications.show({ title: 'Error', message: error.response?.data?.message || t('ERROR_REFRESH_LINK'), color: 'red' });
         } finally {
             setIsRefreshing(false);
         }
@@ -97,7 +95,7 @@ export default function LinkPreviewCard({
             {/* Link Title */}
             <div style={{ marginBottom: 4 }}>
                 <Text
-                    strong
+                    fw={700}
                     style={{
                         fontSize: 14,
                         color: 'var(--link-color, #1890ff)',
@@ -122,7 +120,7 @@ export default function LinkPreviewCard({
                             wordBreak: 'break-all',
                         }}
                         inputStyle={{ fontSize: 11 }}
-                        size="small"
+                        size="sm"
                         placeholder={t('UI_PLACEHOLDER_ENTER_URL')}
                     />
                 </div>
@@ -130,8 +128,7 @@ export default function LinkPreviewCard({
 
             {/* Link Description */}
             {linkDescription && (
-                <Text
-                    type="secondary"
+                <Text c="dimmed"
                     style={{
                         fontSize: 12,
                         display: '-webkit-box',
@@ -167,12 +164,12 @@ export default function LinkPreviewCard({
                             }}
                         />
                     )}
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text c="dimmed" style={{ fontSize: 12 }}>
                         {linkSiteName || hostname}
                     </Text>
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
-                    <Tooltip title={t('UI_REFRESH_LINK_PREVIEW')}>
+                    <Tooltip label={t('UI_REFRESH_LINK_PREVIEW')}>
                         <div
                             onClick={handleRefreshClick}
                             style={{
@@ -186,14 +183,11 @@ export default function LinkPreviewCard({
                             }}
                             className={styles.externalLinkButton}
                         >
-                            <ReloadOutlined
-                                spin={isRefreshing}
-                                style={{ fontSize: 14 }}
-                            />
+                            <IconRefresh size={14} style={isRefreshing ? { animation: 'spin 1s linear infinite' } : {}} />
                         </div>
                     </Tooltip>
                     {onExternalClick && (
-                        <Tooltip title={t('UI_OPEN_LINK_NEW_TAB')}>
+                        <Tooltip label={t('UI_OPEN_LINK_NEW_TAB')}>
                             <div
                                 onClick={onExternalClick}
                                 style={{
@@ -206,7 +200,7 @@ export default function LinkPreviewCard({
                                 }}
                                 className={styles.externalLinkButton}
                             >
-                                <LinkOutlined style={{ fontSize: 14 }} />
+                                <IconLink size={14} />
                             </div>
                         </Tooltip>
                     )}

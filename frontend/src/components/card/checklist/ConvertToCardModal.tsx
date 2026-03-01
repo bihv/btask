@@ -1,14 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Typography, Modal, Select, Tag } from 'antd';
-import { UserOutlined, CalendarOutlined } from '@ant-design/icons';
 import { ChecklistItem, BoardList } from '@/types';
 import dayjs from 'dayjs';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Text } = Typography;
-
+import { Text, Title, Modal, Select, Badge, Button, Group } from '@mantine/core';
+import { IconUser, IconCalendar } from '@tabler/icons-react';
 interface ConvertToCardModalProps {
     visible: boolean;
     item: ChecklistItem | null;
@@ -32,52 +30,52 @@ export default function ConvertToCardModal({
     return (
         <Modal
             title={t('UI_CONVERT_TO_CARD_TITLE')}
-            open={visible}
-            onOk={onConvert}
-            onCancel={onCancel}
-            okText={t('UI_CONVERT')}
-            okButtonProps={{ disabled: !selectedListId }}
+            opened={visible}
+            onClose={onCancel}
         >
             {item && (
                 <div>
                     <div style={{ marginBottom: 16 }}>
-                        <Text strong>{t('UI_CONVERTING')} </Text>
+                        <Text fw={700}>{t('UI_CONVERTING')} </Text>
                         <Text>{item.content}</Text>
                     </div>
                     {item.assignees && item.assignees.length > 0 && (
                         <div style={{ marginBottom: 8 }}>
-                            <Text type="secondary">{t('UI_ASSIGNEES_CARD_MEMBERS')} </Text>
+                            <Text c="dimmed">{t('UI_ASSIGNEES_CARD_MEMBERS')} </Text>
                             {item.assignees.map(a => (
-                                <Tag key={a.id} icon={<UserOutlined />}>{a.user?.full_name}</Tag>
+                                <Badge key={a.id} leftSection={<IconUser size={16} />}>{a.user?.full_name}</Badge>
                             ))}
                         </div>
                     )}
                     {item.due_date && (
                         <div style={{ marginBottom: 16 }}>
-                            <Text type="secondary">{t('UI_DUE_DATE_LABEL')}: </Text>
-                            <Tag icon={<CalendarOutlined />}>{dayjs(item.due_date).format('MMM D, YYYY')}</Tag>
+                            <Text c="dimmed">{t('UI_DUE_DATE_LABEL')}: </Text>
+                            <Badge leftSection={<IconCalendar size={16} />}>{dayjs(item.due_date).format('MMM D, YYYY')}</Badge>
                         </div>
                     )}
                     <div style={{ marginBottom: 8 }}>
-                        <Text strong>{t('UI_SELECT_TARGET_LIST')}</Text>
+                        <Text fw={700}>{t('UI_SELECT_TARGET_LIST')}</Text>
                     </div>
                     <Select
                         value={selectedListId}
-                        onChange={onListChange}
+                        onChange={(val) => onListChange(val || '')}
                         style={{ width: '100%' }}
                         placeholder={t('UI_PLACEHOLDER_SELECT_LIST')}
-                    >
-                        {lists.map(list => (
-                            <Select.Option key={list.id} value={list.id}>
-                                {list.title}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                        data={lists.map(list => ({ value: list.id, label: list.title }))}
+                    />
                     {lists.length === 0 && (
-                        <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                        <Text c="dimmed" style={{ display: 'block', marginTop: 8 }}>
                             {t('UI_NO_LISTS_AVAILABLE')}
                         </Text>
                     )}
+                    <Group justify="flex-end" mt="md">
+                        <Button variant="default" onClick={onCancel}>
+                            {t('UI_CANCEL')}
+                        </Button>
+                        <Button onClick={onConvert} disabled={!selectedListId}>
+                            {t('UI_CONVERT')}
+                        </Button>
+                    </Group>
                 </div>
             )}
         </Modal>

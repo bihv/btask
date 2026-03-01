@@ -104,7 +104,6 @@ export function handleTokenRequest(
     }
 }
 
-
 /**
  * Handle data request from plugin
  */

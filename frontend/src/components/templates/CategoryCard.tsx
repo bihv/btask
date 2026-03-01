@@ -1,11 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Card, Typography } from 'antd';
 import type { ComponentType } from 'react';
 
-const { Text } = Typography;
-
+import { Card, Text, Title } from '@mantine/core';
 interface CategoryCardProps {
     name: string;
     icon: ComponentType<{ style?: React.CSSProperties }>;
@@ -15,7 +13,7 @@ interface CategoryCardProps {
 export default function CategoryCard({ name, icon: Icon, color }: CategoryCardProps) {
     return (
         <Card
-            hoverable
+            withBorder
             className="category-card"
             style={{
                 borderRadius: '8px',
@@ -31,7 +29,7 @@ export default function CategoryCard({ name, icon: Icon, color }: CategoryCardPr
                 overflow: 'hidden',
 				backgroundColor: 'var(--bg-primary)', // Use theme variable
             }}
-            styles={{ body: { padding: '16px', width: '100%', zIndex: 1 } }}
+            
         >
             <style jsx global>{`
                 .category-card:hover {
@@ -70,7 +68,7 @@ export default function CategoryCard({ name, icon: Icon, color }: CategoryCardPr
                 >
                     <Icon />
                 </div>
-                <Text strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>{name}</Text>
+                <Text fw={700} style={{ fontSize: '14px', color: 'var(--text-primary)' }}>{name}</Text>
             </div>
         </Card>
     );

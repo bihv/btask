@@ -1,15 +1,14 @@
 'use client';
 
-import React from 'react';
-import { Modal, Button, Upload, Typography, Divider, App } from 'antd';
-import { PictureOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
 import api, { uploadFile } from '@/lib/api';
 import { extractDominantColor } from '@/utils/extractColor';
 import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
 
-const { Text } = Typography;
-
+import { Modal, Button, FileButton, Text, Title, Divider } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconPhoto } from '@tabler/icons-react';
 interface Attachment {
     file_url: string;
     file_name: string;
@@ -34,9 +33,9 @@ export default function CoverImagePickerModal({
     currentCover,
     onUpdate,
 }: CoverImagePickerModalProps) {
-    const { message } = App.useApp();
     const t = useTranslation();
     const token = useAppToken();
+    const [uploading, setUploading] = useState(false);
 
     const imageAttachments = attachments.filter((a) =>
         IMAGE_EXTENSIONS.some((ext) => a.file_name.toLowerCase().endsWith(ext))
@@ -64,23 +63,22 @@ export default function CoverImagePickerModal({
             onUpdate(newCover);
             onClose();
         } catch (error) {
-            message.error(t('ERROR_UPDATE_COVER'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_COVER'), color: 'red' });
         }
     };
 
     return (
         <Modal
             title={t('UI_CHOOSE_COVER')}
-            open={open}
-            onCancel={onClose}
-            footer={null}
-            width={360}
+            opened={open}
+            onClose={onClose}
+            size={360}
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Image attachments grid */}
                 {imageAttachments.length > 0 && (
                     <>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
+                        <Text c="dimmed" style={{ fontSize: 12 }}>
                             {t('UI_FROM_ATTACHMENTS')}
                         </Text>
                         <div
@@ -126,34 +124,35 @@ export default function CoverImagePickerModal({
                 )}
 
                 {/* Upload new image */}
-                <Upload
+                <FileButton
                     accept="image/*"
-                    showUploadList={false}
-                    beforeUpload={async (file) => {
+                    onChange={async (file) => {
+                        if (!file) return;
                         try {
-                            message.loading(t('UI_UPLOADING'), 0);
+                            setUploading(true);
                             const url = await uploadFile(file);
-                            message.destroy();
                             await handleSetCover(url);
                         } catch {
-                            message.destroy();
-                            message.error(t('ERROR_UPLOAD_FAILED'));
+                            notifications.show({ title: 'Error', message: t('ERROR_UPLOAD_FAILED'), color: 'red' });
+                        } finally {
+                            setUploading(false);
                         }
-                        return false;
                     }}
                 >
-                    <Button type="dashed" block icon={<PictureOutlined />}>
-                        {t('UI_UPLOAD_IMAGE')}
-                    </Button>
-                </Upload>
+                    {(props) => (
+                        <Button {...props} variant="default" fullWidth leftSection={<IconPhoto size={16} />} loading={uploading}>
+                            {t('UI_UPLOAD_IMAGE')}
+                        </Button>
+                    )}
+                </FileButton>
 
                 {currentCover && (
                     <>
                         <Divider style={{ margin: 0 }} />
                         <Button
-                            type="text"
-                            danger
-                            block
+                            variant="subtle"
+                            color="red"
+                            fullWidth
                             onClick={() => handleSetCover('')}
                         >
                             {t('UI_REMOVE_COVER')}

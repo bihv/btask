@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { ConfigProvider, theme as antTheme, App } from 'antd';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { MantineProvider, createTheme, MantineColorsTuple } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 
 type ThemePreference = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
@@ -22,28 +23,6 @@ export const useTheme = () => {
     return context;
 };
 
-const lightTheme = {
-    colorPrimary: '#0052cc',
-    colorBgContainer: '#ffffff',
-    colorBgLayout: '#f4f5f7',
-    colorBgElevated: '#ffffff',
-    colorText: '#172b4d',
-    colorTextSecondary: '#5e6c84',
-    colorBorder: '#dfe1e6',
-    borderRadius: 8,
-};
-
-const darkTheme = {
-    colorPrimary: '#579dff',
-    colorBgContainer: '#1d2125',
-    colorBgLayout: '#161a1d',
-    colorBgElevated: '#22272b',
-    colorText: '#b6c2cf',
-    colorTextSecondary: '#9fadbc',
-    colorBorder: '#38414a',
-    borderRadius: 8,
-};
-
 const getSystemTheme = (): ResolvedTheme => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         return 'dark';
@@ -51,15 +30,37 @@ const getSystemTheme = (): ResolvedTheme => {
     return 'light';
 };
 
+const brand: MantineColorsTuple = [
+    '#e6f0ff',
+    '#cce0ff',
+    '#99c2ff',
+    '#66a3ff',
+    '#3385ff',
+    '#0052cc',
+    '#0047b3',
+    '#003d99',
+    '#003380',
+    '#002966',
+];
+
+const mantineTheme = createTheme({
+    primaryColor: 'brand',
+    colors: {
+        brand,
+    },
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    defaultRadius: 'sm',
+});
+
+import { ModalsProvider } from '@mantine/modals';
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [preference, setPreference] = useState<ThemePreference>('system');
     const [systemTheme, setSystemTheme] = useState<ResolvedTheme>('light');
     const [mounted, setMounted] = useState(false);
 
-    // Resolve the actual theme based on preference
     const resolvedTheme: ResolvedTheme = preference === 'system' ? systemTheme : preference;
 
-    // Initialize on mount
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') as ThemePreference;
         if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
@@ -69,7 +70,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setMounted(true);
     }, []);
 
-    // Listen for system theme changes
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = (e: MediaQueryListEvent) => {
@@ -80,7 +80,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
-    // Persist preference and update document attribute
     useEffect(() => {
         if (mounted) {
             localStorage.setItem('theme', preference);
@@ -88,43 +87,22 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     }, [preference, resolvedTheme, mounted]);
 
-    const setTheme = (newMode: ThemePreference) => {
+    const setThemeHandler = (newMode: ThemePreference) => {
         setPreference(newMode);
     };
-
-    const themeConfig = resolvedTheme === 'dark' ? darkTheme : lightTheme;
 
     if (!mounted) {
         return null;
     }
 
     return (
-        <ThemeContext.Provider value={{ preference, resolvedTheme, setTheme }}>
-            <ConfigProvider
-                theme={{
-                    algorithm: resolvedTheme === 'dark' ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
-                    token: themeConfig,
-                    components: {
-                        Layout: {
-                            headerBg: resolvedTheme === 'dark' ? '#1d2125' : '#ffffff',
-                            siderBg: resolvedTheme === 'dark' ? '#1d2125' : '#ffffff',
-                            bodyBg: resolvedTheme === 'dark' ? '#161a1d' : '#f4f5f7',
-                        },
-                        Menu: {
-                            itemBg: 'transparent',
-                        },
-                        Card: {
-                            boxShadow: resolvedTheme === 'dark'
-                                ? '0 1px 1px rgba(0,0,0,0.25)'
-                                : '0 1px 1px rgba(9,30,66,0.25)',
-                        },
-                    },
-                }}
-            >
-                <App>
+        <ThemeContext.Provider value={{ preference, resolvedTheme, setTheme: setThemeHandler }}>
+            <MantineProvider theme={mantineTheme} forceColorScheme={resolvedTheme}>
+                <ModalsProvider>
+                    <Notifications position="top-right" />
                     {children}
-                </App>
-            </ConfigProvider>
+                </ModalsProvider>
+            </MantineProvider>
         </ThemeContext.Provider>
     );
 };

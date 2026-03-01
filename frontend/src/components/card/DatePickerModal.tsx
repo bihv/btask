@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Modal, DatePicker, Checkbox, Button, Typography, App } from 'antd';
 import dayjs from 'dayjs';
 import api from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Text } = Typography;
-
+import { Modal, Checkbox, Button, Text, Title } from '@mantine/core';
+import { DateTimePicker } from '@mantine/dates';
+import { notifications } from '@mantine/notifications';
 interface DatePickerModalProps {
     open: boolean;
     onClose: () => void;
@@ -30,29 +30,28 @@ export default function DatePickerModal({
     isCompleted,
     onUpdate,
 }: DatePickerModalProps) {
-    const { message } = App.useApp();
     const queryClient = useQueryClient();
     const t = useTranslation();
 
-    const handleStartDateChange = async (date: dayjs.Dayjs | null) => {
+    const handleStartDateChange = async (date: any) => {
         try {
-            const newStartDate = date ? date.toISOString() : undefined;
+            const newStartDate = date ? new Date(date).toISOString() : undefined;
             await api.put(`/cards/${cardId}`, { start_date: newStartDate || null });
             onUpdate({ start_date: newStartDate });
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error(t('ERROR_UPDATE_START_DATE'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_START_DATE'), color: 'red' });
         }
     };
 
-    const handleDueDateChange = async (date: dayjs.Dayjs | null) => {
+    const handleDueDateChange = async (date: any) => {
         try {
-            const newDueDate = date ? date.toISOString() : undefined;
+            const newDueDate = date ? new Date(date).toISOString() : undefined;
             await api.put(`/cards/${cardId}`, { due_date: newDueDate || null });
             onUpdate({ due_date: newDueDate });
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error(t('ERROR_UPDATE_DUE_DATE'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_DUE_DATE'), color: 'red' });
         }
     };
 
@@ -62,65 +61,61 @@ export default function DatePickerModal({
             onUpdate({ is_completed: checked });
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error(t('ERROR_UPDATE_COMPLETION'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_COMPLETION'), color: 'red' });
         }
     };
 
     return (
         <Modal
             title={t('UI_DATES')}
-            open={open}
-            onCancel={onClose}
-            footer={null}
-            width={320}
+            opened={open}
+            onClose={onClose}
+            size={320}
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Start Date */}
                 <div>
-                    <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                    <Text c="dimmed" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                         {t('UI_START_DATE')}
                     </Text>
-                    <DatePicker
-                        showTime
-                        value={startDate ? dayjs(startDate) : null}
+                    <DateTimePicker
+                        value={startDate ? new Date(startDate) : null}
                         onChange={handleStartDateChange}
                         style={{ width: '100%' }}
                         placeholder={t('UI_SELECT_START_DATE')}
-                        disabledDate={dueDate ? (current) => current && current.isAfter(dayjs(dueDate), 'day') : undefined}
+                        maxDate={dueDate ? new Date(dueDate) : undefined}
                     />
                 </div>
 
                 {/* Due Date */}
                 <div>
-                    <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                    <Text c="dimmed" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                         {t('UI_DUE_DATE_LABEL')}
                     </Text>
-                    <DatePicker
-                        showTime
-                        value={dueDate ? dayjs(dueDate) : null}
+                    <DateTimePicker
+                        value={dueDate ? new Date(dueDate) : null}
                         onChange={handleDueDateChange}
                         style={{ width: '100%' }}
                         placeholder={t('UI_SELECT_DUE_DATE')}
-                        disabledDate={startDate ? (current) => current && current.isBefore(dayjs(startDate), 'day') : undefined}
+                        minDate={startDate ? new Date(startDate) : undefined}
                     />
                 </div>
 
                 {dueDate && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Checkbox
+                            label={t('UI_MARK_COMPLETE')}
                             checked={isCompleted}
-                            onChange={(e) => handleCompletedChange(e.target.checked)}
-                        >
-                            {t('UI_MARK_COMPLETE')}
-                        </Checkbox>
+                            onChange={(e) => handleCompletedChange(e.currentTarget.checked)}
+                        />
                     </div>
                 )}
 
                 {(startDate || dueDate) && (
                     <Button
-                        type="text"
-                        danger
-                        block
+                        variant="subtle"
+                        color="red"
+                        fullWidth
                         onClick={async () => {
                             try {
                                 await api.put(`/cards/${cardId}`, {
@@ -130,7 +125,7 @@ export default function DatePickerModal({
                                 onUpdate({ start_date: undefined, due_date: undefined });
                                 queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
                             } catch (error) {
-                                message.error(t('ERROR_REMOVE_DATES'));
+                                notifications.show({ title: 'Error', message: t('ERROR_REMOVE_DATES'), color: 'red' });
                             }
                         }}
                     >

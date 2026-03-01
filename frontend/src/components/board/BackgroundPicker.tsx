@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Tabs, Divider, Typography, Input, Button, Spin, Empty, App, Space } from 'antd';
-import { CheckOutlined, UploadOutlined, SearchOutlined, PictureOutlined, BgColorsOutlined, LinkOutlined } from '@ant-design/icons';
 import { useAppToken } from '@/hooks/useAppToken';
 
-const { Text } = Typography;
-
+import { Tabs, Divider, Text, Title, TextInput, Button, Loader, Center, Group } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconCheck, IconUpload, IconSearch, IconPhoto, IconPalette, IconLink } from '@tabler/icons-react';
 // Simple debounce function
 function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): T {
     let timeoutId: NodeJS.Timeout;
@@ -119,7 +118,6 @@ export default function BackgroundPicker({
     const [activeTab, setActiveTab] = useState(imageValue ? 'photos' : 'colors');
     const [urlInput, setUrlInput] = useState('');
     const [isValidatingUrl, setIsValidatingUrl] = useState(false);
-    const { message } = App.useApp();
     const token = useAppToken();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -134,7 +132,7 @@ export default function BackgroundPicker({
 
         if (!UNSPLASH_ACCESS_KEY) {
             // Fallback: filter default images based on query (basic)
-            message.info('Unsplash API not configured. Showing default images.');
+            notifications.show({ message: 'Unsplash API not configured. Showing default images.', color: 'blue' });
             return;
         }
 
@@ -162,7 +160,7 @@ export default function BackgroundPicker({
             setSearchResults(photos);
         } catch (error) {
             console.error('Unsplash search error:', error);
-            message.error('Failed to search images');
+            notifications.show({ title: 'Error', message: 'Failed to search images', color: 'red' });
         } finally {
             setIsSearching(false);
         }
@@ -216,7 +214,7 @@ export default function BackgroundPicker({
                 throw new Error(data.error || 'Upload failed');
             }
         } catch (error: any) {
-            message.error(error.message || 'Failed to upload image');
+            notifications.show({ title: 'Error', message: error.message || 'Failed to upload image', color: 'red' });
         } finally {
             setUploading(false);
         }
@@ -226,11 +224,11 @@ export default function BackgroundPicker({
         const file = e.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
-                message.error('Please select an image file');
+                notifications.show({ title: 'Error', message: 'Please select an image file', color: 'red' });
                 return;
             }
             if (file.size > 10 * 1024 * 1024) {
-                message.error('Image size must be less than 10MB');
+                notifications.show({ title: 'Error', message: 'Image size must be less than 10MB', color: 'red' });
                 return;
             }
             handleFileUpload(file);
@@ -244,7 +242,7 @@ export default function BackgroundPicker({
     const handleUrlSubmit = async () => {
         const url = urlInput.trim();
         if (!url) {
-            message.warning('Please enter an image URL');
+            notifications.show({ message: 'Please enter an image URL', color: 'yellow' });
             return;
         }
 
@@ -252,7 +250,7 @@ export default function BackgroundPicker({
         try {
             new URL(url);
         } catch {
-            message.error('Invalid URL format');
+            notifications.show({ title: 'Error', message: 'Invalid URL format', color: 'red' });
             return;
         }
 
@@ -272,7 +270,7 @@ export default function BackgroundPicker({
             onImageChange?.(url);
             setUrlInput('');
         } catch (error: any) {
-            message.error('Could not load image from URL. Please check the URL is valid and accessible.');
+            notifications.show({ title: 'Error', message: 'Could not load image from URL. Please check the URL is valid and accessible.', color: 'red' });
         } finally {
             setIsValidatingUrl(false);
         }
@@ -290,30 +288,26 @@ export default function BackgroundPicker({
     const PhotosTab = (
         <div>
             {/* Search Input */}
-            <Input
+            <TextInput
                 placeholder="Search photos..."
-                prefix={<SearchOutlined />}
+                leftSection={<IconSearch size={16} />}
                 value={searchQuery}
                 onChange={handleSearchChange}
-                size="small"
+                size="sm"
                 style={{ marginBottom: 12 }}
-                allowClear
+
             />
 
             {/* Images Grid */}
             {isSearching ? (
                 <div style={{ textAlign: 'center', padding: 24 }}>
-                    <Spin size="small" />
-                    <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
+                    <Loader size="sm" />
+                    <Text c="dimmed" style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
                         Searching...
                     </Text>
                 </div>
             ) : searchQuery.trim() && searchResults.length === 0 ? (
-                <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="No images found"
-                    style={{ margin: '16px 0' }}
-                />
+                <Text c="dimmed" ta="center" py="md">No images found</Text>
             ) : (
                 <div
                     style={{
@@ -338,27 +332,16 @@ export default function BackgroundPicker({
                                 cursor: 'pointer',
                                 position: 'relative',
                                 border: isImageSelected(photo.url)
-                                    ? `2px solid ${token.colorWhite}`
+                                    ? '2px solid #fff'
                                     : '2px solid transparent',
                                 boxShadow: isImageSelected(photo.url)
-                                    ? `0 0 0 2px ${token.colorPrimary}`
+                                    ? '0 0 0 2px var(--mantine-primary-color-filled)'
                                     : 'none',
                                 transition: 'all 0.2s ease',
                             }}
                         >
                             {isImageSelected(photo.url) && (
-                                <CheckOutlined
-                                    style={{
-                                        position: 'absolute',
-                                        top: 8,
-                                        right: 8,
-                                        color: token.colorWhite,
-                                        fontSize: 14,
-                                        background: token.colorOverlayDark,
-                                        borderRadius: '50%',
-                                        padding: 4,
-                                    }}
-                                />
+                                <IconCheck size={14} />
                             )}
                         </div>
                     ))}
@@ -367,7 +350,7 @@ export default function BackgroundPicker({
 
             {/* Unsplash Attribution */}
             {UNSPLASH_ACCESS_KEY && (
-                <Text type="secondary" style={{ fontSize: 10, display: 'block', marginBottom: 8 }}>
+                <Text c="dimmed" style={{ fontSize: 10, display: 'block', marginBottom: 8 }}>
                     Photos by <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>
                 </Text>
             )}
@@ -384,47 +367,45 @@ export default function BackgroundPicker({
                     onChange={handleFileChange}
                 />
                 <Button
-                    icon={uploading ? <Spin size="small" /> : <UploadOutlined />}
+                    leftSection={uploading ? <Loader size="sm" /> : <IconUpload size={16} />}
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    size="small"
-                    block
+                    size="sm"
+                    fullWidth
                 >
                     {uploading ? 'Uploading...' : 'Upload from computer'}
                 </Button>
             </div>
 
-            <Divider style={{ margin: '12px 0' }}>
-                <Text type="secondary" style={{ fontSize: 11 }}>or</Text>
-            </Divider>
+            <Divider label="or" labelPosition="center" style={{ margin: '12px 0' }} />
 
             {/* URL Input */}
             <div>
-                <Text type="secondary" style={{ fontSize: 12, marginBottom: 6, display: 'block' }}>
+                <Text c="dimmed" style={{ fontSize: 12, marginBottom: 6, display: 'block' }}>
                     From URL
                 </Text>
-                <Space.Compact style={{ width: '100%' }}>
-                    <Input
+                <div style={{ width: '100%' }}>
+                    <TextInput
                         placeholder="Paste image URL here..."
-                        prefix={<LinkOutlined />}
+                        leftSection={<IconLink size={16} />}
                         value={urlInput}
                         onChange={(e) => setUrlInput(e.target.value)}
-                        onPressEnter={handleUrlSubmit}
-                        size="small"
+                        onKeyDown={(e) => { if (e.key === "Enter") handleUrlSubmit(); }}
+                        size="sm"
                         disabled={isValidatingUrl}
                         style={{ flex: 1 }}
                     />
                     <Button
-                        type="primary"
-                        size="small"
+
+                        size="sm"
                         onClick={handleUrlSubmit}
                         loading={isValidatingUrl}
                         disabled={!urlInput.trim()}
                     >
                         Apply
                     </Button>
-                </Space.Compact>
-                <Text type="secondary" style={{ fontSize: 10, marginTop: 4, display: 'block' }}>
+                </div>
+                <Text c="dimmed" style={{ fontSize: 10, marginTop: 4, display: 'block' }}>
                     Supports JPG, PNG, GIF, WebP formats
                 </Text>
             </div>
@@ -439,7 +420,7 @@ export default function BackgroundPicker({
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         position: 'relative',
-                        border: `2px solid ${token.colorPrimary}`,
+                        border: '2px solid var(--mantine-primary-color-filled)',
                         marginTop: 12,
                     }}
                 >
@@ -448,8 +429,8 @@ export default function BackgroundPicker({
                             position: 'absolute',
                             bottom: 4,
                             left: 4,
-                            background: token.colorOverlayDarker,
-                            color: token.colorWhite,
+                            background: 'rgba(0,0,0,0.5)',
+                            color: '#fff',
                             fontSize: 10,
                             padding: '2px 6px',
                             borderRadius: 4,
@@ -458,8 +439,8 @@ export default function BackgroundPicker({
                         Current
                     </div>
                     <Button
-                        size="small"
-                        danger
+                        size="sm"
+                        color="red"
                         onClick={() => onImageChange?.('')}
                         style={{
                             position: 'absolute',
@@ -481,7 +462,7 @@ export default function BackgroundPicker({
     const ColorsTab = (
         <div>
             {/* Gradient Section */}
-            <Text type="secondary" style={{ fontSize: 12, marginBottom: 8, display: 'block' }}>
+            <Text c="dimmed" style={{ fontSize: 12, marginBottom: 8, display: 'block' }}>
                 Gradients
             </Text>
             <div
@@ -516,18 +497,7 @@ export default function BackgroundPicker({
                     >
                         <span style={{ fontSize: 18 }}>{gradient.emoji}</span>
                         {isSelected(gradient.value) && (
-                            <CheckOutlined
-                                style={{
-                                    position: 'absolute',
-                                    top: 8,
-                                    right: 8,
-                                    color: '#fff',
-                                    fontSize: 14,
-                                    background: 'rgba(0,0,0,0.3)',
-                                    borderRadius: '50%',
-                                    padding: 4,
-                                }}
-                            />
+                            <IconCheck size={14} />
                         )}
                     </div>
                 ))}
@@ -536,7 +506,7 @@ export default function BackgroundPicker({
             <Divider style={{ margin: '12px 0' }} />
 
             {/* Solid Colors Section */}
-            <Text type="secondary" style={{ fontSize: 12, marginBottom: 8, display: 'block' }}>
+            <Text c="dimmed" style={{ fontSize: 12, marginBottom: 8, display: 'block' }}>
                 Solid Colors
             </Text>
             <div
@@ -569,7 +539,7 @@ export default function BackgroundPicker({
                         }}
                     >
                         {isSelected(color) && (
-                            <CheckOutlined style={{ color: token.colorWhite, fontSize: 14 }} />
+                            <IconCheck size={14} />
                         )}
                     </div>
                 ))}
@@ -580,32 +550,16 @@ export default function BackgroundPicker({
     return (
         <div className="background-picker">
             <Tabs
-                activeKey={activeTab}
-                onChange={setActiveTab}
-                size="small"
-                items={[
-                    {
-                        key: 'photos',
-                        label: (
-                            <span>
-                                <PictureOutlined style={{ marginRight: 6 }} />
-                                Photos
-                            </span>
-                        ),
-                        children: PhotosTab,
-                    },
-                    {
-                        key: 'colors',
-                        label: (
-                            <span>
-                                <BgColorsOutlined style={{ marginRight: 6 }} />
-                                Colors
-                            </span>
-                        ),
-                        children: ColorsTab,
-                    },
-                ]}
-            />
+                value={activeTab}
+                onChange={(val) => setActiveTab(val || 'photos')}
+            >
+                <Tabs.List>
+                    <Tabs.Tab value="photos" leftSection={<IconPhoto size={16} />}>Photos</Tabs.Tab>
+                    <Tabs.Tab value="colors" leftSection={<IconPalette size={16} />}>Colors</Tabs.Tab>
+                </Tabs.List>
+                <Tabs.Panel value="photos">{PhotosTab}</Tabs.Panel>
+                <Tabs.Panel value="colors">{ColorsTab}</Tabs.Panel>
+            </Tabs>
         </div>
     );
 }

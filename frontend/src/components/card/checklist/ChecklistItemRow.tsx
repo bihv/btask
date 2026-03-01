@@ -1,25 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-    Typography,
-    Checkbox,
-    Input,
-    Button,
-    Space,
-    Dropdown,
-    DatePicker,
-    Tag,
-    Modal,
-    App,
-} from 'antd';
-import {
-    UserOutlined,
-    CalendarOutlined,
-    SwapOutlined,
-    DeleteOutlined,
-    MoreOutlined,
-} from '@ant-design/icons';
 import { ChecklistItem as ChecklistItemType, User } from '@/types';
 import dayjs from 'dayjs';
 import MemberPickerModal from '@/components/common/MemberPickerModal';
@@ -28,8 +9,11 @@ import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
 
-const { Text } = Typography;
-
+import { Text, Title, Checkbox, TextInput, Button, Group, Menu, Badge, Modal, Textarea } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
+import { notifications } from '@mantine/notifications';
+import { modals } from '@mantine/modals';
+import { IconUser, IconCalendar, IconArrowsExchange, IconTrash, IconDots } from '@tabler/icons-react';
 interface ChecklistItemRowProps {
     item: ChecklistItemType;
     checklistId: string;
@@ -65,12 +49,11 @@ function DueDatePickerContent({
     onUpdate: () => void;
     onClose: () => void;
 }) {
-    const { message } = App.useApp();
     const t = useTranslation();
-    const handleDateChange = async (date: dayjs.Dayjs | null) => {
+    const handleDateChange = async (date: any) => {
         try {
             await checklistApi.updateItem(checklistId, item.id, {
-                due_date: date ? date.toISOString() : null
+                due_date: date ? new Date(date).toISOString() : null
             });
             onUpdate();
             // Use setTimeout to ensure state update completes before closing
@@ -78,7 +61,7 @@ function DueDatePickerContent({
                 onClose();
             }, 0);
         } catch (error) {
-            message.error(t('ERROR_UPDATE_DUE_DATE'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_DUE_DATE'), color: 'red' });
         }
     };
 
@@ -91,23 +74,23 @@ function DueDatePickerContent({
                 onClose();
             }, 0);
         } catch (error) {
-            message.error(t('ERROR_UPDATE_DUE_DATE'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_DUE_DATE'), color: 'red' });
         }
     };
 
     return (
         <div style={{ padding: 8 }}>
             <div style={{ marginBottom: 8, fontWeight: 500 }}>{t('UI_DUE_DATE_LABEL')}</div>
-            <DatePicker
-                value={item.due_date ? dayjs(item.due_date) : null}
+            <DatePickerInput
+                value={item.due_date ? new Date(item.due_date) : null}
                 onChange={handleDateChange}
                 style={{ width: '100%' }}
                 placeholder={t('UI_SELECT_DUE_DATE')}
             />
             {item.due_date && (
                 <Button
-                    size="small"
-                    danger
+                    size="sm"
+                    color="red"
                     style={{ marginTop: 8, width: '100%' }}
                     onClick={handleRemoveDueDate}
                 >
@@ -140,7 +123,6 @@ export default function ChecklistItemRow({
     onDelete,
     onUpdateData,
 }: ChecklistItemRowProps) {
-    const { message } = App.useApp();
     const t2 = useTranslation();
     const token = useAppToken();
     const [dueDateModalOpen, setDueDateModalOpen] = useState(false);
@@ -177,7 +159,7 @@ export default function ChecklistItemRow({
         } catch (error) {
             // Rollback on error
             setSelectedIds(selectedIds);
-            message.error(t2('ERROR_UPDATE_ASSIGNEES'));
+            notifications.show({ title: 'Error', message: t2('ERROR_UPDATE_ASSIGNEES'), color: 'red' });
         }
     };
 
@@ -192,7 +174,7 @@ export default function ChecklistItemRow({
         } catch (error) {
             // Rollback on error
             setSelectedIds(previousIds);
-            message.error(t2('ERROR_REMOVE_ASSIGNEES'));
+            notifications.show({ title: 'Error', message: t2('ERROR_REMOVE_ASSIGNEES'), color: 'red' });
         }
     };
 
@@ -204,40 +186,6 @@ export default function ChecklistItemRow({
         if (due.diff(now, 'day') <= 2) return 'gold';
         return 'default';
     };
-
-    const menuItems = [
-        {
-            key: 'assign',
-            icon: <UserOutlined />,
-            label: t2('UI_ASSIGN_MEMBER'),
-            onClick: () => {
-                setMemberModalOpen(true);
-            },
-        },
-        {
-            key: 'duedate',
-            icon: <CalendarOutlined />,
-            label: t2('UI_SET_DUE_DATE'),
-            onClick: () => {
-                setDueDateModalOpen(true);
-            },
-        },
-        { type: 'divider' as const },
-        {
-            key: 'convert',
-            label: t2('UI_CONVERT_TO_CARD'),
-            icon: <SwapOutlined />,
-            onClick: onConvertToCard,
-        },
-        { type: 'divider' as const },
-        {
-            key: 'delete',
-            label: t2('UI_DELETE'),
-            danger: true,
-            icon: <DeleteOutlined />,
-            onClick: onDelete,
-        },
-    ];
 
     return (
         <div
@@ -266,20 +214,22 @@ export default function ChecklistItemRow({
             <div style={{ flex: 1, minWidth: 0 }}>
                 {isEditing ? (
                     <div>
-                        <Input.TextArea
+                        <Textarea
                             value={editingContent}
-                            onChange={(e) => onEditContentChange(e.target.value)}
-                            autoSize={{ minRows: 1, maxRows: 4 }}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onEditContentChange(e.target.value)}
+                            autosize
+                            minRows={1}
+                            maxRows={4}
                             autoFocus
                         />
-                        <Space style={{ marginTop: 4 }}>
-                            <Button type="primary" size="small" onClick={onSaveEdit}>
+                        <Group style={{ marginTop: 4 }}>
+                            <Button size="sm" onClick={onSaveEdit}>
                                 {t2('UI_SAVE')}
                             </Button>
-                            <Button size="small" onClick={onCancelEdit}>
+                            <Button size="sm" onClick={onCancelEdit}>
                                 {t2('UI_CANCEL')}
                             </Button>
-                        </Space>
+                        </Group>
                     </div>
                 ) : (
                     <Text
@@ -301,9 +251,9 @@ export default function ChecklistItemRow({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                     {/* Due Date */}
                     {item.due_date && (
-                        <Tag
+                        <Badge
                             color={getDueDateColor(item.due_date)}
-                            icon={<CalendarOutlined />}
+                            leftSection={<IconCalendar size={16} />}
                             style={{
                                 cursor: 'pointer',
                                 margin: 0,
@@ -312,7 +262,7 @@ export default function ChecklistItemRow({
                             onClick={() => setDueDateModalOpen(true)}
                         >
                             {dayjs(item.due_date).format('MMM D')}
-                        </Tag>
+                        </Badge>
                     )}
 
                     {/* Assignee Avatars */}
@@ -352,28 +302,54 @@ export default function ChecklistItemRow({
                     )}
 
                     {/* More menu */}
-                    <Dropdown
-                        menu={{ items: menuItems }}
-                        trigger={['click']}
-                    >
-                        <Button
-                            type="text"
-                            size="small"
-                            icon={<MoreOutlined />}
-                            style={{ opacity: 0.6 }}
-                        />
-                    </Dropdown>
+                    <Menu trigger="click" position="bottom-end">
+                        <Menu.Target>
+                            <Button
+                                variant="subtle"
+                                size="sm"
+                                leftSection={<IconDots size={16} />}
+                                style={{ opacity: 0.6 }}
+                            />
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                            <Menu.Item leftSection={<IconUser size={16} />} onClick={() => setMemberModalOpen(true)}>
+                                {t2('UI_ASSIGN_MEMBER')}
+                            </Menu.Item>
+                            <Menu.Item leftSection={<IconCalendar size={16} />} onClick={() => setDueDateModalOpen(true)}>
+                                {t2('UI_SET_DUE_DATE')}
+                            </Menu.Item>
+                            <Menu.Divider />
+                            <Menu.Item leftSection={<IconArrowsExchange size={16} />} onClick={onConvertToCard}>
+                                {t2('UI_CONVERT_TO_CARD')}
+                            </Menu.Item>
+                            <Menu.Divider />
+                            <Menu.Item color="red" leftSection={<IconTrash size={16} />} onClick={() => {
+                                modals.openConfirmModal({
+                                    title: t2('UI_CONFIRM_DELETE'),
+                                    centered: true,
+                                    children: (
+                                        <Text size="sm">
+                                            {t2('UI_CONFIRM_DELETE_CHECKLIST_ITEM_MSG')}
+                                        </Text>
+                                    ),
+                                    labels: { confirm: t2('UI_DELETE'), cancel: t2('UI_CANCEL') },
+                                    confirmProps: { color: 'red' },
+                                    onConfirm: onDelete,
+                                });
+                            }}>
+                                {t2('UI_DELETE')}
+                            </Menu.Item>
+                        </Menu.Dropdown>
+                    </Menu>
                 </div>
             )}
 
             {/* Due Date Modal */}
             <Modal
                 title={t2('UI_SET_DUE_DATE')}
-                open={dueDateModalOpen}
-                onCancel={closeDueDateModal}
-                footer={null}
-                width={300}
-                destroyOnHidden
+                opened={dueDateModalOpen}
+                onClose={closeDueDateModal}
+                size={300}
             >
                 <DueDatePickerContent
                     checklistId={checklistId}

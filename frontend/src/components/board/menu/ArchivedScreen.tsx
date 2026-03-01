@@ -2,16 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Tabs, Button, Empty, Spin, Typography, Tooltip, App, Flex } from 'antd';
-import { UndoOutlined, InboxOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '@/lib/api';
 import { BoardList as ListType, Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Text, Link } = Typography;
-
+import { Tabs, Button, Text, Center, Loader, Title, Tooltip, Flex } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconArrowBack, IconInbox, IconTrash } from '@tabler/icons-react';
 interface ArchivedScreenProps {
     boardId: string;
     onBack: () => void;
@@ -19,7 +18,6 @@ interface ArchivedScreenProps {
 }
 
 export default function ArchivedScreen({ boardId, onBack, onCardClick }: ArchivedScreenProps) {
-    const { modal, message } = App.useApp();
     const t = useTranslation();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('cards');
@@ -55,7 +53,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             setArchivedLists(prev => prev.filter(l => l.id !== listId));
             fetchBoard(boardId);
         } catch (error) {
-            message.error(t('ERROR_RESTORE_LIST_FAILED'));
+            notifications.show({ title: 'Error', message: t('ERROR_RESTORE_LIST_FAILED'), color: 'red' });
         }
     };
 
@@ -65,7 +63,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             setArchivedCards(prev => prev.filter(c => c.id !== cardId));
             fetchBoard(boardId);
         } catch (error) {
-            message.error(t('ERROR_RESTORE_CARD_FAILED'));
+            notifications.show({ title: 'Error', message: t('ERROR_RESTORE_CARD_FAILED'), color: 'red' });
         }
     };
 
@@ -78,7 +76,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
     };
 
     const handleDeleteCard = (cardId: string, cardTitle: string) => {
-        modal.confirm({
+        /* TODO: implement confirmation dialog */ ({
             title: t('UI_DELETE_CARD_PERMANENTLY'),
             content: `"${cardTitle}" ${t('UI_DELETE_CARD_CONFIRM')}`,
             okText: t('UI_DELETE'),
@@ -88,14 +86,14 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                     await api.delete(`/cards/${cardId}`);
                     setArchivedCards(prev => prev.filter(c => c.id !== cardId));
                 } catch (error) {
-                    message.error(t('ERROR_DELETE_CARD_FAILED'));
+                    notifications.show({ title: 'Error', message: t('ERROR_DELETE_CARD_FAILED'), color: 'red' });
                 }
             },
         });
     };
 
     const handleDeleteList = (listId: string, listTitle: string) => {
-        modal.confirm({
+        /* TODO: implement confirmation dialog */ ({
             title: t('UI_DELETE_LIST_PERMANENTLY'),
             content: `"${listTitle}" ${t('UI_DELETE_LIST_CONFIRM')}`,
             okText: t('UI_DELETE'),
@@ -105,7 +103,7 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
                     await api.delete(`/lists/${listId}`);
                     setArchivedLists(prev => prev.filter(l => l.id !== listId));
                 } catch (error) {
-                    message.error(t('ERROR_DELETE_LIST_FAILED'));
+                    notifications.show({ title: 'Error', message: t('ERROR_DELETE_LIST_FAILED'), color: 'red' });
                 }
             },
         });
@@ -116,37 +114,38 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             key: 'cards',
             label: `Cards (${archivedCards.length})`,
             children: loading ? (
-                <div style={{ textAlign: 'center', padding: 20 }}><Spin size="small" /></div>
+                <div style={{ textAlign: 'center', padding: 20 }}><Loader size="sm" /></div>
             ) : archivedCards.length === 0 ? (
-                <Empty description={t('UI_NO_ARCHIVED_CARDS')} image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
+                <Text c="dimmed" ta="center" py="md">{t('UI_NO_ARCHIVED_CARDS')}</Text>
             ) : (
                 <div style={{ maxHeight: 300, overflow: 'auto' }}>
                     {archivedCards.map((card, index) => (
                         <Flex key={card.id} align="center" justify="space-between" style={{ padding: '6px 0', borderBottom: index < archivedCards.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
                             <Flex align="center" gap={8} style={{ flex: 1, minWidth: 0 }}>
-                                <InboxOutlined style={{ fontSize: 14, color: '#999', flexShrink: 0 }} />
-                                <Link
+                                <IconInbox size={14} />
+                                <Text
+                                    c="blue"
+                                    style={{ cursor: 'pointer', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                     onClick={() => handleCardClick(card.id)}
-                                    style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                 >
                                     {card.title}
-                                </Link>
+                                </Text>
                             </Flex>
                             <Flex gap={4}>
-                                <Tooltip title={t('UI_RESTORE')}>
+                                <Tooltip label={t('UI_RESTORE')}>
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<UndoOutlined />}
+                                        variant="subtle"
+                                        size="sm"
+                                        leftSection={<IconArrowBack size={16} />}
                                         onClick={() => handleRestoreCard(card.id)}
                                     />
                                 </Tooltip>
-                                <Tooltip title={t('UI_DELETE_PERMANENTLY')}>
+                                <Tooltip label={t('UI_DELETE_PERMANENTLY')}>
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        danger
-                                        icon={<DeleteOutlined />}
+                                        variant="subtle"
+                                        size="sm"
+                                        color="red"
+                                        leftSection={<IconTrash size={16} />}
                                         onClick={() => handleDeleteCard(card.id, card.title)}
                                     />
                                 </Tooltip>
@@ -160,34 +159,34 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             key: 'lists',
             label: `Lists (${archivedLists.length})`,
             children: loading ? (
-                <div style={{ textAlign: 'center', padding: 20 }}><Spin size="small" /></div>
+                <div style={{ textAlign: 'center', padding: 20 }}><Loader size="sm" /></div>
             ) : archivedLists.length === 0 ? (
-                <Empty description={t('UI_NO_ARCHIVED_LISTS')} image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ margin: '20px 0' }} />
+                <Text c="dimmed" ta="center" py="md">{t('UI_NO_ARCHIVED_LISTS')}</Text>
             ) : (
                 <div style={{ maxHeight: 300, overflow: 'auto' }}>
                     {archivedLists.map((list, index) => (
                         <Flex key={list.id} align="center" justify="space-between" style={{ padding: '6px 0', borderBottom: index < archivedLists.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
                             <Flex align="center" gap={8} style={{ flex: 1, minWidth: 0 }}>
-                                <InboxOutlined style={{ fontSize: 14, color: '#999', flexShrink: 0 }} />
-                                <Text style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <IconInbox size={14} />
+                                <Text style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'truncate', whiteSpace: 'nowrap' }}>
                                     {list.title}
                                 </Text>
                             </Flex>
                             <Flex gap={4}>
-                                <Tooltip title={t('UI_RESTORE')}>
+                                <Tooltip label={t('UI_RESTORE')}>
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<UndoOutlined />}
+                                        variant="subtle"
+                                        size="sm"
+                                        leftSection={<IconArrowBack size={16} />}
                                         onClick={() => handleRestoreList(list.id)}
                                     />
                                 </Tooltip>
-                                <Tooltip title={t('UI_DELETE_PERMANENTLY')}>
+                                <Tooltip label={t('UI_DELETE_PERMANENTLY')}>
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        danger
-                                        icon={<DeleteOutlined />}
+                                        variant="subtle"
+                                        size="sm"
+                                        color="red"
+                                        leftSection={<IconTrash size={16} />}
                                         onClick={() => handleDeleteList(list.id, list.title)}
                                     />
                                 </Tooltip>
@@ -204,11 +203,20 @@ export default function ArchivedScreen({ boardId, onBack, onCardClick }: Archive
             <ScreenHeader title={t('UI_ARCHIVED_ITEMS')} onBack={onBack} />
             <div style={{ padding: '0 8px' }}>
                 <Tabs
-                    activeKey={activeTab}
-                    onChange={setActiveTab}
-                    items={tabItems}
-                    size="small"
-                />
+                    value={activeTab}
+                    onChange={(val) => setActiveTab(val || 'cards')}
+                >
+                    <Tabs.List>
+                        <Tabs.Tab value="cards">{`Cards (${archivedCards.length})`}</Tabs.Tab>
+                        <Tabs.Tab value="lists">{`Lists (${archivedLists.length})`}</Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="cards">
+                        {tabItems[0].children}
+                    </Tabs.Panel>
+                    <Tabs.Panel value="lists">
+                        {tabItems[1].children}
+                    </Tabs.Panel>
+                </Tabs>
             </div>
         </div>
     );

@@ -2,26 +2,25 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Menu, Button, Dropdown, Typography, Spin, Divider } from 'antd';
+import { ActionIcon, Loader, Divider, NavLink, Popover } from '@mantine/core';
 import {
-    HomeOutlined,
-    ProjectOutlined,
-    AppstoreOutlined,
-    StarOutlined,
-    SettingOutlined,
-    LogoutOutlined,
-    SunOutlined,
-    MoonOutlined,
-    MenuFoldOutlined,
-    MenuUnfoldOutlined,
-    UserOutlined,
-    HistoryOutlined,
-    CreditCardOutlined,
-    QuestionCircleOutlined,
-    ThunderboltOutlined,
-    TeamOutlined,
-    ExportOutlined,
-} from '@ant-design/icons';
+    IconHome,
+    IconLayoutBoard,
+    IconApps,
+    IconSun,
+    IconMoon,
+    IconLayoutSidebarLeftCollapse,
+    IconLayoutSidebarLeftExpand,
+    IconUser,
+    IconHistory,
+    IconCreditCard,
+    IconSettings,
+    IconLogout,
+    IconUsers,
+    IconHelp,
+    IconBolt,
+    IconExternalLink,
+} from '@tabler/icons-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/providers/ThemeProvider';
 import NotificationDropdown from '@/components/notification/NotificationDropdown';
@@ -31,9 +30,6 @@ import GlobalSearch from '@/components/common/GlobalSearch';
 import CreateDropdown from '@/components/common/CreateDropdown';
 import { useLabels } from '@/hooks/useLabels';
 import styles from './DashboardLayout.module.css';
-
-const { Header, Sider, Content } = Layout;
-const { Text } = Typography;
 
 export default function DashboardLayout({
     children,
@@ -46,11 +42,10 @@ export default function DashboardLayout({
     const { preference, resolvedTheme, setTheme } = useTheme();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
 
-    // Labels loading with React Query (auto-deduplication)
     const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
 
-    // Get auth token for WebSocket
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     useWebSocket(token);
 
@@ -61,40 +56,20 @@ export default function DashboardLayout({
         }
     }, [isAuthenticated, router]);
 
-    // Show loading until mounted, authenticated, AND labels are loaded
     if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
 
     const menuItems = [
-        {
-            key: '/workspaces',
-            icon: <HomeOutlined />,
-            label: 'Home',
-        },
-        {
-            key: '/boards',
-            icon: <ProjectOutlined />,
-            label: 'Boards',
-        },
-        {
-            key: '/templates',
-            icon: <AppstoreOutlined />,
-            label: 'Templates',
-        },
+        { key: '/workspaces', icon: <IconHome size={18} />, label: 'Home' },
+        { key: '/boards', icon: <IconLayoutBoard size={18} />, label: 'Boards' },
+        { key: '/templates', icon: <IconApps size={18} />, label: 'Templates' },
     ];
 
-    const handleNavClick = (e: { key: string }) => {
-        if (e.key.startsWith('/')) {
-            router.push(e.key);
-        }
-    };
-
-    // Avatar dropdown menu content
     const avatarDropdownContent = (
         <div className={styles.avatarDropdownMenu}>
             {/* User Info */}
@@ -112,62 +87,63 @@ export default function DashboardLayout({
                 </div>
             </div>
 
-            <Divider style={{ margin: '8px 0' }} />
+            <Divider my={8} />
 
             {/* Account Section */}
             <div className={styles.dropdownSection}>
                 <div className={styles.dropdownSectionLabel}>Account</div>
-                <div className={styles.dropdownMenuItem} onClick={() => router.push('/me/profile')}>
-                    <UserOutlined />
+                <div className={styles.dropdownMenuItem} onClick={() => { setAvatarMenuOpen(false); router.push('/me/profile'); }}>
+                    <IconUser size={16} />
                     <span>Profile and visibility</span>
                 </div>
-                <div className={styles.dropdownMenuItem} onClick={() => router.push('/activity')}>
-                    <HistoryOutlined />
+                <div className={styles.dropdownMenuItem} onClick={() => { setAvatarMenuOpen(false); router.push('/activity'); }}>
+                    <IconHistory size={16} />
                     <span>Activity</span>
                 </div>
-                <div className={styles.dropdownMenuItem} onClick={() => router.push('/me/cards')}>
-                    <CreditCardOutlined />
+                <div className={styles.dropdownMenuItem} onClick={() => { setAvatarMenuOpen(false); router.push('/me/cards'); }}>
+                    <IconCreditCard size={16} />
                     <span>Cards</span>
                 </div>
-                <div className={styles.dropdownMenuItem} onClick={() => router.push('/me/settings')}>
-                    <SettingOutlined />
+                <div className={styles.dropdownMenuItem} onClick={() => { setAvatarMenuOpen(false); router.push('/me/settings'); }}>
+                    <IconSettings size={16} />
                     <span>Settings</span>
                 </div>
             </div>
 
-            <Divider style={{ margin: '8px 0' }} />
+            <Divider my={8} />
 
             <div className={styles.dropdownSection}>
-                <div className={styles.dropdownMenuItem} onClick={() => router.push('/workspaces')}>
-                    <TeamOutlined />
+                <div className={styles.dropdownMenuItem} onClick={() => { setAvatarMenuOpen(false); router.push('/workspaces'); }}>
+                    <IconUsers size={16} />
                     <span>Create Workspace</span>
                 </div>
             </div>
 
-            <Divider style={{ margin: '8px 0' }} />
+            <Divider my={8} />
 
             <div className={styles.dropdownSection}>
                 <div className={styles.dropdownMenuItem} onClick={() => { }}>
-                    <QuestionCircleOutlined />
+                    <IconHelp size={16} />
                     <span>Help</span>
                 </div>
                 <div className={styles.dropdownMenuItem} onClick={() => { }}>
-                    <ThunderboltOutlined />
+                    <IconBolt size={16} />
                     <span>Shortcuts</span>
                 </div>
             </div>
 
-            <Divider style={{ margin: '8px 0' }} />
+            <Divider my={8} />
 
             <div className={styles.dropdownSection}>
                 <div
                     className={`${styles.dropdownMenuItem} ${styles.logoutItem}`}
                     onClick={() => {
+                        setAvatarMenuOpen(false);
                         logout();
                         router.push('/login');
                     }}
                 >
-                    <LogoutOutlined />
+                    <IconLogout size={16} />
                     <span>Log out</span>
                 </div>
             </div>
@@ -175,11 +151,9 @@ export default function DashboardLayout({
     );
 
     return (
-        <Layout style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden' }}>
-
-
-            {/* Row 1: Top Header Bar (same as board layout) */}
-            <Header
+        <div style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {/* Row 1: Top Header Bar */}
+            <header
                 style={{
                     height: 48,
                     display: 'flex',
@@ -188,7 +162,7 @@ export default function DashboardLayout({
                     padding: '0 16px',
                     borderBottom: '1px solid var(--border-color)',
                     background: 'var(--bg-primary)',
-                    lineHeight: '32px',
+                    flexShrink: 0,
                 }}
             >
                 {/* Left: Logo + App Name */}
@@ -217,45 +191,51 @@ export default function DashboardLayout({
                 {/* Right: Create + Theme + Notifications + Avatar */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <CreateDropdown />
-                    <Button
-                        type="text"
-                        icon={resolvedTheme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+                    <ActionIcon
+                        variant="subtle"
+                        color="gray"
                         onClick={() => {
                             const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
                             setTheme(nextTheme);
                         }}
-                    />
-                    <NotificationDropdown />
-                    <Dropdown
-                        popupRender={() => avatarDropdownContent}
-                        placement="bottomRight"
-                        trigger={['click']}
                     >
-                        <div style={{ cursor: 'pointer' }}>
-                            <UserAvatar
-                                avatarUrl={user?.avatar_url}
-                                name={user?.full_name}
-                                size={32}
-                                style={{ cursor: 'pointer' }}
-                            />
-                        </div>
-                    </Dropdown>
+                        {resolvedTheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+                    </ActionIcon>
+                    <NotificationDropdown />
+                    <Popover
+                        opened={avatarMenuOpen}
+                        onChange={setAvatarMenuOpen}
+                        position="bottom-end"
+                        shadow="md"
+                    >
+                        <Popover.Target>
+                            <div style={{ cursor: 'pointer' }} onClick={() => setAvatarMenuOpen((o) => !o)}>
+                                <UserAvatar
+                                    avatarUrl={user?.avatar_url}
+                                    name={user?.full_name}
+                                    size={32}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            </div>
+                        </Popover.Target>
+                        <Popover.Dropdown p={0}>
+                            {avatarDropdownContent}
+                        </Popover.Dropdown>
+                    </Popover>
                 </div>
-            </Header>
+            </header>
 
             {/* Row 2: Sidebar + Content */}
-            <Layout style={{ height: 'calc(100vh - 48px)' }}>
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                 {/* Left: Sidebar */}
-                <Sider
-                    trigger={null}
-                    collapsible
-                    collapsed={collapsed}
-                    width={220}
-                    collapsedWidth={60}
+                <nav
                     style={{
+                        width: collapsed ? 60 : 220,
                         borderRight: '1px solid var(--border-color)',
                         background: 'var(--bg-primary)',
                         overflow: 'auto',
+                        transition: 'width 0.2s',
+                        flexShrink: 0,
                     }}
                 >
                     <div
@@ -265,27 +245,32 @@ export default function DashboardLayout({
                             padding: '8px',
                         }}
                     >
-                        <Button
-                            type="text"
-                            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                        <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            size="sm"
                             onClick={() => setCollapsed(!collapsed)}
-                            size="small"
-                        />
+                        >
+                            {collapsed ? <IconLayoutSidebarLeftExpand size={16} /> : <IconLayoutSidebarLeftCollapse size={16} />}
+                        </ActionIcon>
                     </div>
-                    <Menu
-                        mode="inline"
-                        selectedKeys={[pathname]}
-                        items={menuItems}
-                        onClick={handleNavClick}
-                        style={{ border: 'none' }}
-                    />
-                </Sider>
+                    {menuItems.map((item) => (
+                        <NavLink
+                            key={item.key}
+                            label={collapsed ? undefined : item.label}
+                            leftSection={item.icon}
+                            active={pathname === item.key}
+                            onClick={() => router.push(item.key)}
+                            style={{ borderRadius: 6, margin: '2px 4px' }}
+                        />
+                    ))}
+                </nav>
 
                 {/* Right: Main Content */}
-                <Content style={{ overflow: 'auto', background: 'var(--bg-secondary)' }}>
+                <main style={{ flex: 1, overflow: 'auto', background: 'var(--bg-secondary)' }}>
                     {children}
-                </Content>
-            </Layout>
-        </Layout>
+                </main>
+            </div>
+        </div>
     );
 }

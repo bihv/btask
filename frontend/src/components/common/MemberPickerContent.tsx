@@ -1,13 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Typography } from 'antd';
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { Text } from '@mantine/core';
+import { IconCheck, IconX } from '@tabler/icons-react';
 import { User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useAppToken } from '@/hooks/useAppToken';
-
-const { Text } = Typography;
 
 interface MemberPickerContentProps {
     workspaceMembers: User[];
@@ -40,7 +38,7 @@ export default function MemberPickerContent({
                         gap: 8,
                     }}
                 >
-                    <CloseOutlined style={{ fontSize: 12 }} />
+                    <IconX size={12} />
                     Remove all ({selectedMemberIds.length})
                 </div>
             )}
@@ -74,13 +72,13 @@ export default function MemberPickerContent({
                             size="small"
                         />
                         <span style={{ flex: 1 }}>{member.full_name}</span>
-                        {isSelected && <CheckOutlined style={{ color: token.colorSuccess }} />}
+                        {isSelected && <IconCheck size={16} color={token.colorSuccess} />}
                     </div>
                 );
             })}
 
             {workspaceMembers.length === 0 && (
-                <Text type="secondary" style={{ textAlign: 'center', padding: 16 }}>
+                <Text c="dimmed" ta="center" p="md">
                     No members in workspace
                 </Text>
             )}

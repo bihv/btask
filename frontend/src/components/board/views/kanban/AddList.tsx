@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Input } from 'antd';
-import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
 import styles from './KanbanBoard.module.css';
 import { useTranslation } from '@/hooks/useLabels';
 
+import { Button, TextInput } from '@mantine/core';
+import { IconPlus, IconX } from '@tabler/icons-react';
 interface AddListProps {
     boardId: string;
 }
@@ -31,7 +31,7 @@ export default function AddList({ boardId }: AddListProps) {
                 className={styles.addListBtn}
                 onClick={() => setIsAdding(true)}
             >
-                <PlusOutlined />
+                <IconPlus size={16}  />
                 {t('UI_ADD_ANOTHER_LIST')}
             </div>
         );
@@ -47,7 +47,7 @@ export default function AddList({ boardId }: AddListProps) {
                 padding: 8,
             }}
         >
-            <Input
+            <TextInput
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t('UI_PLACEHOLDER_LIST_TITLE')}
@@ -63,12 +63,12 @@ export default function AddList({ boardId }: AddListProps) {
                 }}
             />
             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                <Button type="primary" onClick={handleAdd}>
+                <Button  onClick={handleAdd}>
                     {t('UI_ADD_LIST')}
                 </Button>
                 <Button
-                    type="text"
-                    icon={<CloseOutlined />}
+                    variant="subtle"
+                    leftSection={<IconX size={16}  />}
                     onClick={() => {
                         setIsAdding(false);
                         setTitle('');

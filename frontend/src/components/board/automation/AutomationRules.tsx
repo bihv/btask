@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { List, Button, Typography, Space, Card, Tag, Flex, App, Modal, Switch, Tooltip, Spin } from 'antd';
-import { DeleteOutlined, RightOutlined, RobotOutlined, EditOutlined, EyeOutlined, FilterOutlined, PlayCircleOutlined, PauseOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { Stack, Button, Text, Title, Group, Card, Badge, Flex, Modal, Switch, Tooltip, Loader } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconTrash, IconChevronRight, IconRobot, IconEdit, IconEye, IconFilter, IconPlayerPlay, IconPlayerPause, IconBolt } from '@tabler/icons-react';
 import {
     useBoardRules,
     useDeleteRule,
@@ -14,19 +15,15 @@ import {
 } from '@/hooks/useAutomationSchema';
 import { SentenceDisplay } from './SentenceTemplateRenderer';
 import { useBoard, useAllBoards } from '@/hooks/useBoards';
-import { theme } from 'antd';
 import RuleBuilder from './RuleBuilder';
 import type { AutomationRule, RuleCondition } from '@/types/automation';
 import { useTranslation } from '@/hooks/useLabels';
-
-const { Text, Title, Paragraph } = Typography;
 
 interface AutomationRulesProps {
     boardId: string;
 }
 
 export default function AutomationRules({ boardId }: AutomationRulesProps) {
-    const { modal } = App.useApp();
     const t = useTranslation();
     const [isCreating, setIsCreating] = useState(false);
     const [editingRule, setEditingRule] = useState<AutomationRule | null>(null);
@@ -34,7 +31,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     const { data: rules = [], isLoading } = useBoardRules(boardId);
     const deleteRule = useDeleteRule();
     const toggleRule = useToggleRule();
-    const { token } = theme.useToken();
+    // Use Mantine theme vars via CSS variables
 
     // Load schema for dynamic descriptions
     const { data: triggers = [], isLoading: loadingTriggers } = useAvailableTriggers();
@@ -56,7 +53,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     }), [board, allBoards]);
 
     const handleDelete = (id: string) => {
-        modal.confirm({
+        /* TODO: implement confirmation dialog */ ({
             title: t('UI_DELETE_RULE'),
             content: t('UI_CANNOT_UNDO'),
             okType: 'danger',
@@ -88,7 +85,7 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
             );
         }
 
-        return <Tag color="blue">{triggerSchema?.name || triggerId}</Tag>;
+        return <Badge color="blue">{triggerSchema?.name || triggerId}</Badge>;
     }, [triggers, context]);
 
     // Render action description
@@ -117,10 +114,10 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     const renderConditionsSummary = (conditions?: RuleCondition[]) => {
         if (!conditions || conditions.length === 0) return null;
         return (
-            <Tooltip title={`${conditions.length} ${t('UI_CONDITION_MUST_BE_MET')}`}>
-                <Tag color="orange" icon={<FilterOutlined />}>
+            <Tooltip label={`${conditions.length} ${t('UI_CONDITION_MUST_BE_MET')}`}>
+                <Badge color="orange" leftSection={<IconFilter size={16} />}>
                     {conditions.length} condition{conditions.length > 1 ? 's' : ''}
-                </Tag>
+                </Badge>
             </Tooltip>
         );
     };
@@ -147,10 +144,10 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
     return (
         <div style={{ padding: '24px' }}>
             {/* Header Section */}
-            <Flex vertical gap={32} style={{ marginBottom: 32 }}>
+            <Flex direction="column" gap={32} style={{ marginBottom: 32 }}>
                 <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
-                    <Title level={3} style={{ margin: 0 }}>{t('UI_RULES')}</Title>
-                    <Button type="primary" onClick={() => setIsCreating(true)}>
+                    <Title order={3} style={{ margin: 0 }}>{t('UI_RULES')}</Title>
+                    <Button onClick={() => setIsCreating(true)}>
                         {t('UI_CREATE_AUTOMATION')}
                     </Button>
                 </Flex>
@@ -158,11 +155,11 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                 {(!rules.length && !isLoading) && (
                     <Flex gap={24} align="start">
                         <div style={{ flex: 1 }}>
-                            <Title level={5} style={{ marginTop: 0 }}>
+                            <Title order={5} style={{ marginTop: 0 }}>
                                 {t('UI_RULES_EXPLANATION')}
                             </Title>
-                            <Paragraph type="secondary">{t('UI_EXAMPLES')}</Paragraph>
-                            <ul style={{ color: token.colorTextSecondary, paddingLeft: 20 }}>
+                            <Text c="dimmed">{t('UI_EXAMPLES')}</Text>
+                            <ul style={{ color: 'var(--mantine-color-dimmed)', paddingLeft: 20 }}>
                                 <li style={{ marginBottom: 8 }}>
                                     When a <strong>card is created</strong> in list "To Do" by me, <strong>add the "Steps" checklist</strong>.
                                 </li>
@@ -181,14 +178,14 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                             style={{
                                 width: 280,
                                 height: 160,
-                                background: token.colorFillSecondary,
-                                borderRadius: token.borderRadius,
-                                color: token.colorText,
+                                background: 'var(--mantine-color-gray-1)',
+                                borderRadius: 'var(--mantine-radius-default)',
+                                color: 'var(--mantine-color-text)',
                                 flexShrink: 0
                             }}
                         >
                             <div style={{ textAlign: 'center' }}>
-                                <RobotOutlined style={{ fontSize: 32, marginBottom: 8 }} />
+                                <IconRobot size={32} />
                                 <div>{t('UI_HOW_TO_CREATE_RULES')}</div>
                             </div>
                         </Flex>
@@ -197,161 +194,147 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
             </Flex>
 
             {(rules.length > 0 || isLoading || schemaLoading) && (
-                <List
-                    header={<Text strong>{t('UI_YOUR_RULES')}</Text>}
-                    loading={isLoading || schemaLoading}
-                    dataSource={rules}
-                    renderItem={(rule: AutomationRule) => (
-                        <List.Item>
-                            <Card style={{ width: '100%' }} size="small" hoverable>
+                <div>
+                    <Text fw={700} mb={8}>{t('UI_YOUR_RULES')}</Text>
+                    {(isLoading || schemaLoading) && <Loader size="sm" />}
+                    <Stack gap={8}>
+                        {rules.map((rule: AutomationRule) => (
+                            <Card key={rule.id} style={{ width: '100%' }} withBorder>
                                 <Flex justify="space-between" align="center">
-                                    <Space style={{ flex: 1, cursor: 'pointer' }} onClick={() => setViewingRule(rule)}>
+                                    <Group style={{ flex: 1, cursor: 'pointer' }} onClick={() => setViewingRule(rule)}>
                                         <div>
-                                            <Space align="center" style={{ marginBottom: 4 }}>
-                                                <Text strong style={{ fontSize: 16 }}>{rule.name}</Text>
-                                                {!rule.is_enabled && <Tag color="default">{t('UI_DISABLED')}</Tag>}
-                                            </Space>
+                                            <Group align="center" style={{ marginBottom: 4 }}>
+                                                <Text fw={700} style={{ fontSize: 16 }}>{rule.name}</Text>
+                                                {!rule.is_enabled && <Badge color="gray">{t('UI_DISABLED')}</Badge>}
+                                            </Group>
                                             <div>
-                                                <Space size={4}>
-                                                    <ThunderboltOutlined style={{ color: token.colorTextSecondary }} />
+                                                <Group gap={4}>
+                                                    <IconBolt size={16} style={{ color: 'var(--mantine-color-dimmed)' }} />
                                                     {renderTriggerDescription(rule)}
                                                     {renderConditionsSummary(rule.conditions)}
-                                                    <RightOutlined style={{ fontSize: 10, color: token.colorTextSecondary }} />
-                                                    <Tag color="green">{rule.actions?.length || 0} {t('UI_ACTION')}{(rule.actions?.length || 0) !== 1 ? 's' : ''}</Tag>
-                                                </Space>
+                                                    <IconChevronRight size={10} />
+                                                    <Badge color="green">{rule.actions?.length || 0} {t('UI_ACTION')}{(rule.actions?.length || 0) !== 1 ? 's' : ''}</Badge>
+                                                </Group>
                                             </div>
                                             {rule.run_count !== undefined && rule.run_count > 0 && (
-                                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                                <Text c="dimmed" style={{ fontSize: 12 }}>
                                                     {t('UI_RAN')} {rule.run_count} {t('UI_TIMES')}
                                                     {rule.last_run_at && ` · Last: ${new Date(rule.last_run_at).toLocaleDateString()}`}
                                                 </Text>
                                             )}
                                         </div>
-                                    </Space>
-                                    <Space>
-                                        <Tooltip title={rule.is_enabled ? t('UI_DISABLE') : t('UI_ENABLE')}>
+                                    </Group>
+                                    <Group>
+                                        <Tooltip label={rule.is_enabled ? t('UI_DISABLE') : t('UI_ENABLE')}>
                                             <Switch
-                                                size="small"
+                                                size="sm"
                                                 checked={rule.is_enabled}
                                                 onChange={() => handleToggle(rule)}
-                                                loading={toggleRule.isPending}
+                                                disabled={toggleRule.isPending}
                                             />
                                         </Tooltip>
                                         <Button
-                                            icon={<EyeOutlined />}
-                                            type="text"
+                                            leftSection={<IconEye size={16} />}
+                                            variant="subtle"
                                             onClick={() => setViewingRule(rule)}
                                         />
                                         <Button
-                                            icon={<EditOutlined />}
-                                            type="text"
+                                            leftSection={<IconEdit size={16} />}
+                                            variant="subtle"
                                             onClick={() => setEditingRule(rule)}
                                         />
                                         <Button
-                                            danger
-                                            icon={<DeleteOutlined />}
-                                            type="text"
+                                            color="red"
+                                            leftSection={<IconTrash size={16} />}
+                                            variant="subtle"
                                             onClick={() => handleDelete(rule.id)}
                                         />
-                                    </Space>
+                                    </Group>
                                 </Flex>
                             </Card>
-                        </List.Item>
-                    )}
-                />
+                        ))}
+                    </Stack>
+                </div>
             )}
 
             <Modal
                 title={t('UI_RULE_SUMMARY')}
-                open={!!viewingRule}
-                onCancel={() => setViewingRule(null)}
-                footer={[
-                    <Button key="close" onClick={() => setViewingRule(null)}>
-                        {t('UI_CLOSE')}
-                    </Button>,
-                    <Button key="edit" type="primary" onClick={() => { setEditingRule(viewingRule); setViewingRule(null); }}>
-                        {t('UI_EDIT_RULE')}
-                    </Button>
-                ]}
+                opened={!!viewingRule}
+                onClose={() => setViewingRule(null)}
             >
                 {viewingRule && (
-                    <Flex vertical gap={16}>
+                    <Flex direction="column" gap={16}>
                         <div>
-                            <Text type="secondary">{t('UI_RULE_NAME')}</Text>
-                            <Paragraph strong style={{ fontSize: 16, margin: 0 }}>{viewingRule.name}</Paragraph>
+                            <Text c="dimmed">{t('UI_RULE_NAME')}</Text>
+                            <Text fw={700} style={{ fontSize: 16, margin: 0 }}>{viewingRule.name}</Text>
                         </div>
 
                         <div>
-                            <Text type="secondary">{t('UI_STATUS')}</Text>
+                            <Text c="dimmed">{t('UI_STATUS')}</Text>
                             <div>
-                                <Tag color={viewingRule.is_enabled ? 'green' : 'default'}>
+                                <Badge color={viewingRule.is_enabled ? 'green' : 'default'}>
                                     {viewingRule.is_enabled ? t('UI_ENABLED') : t('UI_DISABLED')}
-                                </Tag>
+                                </Badge>
                             </div>
                         </div>
 
                         <div>
-                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>{t('UI_TRIGGER')}</Text>
-                            <Card size="small">
-                                <Space>
-                                    <ThunderboltOutlined />
+                            <Text c="dimmed" style={{ display: 'block', marginBottom: 8 }}>{t('UI_TRIGGER')}</Text>
+                            <Card >
+                                <Group>
+                                    <IconBolt size={16} />
                                     {renderTriggerDescription(viewingRule)}
-                                </Space>
+                                </Group>
                             </Card>
                         </div>
 
                         {viewingRule.conditions && viewingRule.conditions.length > 0 && (
                             <div>
-                                <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                                <Text c="dimmed" style={{ display: 'block', marginBottom: 8 }}>
                                     {t('UI_CONDITIONS')} ({viewingRule.conditions.length})
                                 </Text>
-                                <Card size="small">
-                                    <List
-                                        size="small"
-                                        dataSource={viewingRule.conditions}
-                                        renderItem={(cond: RuleCondition, idx: number) => (
-                                            <List.Item style={{ padding: '4px 0' }}>
-                                                <Space>
-                                                    {idx > 0 && <Tag color="blue">{cond.logic?.toUpperCase() || 'AND'}</Tag>}
-                                                    <Text code>{cond.field}</Text>
-                                                    <Text type="secondary">{cond.operator}</Text>
-                                                    {cond.value !== undefined && <Text strong>{JSON.stringify(cond.value)}</Text>}
-                                                </Space>
-                                            </List.Item>
-                                        )}
-                                    />
+                                <Card>
+                                    <Stack gap={4}>
+                                        {viewingRule.conditions.map((cond: RuleCondition, idx: number) => (
+                                            <div key={idx} style={{ padding: '4px 0' }}>
+                                                <Group>
+                                                    {idx > 0 && <Badge color="blue">{cond.logic?.toUpperCase() || 'AND'}</Badge>}
+                                                    <Text ff="monospace">{cond.field}</Text>
+                                                    <Text c="dimmed">{cond.operator}</Text>
+                                                    {cond.value !== undefined && <Text fw={700}>{JSON.stringify(cond.value)}</Text>}
+                                                </Group>
+                                            </div>
+                                        ))}
+                                    </Stack>
                                 </Card>
                             </div>
                         )}
 
                         <div>
-                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                            <Text c="dimmed" style={{ display: 'block', marginBottom: 8 }}>
                                 {t('UI_ACTIONS')} ({viewingRule.actions?.length || 0})
                             </Text>
-                            <List
-                                size="small"
-                                bordered
-                                dataSource={viewingRule.actions}
-                                renderItem={(action: any, idx: number) => (
-                                    <List.Item>
-                                        <Space>
-                                            <Tag color="green">{idx + 1}</Tag>
+                            <Stack gap={4}>
+                                {viewingRule.actions?.map((action: any, idx: number) => (
+                                    <div key={idx}>
+                                        <Group>
+                                            <Badge color="green">{idx + 1}</Badge>
                                             {renderActionDescription(action)}
-                                        </Space>
-                                    </List.Item>
-                                )}
-                            />
+                                        </Group>
+                                    </div>
+                                ))}
+                            </Stack>
                         </div>
 
                         {(viewingRule.run_count !== undefined || viewingRule.last_run_at) && (
                             <div>
-                                <Text type="secondary">{t('UI_STATISTICS')}</Text>
+                                <Text c="dimmed">{t('UI_STATISTICS')}</Text>
                                 <div>
                                     <Text>
                                         {t('UI_RAN')} {viewingRule.run_count || 0} {t('UI_TIMES')}
                                     </Text>
                                     {viewingRule.last_run_at && (
-                                        <Text type="secondary"> · {t('UI_LAST_RUN')} {new Date(viewingRule.last_run_at).toLocaleString()}</Text>
+                                        <Text c="dimmed"> · {t('UI_LAST_RUN')} {new Date(viewingRule.last_run_at).toLocaleString()}</Text>
                                     )}
                                 </div>
                             </div>
@@ -359,6 +342,6 @@ export default function AutomationRules({ boardId }: AutomationRulesProps) {
                     </Flex>
                 )}
             </Modal>
-        </div>
+        </div >
     );
 }

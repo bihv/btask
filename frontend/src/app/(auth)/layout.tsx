@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { ConfigProvider, theme, App } from 'antd';
 import styles from './auth.module.css';
 
 export default function AuthLayout({
@@ -10,44 +9,20 @@ export default function AuthLayout({
     children: React.ReactNode;
 }) {
     return (
-        <ConfigProvider
-            theme={{
-                algorithm: theme.darkAlgorithm,
-                token: {
-                    colorBgContainer: 'rgba(255, 255, 255, 0.08)',
-                    colorBorder: 'rgba(255, 255, 255, 0.15)',
-                    borderRadius: 8,
-                    colorPrimary: '#7dd3c0',
-                    colorTextBase: '#ffffff',
-                },
-                components: {
-                    Input: {
-                        colorBgContainer: 'rgba(255, 255, 255, 0.08)',
-                        activeBorderColor: '#7dd3c0',
-                        hoverBorderColor: '#7dd3c0',
-                        colorText: '#ffffff',
-                        colorTextPlaceholder: 'rgba(255, 255, 255, 0.45)',
-                    },
-                }
-            }}
-        >
-            <App>
-                <div className={styles.container}>
-                    {/* Background Layer with Illustration/Image */}
-                    <div className={styles.backgroundLayer}>
-                        <img
-                            src="/images/background.webp"
-                            alt="Background"
-                            className={styles.backgroundImage}
-                        />
-                    </div>
+        <div className={styles.container}>
+            {/* Background Layer with Illustration/Image */}
+            <div className={styles.backgroundLayer}>
+                <img
+                    src="/images/background.webp"
+                    alt="Background"
+                    className={styles.backgroundImage}
+                />
+            </div>
 
-                    {/* Form Section Floating on top */}
-                    <div className={styles.formWrapper}>
-                        {children}
-                    </div>
-                </div>
-            </App>
-        </ConfigProvider>
+            {/* Form Section Floating on top */}
+            <div className={styles.formWrapper}>
+                {children}
+            </div>
+        </div>
     );
 }

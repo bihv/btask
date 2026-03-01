@@ -119,8 +119,6 @@ export function useAdminLabels(params: LabelsQueryParams = {}) {
     });
 }
 
-
-
 export function useUpdateLabel() {
     const queryClient = useQueryClient();
 
@@ -134,8 +132,6 @@ export function useUpdateLabel() {
         },
     });
 }
-
-
 
 // ============ Import/Export ============
 

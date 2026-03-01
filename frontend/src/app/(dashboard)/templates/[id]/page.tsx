@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Typography, Button, Breadcrumb, Row, Col, Divider, App, Spin } from 'antd';
-import { ShareAltOutlined, CopyOutlined, EyeOutlined } from '@ant-design/icons';
 import { useTemplate, useTemplates } from '@/hooks/useTemplates';
 import { Template } from '@/types';
 import BoardPreview from '@/components/templates/BoardPreview';
@@ -12,17 +10,17 @@ import UseTemplateModal from '@/components/templates/UseTemplateModal';
 import dynamic from 'next/dynamic';
 import { useTranslation } from '@/hooks/useLabels';
 
+import { Text, Title, Button, SimpleGrid, Divider, Loader, Breadcrumbs, Anchor } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconShare, IconCopy, IconEye } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
-    loading: () => <Spin size="small" />,
+    loading: () => <Loader size="sm" />,
 });
-
-const { Title, Text } = Typography;
 
 export default function TemplateDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { message } = App.useApp();
     const id = params.id as string;
 
     const [showUseTemplateModal, setShowUseTemplateModal] = useState(false);
@@ -39,7 +37,7 @@ export default function TemplateDetailPage() {
     if (isLoading) {
         return (
             <div style={{ padding: '48px', textAlign: 'center' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
@@ -47,8 +45,8 @@ export default function TemplateDetailPage() {
     if (error || !template) {
         return (
             <div style={{ padding: '48px', textAlign: 'center' }}>
-                <Title level={3}>{t('UI_TEMPLATE_NOT_FOUND')}</Title>
-                <Button type="primary" onClick={() => router.push('/templates')}>
+                <Title order={3}>{t('UI_TEMPLATE_NOT_FOUND')}</Title>
+                <Button onClick={() => router.push('/templates')}>
                     {t('UI_BACK_TO_TEMPLATES')}
                 </Button>
             </div>
@@ -67,7 +65,7 @@ export default function TemplateDetailPage() {
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
-        message.success(t('UI_LINK_COPIED'));
+        notifications.show({ message: t('UI_LINK_COPIED'), color: 'green' });
     };
 
     // Convert API lists format to BoardPreview format
@@ -94,14 +92,11 @@ export default function TemplateDetailPage() {
     return (
         <div style={{ padding: '24px 32px', maxWidth: '1000px', margin: '0 auto' }}>
             {/* Breadcrumb */}
-            <Breadcrumb
-                style={{ marginBottom: '24px' }}
-                items={[
-                    { title: <a onClick={() => router.push('/templates')}>{t('UI_TEMPLATE_GALLERY')}</a> },
-                    { title: template.category || 'Templates' },
-                    { title: template.title },
-                ]}
-            />
+            <Breadcrumbs style={{ marginBottom: '24px' }}>
+                <Anchor onClick={() => router.push('/templates')}>{t('UI_TEMPLATE_GALLERY')}</Anchor>
+                <Text>{template.category || 'Templates'}</Text>
+                <Text>{template.title}</Text>
+            </Breadcrumbs>
 
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
@@ -126,16 +121,16 @@ export default function TemplateDetailPage() {
                     </div>
 
                     <div>
-                        <Title level={2} style={{ margin: 0, marginBottom: '4px' }}>{template.title}</Title>
-                        <Text type="secondary">{t('UI_CREATED_BY')} {template.author || 'Mello'}</Text>
+                        <Title order={2} style={{ margin: 0, marginBottom: '4px' }}>{template.title}</Title>
+                        <Text c="dimmed">{t('UI_CREATED_BY')} {template.author || 'Mello'}</Text>
                         <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <CopyOutlined style={{ color: 'var(--text-secondary)' }} />
-                                <Text type="secondary">{formatNumber(template.copies)} {t('UI_COPIES')}</Text>
+                                <IconCopy size={16} style={{ color: 'var(--text-secondary)' }} />
+                                <Text c="dimmed">{formatNumber(template.copies)} {t('UI_COPIES')}</Text>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <EyeOutlined style={{ color: 'var(--text-secondary)' }} />
-                                <Text type="secondary">{formatNumber((template.views || 0) + 1)} {t('UI_VIEWS')}</Text>
+                                <IconEye size={16} style={{ color: 'var(--text-secondary)' }} />
+                                <Text c="dimmed">{formatNumber((template.views || 0) + 1)} {t('UI_VIEWS')}</Text>
                             </div>
                         </div>
                     </div>
@@ -143,10 +138,10 @@ export default function TemplateDetailPage() {
 
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <Button icon={<ShareAltOutlined />} onClick={handleShare}>
+                    <Button leftSection={<IconShare size={16} />} onClick={handleShare}>
                         {t('UI_SHARE')}
                     </Button>
-                    <Button type="primary" onClick={handleUseTemplate}>
+                    <Button onClick={handleUseTemplate}>
                         {t('UI_USE_TEMPLATE')}
                     </Button>
                 </div>
@@ -154,14 +149,14 @@ export default function TemplateDetailPage() {
 
             {/* About section */}
             <div style={{ marginBottom: '32px' }}>
-                <Title level={4} style={{ marginBottom: '16px' }}>{t('UI_ABOUT_THIS_TEMPLATE')}</Title>
+                <Title order={4} style={{ marginBottom: '16px' }}>{t('UI_ABOUT_THIS_TEMPLATE')}</Title>
                 {template.full_description ? (
                     <RichTextEditor
                         content={template.full_description}
                         editable={false}
                     />
                 ) : (
-                    <Text type="secondary">{template.description || t('UI_NO_DESCRIPTION')}</Text>
+                    <Text c="dimmed">{template.description || t('UI_NO_DESCRIPTION')}</Text>
                 )}
             </div>
 
@@ -175,7 +170,7 @@ export default function TemplateDetailPage() {
                         backgroundImage={template.cover_url}
                     />
                     <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                        <Button type="link" style={{ padding: 0 }}>
+                        <Button variant="transparent" style={{ padding: 0 }}>
                             {t('UI_VIEW_TEMPLATE')} →
                         </Button>
                     </div>
@@ -194,17 +189,17 @@ export default function TemplateDetailPage() {
                             padding: '24px',
                         }}
                     >
-                        <Title level={4} style={{ marginBottom: '24px', color: '#172b4d' }}>{t('UI_RELATED_TEMPLATES')}</Title>
-                        <Row gutter={[24, 24]}>
+                        <Title order={4} style={{ marginBottom: '24px', color: '#172b4d' }}>{t('UI_RELATED_TEMPLATES')}</Title>
+                        <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                             {relatedTemplates.map((t: Template) => (
-                                <Col key={t.id} xs={24} sm={12} md={8}>
+                                <div>
                                     <TemplateCard
                                         template={t}
                                         onClick={() => router.push(`/templates/${t.id}`)}
                                     />
-                                </Col>
+                                </div>
                             ))}
-                        </Row>
+                        </SimpleGrid>
                     </div>
                 </div>
             )}

@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Button, Input, App } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
 import styles from '@/components/board/views/kanban/KanbanBoard.module.css';
 import TemplateCardEditModal from './TemplateCardEditModal';
 import api from '@/lib/api';
 import { BoardList, Card } from '@/types';
 import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 
+import { Button, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
 export interface TemplateCardInput {
     id: string;
     title: string;
@@ -54,8 +55,7 @@ const isURL = (str: string): boolean => {
 };
 
 export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEditorProps) {
-    const { message } = App.useApp();
-    const [newListTitle, setNewListTitle] = useState('');
+        const [newListTitle, setNewListTitle] = useState('');
     const [isAddingList, setIsAddingList] = useState(false);
     const [editingCard, setEditingCard] = useState<Card | null>(null);
 
@@ -216,11 +216,10 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
                     {/* Add List Section */}
                     {isAddingList ? (
                         <div className={styles.list} style={{ minWidth: 250, maxWidth: 250, flexShrink: 0 }}>
-                            <Input
+                            <TextInput
                                 value={newListTitle}
                                 onChange={(e) => setNewListTitle(e.target.value)}
                                 placeholder="Enter list title..."
-                                onPressEnter={handleAddList}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Escape') {
                                         setIsAddingList(false);
@@ -230,18 +229,18 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
                                 autoFocus
                             />
                             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                                <Button type="primary" size="small" onClick={handleAddList}>
+                                <Button  size="sm" onClick={handleAddList}>
                                     Add list
                                 </Button>
-                                <Button size="small" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
+                                <Button size="sm" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
                                     Cancel
                                 </Button>
                             </div>
                         </div>
                     ) : (
                         <Button
-                            type="dashed"
-                            icon={<PlusOutlined />}
+                            variant="default"
+                            leftSection={<IconPlus size={16}  />}
                             onClick={() => setIsAddingList(true)}
                             style={{ minWidth: 250, height: 48, flexShrink: 0 }}
                         >
