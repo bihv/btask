@@ -133,7 +133,7 @@ export default function WorkspacesPage() {
                                             width: 40,
                                             height: 40,
                                             borderRadius: 8,
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            background: 'linear-gradient(135deg, #206A5D 0%, #3DA88E 100%)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',

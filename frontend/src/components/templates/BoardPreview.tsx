@@ -62,7 +62,7 @@ function convertToLists(templateLists: TemplateList[], fallbackColor: string): B
     }));
 }
 
-export default function BoardPreview({ lists, title, backgroundColor = '#0079bf', backgroundImage }: BoardPreviewProps) {
+export default function BoardPreview({ lists, title, backgroundColor = '#206A5D', backgroundImage }: BoardPreviewProps) {
     const token = useAppToken();
     const convertedLists = useMemo(() => convertToLists(lists, token.colorPrimary), [lists, token.colorPrimary]);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);

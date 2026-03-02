@@ -1,4 +1,4 @@
-import { useMantineTheme } from '@mantine/core';
+import { useMantineTheme, useMantineColorScheme } from '@mantine/core';
 
 /**
  * Custom semantic colors that extend Mantine's theme system.
@@ -26,7 +26,7 @@ const customColors = {
     colorShadowHeavy: 'rgba(0, 0, 0, 0.2)',
 
     // Template fallback colors
-    colorTemplateCover: '#0079bf',
+    colorTemplateCover: '#206A5D',
     colorTemplateBg: '#f4f5f7',
     colorTemplateDarkText: '#172b4d',
 } as const;
@@ -35,6 +35,8 @@ export type CustomColors = typeof customColors;
 
 export function useAppToken() {
     const theme = useMantineTheme();
+    const { colorScheme } = useMantineColorScheme();
+    const isDark = colorScheme === 'dark';
     return {
         // Map Ant Design token names to Mantine theme values for compatibility
         colorPrimary: theme.colors.brand[5],
@@ -51,5 +53,10 @@ export function useAppToken() {
         colorBorder: 'var(--border-color)',
         borderRadius: 8,
         ...customColors,
+        // Theme-aware overrides
+        colorOverlayLight: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.85)',
+        colorTemplateDarkText: isDark ? '#E2E8F0' : '#172b4d',
+        colorTemplateBg: isDark ? '#171717' : '#f4f5f7',
+        colorMutedText: isDark ? '#A3A3A3' : '#5e6c84',
     };
 }

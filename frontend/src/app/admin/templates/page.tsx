@@ -36,7 +36,7 @@ export default function AdminTemplatesPage() {
             category: null as string | null,
             is_featured: false,
             is_active: true,
-            cover_color: '#0079bf',
+            cover_color: '#206A5D',
             cover_url: '',
             full_description: '',
             lists: [] as TemplateListInput[],
@@ -245,7 +245,7 @@ export default function AdminTemplatesPage() {
                                                         borderRadius: 4,
                                                         background: record.cover_url
                                                             ? `url(${record.cover_url}) center/cover`
-                                                            : record.cover_color || '#0079bf',
+                                                            : record.cover_color || '#206A5D',
                                                     }}
                                                 />
                                                 <span>{record.title}</span>
@@ -288,7 +288,7 @@ export default function AdminTemplatesPage() {
                                                             category: record.category || null,
                                                             is_featured: record.is_featured || false,
                                                             is_active: record.is_active !== false,
-                                                            cover_color: record.cover_color || '#0079bf',
+                                                            cover_color: record.cover_color || '#206A5D',
                                                             cover_url: record.cover_url || '',
                                                             full_description: record.full_description || '',
                                                             lists: record.lists ? record.lists.map((list: TemplateListType) => ({

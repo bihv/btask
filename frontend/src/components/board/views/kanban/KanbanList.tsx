@@ -389,7 +389,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     alignItems: 'center',
                     cursor: 'pointer',
                     flexShrink: 0,
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    border: `1px solid var(--border-color)`,
                     boxShadow: `0 4px 16px ${token.colorShadowLight}`,
                 }}
                 {...attributes}

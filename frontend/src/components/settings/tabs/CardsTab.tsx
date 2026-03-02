@@ -262,7 +262,7 @@ export default function CardsTab() {
                                     <td style={{ padding: '8px' }}>
                                         {card.list?.board ? (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                <div style={{ width: 48, height: 36, borderRadius: 4, background: card.list.board.background_image ? `url(${card.list.board.background_image}) center/cover` : card.list.board.background_color || '#0079bf', flexShrink: 0 }} />
+                                                <div style={{ width: 48, height: 36, borderRadius: 4, background: card.list.board.background_image ? `url(${card.list.board.background_image}) center/cover` : card.list.board.background_color || '#206A5D', flexShrink: 0 }} />
                                                 <div>
                                                     <Text fw={700} size="sm" style={{ cursor: 'pointer', color: 'var(--text-primary)' }} onClick={(e) => handleBoardClick(e, card)}>{card.list.board.title}</Text>
                                                     {card.list.board.workspace && <Text size="xs" c="dimmed">{card.list.board.workspace.name}</Text>}

@@ -147,7 +147,7 @@ export default function ProfileVisibilityTab() {
                 width: '100%',
                 padding: 24,
                 borderRadius: 8,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #206A5D 0%, #3DA88E 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 16,

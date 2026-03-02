@@ -79,7 +79,7 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                             height: '40px',
                             background: template.cover_url
                                 ? `url(${template.cover_url}) center/cover`
-                                : template.cover_color || '#0079bf',
+                                : template.cover_color || '#206A5D',
                             borderRadius: '6px',
                             display: 'flex',
                             alignItems: 'center',

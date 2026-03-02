@@ -31,16 +31,16 @@ const getSystemTheme = (): ResolvedTheme => {
 };
 
 const brand: MantineColorsTuple = [
-    '#FFF7ED',
-    '#FFEDD5',
-    '#FED7AA',
-    '#FDBA74',
-    '#FB923C',
-    '#F97316',
-    '#EA580C',
-    '#C2410C',
-    '#9A3412',
-    '#7C2D12',
+    '#E8F5F2',
+    '#C5E8E0',
+    '#93D4C5',
+    '#60C0AA',
+    '#3DA88E',
+    '#206A5D',
+    '#1B5B50',
+    '#164C42',
+    '#113D35',
+    '#0C2E28',
 ];
 
 const mantineTheme = createTheme({
@@ -51,14 +51,14 @@ const mantineTheme = createTheme({
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     defaultRadius: 'sm',
     other: {
-        bgPrimary:     ['#FAFAFA', '#0A0A0A'],
-        bgSecondary:   ['#FFFFFF', '#171717'],
-        bgTertiary:    ['#F5F5F5', '#262626'],
-        textPrimary:   ['#171717', '#FAFAFA'],
-        textSecondary: ['#737373', '#A3A3A3'],
-        borderColor:   ['#E5E5E5', '#262626'],
-        primaryColor:  ['#F97316', '#FB923C'],
-        primaryHover:  ['#EA580C', '#FDBA74'],
+        bgPrimary:     ['#FAFAF9', '#0C0A09'],
+        bgSecondary:   ['#FFFFFF', '#1C1917'],
+        bgTertiary:    ['#F5F5F4', '#292524'],
+        textPrimary:   ['#1C1917', '#FAFAF9'],
+        textSecondary: ['#78716C', '#A8A29E'],
+        borderColor:   ['#E7E5E4', '#292524'],
+        primaryColor:  ['#206A5D', '#3DA88E'],
+        primaryHover:  ['#1B5B50', '#60C0AA'],
     },
 });
 

@@ -180,7 +180,7 @@ export default function BoardMenuPopover({
             case 'background':
                 return (
                     <BackgroundScreen
-                        initialColor={board.background_color || '#0079bf'}
+                        initialColor={board.background_color || '#206A5D'}
                         initialImage={board.background_image || ''}
                         onBack={goBack}
                         onSave={handleUpdateBackground}

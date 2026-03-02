@@ -29,7 +29,7 @@ export const GRADIENT_BACKGROUNDS = [
     },
     {
         id: 'gradient-3',
-        value: 'linear-gradient(135deg, #0052cc 0%, #0079bf 100%)',
+        value: 'linear-gradient(135deg, #164C42 0%, #206A5D 100%)',
         emoji: '🐙',
     },
     {
@@ -71,7 +71,7 @@ export const GRADIENT_BACKGROUNDS = [
 
 // Solid color presets
 export const SOLID_COLORS = [
-    '#0079bf',
+    '#206A5D',
     '#d29034',
     '#519839',
     '#b04632',
@@ -490,7 +490,7 @@ export default function BackgroundPicker({
                                 ? '2px solid #fff'
                                 : '2px solid transparent',
                             boxShadow: isSelected(gradient.value)
-                                ? '0 0 0 2px #0052cc'
+                                ? '0 0 0 2px #206A5D'
                                 : 'none',
                             transition: 'all 0.2s ease',
                         }}
@@ -533,7 +533,7 @@ export default function BackgroundPicker({
                                 ? '2px solid #fff'
                                 : '2px solid transparent',
                             boxShadow: isSelected(color)
-                                ? '0 0 0 2px #0052cc'
+                                ? '0 0 0 2px #206A5D'
                                 : 'none',
                             transition: 'all 0.2s ease',
                         }}
