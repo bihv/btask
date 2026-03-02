@@ -1,27 +1,6 @@
 @import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-/* Global CSS Variables */
-:root {
-    --bg-primary: #f4f5f7;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #ebecf0;
-    --text-primary: #172b4d;
-    --text-secondary: #5e6c84;
-    --border-color: #dfe1e6;
-    --primary-color: #0052cc;
-    --primary-hover: #0747a6;
-}
-
-[data-theme='dark'] {
-    --bg-primary: #161a1d;
-    --bg-secondary: #1F1F1F;
-    --bg-tertiary: #2d3338;
-    --text-primary: #b6c2cf;
-    --text-secondary: #9fadbc;
-    --border-color: #38414a;
-    --primary-color: #579dff;
-    --primary-hover: #85b8ff;
-}
+/* Color variables are managed by Mantine cssVariablesResolver in ThemeProvider.tsx */
 
 /* Reset */
 * {

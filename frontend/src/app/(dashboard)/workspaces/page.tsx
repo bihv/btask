@@ -75,7 +75,7 @@ export default function WorkspacesPage() {
             ) : (
                 <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                     {workspaces.map((workspace) => (
-                        <div>
+                        <div key={workspace.id}>
                             <Card
                                 withBorder
                                 onClick={() => router.push(`/workspaces/${workspace.id}`)}

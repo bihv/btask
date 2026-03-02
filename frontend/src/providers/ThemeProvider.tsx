@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MantineProvider, createTheme, MantineColorsTuple } from '@mantine/core';
+import { MantineProvider, createTheme, MantineColorsTuple, CSSVariablesResolver } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 
 type ThemePreference = 'light' | 'dark' | 'system';
@@ -31,16 +31,16 @@ const getSystemTheme = (): ResolvedTheme => {
 };
 
 const brand: MantineColorsTuple = [
-    '#e6f0ff',
-    '#cce0ff',
-    '#99c2ff',
-    '#66a3ff',
-    '#3385ff',
-    '#0052cc',
-    '#0047b3',
-    '#003d99',
-    '#003380',
-    '#002966',
+    '#FFF7ED',
+    '#FFEDD5',
+    '#FED7AA',
+    '#FDBA74',
+    '#FB923C',
+    '#F97316',
+    '#EA580C',
+    '#C2410C',
+    '#9A3412',
+    '#7C2D12',
 ];
 
 const mantineTheme = createTheme({
@@ -50,6 +50,40 @@ const mantineTheme = createTheme({
     },
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     defaultRadius: 'sm',
+    other: {
+        bgPrimary:     ['#FAFAFA', '#0A0A0A'],
+        bgSecondary:   ['#FFFFFF', '#171717'],
+        bgTertiary:    ['#F5F5F5', '#262626'],
+        textPrimary:   ['#171717', '#FAFAFA'],
+        textSecondary: ['#737373', '#A3A3A3'],
+        borderColor:   ['#E5E5E5', '#262626'],
+        primaryColor:  ['#F97316', '#FB923C'],
+        primaryHover:  ['#EA580C', '#FDBA74'],
+    },
+});
+
+const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
+    variables: {},
+    light: {
+        '--bg-primary': theme.other.bgPrimary[0],
+        '--bg-secondary': theme.other.bgSecondary[0],
+        '--bg-tertiary': theme.other.bgTertiary[0],
+        '--text-primary': theme.other.textPrimary[0],
+        '--text-secondary': theme.other.textSecondary[0],
+        '--border-color': theme.other.borderColor[0],
+        '--primary-color': theme.other.primaryColor[0],
+        '--primary-hover': theme.other.primaryHover[0],
+    },
+    dark: {
+        '--bg-primary': theme.other.bgPrimary[1],
+        '--bg-secondary': theme.other.bgSecondary[1],
+        '--bg-tertiary': theme.other.bgTertiary[1],
+        '--text-primary': theme.other.textPrimary[1],
+        '--text-secondary': theme.other.textSecondary[1],
+        '--border-color': theme.other.borderColor[1],
+        '--primary-color': theme.other.primaryColor[1],
+        '--primary-hover': theme.other.primaryHover[1],
+    },
 });
 
 import { ModalsProvider } from '@mantine/modals';
@@ -97,7 +131,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return (
         <ThemeContext.Provider value={{ preference, resolvedTheme, setTheme: setThemeHandler }}>
-            <MantineProvider theme={mantineTheme} forceColorScheme={resolvedTheme}>
+            <MantineProvider theme={mantineTheme} forceColorScheme={resolvedTheme} cssVariablesResolver={cssVariablesResolver}>
                 <ModalsProvider>
                     <Notifications position="top-right" />
                     {children}

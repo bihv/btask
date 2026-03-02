@@ -233,7 +233,8 @@ export default function DashboardLayout({
                         width: collapsed ? 60 : 220,
                         borderRight: '1px solid var(--border-color)',
                         background: 'var(--bg-primary)',
-                        overflow: 'auto',
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
                         transition: 'width 0.2s',
                         flexShrink: 0,
                     }}
