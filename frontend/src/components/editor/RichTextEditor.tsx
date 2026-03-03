@@ -49,6 +49,8 @@ interface RichTextEditorProps {
     placeholder?: string;
     workspaceId?: string;
     cardId?: string; // If provided, creates attachment record when uploading files
+    minHeight?: number | string;
+    maxHeight?: number | string;
 }
 
 const editorStyles: React.CSSProperties = {
@@ -99,6 +101,8 @@ export default function RichTextEditor({
     placeholder = 'Start typing...',
     workspaceId,
     cardId,
+    minHeight,
+    maxHeight,
 }: RichTextEditorProps) {
     const { resolvedTheme } = useTheme();
     const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -242,6 +246,8 @@ export default function RichTextEditor({
                 .bn-editor {
                     padding-left: 0 !important;
                     padding-right: 0 !important;
+                    ${minHeight ? `min-height: ${typeof minHeight === 'number' ? `${minHeight}px` : minHeight} !important;` : ''}
+                    ${maxHeight ? `max-height: ${typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight} !important; overflow-y: auto;` : ''}
                 }
                 .bn-block-outer {
                     margin-left: 0 !important;

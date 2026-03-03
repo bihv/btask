@@ -69,7 +69,7 @@ export default function ConvertToCardModal({
                         </Text>
                     )}
                     <Group justify="flex-end" mt="md">
-                        <Button variant="default" onClick={onCancel}>
+                        <Button variant="subtle" onClick={onCancel}>
                             {t('UI_CANCEL')}
                         </Button>
                         <Button onClick={onConvert} disabled={!selectedListId}>

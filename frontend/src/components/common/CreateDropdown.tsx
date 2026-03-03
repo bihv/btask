@@ -142,7 +142,7 @@ export default function CreateDropdown() {
                     />
                     <Group justify="flex-end">
                         <Button
-                            variant="default"
+                            variant="subtle"
                             onClick={() => {
                                 setCreateWorkspaceOpen(false);
                                 form.reset();

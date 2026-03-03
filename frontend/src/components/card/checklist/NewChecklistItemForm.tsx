@@ -170,16 +170,15 @@ export default function NewChecklistItemForm({
                     justifyContent: 'space-between'
                 }}>
                     <Group>
+                        <Button variant="subtle" size="sm" onClick={onCancel}>
+                            {t('UI_CANCEL')}
+                        </Button>
                         <Button
-
                             size="sm"
                             onClick={onSubmit}
                             disabled={!content.trim()}
                         >
                             {t('UI_ADD')}
-                        </Button>
-                        <Button size="sm" onClick={onCancel}>
-                            {t('UI_CANCEL')}
                         </Button>
                     </Group>
                     <Group>

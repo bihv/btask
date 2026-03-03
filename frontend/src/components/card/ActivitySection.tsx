@@ -34,6 +34,7 @@ export default function ActivitySection({
 }: ActivitySectionProps) {
     const t = useTranslation();
     const [newComment, setNewComment] = useState('');
+    const [isAddingComment, setIsAddingComment] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
@@ -53,6 +54,7 @@ export default function ActivitySection({
         await onAddComment(newComment);
         setNewComment('');
         setEditorKey((k) => k + 1);
+        setIsAddingComment(false);
     };
 
     const handleCommentChange = useCallback((content: string) => {
@@ -115,25 +117,59 @@ export default function ActivitySection({
                     size="small"
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <RichTextEditor
-                        key={editorKey}
-                        content=""
-                        onChange={handleCommentChange}
-                        editable={true}
-                        placeholder={t('UI_PLACEHOLDER_COMMENT')}
-                        workspaceId={workspaceId}
-                        cardId={cardId}
-                    />
-                    <Button
-
-                        size="sm"
-                        style={{ marginTop: 8 }}
-                        onClick={handleSubmit}
-                        disabled={isCommentEmpty}
-                        loading={isLoading}
-                    >
-                        {t('UI_SAVE')}
-                    </Button>
+                    {!isAddingComment ? (
+                        <div
+                            onClick={() => setIsAddingComment(true)}
+                            style={{
+                                padding: '10px 12px',
+                                background: 'var(--bg-tertiary)',
+                                borderRadius: 8,
+                                cursor: 'pointer',
+                                minHeight: 40,
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <Text c="dimmed" size="sm" style={{ paddingLeft: 46 }}>{t('UI_PLACEHOLDER_COMMENT')}</Text>
+                        </div>
+                    ) : (
+                        <div>
+                            <div style={{ padding: '8px 0', minHeight: 120 }}>
+                                <RichTextEditor
+                                    key={editorKey}
+                                    content=""
+                                    onChange={handleCommentChange}
+                                    editable={true}
+                                    placeholder={t('UI_PLACEHOLDER_COMMENT')}
+                                    workspaceId={workspaceId}
+                                    cardId={cardId}
+                                    minHeight={100}
+                                    maxHeight={300}
+                                />
+                            </div>
+                            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                                <Button
+                                    variant="subtle"
+                                    size="sm"
+                                    onClick={() => {
+                                        setIsAddingComment(false);
+                                        setNewComment('');
+                                        setEditorKey((k) => k + 1);
+                                    }}
+                                >
+                                    {t('UI_CANCEL')}
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    onClick={handleSubmit}
+                                    disabled={isCommentEmpty}
+                                    loading={isLoading}
+                                >
+                                    {t('UI_SAVE')}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -178,30 +214,34 @@ export default function ActivitySection({
                             <div style={{ marginTop: 4 }}>
                                 {isEditing ? (
                                     <div>
-                                        <RichTextEditor
-                                            content={editingContent}
-                                            onChange={handleEditChange}
-                                            editable={true}
-                                            placeholder={t('UI_PLACEHOLDER_EDIT_COMMENT')}
-                                            workspaceId={workspaceId}
-                                            cardId={cardId}
-                                        />
+                                        <div style={{ padding: '8px 0', minHeight: 120 }}>
+                                            <RichTextEditor
+                                                content={editingContent}
+                                                onChange={handleEditChange}
+                                                editable={true}
+                                                placeholder={t('UI_PLACEHOLDER_EDIT_COMMENT')}
+                                                workspaceId={workspaceId}
+                                                cardId={cardId}
+                                                minHeight={100}
+                                                maxHeight={300}
+                                            />
+                                        </div>
                                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                                             <Button
-
+                                                size="sm"
+                                                leftSection={<IconX size={16} />}
+                                                onClick={handleEditCancel}
+                                                variant="subtle"
+                                            >
+                                                {t('UI_CANCEL')}
+                                            </Button>
+                                            <Button
                                                 size="sm"
                                                 leftSection={<IconCheck size={16} />}
                                                 onClick={handleEditSave}
                                                 loading={isSavingEdit}
                                             >
                                                 {t('UI_SAVE')}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                leftSection={<IconX size={16} />}
-                                                onClick={handleEditCancel}
-                                            >
-                                                {t('UI_CANCEL')}
                                             </Button>
                                         </div>
                                     </div>

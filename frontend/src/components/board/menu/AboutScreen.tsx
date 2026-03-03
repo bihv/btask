@@ -87,11 +87,11 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
                             style={{ marginBottom: 8 }}
                         />
                         <Group>
+                            <Button variant="subtle" size="sm" onClick={() => setIsEditing(false)}>
+                                {t('UI_CANCEL')}
+                            </Button>
                             <Button size="sm" loading={saving} onClick={handleSave}>
                                 {t('UI_SAVE')}
-                            </Button>
-                            <Button size="sm" onClick={() => setIsEditing(false)}>
-                                {t('UI_CANCEL')}
                             </Button>
                         </Group>
                     </div>

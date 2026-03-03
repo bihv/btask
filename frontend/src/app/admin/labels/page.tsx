@@ -416,8 +416,8 @@ function TranslationRow({
                         style={{ flex: 1 }}
                         onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
                     />
+                    <Button variant="subtle" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
                     <Button size="sm" onClick={handleSave}>Save</Button>
-                    <Button size="sm" onClick={() => setEditing(false)}>Cancel</Button>
                 </>
             ) : (
                 <>

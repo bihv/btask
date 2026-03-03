@@ -262,7 +262,7 @@ export default function BoardMenuPopover({
                     />
                 </div>
                 <Group justify="flex-end" mt="md">
-                    <Button variant="default" onClick={() => setCopyModalOpen(false)}>
+                    <Button variant="subtle" onClick={() => setCopyModalOpen(false)}>
                         {t('UI_CANCEL') || 'Cancel'}
                     </Button>
                     <Button

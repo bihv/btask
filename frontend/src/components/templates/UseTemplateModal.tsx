@@ -138,7 +138,7 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                 </div>
 
                 <Group justify="flex-end">
-                    <Button variant="default" onClick={handleCancel}>
+                    <Button variant="subtle" onClick={handleCancel}>
                         {t('UI_CANCEL')}
                     </Button>
                     <Button type="submit" loading={isPending}>

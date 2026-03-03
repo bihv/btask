@@ -55,7 +55,7 @@ const isURL = (str: string): boolean => {
 };
 
 export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEditorProps) {
-        const [newListTitle, setNewListTitle] = useState('');
+    const [newListTitle, setNewListTitle] = useState('');
     const [isAddingList, setIsAddingList] = useState(false);
     const [editingCard, setEditingCard] = useState<Card | null>(null);
 
@@ -178,12 +178,12 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
     // Update card from modal
     const handleUpdateCard = (updatedCard: { id: string; title: string; description?: string; cover_url?: string }) => {
         if (!editingCard) return;
-        
+
         onChange(lists.map(list => ({
             ...list,
-            cards: list.cards.map(card => 
-                card.id === updatedCard.id 
-                    ? { ...card, ...updatedCard } 
+            cards: list.cards.map(card =>
+                card.id === updatedCard.id
+                    ? { ...card, ...updatedCard }
                     : card
             )
         })));
@@ -192,18 +192,18 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
 
     return (
         <>
-            <div style={{ 
-                background: 'var(--bg-tertiary)', 
-                padding: 16, 
+            <div style={{
+                background: 'var(--bg-tertiary)',
+                padding: 16,
                 borderRadius: 8,
             }}>
-                <div style={{ 
-                    display: 'flex', 
-                    gap: 12, 
+                <div style={{
+                    display: 'flex',
+                    gap: 12,
                     overflowX: 'auto',
-                    alignItems: 'flex-start' 
+                    alignItems: 'flex-start'
                 }}>
-                    <KanbanBoard 
+                    <KanbanBoard
                         listsData={boardLists}
                         onListsChange={handleListsChange}
                         onCardClick={handleCardClick}
@@ -212,7 +212,7 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
                         readOnly={false}
                         showCovers={true}
                     />
-                    
+
                     {/* Add List Section */}
                     {isAddingList ? (
                         <div className={styles.list} style={{ minWidth: 250, maxWidth: 250, flexShrink: 0 }}>
@@ -229,18 +229,18 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
                                 autoFocus
                             />
                             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                                <Button  size="sm" onClick={handleAddList}>
-                                    Add list
-                                </Button>
-                                <Button size="sm" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
+                                <Button variant="subtle" size="sm" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
                                     Cancel
+                                </Button>
+                                <Button size="sm" onClick={handleAddList}>
+                                    Add list
                                 </Button>
                             </div>
                         </div>
                     ) : (
                         <Button
                             variant="default"
-                            leftSection={<IconPlus size={16}  />}
+                            leftSection={<IconPlus size={16} />}
                             onClick={() => setIsAddingList(true)}
                             style={{ minWidth: 250, height: 48, flexShrink: 0 }}
                         >

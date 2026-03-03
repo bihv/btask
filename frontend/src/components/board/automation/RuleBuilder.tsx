@@ -517,7 +517,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
             <Divider />
 
             <Flex justify="space-between">
-                <Button onClick={onCancel}>{t('UI_CANCEL')}</Button>
+                <Button variant="subtle" onClick={onCancel}>{t('UI_CANCEL')}</Button>
                 <Group>
                     {currentStep > 0 && (
                         <Button onClick={() => setCurrentStep(prev => prev - 1)}>

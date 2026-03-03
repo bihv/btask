@@ -800,8 +800,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_DUE_DATE",
 		Category:     "ui",
-		DefaultValue: "DUE DATE",
-		Translations: map[string]string{"vi": "NGÀY HẾT HẠN"},
+		DefaultValue: "Due Date",
+		Translations: map[string]string{"vi": "Ngày hết hạn"},
 	},
 	{
 		Key:          "UI_NO_FILTER",
@@ -1214,8 +1214,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_CARDS",
 		Category:     "ui",
-		DefaultValue: "cards",
-		Translations: map[string]string{"vi": "thẻ"},
+		DefaultValue: "Cards",
+		Translations: map[string]string{"vi": "Thẻ"},
 	},
 	{
 		Key:          "UI_VISIBILITY",
@@ -4315,8 +4315,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_AVAILABLE",
 		Category:     "ui",
-		DefaultValue: "available",
-		Translations: map[string]string{"vi": "có sẵn"},
+		DefaultValue: "Available",
+		Translations: map[string]string{"vi": "Có sẵn"},
 	},
 }
 

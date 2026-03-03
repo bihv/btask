@@ -223,11 +223,11 @@ export default function ChecklistItemRow({
                             autoFocus
                         />
                         <Group style={{ marginTop: 4 }}>
+                            <Button variant="subtle" size="sm" onClick={onCancelEdit}>
+                                {t2('UI_CANCEL')}
+                            </Button>
                             <Button size="sm" onClick={onSaveEdit}>
                                 {t2('UI_SAVE')}
-                            </Button>
-                            <Button size="sm" onClick={onCancelEdit}>
-                                {t2('UI_CANCEL')}
                             </Button>
                         </Group>
                     </div>

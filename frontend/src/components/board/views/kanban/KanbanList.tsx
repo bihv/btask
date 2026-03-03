@@ -567,10 +567,8 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                         }}
                     />
                     <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                        <Button size="sm" onClick={handleAddCard}>
-                            {t('UI_ADD_CARD')}
-                        </Button>
                         <Button
+                            variant="subtle"
                             size="sm"
                             onClick={() => {
                                 setIsAddingCard(false);
@@ -578,6 +576,9 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                             }}
                         >
                             {t('UI_CANCEL')}
+                        </Button>
+                        <Button size="sm" onClick={handleAddCard}>
+                            {t('UI_ADD_CARD')}
                         </Button>
                     </div>
                 </div>
@@ -611,7 +612,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     onKeyDown={(e) => { if (e.key === "Enter") handleCopyList(); }}
                 />
                 <Group justify="flex-end" mt="md">
-                    <Button variant="default" onClick={() => setCopyModalOpen(false)}>{t('UI_CANCEL')}</Button>
+                    <Button variant="subtle" onClick={() => setCopyModalOpen(false)}>{t('UI_CANCEL')}</Button>
                     <Button onClick={handleCopyList}>{t('UI_CREATE_LIST')}</Button>
                 </Group>
             </Modal>
@@ -634,7 +635,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     }
                 />
                 <Group justify="flex-end" mt="md">
-                    <Button variant="default" onClick={() => setMoveModalOpen(false)}>{t('UI_CANCEL')}</Button>
+                    <Button variant="subtle" onClick={() => setMoveModalOpen(false)}>{t('UI_CANCEL')}</Button>
                     <Button
                         disabled={!targetListId}
                         onClick={() => {

@@ -37,14 +37,14 @@ export default function CardDescriptionSection({
         <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <IconAlignLeft size={16}  />
+                    <IconAlignLeft size={16} />
                     <Text fw={700}>{t('UI_DESCRIPTION')}</Text>
                 </div>
                 {!isEditing && description && (
                     <Button
                         variant="subtle"
                         size="sm"
-                        leftSection={<IconEdit size={16}  />}
+                        leftSection={<IconEdit size={16} />}
                         onClick={onEditStart}
                     >
                         {t('UI_EDIT')}
@@ -60,17 +60,18 @@ export default function CardDescriptionSection({
                         placeholder={t('UI_PLACEHOLDER_DESCRIPTION')}
                         workspaceId={workspaceId}
                         cardId={cardId}
+                        minHeight={200}
                     />
-                    <div style={{ marginTop: 8 }}>
-                        <Button  size="sm" onClick={onSave}>
-                            {t('UI_SAVE')}
-                        </Button>
+                    <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                         <Button
                             size="sm"
-                            style={{ marginLeft: 8 }}
                             onClick={onCancel}
+                            variant="subtle"
                         >
                             {t('UI_CANCEL')}
+                        </Button>
+                        <Button size="sm" onClick={onSave}>
+                            {t('UI_SAVE')}
                         </Button>
                     </div>
                 </div>
@@ -82,7 +83,7 @@ export default function CardDescriptionSection({
                         background: description ? 'transparent' : 'var(--bg-tertiary)',
                         borderRadius: 8,
                         cursor: description ? 'default' : 'pointer',
-                        minHeight: description ? 'auto' : 60,
+                        minHeight: description ? 'auto' : 200,
                     }}
                 >
                     {description ? (

@@ -286,14 +286,14 @@ export default function ChecklistSection({
                         autoFocus
                     />
                     <Group style={{ marginTop: 8 }}>
-                        <Button onClick={handleAddChecklist}>
-                            {t('UI_ADD')}
-                        </Button>
-                        <Button onClick={() => {
+                        <Button variant="subtle" onClick={() => {
                             setShowAddChecklist(false);
                             setNewChecklistTitle('');
                         }}>
                             {t('UI_CANCEL')}
+                        </Button>
+                        <Button onClick={handleAddChecklist}>
+                            {t('UI_ADD')}
                         </Button>
                     </Group>
                 </div>

@@ -156,7 +156,7 @@ export default function AccountSettingsSection() {
                         <PasswordInput placeholder={t('UI_PLACEHOLDER_PASSWORD')} {...deleteForm.getInputProps('password')} />
                     </div>
                     <Group>
-                        <Button onClick={() => setDeleteModalOpen(false)}>{t('UI_CANCEL')}</Button>
+                        <Button variant="subtle" onClick={() => setDeleteModalOpen(false)}>{t('UI_CANCEL')}</Button>
                         <Button color="red" type="submit" loading={deleteAccount.isPending}>
                             {t('UI_DELETE_MY_ACCOUNT')}
                         </Button>
