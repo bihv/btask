@@ -6,6 +6,7 @@
  */
 
 // Helper to communicate with Mello Host
+import '@mantine/core/styles.css';
 import { melloApi, STORAGE_KEY } from './api';
 import { ViewStats } from './components/ViewStats';
 import { CardBadge } from './components/CardBadge';
@@ -49,7 +50,7 @@ async function renderCardBackSection(root: HTMLElement, context: any) {
   reactRoot.render(<ViewStats card={card} initialTheme={theme} />);
 
   // Notify ready to resize
-  setTimeout(() => (window as any).notifyResize && (window as any).notifyResize(), 200);
+  setTimeout(() => (window as any).notifyResize && (window as any).notifyResize(), 1000);
 }
 
 // ============================================

@@ -4,11 +4,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Card, Typography, Spin, Empty, ConfigProvider, theme } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Card, Text, Title, Loader, MantineProvider, createTheme } from '@mantine/core';
 import { melloApi, STORAGE_KEY } from '../api';
 
-const { Title, Text } = Typography;
+// Match the host app's Mantine theme
+const pluginTheme = createTheme({
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  defaultRadius: 'sm',
+});
 
 interface ViewStatsProps {
   card: any;
@@ -61,39 +64,31 @@ export function ViewStats({ card, initialTheme }: ViewStatsProps) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-        <Spin />
-      </div>
+      <MantineProvider theme={pluginTheme} forceColorScheme={currentTheme === 'dark' ? 'dark' : 'light'}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+          <Loader size="sm" />
+        </div>
+      </MantineProvider>
     );
   }
 
   if (!data || data.count === 0) {
-    return <Empty description="No views yet" image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+    return (
+      <MantineProvider theme={pluginTheme} forceColorScheme={currentTheme === 'dark' ? 'dark' : 'light'}>
+        <Text c="dimmed" size="sm" ta="center" py="md">No views yet</Text>
+      </MantineProvider>
+    );
   }
 
   return (
-    <ConfigProvider theme={{
-      algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-    }}>
-      <Card
-        title={<><EyeOutlined /> View Statistics</>}
-        variant="borderless"
-        styles={{
-          body: {
-            padding: 0
-          },
-          header: {
-            padding: '0 0 12px 0',
-            border: 'none',
-            minHeight: 'auto'
-          }
-        }}
-      >
+    <MantineProvider theme={pluginTheme} forceColorScheme={currentTheme === 'dark' ? 'dark' : 'light'}>
+      <Card p={0} bg="transparent" shadow="none">
+        <Title order={5} mb={4}>👁 View Statistics</Title>
         <div>
-          <Text type="secondary" style={{ fontSize: 12 }}>TOTAL VIEWS</Text>
-          <Title level={4} style={{ margin: 0 }}>{data.count}</Title>
+          <Text c="dimmed" size="xs" tt="uppercase">Total Views</Text>
+          <Title order={4} mt={0}>{data.count}</Title>
         </div>
       </Card>
-    </ConfigProvider>
+    </MantineProvider>
   );
 }

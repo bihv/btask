@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Tag, ConfigProvider, theme } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Badge, MantineProvider, createTheme } from '@mantine/core';
 import { melloApi, STORAGE_KEY } from '../api';
 
-
+// Match the host app's Mantine theme
+const pluginTheme = createTheme({
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    defaultRadius: 'sm',
+});
 
 interface CardBadgeProps {
     card: any;
@@ -48,24 +51,22 @@ export const CardBadge = ({ card, initialTheme }: CardBadgeProps) => {
         return () => window.removeEventListener('message', handler);
     }, [card.id]);
 
-    if (count === null) return <Tag className="text-xs">...</Tag>;
-
-    // Use ConfigProvider to inherit Mello's theme (Light/Dark)
     return (
-        <ConfigProvider theme={{
-            algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-            token: {
-                fontSize: 12,
-                paddingXS: 4
-            }
-        }}>
-            <Tag
-                color="default"
-                style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 4, height: 20, border: 'none', background: currentTheme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
-                title={`${count} views`}
-            >
-                <EyeOutlined /> {count}
-            </Tag>
-        </ConfigProvider>
+        <MantineProvider theme={pluginTheme} forceColorScheme={currentTheme === 'dark' ? 'dark' : 'light'}>
+            {count === null ? (
+                <Badge variant="light" color="gray" size="sm">...</Badge>
+            ) : (
+                <Badge
+                    variant="light"
+                    color="gray"
+                    size="sm"
+                    leftSection={<span style={{ fontSize: 11 }}>👁</span>}
+                    title={`${count} views`}
+                    style={{ textTransform: 'none' }}
+                >
+                    {count}
+                </Badge>
+            )}
+        </MantineProvider>
     );
 };

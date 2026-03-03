@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Button, ConfigProvider, theme as antTheme } from 'antd';
-import { LikeOutlined, LikeFilled } from '@ant-design/icons';
+import { Button, MantineProvider, createTheme } from '@mantine/core';
 import { melloApi, STORAGE_KEY } from '../api';
+
+// Match the host app's Mantine theme
+const pluginTheme = createTheme({
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  defaultRadius: 'sm',
+});
 
 interface VoteButtonProps {
   card: { id: string; title: string };
@@ -31,7 +36,6 @@ export function VoteButton({ card, initialTheme }: VoteButtonProps) {
       try {
         const data: any = await melloApi.get('card', card.id, STORAGE_KEY);
         setVotes(data?.count || 0);
-        // Note: Real user tracking would need userId, here we just simulate "local" state for demo
       } catch (err) {
         console.error('Failed to fetch votes', err);
       } finally {
@@ -56,28 +60,17 @@ export function VoteButton({ card, initialTheme }: VoteButtonProps) {
   };
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: themeMode === 'dark' ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
-      }}
-    >
-      <div style={{ display: 'inline-flex' }}>
-        <Button
-          style={{ 
-            width: 'auto',
-            textAlign: 'left', 
-            justifyContent: 'flex-start',
-            borderColor: 'transparent',
-            background: 'rgba(0,0,0,0.04)'
-          }}
-          icon={hasVoted ? <LikeFilled /> : <LikeOutlined />}
-          onClick={handleVote}
-          loading={loading}
-          size='small'
-        >
-          {hasVoted ? 'Voted' : 'Vote'} {votes > 0 && `(${votes})`}
-        </Button>
-      </div>
-    </ConfigProvider>
+    <MantineProvider theme={pluginTheme} forceColorScheme={themeMode}>
+      <Button
+        variant={hasVoted ? 'filled' : 'default'}
+        size="sm"
+        leftSection={<span>{hasVoted ? '👍' : '👍'}</span>}
+        onClick={handleVote}
+        loading={loading}
+        color={hasVoted ? 'blue' : undefined}
+      >
+        {hasVoted ? 'Voted' : 'Vote'} {votes > 0 && `(${votes})`}
+      </Button>
+    </MantineProvider>
   );
 }

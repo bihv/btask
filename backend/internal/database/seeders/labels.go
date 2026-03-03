@@ -764,8 +764,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_KEYWORDS",
 		Category:     "ui",
-		DefaultValue: "KEYWORDS",
-		Translations: map[string]string{"vi": "TỪ KHÓA"},
+		DefaultValue: "Keywords",
+		Translations: map[string]string{"vi": "Từ khóa"},
 	},
 	{
 		Key:          "UI_PLACEHOLDER_SEARCH_CARDS",
@@ -776,8 +776,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_MEMBERS",
 		Category:     "ui",
-		DefaultValue: "MEMBERS",
-		Translations: map[string]string{"vi": "THÀNH VIÊN"},
+		DefaultValue: "Members",
+		Translations: map[string]string{"vi": "Thành viên"},
 	},
 	{
 		Key:          "UI_NO_MEMBERS",
@@ -788,8 +788,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_LABELS_SECTION",
 		Category:     "ui",
-		DefaultValue: "LABELS",
-		Translations: map[string]string{"vi": "NHÃN"},
+		DefaultValue: "Labels",
+		Translations: map[string]string{"vi": "Nhãn"},
 	},
 	{
 		Key:          "UI_NO_LABELS",
@@ -1867,6 +1867,12 @@ var DefaultLabels = []models.LabelSeed{
 		Category:     "ui",
 		DefaultValue: "Installed",
 		Translations: map[string]string{"vi": "Đã cài đặt"},
+	},
+	{
+		Key:          "UI_INSTALL",
+		Category:     "ui",
+		DefaultValue: "Install",
+		Translations: map[string]string{"vi": "Cài đặt"},
 	},
 	{
 		Key:          "UI_BROWSE_MARKETPLACE",
@@ -2986,8 +2992,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_INSTALLS",
 		Category:     "ui",
-		DefaultValue: "installs",
-		Translations: map[string]string{"vi": "lượt cài"},
+		DefaultValue: "Installs",
+		Translations: map[string]string{"vi": "Lượt cài"},
 	},
 	{
 		Key:          "ERROR_INSTALL_PLUGIN",
@@ -3764,8 +3770,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_MORE_BOARDS",
 		Category:     "ui",
-		DefaultValue: "more boards",
-		Translations: map[string]string{"vi": "bảng khác"},
+		DefaultValue: "More Boards",
+		Translations: map[string]string{"vi": "Bảng khác"},
 	},
 	{
 		Key:          "UI_STARRED_BOARDS",
@@ -3782,8 +3788,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_YOUR_WORKSPACES",
 		Category:     "ui",
-		DefaultValue: "YOUR WORKSPACES",
-		Translations: map[string]string{"vi": "KHÔNG GIAN LÀM VIỆC CỦA BẠN"},
+		DefaultValue: "Your Workspaces",
+		Translations: map[string]string{"vi": "Không gian làm việc của bạn"},
 	},
 	{
 		Key:          "UI_NO_WORKSPACES_YET",
