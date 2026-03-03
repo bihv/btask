@@ -158,7 +158,8 @@
 .container :global(.rbc-agenda-view) {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    overflow: hidden;
+    overflow: auto;
+    flex: 1;
 }
 
 .container :global(.rbc-agenda-view table.rbc-agenda-table) {

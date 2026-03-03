@@ -67,7 +67,15 @@ export default function TableView({ filters, onCardClick }: TableViewProps) {
     const paginatedCards = cards.slice((page - 1) * pageSize, page * pageSize);
 
     return (
-        <div style={{ padding: 16, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{
+            padding: 16,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'var(--bg-secondary)',
+            borderRadius: 8,
+            margin: 8,
+        }}>
             <Table.ScrollContainer minWidth={800} style={{ flex: 1 }}>
                 <Table highlightOnHover>
                     <Table.Thead>
