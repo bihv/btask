@@ -92,7 +92,6 @@ export default function GlobalSearch() {
                 style={{
                     borderRadius: 8,
                 }}
-                styles={{ input: { background: 'var(--bg-tertiary)' } }}
                 rightSection={query ? undefined : undefined}
             />
 

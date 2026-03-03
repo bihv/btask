@@ -1,5 +1,5 @@
 /* Board View Switcher - White text for visibility on board backgrounds */
-.switcher :global(.mantine-SegmentedControl-root) {
+.switcher {
     --sc-label-color: rgba(255, 255, 255, 0.85);
 }
 
@@ -7,10 +7,10 @@
     color: rgba(255, 255, 255, 0.85);
 }
 
-.switcher :global(.mantine-SegmentedControl-control:hover .mantine-SegmentedControl-label) {
+.switcher :global(.mantine-SegmentedControl-label:hover) {
     color: var(--board-toolbar-text, #fff);
 }
 
-.switcher :global(.mantine-SegmentedControl-indicator + .mantine-SegmentedControl-label) {
+.switcher :global(.mantine-SegmentedControl-label[data-active]) {
     color: var(--text-primary);
 }
