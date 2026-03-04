@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { Text, Title, Button } from '@mantine/core';
+import { Button, Title } from '@mantine/core';
 interface SectionHeaderProps {
     title: string;
     icon?: React.ReactNode;

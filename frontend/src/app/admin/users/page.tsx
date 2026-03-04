@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { useAdminUsers, useUpdateUserRole, AdminUser } from '@/hooks/useAdmin';
+import { AdminUser, useAdminUsers, useUpdateUserRole } from '@/hooks/useAdmin';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-import { Switch, Text, Title, Card, Loader, Badge, Group } from '@mantine/core';
+import { Badge, Card, Loader, Switch, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 export default function AdminUsersPage() {
     const router = useRouter();

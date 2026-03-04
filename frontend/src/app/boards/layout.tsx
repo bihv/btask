@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { useTheme } from '@/providers/ThemeProvider';
-import NotificationDropdown from '@/components/notification/NotificationDropdown';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import UserAvatar from '@/components/common/UserAvatar';
-import GlobalSearch from '@/components/common/GlobalSearch';
 import CreateDropdown from '@/components/common/CreateDropdown';
+import GlobalSearch from '@/components/common/GlobalSearch';
+import UserAvatar from '@/components/common/UserAvatar';
+import NotificationDropdown from '@/components/notification/NotificationDropdown';
 import { useLabels } from '@/hooks/useLabels';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useTheme } from '@/providers/ThemeProvider';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
-import { Button, Menu, Text, Title, Loader, Divider } from '@mantine/core';
-import { IconLogout, IconSun, IconMoon, IconUser, IconHistory, IconCreditCard, IconHelp, IconBolt, IconUsers, IconExternalLink, IconSettings } from '@tabler/icons-react';
+import { Button, Loader, Menu } from '@mantine/core';
+import { IconBolt, IconCreditCard, IconHelp, IconHistory, IconLogout, IconMoon, IconSettings, IconSun, IconUser, IconUsers } from '@tabler/icons-react';
 
 export default function BoardsLayout({
     children,

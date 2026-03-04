@@ -1,19 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { CreateBoardRequest, Board, Workspace } from '@/types';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCreateBoard, useStarredBoards, useRecentlyViewedBoards, useUpdateBoard } from '@/hooks/useBoards';
 import BackgroundPicker from '@/components/board/BackgroundPicker';
 import BoardCard from '@/components/board/BoardCard';
-import styles from './boards.module.css';
+import { useCreateBoard, useRecentlyViewedBoards, useStarredBoards, useUpdateBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { Board, Workspace } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import styles from './boards.module.css';
 
-import { Text, Title, Button, Modal, TextInput, Center, Loader, Select } from '@mantine/core';
+import { Button, Center, Loader, Modal, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconLayoutBoard, IconUsers, IconSettings, IconClock, IconApps, IconStar } from '@tabler/icons-react';
+import { IconClock, IconLayoutBoard, IconSettings, IconStar, IconUsers } from '@tabler/icons-react';
 // Create new board card
 function CreateBoardCard({ onClick, label }: { onClick: () => void; label: string }) {
     return (

@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
 
-import { Text, Title, Progress, Menu, Button } from '@mantine/core';
+import { Button, Menu, Progress, Text } from '@mantine/core';
 import { modals } from '@mantine/modals';
-import { IconCheckbox, IconTrash, IconDots } from '@tabler/icons-react';
+import { IconCheckbox, IconDots, IconTrash } from '@tabler/icons-react';
 interface ChecklistHeaderProps {
     title: string;
     progress: number;

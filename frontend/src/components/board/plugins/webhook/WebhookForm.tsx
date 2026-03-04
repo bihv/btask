@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useCreateWebhook, useUpdateWebhook, Webhook } from '@/hooks/useWebhooks';
 import { useTranslation } from '@/hooks/useLabels';
+import { useCreateWebhook, useUpdateWebhook, Webhook } from '@/hooks/useWebhooks';
+import { useEffect } from 'react';
 
-import { TextInput, Button, MultiSelect, Switch, PasswordInput } from '@mantine/core';
+import { Button, MultiSelect, PasswordInput, Switch, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 

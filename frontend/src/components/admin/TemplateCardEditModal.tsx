@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { uploadFile } from '@/lib/api';
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 
-import { Modal, TextInput, Button, FileButton, Text, Title, Loader } from '@mantine/core';
+import { Button, FileButton, Loader, Modal, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconUpload, IconTrash } from '@tabler/icons-react';
+import { IconTrash, IconUpload } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
     loading: () => <Loader size="sm" />,

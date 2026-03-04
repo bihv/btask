@@ -1,34 +1,33 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { ActionIcon, Loader, Divider, NavLink, Popover } from '@mantine/core';
+import CreateDropdown from '@/components/common/CreateDropdown';
+import GlobalSearch from '@/components/common/GlobalSearch';
+import UserAvatar from '@/components/common/UserAvatar';
+import NotificationDropdown from '@/components/notification/NotificationDropdown';
+import { useLabels } from '@/hooks/useLabels';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useTheme } from '@/providers/ThemeProvider';
+import { useAuthStore } from '@/stores/authStore';
+import { ActionIcon, Divider, Loader, NavLink, Popover } from '@mantine/core';
 import {
+    IconApps,
+    IconBolt,
+    IconCreditCard,
+    IconHelp,
+    IconHistory,
     IconHome,
     IconLayoutBoard,
-    IconApps,
-    IconSun,
-    IconMoon,
     IconLayoutSidebarLeftCollapse,
     IconLayoutSidebarLeftExpand,
-    IconUser,
-    IconHistory,
-    IconCreditCard,
-    IconSettings,
     IconLogout,
-    IconUsers,
-    IconHelp,
-    IconBolt,
-    IconExternalLink,
+    IconMoon,
+    IconSettings,
+    IconSun,
+    IconUser,
+    IconUsers
 } from '@tabler/icons-react';
-import { useAuthStore } from '@/stores/authStore';
-import { useTheme } from '@/providers/ThemeProvider';
-import NotificationDropdown from '@/components/notification/NotificationDropdown';
-import { useWebSocket } from '@/hooks/useWebSocket';
-import UserAvatar from '@/components/common/UserAvatar';
-import GlobalSearch from '@/components/common/GlobalSearch';
-import CreateDropdown from '@/components/common/CreateDropdown';
-import { useLabels } from '@/hooks/useLabels';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import styles from './DashboardLayout.module.css';
 
 export default function DashboardLayout({

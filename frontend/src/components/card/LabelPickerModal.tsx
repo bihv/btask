@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Label } from '@/types';
-import api from '@/lib/api';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import api from '@/lib/api';
+import { Label } from '@/types';
+import React, { useEffect, useState } from 'react';
 
-import { Modal, TextInput, Button, Text, Title, Divider } from '@mantine/core';
+import { Button, Divider, Modal, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconEdit, IconTrash, IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconEdit, IconTrash } from '@tabler/icons-react';
 const LABEL_COLORS = [
     '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
     '#0079bf', '#00c2e0', '#51e898', '#ff78cb', '#344563',

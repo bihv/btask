@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { TextInput, Textarea, Text } from '@mantine/core';
+import { Text, TextInput, Textarea } from '@mantine/core';
+import React, { useEffect, useState } from 'react';
 
 interface EditableTitleProps {
     value: string;

@@ -8,8 +8,8 @@
 // Helper to communicate with Mello Host
 import '@mantine/core/styles.css';
 import { melloApi, STORAGE_KEY } from './api';
-import { ViewStats } from './components/ViewStats';
 import { CardBadge } from './components/CardBadge';
+import { ViewStats } from './components/ViewStats';
 
 import manifest from '../manifest.json';
 

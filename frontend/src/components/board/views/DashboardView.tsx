@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { isDueSoon, isOverdue } from '@/components/common/DueDateTag';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card as CardType } from '@/types';
 import dayjs from 'dayjs';
-import { isOverdue, isDueSoon } from '@/components/common/DueDateTag';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
+import { useMemo } from 'react';
 
-import { Card, SimpleGrid, Text, Title, Progress, Badge, Avatar, Center } from '@mantine/core';
-import { IconCircleCheck, IconClock, IconAlertCircle, IconUser } from '@tabler/icons-react';
+import { Avatar, Badge, Card, Center, Progress, SimpleGrid, Text, Title } from '@mantine/core';
+import { IconAlertCircle, IconCircleCheck, IconClock } from '@tabler/icons-react';
 interface DashboardViewProps {
     onCardClick?: (cardId: string) => void;
 }

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
 import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
-import TemplateCardModal from './TemplateCardModal';
-import { TemplateList, TemplateCard, BoardList, Card } from '@/types';
 import { useAppToken } from '@/hooks/useAppToken';
+import { BoardList, Card, TemplateList } from '@/types';
+import { useMemo, useState } from 'react';
+import TemplateCardModal from './TemplateCardModal';
 
-import { Text, Title } from '@mantine/core';
+import { Text } from '@mantine/core';
 interface BoardPreviewProps {
     lists: TemplateList[];
     title?: string;

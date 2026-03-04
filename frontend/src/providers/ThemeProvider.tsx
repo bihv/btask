@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MantineProvider, createTheme, MantineColorsTuple, CSSVariablesResolver } from '@mantine/core';
+import { createTheme, CSSVariablesResolver, MantineColorsTuple, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type ThemePreference = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';

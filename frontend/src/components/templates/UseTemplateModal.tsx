@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useTemplateToBoard } from '@/hooks/useTemplates';
-import type { Template } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { useTemplateToBoard } from '@/hooks/useTemplates';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import type { Template } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
+import { Button, Group, Loader, Modal, Select, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { Modal, Select, TextInput, Loader, Button, Group } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 interface UseTemplateModalProps {
     template: Template;

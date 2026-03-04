@@ -1,11 +1,10 @@
 'use client';
 
-import React from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { useUpdatePreferences } from '@/hooks/useUser';
 import { useTranslation } from '@/hooks/useLabels';
+import { useUpdatePreferences } from '@/hooks/useUser';
+import { useAuthStore } from '@/stores/authStore';
 
-import { Text, Title, Card, Switch, Divider, Select, Badge } from '@mantine/core';
+import { Badge, Card, Divider, Select, Switch, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 export default function NotificationsSection() {
     const { user } = useAuthStore();

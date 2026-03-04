@@ -1,31 +1,31 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { useWorkspaceMembers } from '@/hooks/useCards';
+import { uploadFile, uploadFileWithAttachment } from '@/lib/api';
+import { fullCodeBlockOptions } from '@/lib/codeBlockConfig';
+import { useTheme } from '@/providers/ThemeProvider';
 import {
     BlockNoteSchema,
+    createCodeBlockSpec,
     defaultBlockSpecs,
     defaultInlineContentSpecs,
-    createCodeBlockSpec,
 } from '@blocknote/core';
 import { filterSuggestionItems } from '@blocknote/core/extensions';
 import '@blocknote/core/fonts/inter.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import {
-    useCreateBlockNote,
     DefaultReactSuggestionItem,
     SuggestionMenuController,
+    useCreateBlockNote,
 } from '@blocknote/react';
-import { fullCodeBlockOptions } from '@/lib/codeBlockConfig';
-import { useTheme } from '@/providers/ThemeProvider';
-import { uploadFile, uploadFileWithAttachment } from '@/lib/api';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Lightbox, { SlideImage, SlideVideo } from 'yet-another-react-lightbox';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import { Mention } from './Mention';
-import { MentionSuggestionMenu, MentionSuggestionItem } from './MentionSuggestionMenu';
-import { useWorkspaceMembers } from '@/hooks/useCards';
+import { MentionSuggestionMenu } from './MentionSuggestionMenu';
 
 // Create code block with syntax highlighting for ALL languages
 const codeBlock = createCodeBlockSpec(fullCodeBlockOptions);

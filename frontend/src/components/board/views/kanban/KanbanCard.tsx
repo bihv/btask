@@ -1,29 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Card } from '@/types';
-import { useBoardStore } from '@/stores/boardStore';
-import styles from './KanbanBoard.module.css';
-import UserAvatar from '@/components/common/UserAvatar';
-import DueDateTag from '@/components/common/DueDateTag';
-import EditableTitle from '@/components/common/EditableTitle';
-import api, { linkPreviewApi } from '@/lib/api';
+import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
+import DatePickerModal from '@/components/card/DatePickerModal';
+import LabelPickerModal from '@/components/card/LabelPickerModal';
 import LinkPreviewCard from '@/components/card/LinkPreviewCard';
 import MembersPickerModal from '@/components/card/MembersPickerModal';
-import DatePickerModal from '@/components/card/DatePickerModal';
-import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
-import LabelPickerModal from '@/components/card/LabelPickerModal';
-import { useAttachments, useWorkspaceMembers, useBoardLabels } from '@/hooks/useCards';
+import DueDateTag from '@/components/common/DueDateTag';
+import UserAvatar from '@/components/common/UserAvatar';
 import { CardBadgeRenderer } from '@/components/plugins';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useAttachments, useBoardLabels, useWorkspaceMembers } from '@/hooks/useCards';
+import { linkPreviewApi } from '@/lib/api';
+import { useBoardStore } from '@/stores/boardStore';
+import { Card } from '@/types';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import styles from './KanbanBoard.module.css';
 
-import { Text, Title, Tooltip, Badge, Menu, Popover } from '@mantine/core';
+import { Menu, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconClock, IconCircleCheck, IconMessage, IconCheckbox, IconCalendar, IconHash, IconLetterCase, IconApps, IconDots, IconFileText, IconLink, IconEdit, IconUser, IconTag, IconPhoto } from '@tabler/icons-react';
+import { IconApps, IconCalendar, IconCheckbox, IconClock, IconEdit, IconFileText, IconHash, IconLetterCase, IconLink, IconMessage, IconPhoto, IconTag, IconUser } from '@tabler/icons-react';
 interface KanbanCardProps {
     card: Card;
     listId: string;

@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import { ChecklistItem, BoardList } from '@/types';
-import dayjs from 'dayjs';
 import { useTranslation } from '@/hooks/useLabels';
+import { BoardList, ChecklistItem } from '@/types';
+import dayjs from 'dayjs';
 
-import { Text, Title, Modal, Select, Badge, Button, Group } from '@mantine/core';
-import { IconUser, IconCalendar } from '@tabler/icons-react';
+import { Badge, Button, Group, Modal, Select, Text } from '@mantine/core';
+import { IconCalendar, IconUser } from '@tabler/icons-react';
 interface ConvertToCardModalProps {
     visible: boolean;
     item: ChecklistItem | null;

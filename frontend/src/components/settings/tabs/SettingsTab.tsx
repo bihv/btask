@@ -1,16 +1,15 @@
 'use client';
 
-import React from 'react';
-import { Text, Title, Group, Accordion } from '@mantine/core';
-import { IconBellFilled, IconWorld, IconPalette, IconShieldCheck, IconUser } from '@tabler/icons-react';
+import { useTranslation } from '@/hooks/useLabels';
+import { Accordion, Text, Title } from '@mantine/core';
+import { IconBellFilled, IconPalette, IconShieldCheck, IconUser, IconWorld } from '@tabler/icons-react';
 import {
     AccountSettingsSection,
-    NotificationsSection,
     LanguageRegionSection,
-    ThemeAppearanceSection,
+    NotificationsSection,
     SessionsSecuritySection,
+    ThemeAppearanceSection,
 } from '../sections';
-import { useTranslation } from '@/hooks/useLabels';
 
 export default function SettingsTab() {
     const t = useTranslation();

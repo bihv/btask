@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 import { Loader } from '@mantine/core';
 export default function HomePage() {

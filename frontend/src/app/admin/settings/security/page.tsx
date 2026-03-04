@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
 import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/useAdmin';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { Text, Title, Card, Loader, Button, Alert, Badge, TextInput, Group, CloseButton, ActionIcon } from '@mantine/core';
+import { ActionIcon, Alert, Badge, Button, Card, CloseButton, Group, Loader, Text, TextInput, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconShieldCheck, IconPlus } from '@tabler/icons-react';
+import { IconPlus, IconShieldCheck } from '@tabler/icons-react';
 export default function SecuritySettingsPage() {
     const router = useRouter();
     const { user } = useAuthStore();

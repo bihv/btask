@@ -1,13 +1,13 @@
 'use client';
 
-import { useParams, redirect } from 'next/navigation';
 import {
     AccountSettingsSection,
-    NotificationsSection,
     LanguageRegionSection,
-    ThemeAppearanceSection,
+    NotificationsSection,
     SessionsSecuritySection,
+    ThemeAppearanceSection,
 } from '@/components/settings/sections';
+import { redirect, useParams } from 'next/navigation';
 
 export default function SettingsSectionPage() {
     const params = useParams();

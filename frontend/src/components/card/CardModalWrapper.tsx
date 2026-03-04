@@ -1,18 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import { useBoardStore } from '@/stores/boardStore';
+import CardPageContent from '@/app/boards/[id]/cards/[cardId]/CardPageContent';
 import { useCard } from '@/hooks/useCards';
+import { useBoardStore } from '@/stores/boardStore';
+import { useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
-import CardPageContent from '@/app/boards/[id]/cards/[cardId]/CardPageContent';
 
 import { PluginProvider } from '@/components/plugins';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
 
-import { Modal, Text, Title } from '@mantine/core';
+import { Modal, Text } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 interface CardModalWrapperProps {
     cardId: string;

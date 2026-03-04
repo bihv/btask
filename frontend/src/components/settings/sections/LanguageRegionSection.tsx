@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
-import { useAuthStore } from '@/stores/authStore';
+import { useInvalidateLabels, useTranslation } from '@/hooks/useLabels';
 import { useUpdatePreferences } from '@/hooks/useUser';
-import { useTranslation, useInvalidateLabels } from '@/hooks/useLabels';
+import { useAuthStore } from '@/stores/authStore';
 
 import { Card, Select } from '@mantine/core';
 import { notifications } from '@mantine/notifications';

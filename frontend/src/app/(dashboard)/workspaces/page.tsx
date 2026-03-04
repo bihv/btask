@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { CreateWorkspaceRequest } from '@/types';
-import { useHeader } from '@/providers/HeaderProvider';
-import { useWorkspaces, useDeleteWorkspace } from '@/hooks/useWorkspaces';
 import ShareModal from '@/components/workspace/ShareModal';
-import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from '@/hooks/useLabels';
+import { useDeleteWorkspace, useWorkspaces } from '@/hooks/useWorkspaces';
+import { useHeader } from '@/providers/HeaderProvider';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { Card, SimpleGrid, Text, Title, Button, Modal, TextInput, Center, Loader, Menu } from '@mantine/core';
+import { Button, Card, Loader, Menu, SimpleGrid, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconLayoutBoard, IconDots, IconUsers, IconSettings, IconTrash, IconAlertCircle } from '@tabler/icons-react';
+import { IconDots, IconLayoutBoard, IconSettings, IconTrash, IconUsers } from '@tabler/icons-react';
 
 export default function WorkspacesPage() {
     const router = useRouter();

@@ -1,9 +1,9 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { User } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
+import { User } from '@/types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UpdateUserRequest {
     full_name?: string;

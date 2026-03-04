@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
-import { User, CardMember } from '@/types';
 import MemberPickerModal from '@/components/common/MemberPickerModal';
-import api from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
+import api from '@/lib/api';
+import { CardMember, User } from '@/types';
 
 import { notifications } from '@mantine/notifications';
 interface CardMembersPickerModalProps {

@@ -1,12 +1,11 @@
-import React from 'react';
-import { Label, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
-import dayjs from 'dayjs';
+import { useTranslation } from '@/hooks/useLabels';
+import { Label, User } from '@/types';
+import React from 'react';
 
-import { Popover, TextInput, Button, Checkbox, Avatar, Badge, Group, Divider, Text, Title } from '@mantine/core';
-import { IconFilter, IconSearch, IconUser, IconClock, IconTag } from '@tabler/icons-react';
+import { Avatar, Button, Checkbox, Popover, Text, TextInput } from '@mantine/core';
+import { IconClock, IconSearch, IconTag } from '@tabler/icons-react';
 export interface FilterState {
     search: string;
     labelIds: string[];

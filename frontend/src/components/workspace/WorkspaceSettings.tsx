@@ -1,11 +1,11 @@
 'use client';
 
-import { Workspace } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { Workspace } from '@/types';
 
-import { Text, Title, TextInput, Button, Divider, Textarea, Group } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Divider, Group, Text, Textarea, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
 
 interface WorkspaceSettingsProps {
     workspace: Workspace;

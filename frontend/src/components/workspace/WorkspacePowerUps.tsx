@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { usePublishedPlugins, useWorkspacePlugins, useInstallPluginToWorkspace, useUninstallPluginFromWorkspace } from '@/hooks/usePlugins';
-import { Plugin, PluginInstallation } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { useInstallPluginToWorkspace, usePublishedPlugins, useUninstallPluginFromWorkspace, useWorkspacePlugins } from '@/hooks/usePlugins';
+import { Plugin, PluginInstallation } from '@/types';
+import { useState } from 'react';
 
-import { Card, Button, TextInput, Text, Title, Loader, Badge, Group, SimpleGrid, Center, Modal, Avatar, Tooltip } from '@mantine/core';
+import { Avatar, Badge, Card, Group, Loader, Modal, SimpleGrid, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconSearch, IconBolt, IconCircleCheck, IconPlus, IconInfoCircle } from '@tabler/icons-react';
+import { IconBolt, IconCircleCheck, IconInfoCircle, IconSearch } from '@tabler/icons-react';
 interface WorkspacePowerUpsProps {
     workspace: {
         id: string;

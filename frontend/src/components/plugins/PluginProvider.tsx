@@ -5,10 +5,10 @@
 
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import api from '@/lib/api';
 import { pluginLoader, type LoadedPlugin } from '@/lib/pluginLoader';
 import { useAuthStore } from '@/stores/authStore';
-import api from '@/lib/api';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 interface PluginContextValue {
   plugins: LoadedPlugin[];

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { linkPreviewApi } from '@/lib/api';
 import EditableTitle from '@/components/common/EditableTitle';
-import styles from './LinkPreviewCard.module.css';
 import { useTranslation } from '@/hooks/useLabels';
+import { linkPreviewApi } from '@/lib/api';
+import React, { useState } from 'react';
+import styles from './LinkPreviewCard.module.css';
 
-import { Text, Title, Tooltip } from '@mantine/core';
+import { Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconLink, IconRefresh } from '@tabler/icons-react';
 interface LinkPreviewCardProps {

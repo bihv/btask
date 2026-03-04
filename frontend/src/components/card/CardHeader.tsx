@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import EditableTitle from '@/components/common/EditableTitle';
 import { useTranslation } from '@/hooks/useLabels';
 

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useWebhooks, useDeleteWebhook, Webhook } from '@/hooks/useWebhooks';
-import WebhookForm from './WebhookForm';
 import { useTranslation } from '@/hooks/useLabels';
+import { useDeleteWebhook, useWebhooks, Webhook } from '@/hooks/useWebhooks';
+import { useState } from 'react';
+import WebhookForm from './WebhookForm';
 
-import { Button, Stack, Badge, Group, Text, Card, Modal, Center, Loader } from '@mantine/core';
+import { Badge, Button, Card, Center, Group, Loader, Modal, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconTrash, IconEdit, IconCircleCheck, IconCircleX } from '@tabler/icons-react';
+import { IconCircleCheck, IconCircleX, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 
 interface WebhookManagerProps {
     pluginId: string;

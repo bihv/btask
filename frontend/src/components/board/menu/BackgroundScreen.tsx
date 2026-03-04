@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ScreenHeader } from './MenuShared';
-import BackgroundPicker from '../BackgroundPicker';
 import { useTranslation } from '@/hooks/useLabels';
+import { useState } from 'react';
+import BackgroundPicker from '../BackgroundPicker';
+import { ScreenHeader } from './MenuShared';
 
 import { Button } from '@mantine/core';
 interface BackgroundScreenProps {

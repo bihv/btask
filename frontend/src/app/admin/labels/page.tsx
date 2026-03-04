@@ -1,23 +1,23 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { Button, TextInput, Select, Modal, Text, Title, Card, Loader, Badge, Group, Textarea, Pagination } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconDownload, IconUpload } from '@tabler/icons-react';
 import {
-    useAdminLabels,
-    useUpdateLabel,
-    useCreateTranslation,
-    useUpdateTranslation,
-    useDeleteTranslation,
     exportLabels,
-    useImportLabels,
     SystemLabel,
+    useAdminLabels,
+    useCreateTranslation,
+    useDeleteTranslation,
+    useImportLabels,
+    useUpdateLabel,
+    useUpdateTranslation,
 } from '@/hooks/useAdmin';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAuthStore } from '@/stores/authStore';
+import { Badge, Button, Card, Group, Loader, Modal, Pagination, Select, Text, Textarea, TextInput, Title } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconDownload, IconEdit, IconPlus, IconSearch, IconUpload } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useRef, useState } from 'react';
 
 const LANGUAGES = ['vi-VN'];
 

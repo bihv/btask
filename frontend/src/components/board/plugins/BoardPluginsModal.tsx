@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useBoardPlugins, usePublishedPlugins, useInstallPluginToBoard, useUninstallPluginFromBoard } from '@/hooks/usePlugins';
-import PluginSettingsModal from './PluginSettingsModal';
-import { Plugin } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { useBoardPlugins, useInstallPluginToBoard, usePublishedPlugins, useUninstallPluginFromBoard } from '@/hooks/usePlugins';
+import { Plugin } from '@/types';
+import { useState } from 'react';
+import PluginSettingsModal from './PluginSettingsModal';
 
-import { Modal, Stack, Button, Text, Title, Group, Badge, Center, Tabs, TextInput, Avatar, Card, SimpleGrid, Tooltip, Loader } from '@mantine/core';
+import { Avatar, Badge, Button, Card, Center, Group, Loader, Modal, SimpleGrid, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconBolt, IconSettings, IconPlus, IconTrash, IconSearch, IconCircleCheck, IconBuildingStore, IconInfoCircle } from '@tabler/icons-react';
+import { IconBolt, IconPlus, IconSearch, IconSettings, IconTrash } from '@tabler/icons-react';
 
 interface BoardPluginsModalProps {
     open: boolean;

@@ -1,7 +1,7 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 export interface UserSuggestion {
     id: string;

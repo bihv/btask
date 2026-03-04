@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
-import dynamic from 'next/dynamic';
 import { useTranslation } from '@/hooks/useLabels';
+import dynamic from 'next/dynamic';
 
-import { Button, Text, Title, Loader } from '@mantine/core';
+import { Button, Loader, Text } from '@mantine/core';
 import { IconAlignLeft, IconEdit } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,

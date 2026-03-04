@@ -1,24 +1,24 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import DueDateTag from '@/components/common/DueDateTag';
+import UserAvatar from '@/components/common/UserAvatar';
+import { CardBackSectionRenderer, CardButtonRenderer } from '@/components/plugins';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { cardArchiveApi } from '@/lib/api';
+import { useBoardStore } from '@/stores/boardStore';
+import { Attachment, BoardList, Card, Checklist, User } from '@/types';
 import dayjs from 'dayjs';
-import { Card, User, Checklist, Attachment, BoardList } from '@/types';
+import { useRouter } from 'next/navigation';
+import React from 'react';
+import AttachmentSection from './AttachmentSection';
 import CardDescriptionSection from './CardDescriptionSection';
 import ChecklistSection from './ChecklistSection';
-import AttachmentSection from './AttachmentSection';
 import ShareCardModal from './ShareCardModal';
-import UserAvatar from '@/components/common/UserAvatar';
-import DueDateTag from '@/components/common/DueDateTag';
-import { useBoardStore } from '@/stores/boardStore';
-import { cardArchiveApi } from '@/lib/api';
-import { CardBackSectionRenderer, CardButtonRenderer } from '@/components/plugins';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
 
-import { Button, Text, Title, Tooltip, Badge } from '@mantine/core';
+import { Badge, Button, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconTag, IconClock, IconCheckbox, IconUser, IconPaperclip, IconPhoto, IconTrash, IconInbox, IconArrowBack } from '@tabler/icons-react';
+import { IconArrowBack, IconCheckbox, IconClock, IconInbox, IconPaperclip, IconPhoto, IconTag, IconTrash, IconUser } from '@tabler/icons-react';
 interface CardMainContentProps {
     card: Card;
     cardId: string;

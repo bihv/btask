@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
-import { useTheme } from '@/providers/ThemeProvider';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { useTheme } from '@/providers/ThemeProvider';
+import React from 'react';
 
-import { Text, Title, Card, Divider, Badge, SimpleGrid } from '@mantine/core';
-import { IconSun, IconMoon, IconDeviceDesktop, IconCircleCheckFilled } from '@tabler/icons-react';
+import { Badge, Card, Divider, SimpleGrid, Text } from '@mantine/core';
+import { IconCircleCheckFilled, IconDeviceDesktop, IconMoon, IconSun } from '@tabler/icons-react';
 type ThemeOption = 'light' | 'dark' | 'system';
 
 interface ThemeCardProps {

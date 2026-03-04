@@ -1,24 +1,22 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { BoardList, Card } from '@/types';
-import { useBoardStore } from '@/stores/boardStore';
-import EditableTitle from '@/components/common/EditableTitle';
-import api from '@/lib/api';
 import { FilterState } from '@/components/board/BoardFilterPopover';
-import { isDueSoon, isDueLater, isOverdue } from '@/components/common/DueDateTag';
-import KanbanCard from './KanbanCard';
-import styles from './KanbanBoard.module.css';
-import { useTranslation } from '@/hooks/useLabels';
+import { filterCard } from '@/components/board/utils/filterCard';
+import EditableTitle from '@/components/common/EditableTitle';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import api from '@/lib/api';
+import { useBoardStore } from '@/stores/boardStore';
+import { BoardList, Card } from '@/types';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useEffect, useMemo, useState } from 'react';
+import styles from './KanbanBoard.module.css';
+import KanbanCard from './KanbanCard';
 
-import { TextInput, Textarea, Button, Menu, Popover, Group, Divider, Modal, Select } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconDots, IconPlus, IconPalette, IconTrash, IconX, IconCopy, IconArrowsExchange, IconSortAscending, IconEye, IconEyeOff, IconInbox, IconColumnInsertRight, IconChevronRight } from '@tabler/icons-react';
+import { Button, Divider, Group, Menu, Modal, Popover, Select, TextInput, Textarea } from '@mantine/core';
+import { IconArrowsExchange, IconChevronRight, IconColumnInsertRight, IconCopy, IconDots, IconEye, IconEyeOff, IconInbox, IconPalette, IconPlus, IconSortAscending, IconTrash, IconX } from '@tabler/icons-react';
 const LIST_COLORS = [
     '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
     '#0079bf', '#00c2e0', '#51e898', '#ff78cb', '#344563',
@@ -34,51 +32,6 @@ interface KanbanListProps {
     onDeleteCard?: (cardId: string) => void;
 }
 
-function matchesFilters(card: Card, filters: FilterState): boolean {
-    // Search filter (title or description)
-    if (filters.search) {
-        const search = filters.search.toLowerCase();
-        const titleMatch = card.title.toLowerCase().includes(search);
-        const descMatch = card.description?.toLowerCase().includes(search) || false;
-        if (!titleMatch && !descMatch) return false;
-    }
-
-    // Label filter
-    if (filters.labelIds.length > 0 || filters.noLabels) {
-        const cardLabelIds = (card.labels || []).map((l: { label_id: string }) => l.label_id);
-        const matchesNoLabels = filters.noLabels && cardLabelIds.length === 0;
-        const matchesSpecific = filters.labelIds.length > 0 && filters.labelIds.some(id => cardLabelIds.includes(id));
-        if (!matchesNoLabels && !matchesSpecific) return false;
-    }
-
-    // Member filter
-    if (filters.memberIds.length > 0 || filters.noMembers) {
-        const cardMemberIds = (card.members || []).map((m: { user_id: string }) => m.user_id);
-        const matchesNoMembers = filters.noMembers && cardMemberIds.length === 0;
-        const matchesSpecific = filters.memberIds.length > 0 && filters.memberIds.some(id => cardMemberIds.includes(id));
-        if (!matchesNoMembers && !matchesSpecific) return false;
-    }
-
-    // Due date filter
-    if (filters.dueDate) {
-        switch (filters.dueDate) {
-            case 'overdue':
-                if (!card.due_date || !isOverdue(card.due_date)) return false;
-                break;
-            case 'due_soon':
-                if (!card.due_date || !isDueSoon(card.due_date)) return false;
-                break;
-            case 'due_later':
-                if (!card.due_date || !isDueLater(card.due_date)) return false;
-                break;
-            case 'no_date':
-                if (card.due_date) return false;
-                break;
-        }
-    }
-
-    return true;
-}
 
 export default function KanbanList({ list, filters, readOnly = false, onCardClick, showCovers, onAddCard, onDeleteCard }: KanbanListProps) {
     const t = useTranslation();
@@ -137,7 +90,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
     const filteredCards = useMemo(() => {
         const cards = list.cards || [];
         if (!filters) return cards;
-        return cards.filter((card: Card) => matchesFilters(card, filters));
+        return cards.filter((card: Card) => filterCard(card, filters));
     }, [list.cards, filters]);
 
     const {

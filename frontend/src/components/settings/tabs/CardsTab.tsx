@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useMyCards, useUpdateCard, CardFilters as ApiCardFilters } from '@/hooks/useCards';
-import { Card, CardLabel, BoardList, Board, Workspace } from '@/types';
-import dayjs from 'dayjs';
+import { CardFilters as ApiCardFilters, useMyCards, useUpdateCard } from '@/hooks/useCards';
 import { useTranslation } from '@/hooks/useLabels';
+import { Board, BoardList, Card, Workspace } from '@/types';
+import dayjs from 'dayjs';
+import { useRouter } from 'next/navigation';
+import React, { useMemo, useState } from 'react';
 
-import { Text, Title, Badge, Center, Loader, Button, TextInput, Checkbox, Divider, Indicator, Drawer, MultiSelect } from '@mantine/core';
+import { Badge, Button, Center, Checkbox, Divider, Drawer, Indicator, Loader, MultiSelect, Text, TextInput, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCreditCard, IconClock, IconCircleCheckFilled, IconFilter, IconCalendar, IconAlertCircle } from '@tabler/icons-react';
+import { IconAlertCircle, IconCalendar, IconCircleCheckFilled, IconClock, IconFilter } from '@tabler/icons-react';
 // Extended card type with nested list/board/workspace
 interface AssignedCard extends Card {
     list?: BoardList & {

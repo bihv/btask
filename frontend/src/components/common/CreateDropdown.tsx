@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button, Modal, TextInput, Textarea, Menu, Group, Loader } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
-import { IconPlus, IconLayoutBoard, IconUsers, IconApps, IconFile } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
-import { useCreateWorkspace, useWorkspaces } from '@/hooks/useWorkspaces';
-import { CreateWorkspaceRequest } from '@/types';
-import api from '@/lib/api';
 import CreateBoardModal, { CreateBoardData } from '@/components/board/CreateBoardModal';
 import { useTranslation } from '@/hooks/useLabels';
+import { useCreateWorkspace, useWorkspaces } from '@/hooks/useWorkspaces';
+import api from '@/lib/api';
+import { CreateWorkspaceRequest } from '@/types';
+import { Button, Group, Menu, Modal, TextInput, Textarea } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconApps, IconFile, IconLayoutBoard, IconPlus, IconUsers } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function CreateDropdown() {
     const router = useRouter();

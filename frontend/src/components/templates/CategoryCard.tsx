@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
 import type { ComponentType } from 'react';
+import React from 'react';
 
-import { Card, Text, Title } from '@mantine/core';
+import { Card, Text } from '@mantine/core';
 interface CategoryCardProps {
     name: string;
     icon: ComponentType<{ style?: React.CSSProperties }>;

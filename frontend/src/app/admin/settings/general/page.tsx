@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { useSystemSettings, useUpdateSystemSettings, useRunCleanup } from '@/hooks/useAdmin';
+import { useRunCleanup, useSystemSettings, useUpdateSystemSettings } from '@/hooks/useAdmin';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-import { Text, Title, Card, Loader, NumberInput, Switch, Button, Divider, Alert, TextInput, Group, Stack } from '@mantine/core';
+import { Alert, Button, Card, Divider, Group, Loader, NumberInput, Stack, Switch, Text, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconSettings, IconClock, IconCloudUpload, IconTrash } from '@tabler/icons-react';
+import { IconClock, IconCloudUpload, IconSettings, IconTrash } from '@tabler/icons-react';
 
 export default function GeneralSettingsPage() {
     const router = useRouter();

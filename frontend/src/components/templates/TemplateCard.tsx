@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
-import { Template } from '@/types';
 import { useAppToken } from '@/hooks/useAppToken';
+import { Template } from '@/types';
 
-import { Card, Text, Title, Badge } from '@mantine/core';
+import { Badge, Card, Text } from '@mantine/core';
 
 interface TemplateCardProps {
     template: Template;

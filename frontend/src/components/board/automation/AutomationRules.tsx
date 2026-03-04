@@ -1,23 +1,22 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { Stack, Button, Text, Title, Group, Card, Badge, Flex, Modal, Switch, Tooltip, Loader } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconTrash, IconChevronRight, IconRobot, IconEdit, IconEye, IconFilter, IconPlayerPlay, IconPlayerPause, IconBolt } from '@tabler/icons-react';
 import {
+    findActionById,
+    findTriggerById,
+    useAvailableActions,
+    useAvailableTriggers,
     useBoardRules,
     useDeleteRule,
     useToggleRule,
-    useAvailableTriggers,
-    useAvailableActions,
-    findTriggerById,
-    findActionById,
 } from '@/hooks/useAutomationSchema';
-import { SentenceDisplay } from './SentenceTemplateRenderer';
-import { useBoard, useAllBoards } from '@/hooks/useBoards';
-import RuleBuilder from './RuleBuilder';
-import type { AutomationRule, RuleCondition } from '@/types/automation';
+import { useAllBoards, useBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
+import type { AutomationRule, RuleCondition } from '@/types/automation';
+import { Badge, Button, Card, Flex, Group, Loader, Modal, Stack, Switch, Text, Title, Tooltip } from '@mantine/core';
+import { IconBolt, IconChevronRight, IconEdit, IconEye, IconFilter, IconRobot, IconTrash } from '@tabler/icons-react';
+import { useCallback, useMemo, useState } from 'react';
+import RuleBuilder from './RuleBuilder';
+import { SentenceDisplay } from './SentenceTemplateRenderer';
 
 interface AutomationRulesProps {
     boardId: string;

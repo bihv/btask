@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { Comment, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
+import { Comment, User } from '@/types';
+import dynamic from 'next/dynamic';
+import { useCallback, useState } from 'react';
 
-import { Button, Text, Title, Loader } from '@mantine/core';
-import { IconMessage, IconEdit, IconX, IconCheck } from '@tabler/icons-react';
+import { Button, Loader, Text } from '@mantine/core';
+import { IconCheck, IconEdit, IconMessage, IconX } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
     loading: () => <Loader size="sm" />,

@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { useHeader } from '@/providers/HeaderProvider';
-import { useWorkspace } from '@/hooks/useWorkspaces';
-import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
-import CreateBoardModal, { CreateBoardData } from '@/components/board/CreateBoardModal';
 import BoardCard from '@/components/board/BoardCard';
+import CreateBoardModal, { CreateBoardData } from '@/components/board/CreateBoardModal';
+import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
+import { useWorkspace } from '@/hooks/useWorkspaces';
+import { useHeader } from '@/providers/HeaderProvider';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { SimpleGrid, Text, Title, Button, Center, Loader } from '@mantine/core';
+import { Button, Loader, SimpleGrid, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconPlus } from '@tabler/icons-react';
 export default function WorkspaceDetailPage() {
     const router = useRouter();
     const params = useParams();

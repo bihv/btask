@@ -1,12 +1,10 @@
 'use client';
 
-import React from 'react';
-import dayjs from 'dayjs';
+import { useTranslation } from '@/hooks/useLabels';
 import api from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from '@/hooks/useLabels';
 
-import { Modal, Checkbox, Button, Text, Title } from '@mantine/core';
+import { Button, Checkbox, Modal, Text } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
 interface DatePickerModalProps {

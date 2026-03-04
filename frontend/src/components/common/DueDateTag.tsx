@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { Badge, Tooltip } from '@mantine/core';
 import { IconClock } from '@tabler/icons-react';
 import dayjs from 'dayjs';
@@ -85,4 +84,4 @@ export default function DueDateTag({
 }
 
 // Export helper functions for use elsewhere
-export { isOverdue, isDueSoon, isDueLater, formatDueDate };
+export { formatDueDate, isDueLater, isDueSoon, isOverdue };

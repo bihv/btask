@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import { Card } from '@/types';
 import { formatDueDate } from '@/components/common/DueDateTag';
+import { Card } from '@/types';
 import dynamic from 'next/dynamic';
 
-import { Modal, Text, Title, Divider, Badge, Group, Loader } from '@mantine/core';
-import { IconClock, IconTag, IconFileText, IconPhoto } from '@tabler/icons-react';
+import { Badge, Divider, Group, Loader, Modal, Text } from '@mantine/core';
+import { IconClock, IconFileText, IconTag } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
     loading: () => <Loader size="sm" />,

@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useLabels, useTranslation } from '@/hooks/useLabels';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useAuthStore } from '@/stores/authStore';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
-import { AppShell, Loader, Button, Select, NavLink, ScrollArea, Avatar, Group, Text } from '@mantine/core';
-import { IconUser, IconHistory, IconCreditCard, IconSettings, IconApps, IconUsers, IconBolt, IconCurrencyDollar, IconExternalLink, IconX, IconChevronDown, IconCrown, IconLanguage, IconBellFilled, IconWorld, IconPalette, IconShieldCheck, IconBoxMultiple, IconApi, IconBlockquote } from '@tabler/icons-react';
+import { AppShell, Avatar, Button, Group, Loader, NavLink, ScrollArea, Select, Text } from '@mantine/core';
+import { IconApi, IconApps, IconBellFilled, IconBlockquote, IconBolt, IconChevronDown, IconCreditCard, IconCrown, IconCurrencyDollar, IconExternalLink, IconHistory, IconLanguage, IconPalette, IconSettings, IconShieldCheck, IconUser, IconUsers, IconWorld, IconX } from '@tabler/icons-react';
 
 interface MenuItem {
     key: string;

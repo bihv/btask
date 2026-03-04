@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { useEffect } from 'react';
 
-import { Modal, TextInput, Button, Select, Text, Group } from '@mantine/core';
+import { Button, Group, Modal, Select, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
 // Default background

@@ -13,17 +13,17 @@ export interface PluginManifest {
     email: string;
     url?: string;
   };
-  
+
   // Entry points
   client: string;
   server?: string;
-  
+
   // Capabilities
   capabilities: PluginCapability[];
-  
+
   // Permissions
   permissions: PluginPermission[];
-  
+
   // Settings schema
   settings?: SettingsSchema;
 }
@@ -224,7 +224,7 @@ export interface ModalOptions {
 export type SnackbarType = 'success' | 'error' | 'info' | 'warning';
 
 // Event Types
-export type EventType = 
+export type EventType =
   | 'board.created'
   | 'board.updated'
   | 'board.deleted'

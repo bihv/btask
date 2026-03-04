@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useTemplate, useTemplates } from '@/hooks/useTemplates';
-import { Template } from '@/types';
 import BoardPreview from '@/components/templates/BoardPreview';
 import TemplateCard from '@/components/templates/TemplateCard';
 import UseTemplateModal from '@/components/templates/UseTemplateModal';
-import dynamic from 'next/dynamic';
 import { useTranslation } from '@/hooks/useLabels';
+import { useTemplate, useTemplates } from '@/hooks/useTemplates';
+import { Template } from '@/types';
+import dynamic from 'next/dynamic';
+import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import { Text, Title, Button, SimpleGrid, Divider, Loader, Breadcrumbs, Anchor } from '@mantine/core';
+import { Anchor, Breadcrumbs, Button, Divider, Loader, SimpleGrid, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconShare, IconCopy, IconEye } from '@tabler/icons-react';
+import { IconCopy, IconEye, IconShare } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
     loading: () => <Loader size="sm" />,

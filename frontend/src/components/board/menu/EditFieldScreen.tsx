@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CustomField, CustomFieldOption } from '@/types';
-import { customFieldApi } from '@/lib/api';
-import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
+import { customFieldApi } from '@/lib/api';
+import { CustomField, CustomFieldOption } from '@/types';
+import { useState } from 'react';
+import { ScreenHeader } from './MenuShared';
 
-import { TextInput, Button, Checkbox, Group, Badge, Modal, Text, Title, Divider } from '@mantine/core';
+import { Button, Checkbox, Divider, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconTrash, IconAlertCircle } from '@tabler/icons-react';
+import { IconTrash } from '@tabler/icons-react';
 interface EditFieldScreenProps {
     field: CustomField;
     onBack: () => void;

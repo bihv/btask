@@ -5,8 +5,8 @@
 // import React from 'react'; // Not needed with react-jsx
 import '@mantine/core/styles.css';
 import { createRoot } from 'react-dom/client';
-import { VoteButton } from './components/VoteButton';
 import manifest from '../manifest.json';
+import { VoteButton } from './components/VoteButton';
 
 // Render function for 'card-button' capability
 function renderCardButton(root: HTMLElement, context: any) {

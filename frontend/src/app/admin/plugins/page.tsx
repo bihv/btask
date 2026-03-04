@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { useAdminPlugins, useUpdatePluginStatus, useHardDeletePlugin } from '@/hooks/usePlugins';
-import { Plugin, PluginStatus } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAdminPlugins, useHardDeletePlugin, useUpdatePluginStatus } from '@/hooks/usePlugins';
+import { useAuthStore } from '@/stores/authStore';
+import { Plugin, PluginStatus } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import React from 'react';
-import { Button, TextInput, Modal, Text, Title, Card, Loader, Badge, Group, Select, Pagination } from '@mantine/core';
+import { Badge, Button, Card, Group, Loader, Modal, Pagination, Select, Text, TextInput, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconSearch, IconEye, IconTrash } from '@tabler/icons-react';
+import { IconEye, IconSearch, IconTrash } from '@tabler/icons-react';
 const STATUS_COLORS: Record<PluginStatus, string> = {
     draft: 'gray',
     review: 'blue',

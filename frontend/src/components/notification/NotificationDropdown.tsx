@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNotificationStore, Notification } from '@/stores/notificationStore';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { Notification, useNotificationStore } from '@/stores/notificationStore';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Link from 'next/link';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Indicator, Button, Text, Title, Loader, Center, Switch, Tooltip, Popover } from '@mantine/core';
+import { Button, Indicator, Loader, Popover, Switch, Text, Tooltip } from '@mantine/core';
 import { IconBellFilled, IconCheck, IconEye, IconEyeOff } from '@tabler/icons-react';
 dayjs.extend(relativeTime);
 

@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
 import { useAppToken } from '@/hooks/useAppToken';
+import React, { useCallback, useRef, useState } from 'react';
 
-import { Tabs, Divider, Text, Title, TextInput, Button, Loader, Center, Group } from '@mantine/core';
+import { Button, Divider, Loader, Tabs, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconUpload, IconSearch, IconPhoto, IconPalette, IconLink } from '@tabler/icons-react';
+import { IconCheck, IconLink, IconPalette, IconPhoto, IconSearch, IconUpload } from '@tabler/icons-react';
 // Simple debounce function
 function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): T {
     let timeoutId: NodeJS.Timeout;

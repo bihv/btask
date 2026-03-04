@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CustomField, CustomFieldType } from '@/types';
-import { customFieldApi } from '@/lib/api';
-import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
+import { customFieldApi } from '@/lib/api';
+import { CustomField, CustomFieldType } from '@/types';
+import { useState } from 'react';
+import { ScreenHeader } from './MenuShared';
 
-import { TextInput, Select, Button, Checkbox, Group, Badge } from '@mantine/core';
+import { Badge, Button, Checkbox, Select, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconX } from '@tabler/icons-react';
+import { IconX } from '@tabler/icons-react';
 
 
 const fieldTypes: { value: CustomFieldType; label: string }[] = [

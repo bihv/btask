@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { useChangePassword, useChangeEmail, useDeleteAccount } from '@/hooks/useUser';
 import { useTranslation } from '@/hooks/useLabels';
+import { useChangeEmail, useChangePassword, useDeleteAccount } from '@/hooks/useUser';
+import { useAuthStore } from '@/stores/authStore';
+import { useState } from 'react';
 
+import { Button, Card, Group, Modal, PasswordInput, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { Text, Title, Card, TextInput, PasswordInput, Button, Group, Modal } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconLock, IconMail, IconTrash, IconAlertCircle } from '@tabler/icons-react';
+import { IconAlertCircle, IconLock, IconMail, IconTrash } from '@tabler/icons-react';
 export default function AccountSettingsSection() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const { user } = useAuthStore();

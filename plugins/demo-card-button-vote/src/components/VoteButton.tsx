@@ -1,5 +1,5 @@
+import { Button, createTheme, MantineProvider } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { Button, MantineProvider, createTheme } from '@mantine/core';
 import { melloApi, STORAGE_KEY } from '../api';
 
 // Match the host app's Mantine theme

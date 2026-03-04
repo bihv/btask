@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from '@/hooks/useLabels';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { useTranslation } from '@/hooks/useLabels';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
-import { Card, Text, Title, Loader, Button } from '@mantine/core';
+import { Button, Card, Loader, Text, Title } from '@mantine/core';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 export default function VerifyEmailPage() {
     const router = useRouter();

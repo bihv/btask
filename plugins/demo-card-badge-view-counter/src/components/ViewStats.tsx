@@ -3,8 +3,8 @@
  * Displays detailed view statistics for a card
  */
 
+import { Card, createTheme, Loader, MantineProvider, Text, Title } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { Card, Text, Title, Loader, MantineProvider, createTheme } from '@mantine/core';
 import { melloApi, STORAGE_KEY } from '../api';
 
 // Match the host app's Mantine theme

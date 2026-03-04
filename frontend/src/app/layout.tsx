@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
-import { ColorSchemeScript } from '@mantine/core';
-import { ThemeProvider } from '@/providers/ThemeProvider';
-import { QueryProvider } from '@/providers/QueryProvider';
 import { HeaderProvider } from '@/providers/HeaderProvider';
+import { QueryProvider } from '@/providers/QueryProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import { ColorSchemeScript } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
+import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {

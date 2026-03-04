@@ -8,15 +8,15 @@
  */
 
 import type { PluginInstallation } from '@/types';
-import type { PluginContext } from './pluginLoader';
 import {
   buildBackgroundCSP,
-  buildRenderCSP,
-  buildBackgroundRuntimeScript,
-  buildRenderRuntimeScript,
   buildBackgroundHtml,
+  buildBackgroundRuntimeScript,
+  buildRenderCSP,
   buildRenderHtml,
+  buildRenderRuntimeScript,
 } from './pluginIframeTemplates';
+import type { PluginContext } from './pluginLoader';
 
 // Configuration constants
 export const PLUGIN_TIMEOUT = 30000; // 30 seconds

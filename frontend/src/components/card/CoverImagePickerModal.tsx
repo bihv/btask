@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
 import api, { uploadFile } from '@/lib/api';
 import { extractDominantColor } from '@/utils/extractColor';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
+import { useState } from 'react';
 
-import { Modal, Button, FileButton, Text, Title, Divider } from '@mantine/core';
+import { Button, Divider, FileButton, Modal, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPhoto } from '@tabler/icons-react';
 interface Attachment {

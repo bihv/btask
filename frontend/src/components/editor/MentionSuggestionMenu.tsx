@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
-import type { SuggestionMenuProps, DefaultReactSuggestionItem } from '@blocknote/react';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
+import type { DefaultReactSuggestionItem, SuggestionMenuProps } from '@blocknote/react';
+import React from 'react';
 
 // Extended type for mention suggestion items
 export type MentionSuggestionItem = DefaultReactSuggestionItem & {

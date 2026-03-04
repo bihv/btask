@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { User } from '@/types';
-import dayjs from 'dayjs';
 import MemberPickerContent from '@/components/common/MemberPickerContent';
 import UserAvatar from '@/components/common/UserAvatar';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { User } from '@/types';
+import dayjs from 'dayjs';
+import { useEffect, useState } from 'react';
 
-import { TextInput, Button, Group, Popover, Badge, Textarea, CloseButton } from '@mantine/core';
+import { Badge, Button, CloseButton, Group, Popover, Textarea } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconUser, IconCalendar } from '@tabler/icons-react';
+import { IconCalendar, IconUser } from '@tabler/icons-react';
 interface NewChecklistItemFormProps {
     checklistId: string;
     mode: 'dark' | 'light';

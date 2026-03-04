@@ -1,11 +1,10 @@
 'use client';
 
-import React from 'react';
-import { Text } from '@mantine/core';
-import { IconCheck, IconX } from '@tabler/icons-react';
-import { User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useAppToken } from '@/hooks/useAppToken';
+import { User } from '@/types';
+import { Text } from '@mantine/core';
+import { IconCheck, IconX } from '@tabler/icons-react';
 
 interface MemberPickerContentProps {
     workspaceMembers: User[];

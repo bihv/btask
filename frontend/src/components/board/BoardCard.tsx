@@ -1,9 +1,9 @@
 'use client';
 
-import { Board } from '@/types';
 import { useAppToken } from '@/hooks/useAppToken';
+import { Board } from '@/types';
 
-import { Card, Text, Title, Button } from '@mantine/core';
+import { Button, Card, Text } from '@mantine/core';
 import { IconStar, IconStarFilled } from '@tabler/icons-react';
 interface BoardCardProps {
     board: Board;

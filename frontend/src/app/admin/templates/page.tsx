@@ -1,19 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { useAdminTemplates, useCreateTemplate, useUpdateTemplate, useDeleteTemplate, useUpdateTemplateLists } from '@/hooks/useTemplates';
-import { Template, TemplateList as TemplateListType, TemplateCard as TemplateCardType } from '@/types';
 import TemplateBoardEditor, { TemplateListInput } from '@/components/admin/TemplateBoardEditor';
 import BackgroundPicker from '@/components/board/BackgroundPicker';
-import dynamic from 'next/dynamic';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAdminTemplates, useCreateTemplate, useDeleteTemplate, useUpdateTemplate, useUpdateTemplateLists } from '@/hooks/useTemplates';
+import { useAuthStore } from '@/stores/authStore';
+import { Template, TemplateCard as TemplateCardType, TemplateList as TemplateListType } from '@/types';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { Button, TextInput, Textarea, Modal, Text, Title, Card, Loader, Badge, Group, Switch, Select, Tabs } from '@mantine/core';
+import { Badge, Button, Card, Group, Loader, Modal, Select, Switch, Tabs, Text, TextInput, Textarea, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconEye } from '@tabler/icons-react';
+import { IconEdit, IconEye, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
     loading: () => <Loader size="sm" />,

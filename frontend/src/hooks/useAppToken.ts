@@ -1,4 +1,4 @@
-import { useMantineTheme, useMantineColorScheme } from '@mantine/core';
+import { useMantineColorScheme, useMantineTheme } from '@mantine/core';
 
 /**
  * Custom semantic colors that extend Mantine's theme system.

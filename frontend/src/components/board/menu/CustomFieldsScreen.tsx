@@ -1,30 +1,30 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Text, Title, Button, Loader, Divider, Tooltip } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconCheckbox, IconFlag, IconBolt, IconAlertTriangle, IconChevronRight, IconPlus, IconInfoCircle, IconCalendar, IconHash, IconLetterCase, IconApps, IconGripVertical } from '@tabler/icons-react';
+import { useTranslation } from '@/hooks/useLabels';
+import { customFieldApi } from '@/lib/api';
+import { CustomField } from '@/types';
 import {
-    DndContext,
     closestCenter,
+    DndContext,
+    DragEndEvent,
     KeyboardSensor,
     PointerSensor,
     useSensor,
     useSensors,
-    DragEndEvent,
 } from '@dnd-kit/core';
 import {
     arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
-    verticalListSortingStrategy,
     useSortable,
+    verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { CustomField } from '@/types';
-import { customFieldApi } from '@/lib/api';
+import { Button, Divider, Loader, Text, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconAlertTriangle, IconApps, IconBolt, IconCalendar, IconCheckbox, IconChevronRight, IconFlag, IconGripVertical, IconHash, IconInfoCircle, IconLetterCase, IconPlus } from '@tabler/icons-react';
+import React, { useEffect, useState } from 'react';
 import { ScreenHeader } from './MenuShared';
-import { useTranslation } from '@/hooks/useLabels';
 
 // Icons for different field types
 const getFieldIcon = (type: string, name?: string) => {

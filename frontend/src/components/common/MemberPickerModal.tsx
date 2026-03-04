@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
-import { Modal } from '@mantine/core';
-import { User } from '@/types';
-import MemberPickerContent from './MemberPickerContent';
 import { useTranslation } from '@/hooks/useLabels';
+import { User } from '@/types';
+import { Modal } from '@mantine/core';
+import MemberPickerContent from './MemberPickerContent';
 
 interface MemberPickerModalProps {
     open: boolean;

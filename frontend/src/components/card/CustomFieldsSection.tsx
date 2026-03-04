@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import dayjs from 'dayjs';
-import { useQueryClient } from '@tanstack/react-query';
-import { CustomField, CardCustomFieldValue } from '@/types';
-import { customFieldApi } from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
+import { customFieldApi } from '@/lib/api';
+import { CardCustomFieldValue, CustomField } from '@/types';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
-import { Text, Title, Select, Checkbox, TextInput, NumberInput, Loader } from '@mantine/core';
+import { Checkbox, Loader, NumberInput, Select, Text, TextInput } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
-import { IconBolt, IconFlag, IconAlertTriangle, IconCircleCheck, IconForms, IconHash, IconCalendar } from '@tabler/icons-react';
+import { IconAlertTriangle, IconBolt, IconCalendar, IconCircleCheck, IconFlag, IconForms, IconHash } from '@tabler/icons-react';
 interface CustomFieldsSectionProps {
     cardId: string;
     boardId: string;

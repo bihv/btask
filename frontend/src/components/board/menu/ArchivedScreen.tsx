@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
-import { BoardList as ListType, Card } from '@/types';
-import { useBoardStore } from '@/stores/boardStore';
-import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
+import api from '@/lib/api';
+import { useBoardStore } from '@/stores/boardStore';
+import { Card, BoardList as ListType } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { ScreenHeader } from './MenuShared';
 
-import { Tabs, Button, Text, Center, Loader, Title, Tooltip, Flex } from '@mantine/core';
+import { Button, Flex, Loader, Tabs, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArrowBack, IconInbox, IconTrash } from '@tabler/icons-react';
 interface ArchivedScreenProps {

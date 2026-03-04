@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 import styles from '@/components/board/views/kanban/KanbanBoard.module.css';
-import TemplateCardEditModal from './TemplateCardEditModal';
 import api from '@/lib/api';
 import { BoardList, Card } from '@/types';
-import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
+import { useCallback, useState } from 'react';
+import TemplateCardEditModal from './TemplateCardEditModal';
 
 import { Button, TextInput } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 export interface TemplateCardInput {
     id: string;

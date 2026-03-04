@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useAuthStore } from '@/stores/authStore';
-import { useUpdateUser } from '@/hooks/useUser';
-import api from '@/lib/api';
 import UserAvatar, { SYSTEM_AVATARS } from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
+import { useUpdateUser } from '@/hooks/useUser';
+import api from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
+import { useEffect, useState } from 'react';
 
-import { Text, Title, TextInput, Textarea, Button, Card, Group, Flex, FileButton, Modal, Tabs } from '@mantine/core';
+import { Button, Card, FileButton, Flex, Group, Modal, Tabs, Text, TextInput, Textarea, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconEye, IconCamera, IconLoader, IconCheck, IconTrash } from '@tabler/icons-react';
+import { IconCamera, IconCheck, IconEye, IconLoader, IconTrash } from '@tabler/icons-react';
 
 import { useForm } from '@mantine/form';
 

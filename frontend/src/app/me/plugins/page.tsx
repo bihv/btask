@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useMyPlugins, useCreatePlugin, useUpdatePlugin, useDeletePlugin, useUploadPluginBundle } from '@/hooks/usePlugins';
-import { Plugin, PluginStatus, CreatePluginRequest, UpdatePluginRequest } from '@/types';
+import { useCreatePlugin, useDeletePlugin, useMyPlugins, useUpdatePlugin, useUploadPluginBundle } from '@/hooks/usePlugins';
+import { CreatePluginRequest, Plugin, PluginStatus, UpdatePluginRequest } from '@/types';
 import JSZip from 'jszip';
+import { useRef, useState } from 'react';
 
 import { PLUGIN_CAPABILITIES, PLUGIN_PERMISSIONS } from '@/constants/plugin';
 
-import { Button, TextInput, Textarea, Modal, Text, Title, Card, Loader, Badge, Group, Select, Divider, Alert, Switch, MultiSelect } from '@mantine/core';
+import { Alert, Badge, Button, Card, Divider, Group, Loader, Modal, MultiSelect, Switch, Text, TextInput, Textarea, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconUpload, IconCloudUpload, IconCircleCheck } from '@tabler/icons-react';
+import { IconCircleCheck, IconCloudUpload, IconEdit, IconPlus, IconSearch, IconTrash, IconUpload } from '@tabler/icons-react';
 
 const STATUS_COLORS: Record<PluginStatus, string> = {
     draft: 'gray',

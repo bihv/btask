@@ -3,7 +3,7 @@
 import React from 'react';
 import styles from './MenuShared.module.css';
 
-import { Group, Text, Title, Button } from '@mantine/core';
+import { Button, Group, Text } from '@mantine/core';
 import { IconArrowLeft } from '@tabler/icons-react';
 // Shared MenuItem component
 interface MenuItemProps {

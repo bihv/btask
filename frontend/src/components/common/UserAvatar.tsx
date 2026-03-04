@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
 import { Avatar } from '@mantine/core';
 import { IconUser } from '@tabler/icons-react';
+import React from 'react';
 
 // System avatars definition - shared with ProfileVisibilityTab
 export const SYSTEM_AVATARS = [

@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
 import { useTranslation } from '@/hooks/useLabels';
 
-import { Text, Title, Card, Divider, Button, Badge } from '@mantine/core';
+import { Badge, Button, Card, Divider, Text } from '@mantine/core';
 export default function SessionsSecuritySection() {
     const t = useTranslation();
 

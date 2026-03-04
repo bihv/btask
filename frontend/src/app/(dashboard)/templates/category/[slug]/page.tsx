@@ -1,13 +1,12 @@
 'use client';
 
-import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useTemplates } from '@/hooks/useTemplates';
-import { Template } from '@/types';
 import TemplateCard from '@/components/templates/TemplateCard';
 import { useTranslation } from '@/hooks/useLabels';
+import { useTemplates } from '@/hooks/useTemplates';
+import { Template } from '@/types';
+import { useParams, useRouter } from 'next/navigation';
 
-import { Text, Title, SimpleGrid, Loader, Center, Button, Breadcrumbs, Anchor } from '@mantine/core';
+import { Anchor, Breadcrumbs, Button, Center, Loader, SimpleGrid, Text, Title } from '@mantine/core';
 import { IconChevronLeft } from '@tabler/icons-react';
 export default function CategoryPage() {
     const params = useParams();

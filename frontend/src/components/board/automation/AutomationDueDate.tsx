@@ -2,7 +2,7 @@
 
 import { useTranslation } from '@/hooks/useLabels';
 
-import { Text, Title, Button, Flex } from '@mantine/core';
+import { Button, Flex, Text, Title } from '@mantine/core';
 import { IconCalendar } from '@tabler/icons-react';
 
 export default function AutomationDueDate() {

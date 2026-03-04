@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { CreateBoardRequest, Workspace } from '@/types';
-import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
 import BoardCard from '@/components/board/BoardCard';
+import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
+import { Workspace } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import { Text, Title, Button, Modal, TextInput, Center, SimpleGrid } from '@mantine/core';
+import { Button, Center, Modal, SimpleGrid, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';

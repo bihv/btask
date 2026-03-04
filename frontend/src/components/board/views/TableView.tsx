@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { FilterState } from '@/components/board/BoardFilterPopover';
+import { filterCard } from '@/components/board/utils/filterCard';
+import DueDateTag from '@/components/common/DueDateTag';
+import { useAppToken } from '@/hooks/useAppToken';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card } from '@/types';
-import { FilterState } from '@/components/board/BoardFilterPopover';
-import DueDateTag, { isDueSoon, isDueLater } from '@/components/common/DueDateTag';
-import dayjs from 'dayjs';
-import { useAppToken } from '@/hooks/useAppToken';
+import { useMemo, useState } from 'react';
 
-import { Table, Badge, Avatar, Text, Tooltip, Pagination, Group } from '@mantine/core';
+import { Avatar, Badge, Group, Pagination, Table, Text, Tooltip } from '@mantine/core';
 import { IconLink } from '@tabler/icons-react';
 
 interface TableViewProps {
@@ -27,32 +27,7 @@ export default function TableView({ filters, onCardClick }: TableViewProps) {
         const allCards: (Card & { listTitle: string; listId: string })[] = [];
         lists.forEach((list) => {
             (list.cards || []).forEach((card) => {
-                if (filters) {
-                    if (filters.search && !card.title.toLowerCase().includes(filters.search.toLowerCase())) return;
-
-                    if (filters.labelIds.length > 0 || filters.noLabels) {
-                        const cardLabelIds = card.labels?.map(l => l.label_id) || [];
-                        const matchesNoLabels = filters.noLabels && cardLabelIds.length === 0;
-                        const matchesSpecific = filters.labelIds.length > 0 && filters.labelIds.some(id => cardLabelIds.includes(id));
-                        if (!matchesNoLabels && !matchesSpecific) return;
-                    }
-
-                    if (filters.memberIds.length > 0 || filters.noMembers) {
-                        const cardMemberIds = card.members?.map(m => m.user_id) || [];
-                        const matchesNoMembers = filters.noMembers && cardMemberIds.length === 0;
-                        const matchesSpecific = filters.memberIds.length > 0 && filters.memberIds.some(id => cardMemberIds.includes(id));
-                        if (!matchesNoMembers && !matchesSpecific) return;
-                    }
-
-                    if (filters.dueDate) {
-                        const now = dayjs();
-                        const dueDate = card.due_date ? dayjs(card.due_date) : null;
-                        if (filters.dueDate === 'overdue' && (!dueDate || !dueDate.isBefore(now))) return;
-                        if (filters.dueDate === 'due_soon' && (!card.due_date || !isDueSoon(card.due_date))) return;
-                        if (filters.dueDate === 'due_later' && (!card.due_date || !isDueLater(card.due_date))) return;
-                        if (filters.dueDate === 'no_date' && card.due_date) return;
-                    }
-                }
+                if (filters && !filterCard(card, filters)) return;
 
                 allCards.push({
                     ...card,

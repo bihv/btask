@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
 import { useAppToken } from '@/hooks/useAppToken';
-import { useRouter } from 'next/navigation';
-import { useHeader } from '@/providers/HeaderProvider';
 import { useStarredBoards, useUpdateBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
+import { useHeader } from '@/providers/HeaderProvider';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-import { Text, Title, Loader, Center, Card, SimpleGrid } from '@mantine/core';
+import { Card, Center, Loader, SimpleGrid, Text, Title } from '@mantine/core';
 import { IconStarFilled } from '@tabler/icons-react';
 export default function StarredPage() {
     const router = useRouter();

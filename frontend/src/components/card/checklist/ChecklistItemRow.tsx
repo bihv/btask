@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import MemberPickerModal from '@/components/common/MemberPickerModal';
+import UserAvatar from '@/components/common/UserAvatar';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { checklistApi } from '@/lib/api';
 import { ChecklistItem as ChecklistItemType, User } from '@/types';
 import dayjs from 'dayjs';
-import MemberPickerModal from '@/components/common/MemberPickerModal';
-import { checklistApi } from '@/lib/api';
-import UserAvatar from '@/components/common/UserAvatar';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
+import React, { useEffect, useState } from 'react';
 
-import { Text, Title, Checkbox, TextInput, Button, Group, Menu, Badge, Modal, Textarea } from '@mantine/core';
+import { Badge, Button, Checkbox, Group, Menu, Modal, Text, Textarea } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
-import { IconUser, IconCalendar, IconArrowsExchange, IconTrash, IconDots } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import { IconArrowsExchange, IconCalendar, IconDots, IconTrash, IconUser } from '@tabler/icons-react';
 interface ChecklistItemRowProps {
     item: ChecklistItemType;
     checklistId: string;

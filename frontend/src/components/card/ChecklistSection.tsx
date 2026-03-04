@@ -1,20 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useTheme } from '@/providers/ThemeProvider';
 import { useTranslation } from '@/hooks/useLabels';
-import { Checklist, ChecklistItem, User, BoardList } from '@/types';
-import { checklistApi } from '@/lib/api';
-import api from '@/lib/api';
+import api, { checklistApi } from '@/lib/api';
+import { useTheme } from '@/providers/ThemeProvider';
+import { BoardList, Checklist, ChecklistItem, User } from '@/types';
+import React, { useState } from 'react';
 
-import { TextInput, Button, Group } from '@mantine/core';
+import { Button, Group, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
 import {
     ChecklistHeader,
     ChecklistItemRow,
-    NewChecklistItemForm,
     ConvertToCardModal,
+    NewChecklistItemForm,
 } from './checklist';
 
 interface ChecklistSectionProps {

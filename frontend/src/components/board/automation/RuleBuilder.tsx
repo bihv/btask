@@ -1,20 +1,20 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useBoard, useAllBoards } from '@/hooks/useBoards';
-import { Stepper, TextInput, Button, Group, Card, Text, Title, Stack, Badge, Switch, Center, Loader, Alert, Divider, Flex } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconPlayerPlay, IconBolt, IconDeviceFloppy, IconPlus, IconTrash, IconCheck } from '@tabler/icons-react';
 import {
-    useTriggersByCategory,
     useActionsByCategory,
     useCreateRule,
+    useTriggersByCategory,
     useUpdateRule,
 } from '@/hooks/useAutomationSchema';
-import type { TriggerSchema, ActionSchema, PropertySchema, AutomationRule } from '@/types/automation';
-import { TRIGGER_CATEGORY_INFO, ACTION_CATEGORY_INFO } from '@/types/automation';
-import SentenceTemplateRenderer, { SentenceDisplay } from './SentenceTemplateRenderer';
+import { useAllBoards, useBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
+import type { ActionSchema, AutomationRule, PropertySchema, TriggerSchema } from '@/types/automation';
+import { ACTION_CATEGORY_INFO, TRIGGER_CATEGORY_INFO } from '@/types/automation';
+import { Alert, Button, Card, Divider, Flex, Group, Loader, Stack, Stepper, Switch, Text, TextInput, Title } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconBolt, IconCheck, IconDeviceFloppy, IconPlayerPlay, IconPlus, IconTrash } from '@tabler/icons-react';
+import { useEffect, useMemo, useState } from 'react';
+import SentenceTemplateRenderer, { SentenceDisplay } from './SentenceTemplateRenderer';
 
 // ============================================================================
 // Types

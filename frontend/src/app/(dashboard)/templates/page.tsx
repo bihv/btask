@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import CategoryCard from '@/components/templates/CategoryCard';
-import TemplateCard from '@/components/templates/TemplateCard';
 import SectionHeader from '@/components/templates/SectionHeader';
+import TemplateCard from '@/components/templates/TemplateCard';
+import { useTranslation } from '@/hooks/useLabels';
 import { useTemplates } from '@/hooks/useTemplates';
 import { Template } from '@/types';
-import { useTranslation } from '@/hooks/useLabels';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import { TextInput, Text, Title, SimpleGrid, Loader, Center } from '@mantine/core';
-import { IconSearch, IconBuildingBank, IconBrush, IconBook, IconCode, IconBuildingStore, IconLayoutBoard, IconWorld } from '@tabler/icons-react';
+import { Loader, SimpleGrid, Text, TextInput, Title } from '@mantine/core';
+import { IconBook, IconBrush, IconBuildingBank, IconBuildingStore, IconCode, IconLayoutBoard, IconSearch, IconWorld } from '@tabler/icons-react';
 const CATEGORIES = [
     { name: 'Business', icon: IconBuildingBank, color: '#4bce97' },
     { name: 'Design', icon: IconBrush, color: '#e2b203' },

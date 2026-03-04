@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import styles from './BoardViewSwitcher.module.css';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import styles from './BoardViewSwitcher.module.css';
 
 import { SegmentedControl } from '@mantine/core';
-import { IconApps, IconTable, IconCalendar, IconDashboard } from '@tabler/icons-react';
+import { IconApps, IconCalendar, IconDashboard, IconTable } from '@tabler/icons-react';
 export type BoardViewMode = 'board' | 'table' | 'calendar' | 'dashboard';
 
 interface BoardViewSwitcherProps {

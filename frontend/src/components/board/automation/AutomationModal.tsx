@@ -1,13 +1,13 @@
 'use client';
 
+import { useTranslation } from '@/hooks/useLabels';
 import { useState } from 'react';
+import AutomationDueDate from './AutomationDueDate';
 import AutomationRules from './AutomationRules';
 import AutomationScheduled from './AutomationScheduled';
-import AutomationDueDate from './AutomationDueDate';
-import { useTranslation } from '@/hooks/useLabels';
 
-import { Modal, Button, Text, Title, Flex, NavLink } from '@mantine/core';
-import { IconBolt, IconCalendar, IconClock, IconApps } from '@tabler/icons-react';
+import { Flex, Modal, NavLink, Text, Title } from '@mantine/core';
+import { IconApps, IconBolt, IconCalendar, IconClock } from '@tabler/icons-react';
 
 interface AutomationModalProps {
     open: boolean;

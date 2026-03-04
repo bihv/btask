@@ -1,10 +1,8 @@
 'use client';
 
-import React from 'react';
 import { useTranslation } from '@/hooks/useLabels';
 
-import { Text, Title, Center } from '@mantine/core';
-import { IconHistory } from '@tabler/icons-react';
+import { Center, Text, Title } from '@mantine/core';
 export default function ActivityTab() {
     const t = useTranslation();
     return (

@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Attachment } from '@/types';
-import { attachmentApi, uploadFile } from '@/lib/api';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { attachmentApi, uploadFile } from '@/lib/api';
+import { Attachment } from '@/types';
+import React, { useState } from 'react';
 
-import { Text, Title, Button, FileButton, Modal, Group, Image } from '@mantine/core';
+import { Button, FileButton, Image, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconPaperclip, IconTrash, IconDownload, IconFile, IconFileTypePng, IconFileTypePdf, IconFileTypeDoc, IconFileTypeXls, IconUpload, IconPhoto, IconCircleCheckFilled } from '@tabler/icons-react';
+import { IconCircleCheckFilled, IconDownload, IconFile, IconFileTypeDoc, IconFileTypePdf, IconFileTypePng, IconFileTypeXls, IconPaperclip, IconPhoto, IconTrash, IconUpload } from '@tabler/icons-react';
 interface AttachmentSectionProps {
     cardId: string;
     attachments: Attachment[];

@@ -1,14 +1,14 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useWorkspace } from '@/hooks/useWorkspaces';
 import WorkspaceBoards from '@/components/workspace/WorkspaceBoards';
 import WorkspaceMembers from '@/components/workspace/WorkspaceMembers';
-import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
 import WorkspacePowerUps from '@/components/workspace/WorkspacePowerUps';
+import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
+import { useWorkspace } from '@/hooks/useWorkspaces';
+import { useParams } from 'next/navigation';
 
-import { Text, Title, Loader, Center } from '@mantine/core';
-import { IconApps, IconUsers, IconSettings, IconBolt, IconCurrencyDollar, IconExternalLink } from '@tabler/icons-react';
+import { Center, Loader, Text, Title } from '@mantine/core';
+import { IconCurrencyDollar, IconExternalLink } from '@tabler/icons-react';
 const tabConfig: Record<string, { title: string; icon: React.ReactNode; description: string }> = {
     billing: {
         title: 'Billing',

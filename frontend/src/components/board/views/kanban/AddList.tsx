@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useBoardStore } from '@/stores/boardStore';
-import styles from './KanbanBoard.module.css';
 import { useTranslation } from '@/hooks/useLabels';
+import { useBoardStore } from '@/stores/boardStore';
+import { useState } from 'react';
+import styles from './KanbanBoard.module.css';
 
 import { Button, TextInput } from '@mantine/core';
 import { IconPlus, IconX } from '@tabler/icons-react';

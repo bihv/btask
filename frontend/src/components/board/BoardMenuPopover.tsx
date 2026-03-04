@@ -1,21 +1,21 @@
 'use client';
 
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { Board, CustomField, User } from '@/types';
 import React, { useState } from 'react';
 import styles from './BoardMenuPopover.module.css';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
-import { Board, User, CustomField } from '@/types';
-import { MenuItem, MenuTitle } from './menu/MenuShared';
 import AboutScreen from './menu/AboutScreen';
-import BackgroundScreen from './menu/BackgroundScreen';
 import ArchivedScreen from './menu/ArchivedScreen';
+import BackgroundScreen from './menu/BackgroundScreen';
 import CustomFieldsScreen from './menu/CustomFieldsScreen';
-import NewFieldScreen from './menu/NewFieldScreen';
 import EditFieldScreen from './menu/EditFieldScreen';
+import { MenuItem, MenuTitle } from './menu/MenuShared';
+import NewFieldScreen from './menu/NewFieldScreen';
 
-import { Popover, Button, Divider, Modal, TextInput, Group } from '@mantine/core';
+import { Button, Divider, Group, Modal, Popover, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconShare, IconInfoCircle, IconWorld, IconLock, IconStar, IconStarFilled, IconPalette, IconTags, IconInbox, IconTrash, IconEye, IconEyeOff, IconBell, IconBellFilled, IconColumnInsertRight, IconCopy, IconPlayerStop, IconForms } from '@tabler/icons-react';
+import { IconBell, IconBellFilled, IconColumnInsertRight, IconCopy, IconEye, IconEyeOff, IconForms, IconInbox, IconInfoCircle, IconLock, IconPalette, IconPlayerStop, IconShare, IconStar, IconStarFilled, IconTags, IconTrash, IconWorld } from '@tabler/icons-react';
 
 type MenuScreen = 'main' | 'about' | 'background' | 'archived' | 'customFields' | 'newField' | 'editField';
 

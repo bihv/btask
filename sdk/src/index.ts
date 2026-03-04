@@ -3,42 +3,20 @@
  * Official SDK for building Mello plugins
  */
 
-export { MelloPlugin, plugin } from './plugin';
 export { MelloClient } from './client';
+export { MelloPlugin, plugin } from './plugin';
 
 export type {
-  // Core Types
-  PluginManifest,
-  PluginCapability,
-  PluginPermission,
-  PluginContext,
-  DataScope,
-  SettingsSchema,
-  SettingDefinition,
-  
+
+  // API Types
+  APIResponse, Attachment, AttachmentSection,
   // Mello Types
-  Board,
-  List,
-  Card,
-  Label,
-  User,
-  Comment,
-  Attachment,
-  
+  Board, BoardButton, Card, CardBackSection,
   // UI Types
   CardBadge,
-  CardButton,
-  CardBackSection,
-  BoardButton,
-  AttachmentSection,
-  ModalOptions,
-  SnackbarType,
-  
+  CardButton, Comment, DataScope, EventPayload,
   // Event Types
-  EventType,
-  EventPayload,
-  
-  // API Types
-  APIResponse,
-  HookRegistration,
+  EventType, HookRegistration, Label, List, ModalOptions, PluginCapability, PluginContext,
+  // Core Types
+  PluginManifest, PluginPermission, SettingDefinition, SettingsSchema, SnackbarType, User
 } from './types';

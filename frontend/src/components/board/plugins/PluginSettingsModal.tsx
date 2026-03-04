@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import WebhookManager from './webhook/WebhookManager';
-import { useGetPluginSettings, useUpdatePluginSettings, usePluginManifest } from '@/hooks/usePluginSettings';
 import { useTranslation } from '@/hooks/useLabels';
+import { useGetPluginSettings, usePluginManifest, useUpdatePluginSettings } from '@/hooks/usePluginSettings';
+import { useEffect } from 'react';
+import WebhookManager from './webhook/WebhookManager';
 
-import { Modal, Tabs, TextInput, Button, Switch, NumberInput, Select, Alert, Loader, Text } from '@mantine/core';
+import { Alert, Button, Loader, Modal, NumberInput, Select, Switch, Tabs, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconInfoCircle } from '@tabler/icons-react';

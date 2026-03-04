@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import api from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
-import { useUserSuggest } from '@/hooks/useUsers';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTranslation } from '@/hooks/useLabels';
+import { useUserSuggest } from '@/hooks/useUsers';
+import api from '@/lib/api';
+import { useEffect, useMemo, useState } from 'react';
 
-import { Modal, Autocomplete, Button, Text, Title, Loader, Select } from '@mantine/core';
+import { Autocomplete, Button, Loader, Modal, Select, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconTrash, IconCrown } from '@tabler/icons-react';
+import { IconCrown, IconTrash } from '@tabler/icons-react';
 interface Member {
     id: string;
     user_id: string;

@@ -57,13 +57,13 @@ export const uploadFile = async (file: File): Promise<string> => {
 
 // Upload file and create attachment record (for BlockNote editor)
 export const uploadFileWithAttachment = async (
-    file: File, 
-    cardId: string, 
+    file: File,
+    cardId: string,
     source: 'upload' | 'editor' = 'editor'
 ): Promise<string> => {
     // First upload the file
     const fileUrl = await uploadFile(file);
-    
+
     // Then create attachment record
     await attachmentApi.createWithSource(cardId, {
         file_name: file.name,
@@ -72,7 +72,7 @@ export const uploadFileWithAttachment = async (
         file_size: file.size,
         source,
     });
-    
+
     return fileUrl;
 };
 
@@ -96,14 +96,14 @@ export const checklistApi = {
 
 // Attachment API functions
 export const attachmentApi = {
-    getByCardId: (cardId: string, source?: 'upload' | 'editor') => 
+    getByCardId: (cardId: string, source?: 'upload' | 'editor') =>
         api.get(`/cards/${cardId}/attachments${source ? `?source=${source}` : ''}`),
     create: (cardId: string, data: { file_name: string; file_url: string; file_type?: string; file_size?: number }) =>
         api.post(`/cards/${cardId}/attachments`, data),
     createWithSource: (cardId: string, data: { file_name: string; file_url: string; file_type?: string; file_size?: number; source: 'upload' | 'editor' }) =>
         api.post(`/cards/${cardId}/attachments`, data),
     delete: (id: string) => api.delete(`/attachments/${id}`),
-    syncOrphans: (cardId: string, urls: string[]) => 
+    syncOrphans: (cardId: string, urls: string[]) =>
         api.post(`/cards/${cardId}/attachments/sync-orphans`, { urls }),
 };
 

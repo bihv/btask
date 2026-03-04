@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Card } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { Card } from '@/types';
+import { useState } from 'react';
 
-import { Modal, Button, TextInput, Text, Title, Divider, Group } from '@mantine/core';
+import { Button, Divider, Modal, Text, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconShare, IconCopy, IconQrcode, IconPrinter, IconDownload } from '@tabler/icons-react';
+import { IconCopy, IconDownload, IconPrinter, IconQrcode, IconShare } from '@tabler/icons-react';
 interface ShareCardModalProps {
     cardId: string;
     cardTitle: string;

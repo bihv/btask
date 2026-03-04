@@ -1,9 +1,9 @@
 'use client';
 
+import type { PropertySchema } from '@/types/automation';
 import React, { useMemo } from 'react';
-import type { PropertySchema, SelectOption } from '@/types/automation';
 
-import { Select, TextInput, NumberInput, Badge, Tooltip } from '@mantine/core';
+import { Badge, NumberInput, Select, TextInput, Tooltip } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 
 

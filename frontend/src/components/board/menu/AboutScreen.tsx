@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Board, User } from '@/types';
-import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
+import { Board, User } from '@/types';
+import { useState } from 'react';
+import { ScreenHeader } from './MenuShared';
 
-import { TextInput, Textarea, Button, Group, Avatar, Divider, Text, Title } from '@mantine/core';
-import { IconUser, IconAlignLeft, IconEdit } from '@tabler/icons-react';
+import { Avatar, Button, Divider, Group, Text, Textarea } from '@mantine/core';
+import { IconAlignLeft, IconEdit, IconUser } from '@tabler/icons-react';
 
 interface AboutScreenProps {
     board: Board;
