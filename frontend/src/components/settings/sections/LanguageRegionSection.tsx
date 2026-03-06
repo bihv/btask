@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
-import { Card, Form, Select, App } from 'antd';
-import { useAuthStore } from '@/stores/authStore';
+import { useInvalidateLabels, useTranslation } from '@/hooks/useLabels';
 import { useUpdatePreferences } from '@/hooks/useUser';
-import { useTranslation, useInvalidateLabels } from '@/hooks/useLabels';
+import { useAuthStore } from '@/stores/authStore';
 
+import { Card, Select } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 const TIMEZONES = [
     { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
     { value: 'Asia/Ho_Chi_Minh', label: 'Asia/Ho Chi Minh (GMT+7)' },
@@ -34,7 +34,6 @@ export default function LanguageRegionSection() {
     const updatePreferences = useUpdatePreferences();
     const t = useTranslation();
     const invalidateLabels = useInvalidateLabels();
-    const { message } = App.useApp();
 
     const handlePreferenceChange = async (key: string, value: string) => {
         try {
@@ -46,44 +45,41 @@ export default function LanguageRegionSection() {
                 await invalidateLabels();
             }
         } catch {
-            message.error(t('ERROR_SAVE_PREFERENCE_FAILED'));
+            notifications.show({ title: 'Error', message: t('ERROR_SAVE_PREFERENCE_FAILED'), color: 'red' });
         }
     };
 
     return (
-        <Card size="small">
-            <Form layout="vertical">
-                <Form.Item label={t('UI_LANGUAGE')}>
+        <Card >
+            <form >
+                <div style={{ marginBottom: 16 }}>
                     <Select
                         value={user?.language || 'en'}
-                        onChange={(value) => handlePreferenceChange('language', value)}
-                        options={LANGUAGES}
+                        onChange={(value) => handlePreferenceChange('language', value || 'en')}
+                        data={LANGUAGES}
                         style={{ width: '100%' }}
                     />
-                </Form.Item>
+                </div>
 
-                <Form.Item label={t('UI_TIMEZONE')}>
+                <div style={{ marginBottom: 16 }}>
                     <Select
                         value={user?.timezone || 'UTC'}
-                        onChange={(value) => handlePreferenceChange('timezone', value)}
-                        options={TIMEZONES}
+                        onChange={(value) => handlePreferenceChange('timezone', value || 'UTC')}
+                        data={TIMEZONES}
                         style={{ width: '100%' }}
-                        showSearch
-                        filterOption={(input, option) =>
-                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                        }
+                        searchable
                     />
-                </Form.Item>
+                </div>
 
-                <Form.Item label={t('UI_DATE_FORMAT')} style={{ marginBottom: 0 }}>
+                <div style={{ marginBottom: 16 }}>
                     <Select
                         value={user?.date_format || 'DD/MM/YYYY'}
-                        onChange={(value) => handlePreferenceChange('date_format', value)}
-                        options={DATE_FORMATS}
+                        onChange={(value) => handlePreferenceChange('date_format', value || 'DD/MM/YYYY')}
+                        data={DATE_FORMATS}
                         style={{ width: '100%' }}
                     />
-                </Form.Item>
-            </Form>
+                </div>
+            </form>
         </Card>
     );
 }

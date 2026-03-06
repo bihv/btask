@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { Template, TemplateList, TemplateCard } from '@/types';
+import { Template } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface TemplateListParams {
     page?: number;

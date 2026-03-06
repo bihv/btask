@@ -1,28 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import { FilterState } from '@/components/board/BoardFilterPopover';
+import { useBoardStore } from '@/stores/boardStore';
+import { BoardList, Card } from '@/types';
 import {
     DndContext,
     DragEndEvent,
     DragOverEvent,
-    DragStartEvent,
     DragOverlay,
+    DragStartEvent,
     PointerSensor,
+    closestCorners,
     useSensor,
     useSensors,
-    closestCorners,
 } from '@dnd-kit/core';
 import {
     SortableContext,
     horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useBoardStore } from '@/stores/boardStore';
-import { Card, BoardList } from '@/types';
-import { FilterState } from '@/components/board/BoardFilterPopover';
-import KanbanList from './KanbanList';
-import KanbanCard from './KanbanCard';
+import { useState } from 'react';
 import AddList from './AddList';
 import styles from './KanbanBoard.module.css';
+import KanbanCard from './KanbanCard';
+import KanbanList from './KanbanList';
 
 interface KanbanBoardProps {
     filters?: FilterState;

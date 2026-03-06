@@ -1,10 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Typography, Button } from 'antd';
 
-const { Title } = Typography;
-
+import { Button, Title } from '@mantine/core';
 interface SectionHeaderProps {
     title: string;
     icon?: React.ReactNode;
@@ -17,12 +15,12 @@ export default function SectionHeader({ title, icon, actionLabel, onAction }: Se
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', marginTop: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {icon}
-                <Title level={4} style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                <Title order={4} style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {title}
                 </Title>
             </div>
             {actionLabel && (
-                <Button type="default" size="middle" onClick={onAction}>
+                <Button variant="default" size="sm" onClick={onAction}>
                     {actionLabel}
                 </Button>
             )}

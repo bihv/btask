@@ -1,18 +1,15 @@
 'use client';
 
-import React from 'react';
-import { Modal, Typography, Divider, Tag, Space, Spin } from 'antd';
-import { ClockCircleOutlined, TagOutlined, FileTextOutlined, PictureOutlined } from '@ant-design/icons';
-import { Card } from '@/types';
 import { formatDueDate } from '@/components/common/DueDateTag';
+import { Card } from '@/types';
 import dynamic from 'next/dynamic';
 
+import { Badge, Divider, Group, Loader, Modal, Text } from '@mantine/core';
+import { IconClock, IconFileText, IconTag } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
-    loading: () => <Spin size="small" />,
+    loading: () => <Loader size="sm" />,
 });
-
-const { Text, Paragraph } = Typography;
 
 interface TemplateCardModalProps {
     card: Card | null;
@@ -29,13 +26,12 @@ export default function TemplateCardModal({ card, open, onClose, listTitle }: Te
 
     return (
         <Modal
-            open={open}
-            onCancel={onClose}
-            footer={null}
-            width={600}
+            opened={open}
+            onClose={onClose}
+            size={600}
             title={
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <FileTextOutlined />
+                    <IconFileText size={16}  />
                     <span>{card.title}</span>
                 </div>
             }
@@ -65,42 +61,42 @@ export default function TemplateCardModal({ card, open, onClose, listTitle }: Te
             {/* List name */}
             {listTitle && (
                 <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary">in list </Text>
-                    <Tag color="blue">{listTitle}</Tag>
+                    <Text c="dimmed">in list </Text>
+                    <Badge color="blue">{listTitle}</Badge>
                 </div>
             )}
 
             {/* Labels */}
             {card.labels && card.labels.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ marginBottom: 8, display: 'block' }}>
-                        <TagOutlined style={{ marginRight: 8 }} />
+                    <Text fw={700} style={{ marginBottom: 8, display: 'block' }}>
+                        <IconTag size={16} style={{ marginRight: 8 }}  />
                         Labels
                     </Text>
-                    <Space wrap>
+                    <Group wrap="wrap">
                         {card.labels.map((cl) => (
-                            <Tag
+                            <Badge
                                 key={cl.id}
                                 color={cl.label?.color}
                                 style={{ minWidth: 40, height: 24 }}
                             >
                                 {cl.label?.name || ''}
-                            </Tag>
+                            </Badge>
                         ))}
-                    </Space>
+                    </Group>
                 </div>
             )}
 
             {/* Due Date */}
             {card.due_date && (
                 <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ marginBottom: 8, display: 'block' }}>
-                        <ClockCircleOutlined style={{ marginRight: 8 }} />
+                    <Text fw={700} style={{ marginBottom: 8, display: 'block' }}>
+                        <IconClock size={16} style={{ marginRight: 8 }}  />
                         Due Date
                     </Text>
-                    <Tag color={card.is_completed ? 'green' : 'default'}>
+                    <Badge color={card.is_completed ? 'green' : 'default'}>
                         {formatDueDate(card.due_date)}
-                    </Tag>
+                    </Badge>
                 </div>
             )}
 
@@ -108,7 +104,7 @@ export default function TemplateCardModal({ card, open, onClose, listTitle }: Te
 
             {/* Description */}
             <div>
-                <Text strong style={{ marginBottom: 8, display: 'block' }}>Description</Text>
+                <Text fw={700} style={{ marginBottom: 8, display: 'block' }}>Description</Text>
                 {card.description ? (
                     isRichDescription ? (
                         <RichTextEditor
@@ -116,12 +112,12 @@ export default function TemplateCardModal({ card, open, onClose, listTitle }: Te
                             editable={false}
                         />
                     ) : (
-                        <Paragraph type="secondary">{card.description}</Paragraph>
+                        <Text c="dimmed">{card.description}</Text>
                     )
                 ) : (
-                    <Paragraph type="secondary">
+                    <Text c="dimmed">
                         This card is part of the template. Add a description when you use this template.
-                    </Paragraph>
+                    </Text>
                 )}
             </div>
 
@@ -134,7 +130,7 @@ export default function TemplateCardModal({ card, open, onClose, listTitle }: Te
                 borderRadius: 8,
                 textAlign: 'center'
             }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text c="dimmed" style={{ fontSize: 12 }}>
                     This is a preview. Click "Use template" to create a real board with this card.
                 </Text>
             </div>

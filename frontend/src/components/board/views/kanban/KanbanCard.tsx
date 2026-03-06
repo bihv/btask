@@ -1,47 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Typography, Tooltip, Tag, message, Dropdown, Popover } from 'antd';
-import type { MenuProps } from 'antd';
-import {
-    ClockCircleOutlined,
-    CheckCircleOutlined,
-    CommentOutlined,
-    CheckSquareOutlined,
-    CalendarOutlined,
-    NumberOutlined,
-    FontSizeOutlined,
-    AppstoreOutlined,
-    MoreOutlined,
-    FileTextOutlined,
-    LinkOutlined,
-    EditOutlined,
-    UserOutlined,
-    TagOutlined,
-    PictureOutlined,
-} from '@ant-design/icons';
-import { Card } from '@/types';
-import { useBoardStore } from '@/stores/boardStore';
-import styles from './KanbanBoard.module.css';
-import UserAvatar from '@/components/common/UserAvatar';
-import DueDateTag from '@/components/common/DueDateTag';
-import EditableTitle from '@/components/common/EditableTitle';
-import api, { linkPreviewApi } from '@/lib/api';
+import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
+import DatePickerModal from '@/components/card/DatePickerModal';
+import LabelPickerModal from '@/components/card/LabelPickerModal';
 import LinkPreviewCard from '@/components/card/LinkPreviewCard';
 import MembersPickerModal from '@/components/card/MembersPickerModal';
-import DatePickerModal from '@/components/card/DatePickerModal';
-import CoverImagePickerModal from '@/components/card/CoverImagePickerModal';
-import LabelPickerModal from '@/components/card/LabelPickerModal';
-import { useAttachments, useWorkspaceMembers, useBoardLabels } from '@/hooks/useCards';
+import DueDateTag from '@/components/common/DueDateTag';
+import UserAvatar from '@/components/common/UserAvatar';
 import { CardBadgeRenderer } from '@/components/plugins';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useAttachments, useBoardLabels, useWorkspaceMembers } from '@/hooks/useCards';
+import { linkPreviewApi } from '@/lib/api';
+import { useBoardStore } from '@/stores/boardStore';
+import { Card } from '@/types';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import styles from './KanbanBoard.module.css';
 
-const { Text } = Typography;
-
+import { Menu, Text, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconApps, IconCalendar, IconCheckbox, IconClock, IconEdit, IconFileText, IconHash, IconLetterCase, IconLink, IconMessage, IconPhoto, IconTag, IconUser } from '@tabler/icons-react';
 interface KanbanCardProps {
     card: Card;
     listId: string;
@@ -119,7 +99,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
     // Handle convert to link card
     const handleConvertToLinkCard = async () => {
         if (!isTitleURL()) {
-            message.error('Card title must be a valid URL');
+            notifications.show({ title: 'Error', message: 'Card title must be a valid URL', color: 'red' });
             return;
         }
         setIsConverting(true);
@@ -129,7 +109,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 await fetchBoard(boardId);
             }
         } catch (error: any) {
-            message.error(error.response?.data?.message || 'Failed to convert to link card');
+            notifications.show({ title: 'Error', message: error.response?.data?.message || 'Failed to convert to link card', color: 'red' });
         } finally {
             setIsConverting(false);
         }
@@ -144,7 +124,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                 await fetchBoard(boardId);
             }
         } catch (error: any) {
-            message.error(error.response?.data?.message || 'Failed to convert to regular card');
+            notifications.show({ title: 'Error', message: error.response?.data?.message || 'Failed to convert to regular card', color: 'red' });
         } finally {
             setIsConverting(false);
         }
@@ -162,73 +142,6 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
         await updateCard(card.id, { title: newTitle });
     };
 
-    // Menu items for dropdown
-    const menuItems: MenuProps['items'] = [
-        {
-            key: 'members',
-            label: 'Members',
-            icon: <UserOutlined />,
-            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
-                info.domEvent.stopPropagation();
-                setMembersModalOpen(true);
-            },
-        },
-        {
-            key: 'labels',
-            label: 'Labels',
-            icon: <TagOutlined />,
-            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
-                info.domEvent.stopPropagation();
-                setLabelsModalOpen(true);
-            },
-        },
-        {
-            key: 'duedate',
-            label: 'Due Date',
-            icon: <ClockCircleOutlined />,
-            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
-                info.domEvent.stopPropagation();
-                setDueDateModalOpen(true);
-            },
-        },
-        // Cover option - not shown for link cards
-        !card.link_url ? {
-            key: 'cover',
-            label: 'Cover',
-            icon: <PictureOutlined />,
-            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
-                info.domEvent.stopPropagation();
-                setCoverModalOpen(true);
-            },
-        } : null,
-        {
-            type: 'divider' as const,
-        },
-        {
-            key: 'convert',
-            label: hasLinkPreview ? 'Convert to Regular Card' : 'Convert to Link Card',
-            icon: hasLinkPreview ? <FileTextOutlined /> : <LinkOutlined />,
-            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
-                info.domEvent.stopPropagation();
-                if (hasLinkPreview) {
-                    handleConvertToRegularCard();
-                } else {
-                    handleConvertToLinkCard();
-                }
-            },
-            disabled: !isTitleURL() || isConverting,
-        },
-        onDeleteCard ? {
-            key: 'delete',
-            label: 'Delete',
-            icon: <EditOutlined />,
-            danger: true,
-            onClick: (info: { domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement> }) => {
-                info.domEvent.stopPropagation();
-                onDeleteCard(card.id);
-            },
-        } : null,
-    ].filter(Boolean);
 
     const handleCardClick = () => {
         // If custom click handler provided, use it
@@ -278,7 +191,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                         if (cfv.value === 'true') {
                             return (
                                 <div key={cfv.id} style={badgeStyle}>
-                                    <CheckSquareOutlined style={{ color: token.colorSuccess, fontSize: 12 }} />
+                                    <IconCheckbox size={12} />
                                     <span style={{ color: 'var(--text-secondary)' }}>{field.name}</span>
                                 </div>
                             );
@@ -295,10 +208,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                                         backgroundColor: cfv.option.color || 'var(--bg-tertiary)',
                                     }}
                                 >
-                                    <AppstoreOutlined style={{
-                                        color: cfv.option.color ? 'white' : 'var(--text-secondary)',
-                                        fontSize: 12,
-                                    }} />
+                                    <IconApps size={12} />
                                     <span style={{
                                         color: cfv.option.color ? 'white' : 'var(--text-secondary)',
                                     }}>
@@ -319,7 +229,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                         if (cfv.value) {
                             return (
                                 <div key={cfv.id} style={badgeStyle}>
-                                    <FontSizeOutlined style={{ color: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <IconLetterCase size={12} />
                                     <span style={{ color: 'var(--text-secondary)' }}>{field.name}:</span>
                                     <span style={{ color: 'var(--text-primary)' }}>{cfv.value}</span>
                                 </div>
@@ -331,7 +241,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                         if (cfv.value) {
                             return (
                                 <div key={cfv.id} style={badgeStyle}>
-                                    <NumberOutlined style={{ color: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <IconHash size={12} />
                                     <span style={{ color: 'var(--text-secondary)' }}>{field.name}:</span>
                                     <span style={{ color: 'var(--text-primary)' }}>{cfv.value}</span>
                                 </div>
@@ -343,7 +253,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                         if (cfv.value) {
                             return (
                                 <div key={cfv.id} style={badgeStyle}>
-                                    <CalendarOutlined style={{ color: 'var(--text-secondary)', fontSize: 12 }} />
+                                    <IconCalendar size={12} />
                                     <span style={{ color: 'var(--text-secondary)' }}>{field.name}:</span>
                                     <span style={{ color: 'var(--text-primary)' }}>
                                         {new Date(cfv.value).toLocaleDateString()}
@@ -382,29 +292,56 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                             zIndex: 10,
                         }}
                     >
-                        <Dropdown
-                            menu={{ items: menuItems }}
-                            trigger={['click']}
-                            placement="bottomRight"
-                        >
-                            <div
-                                onClick={(e) => e.stopPropagation()}
-                                style={{
-                                    cursor: 'pointer',
-                                    padding: 8,
-                                    borderRadius: '50%',
-                                    backgroundColor: token.colorOverlayDarker,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: 32,
-                                    height: 32,
-                                }}
-                                className={styles.cardMenuButton}
-                            >
-                                <EditOutlined style={{ fontSize: 14, color: token.colorWhite }} />
-                            </div>
-                        </Dropdown>
+                        <Menu position="bottom-end" shadow="md">
+                            <Menu.Target>
+                                <div
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                        cursor: 'pointer',
+                                        padding: 8,
+                                        borderRadius: '50%',
+                                        backgroundColor: token.colorOverlayDarker,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: 32,
+                                        height: 32,
+                                    }}
+                                    className={styles.cardMenuButton}
+                                >
+                                    <IconEdit size={14} />
+                                </div>
+                            </Menu.Target>
+                            <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
+                                <Menu.Item leftSection={<IconUser size={16} />} onClick={() => setMembersModalOpen(true)}>
+                                    Members
+                                </Menu.Item>
+                                <Menu.Item leftSection={<IconTag size={16} />} onClick={() => setLabelsModalOpen(true)}>
+                                    Labels
+                                </Menu.Item>
+                                <Menu.Item leftSection={<IconClock size={16} />} onClick={() => setDueDateModalOpen(true)}>
+                                    Due Date
+                                </Menu.Item>
+                                {!card.link_url && (
+                                    <Menu.Item leftSection={<IconPhoto size={16} />} onClick={() => setCoverModalOpen(true)}>
+                                        Cover
+                                    </Menu.Item>
+                                )}
+                                <Menu.Divider />
+                                <Menu.Item
+                                    leftSection={hasLinkPreview ? <IconFileText size={16} /> : <IconLink size={16} />}
+                                    onClick={() => hasLinkPreview ? handleConvertToRegularCard() : handleConvertToLinkCard()}
+                                    disabled={!isTitleURL() || isConverting}
+                                >
+                                    {hasLinkPreview ? 'Convert to Regular Card' : 'Convert to Link Card'}
+                                </Menu.Item>
+                                {onDeleteCard && (
+                                    <Menu.Item color="red" leftSection={<IconEdit size={16} />} onClick={() => onDeleteCard(card.id)}>
+                                        Delete
+                                    </Menu.Item>
+                                )}
+                            </Menu.Dropdown>
+                        </Menu>
                     </div>
                 )}
 
@@ -444,7 +381,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                                     marginRight: -8,
                                     width: 'calc(100% + 16px)',
                                     backgroundColor: card.cover_bg_color || 'var(--bg-tertiary)',
-                                    backgroundImage: `url(${card.cover_image})`,
+                                    backgroundImage: `url("${card.cover_image}")`,
                                     backgroundSize: 'contain',
                                     backgroundRepeat: 'no-repeat',
                                     backgroundPosition: 'center',
@@ -523,7 +460,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                                     fontSize: 12,
                                 }}
                             >
-                                <CommentOutlined style={{ fontSize: 12 }} />
+                                <IconMessage size={12} />
                                 {card.comments.length}
                             </div>
                         )}
@@ -533,7 +470,7 @@ export default function KanbanCard({ card, listId, readOnly = false, showCovers,
                     {card.members && card.members.length > 0 && (
                         <div style={{ display: 'flex', marginLeft: 'auto' }}>
                             {card.members.slice(0, 3).map((cm) => (
-                                <Tooltip key={cm.id} title={cm.user?.full_name}>
+                                <Tooltip key={cm.id} label={cm.user?.full_name}>
                                     <div style={{ marginLeft: -4 }}>
                                         <UserAvatar
                                             avatarUrl={cm.user?.avatar_url}

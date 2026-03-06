@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
-import ReconnectingWebSocket from 'reconnecting-websocket';
-import { useNotificationStore, Notification } from '@/stores/notificationStore';
-import { useQueryClient } from '@tanstack/react-query';
 import { labelKeys } from '@/hooks/useLabels';
+import { Notification, useNotificationStore } from '@/stores/notificationStore';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef } from 'react';
+import ReconnectingWebSocket from 'reconnecting-websocket';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
 
@@ -49,22 +49,22 @@ export function useWebSocket(token: string | null) {
                 if (message.type === 'invalidate') {
                     const data = message.data;
                     console.log('Automation invalidation received:', data);
-                    
+
                     if (data.board_id) {
                         // Invalidate board queries
                         queryClient.invalidateQueries({ queryKey: ['board', data.board_id] });
                         queryClient.invalidateQueries({ queryKey: ['boards'] });
-                        
+
                         // Invalidate automation rules for this board
                         queryClient.invalidateQueries({ queryKey: ['automation', 'rules', data.board_id] });
                     }
-                    
+
                     if (data.card_id) {
                         // Invalidate card queries
                         queryClient.invalidateQueries({ queryKey: ['card', data.card_id] });
                         queryClient.invalidateQueries({ queryKey: ['cards'] });
                     }
-                    
+
                     // Also invalidate list queries since cards may have moved
                     if (data.board_id) {
                         queryClient.invalidateQueries({ queryKey: ['lists', data.board_id] });

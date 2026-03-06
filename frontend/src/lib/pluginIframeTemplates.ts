@@ -176,7 +176,7 @@ export function buildRenderHtml(params: RenderHtmlParams): string {
       html, body { 
         background: transparent; 
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 12px;
+        font-size: 16px;
       }
     </style>
   </head>

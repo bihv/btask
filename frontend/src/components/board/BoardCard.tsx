@@ -1,12 +1,10 @@
 'use client';
 
-import { Card, Typography, Button } from 'antd';
-import { StarOutlined, StarFilled } from '@ant-design/icons';
-import { Board } from '@/types';
 import { useAppToken } from '@/hooks/useAppToken';
+import { Board } from '@/types';
 
-const { Text } = Typography;
-
+import { Button, Card, Text } from '@mantine/core';
+import { IconStar, IconStarFilled } from '@tabler/icons-react';
 interface BoardCardProps {
     board: Board;
     onClick?: () => void;
@@ -21,17 +19,15 @@ export default function BoardCard({ board, onClick, onToggleStar, className, sty
 
     return (
         <Card
-            hoverable
+            withBorder
             className={className}
             style={{
                 background: hasImage
                     ? `url(${board.background_image}) center/cover`
                     : board.background_color,
                 position: 'relative',
+                padding: 12,
                 ...style,
-            }}
-            styles={{
-                body: { padding: 12 },
             }}
             onClick={onClick}
         >
@@ -43,7 +39,7 @@ export default function BoardCard({ board, onClick, onToggleStar, className, sty
                 }}
             >
                 <Text
-                    strong
+                    fw={700}
                     style={{
                         color: token.colorWhite,
                         fontSize: 16,
@@ -55,13 +51,13 @@ export default function BoardCard({ board, onClick, onToggleStar, className, sty
                 </Text>
                 {onToggleStar && (
                     <Button
-                        type="text"
-                        size="small"
-                        icon={
+                        variant="subtle"
+                        size="sm"
+                        leftSection={
                             board.is_starred ? (
-                                <StarFilled style={{ color: token.colorStarYellow }} />
+                                <IconStarFilled size={16} style={{ color: token.colorStarYellow }} />
                             ) : (
-                                <StarOutlined style={{ color: token.colorOverlayLight }} />
+                                <IconStar size={16} style={{ color: token.colorOverlayLight }} />
                             )
                         }
                         onClick={(e) => {

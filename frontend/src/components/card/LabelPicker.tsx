@@ -1,15 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Input, Button, Typography, Divider, App } from 'antd';
-import { CheckOutlined, EditOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { Label } from '@/types';
-import api from '@/lib/api';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import api from '@/lib/api';
+import { Label } from '@/types';
+import React, { useState } from 'react';
 
-const { Text } = Typography;
-
+import { Button, Divider, Text, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconArrowLeft, IconCheck, IconEdit, IconTrash } from '@tabler/icons-react';
 const LABEL_COLORS = [
     '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
     '#0079bf', '#00c2e0', '#51e898', '#ff78cb', '#344563',
@@ -35,7 +34,6 @@ export default function LabelPicker({
     onCardRefresh,
 }: LabelPickerProps) {
     const [view, setView] = useState<View>('list');
-    const { message } = App.useApp();
     const t = useTranslation();
     const token = useAppToken();
     const [editingLabel, setEditingLabel] = useState<Label | null>(null);
@@ -79,7 +77,7 @@ export default function LabelPicker({
             onRefresh();
             handleBack();
         } catch (error) {
-            message.error(t('ERROR_CREATE_LABEL'));
+            notifications.show({ title: 'Error', message: t('ERROR_CREATE_LABEL'), color: 'red' });
         } finally {
             setLoading(false);
         }
@@ -97,7 +95,7 @@ export default function LabelPicker({
             onCardRefresh?.();  // Refresh card to show updated label
             handleBack();
         } catch (error) {
-            message.error(t('ERROR_UPDATE_LABEL'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_LABEL'), color: 'red' });
         } finally {
             setLoading(false);
         }
@@ -111,9 +109,9 @@ export default function LabelPicker({
             onRefresh();
             onCardRefresh?.();  // Refresh card to remove deleted label
             handleBack();
-            message.success(t('SUCCESS_LABEL_DELETED'));
+            notifications.show({ message: t('SUCCESS_LABEL_DELETED'), color: 'green' });
         } catch (error) {
-            message.error(t('ERROR_DELETE_LABEL'));
+            notifications.show({ title: 'Error', message: t('ERROR_DELETE_LABEL'), color: 'red' });
         } finally {
             setLoading(false);
         }
@@ -123,7 +121,7 @@ export default function LabelPicker({
     if (view === 'list') {
         return (
             <div style={{ width: 280 }}>
-                <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('UI_LABELS')}</Text>
+                <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>{t('UI_LABELS')}</Text>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
                     {labels.map((label) => {
                         const isSelected = selectedLabelIds.includes(label.id);
@@ -152,13 +150,13 @@ export default function LabelPicker({
                                     }}
                                 >
                                     <span style={{ flex: 1 }}>{label.name || ''}</span>
-                                    {isSelected && <CheckOutlined />}
+                                    {isSelected && <IconCheck size={16} />}
                                 </div>
                                 {/* Edit button */}
                                 <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<EditOutlined />}
+                                    variant="subtle"
+                                    size="sm"
+                                    leftSection={<IconEdit size={16} />}
                                     onClick={(e) => handleStartEdit(label, e)}
                                     style={{
                                         color: 'var(--text-secondary)',
@@ -169,7 +167,7 @@ export default function LabelPicker({
                         );
                     })}
                 </div>
-                <Button type="default" block onClick={handleStartCreate}>
+                <Button variant="default" fullWidth onClick={handleStartCreate}>
                     {t('UI_CREATE_NEW_LABEL')}
                 </Button>
             </div>
@@ -182,12 +180,12 @@ export default function LabelPicker({
             {/* Header with back button */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Button
-                    type="text"
-                    size="small"
-                    icon={<ArrowLeftOutlined />}
+                    variant="subtle"
+                    size="sm"
+                    leftSection={<IconArrowLeft size={16} />}
                     onClick={handleBack}
                 />
-                <Text strong>{view === 'create' ? t('UI_CREATE_LABEL') : t('UI_EDIT_LABEL')}</Text>
+                <Text fw={700}>{view === 'create' ? t('UI_CREATE_LABEL') : t('UI_EDIT_LABEL')}</Text>
             </div>
 
             {/* Preview */}
@@ -206,20 +204,20 @@ export default function LabelPicker({
 
             {/* Name input */}
             <div style={{ marginBottom: 12 }}>
-                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                <Text c="dimmed" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                     {t('UI_TITLE')}
                 </Text>
-                <Input
+                <TextInput
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={t('UI_PLACEHOLDER_LABEL_NAME')}
-                    size="small"
+                    size="sm"
                 />
             </div>
 
             {/* Color picker */}
             <div style={{ marginBottom: 12 }}>
-                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                <Text c="dimmed" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                     {t('UI_SELECT_COLOR')}
                 </Text>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -239,7 +237,7 @@ export default function LabelPicker({
                                 justifyContent: 'center',
                             }}
                         >
-                            {color === c && <CheckOutlined style={{ color: token.colorWhite }} />}
+                            {color === c && <IconCheck size={16} style={{ color: token.colorWhite }} />}
                         </div>
                     ))}
                 </div>
@@ -250,7 +248,7 @@ export default function LabelPicker({
             {/* Actions */}
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Button
-                    type="primary"
+
                     onClick={view === 'create' ? handleCreate : handleUpdate}
                     loading={loading}
                 >
@@ -258,8 +256,8 @@ export default function LabelPicker({
                 </Button>
                 {view === 'edit' && (
                     <Button
-                        danger
-                        icon={<DeleteOutlined />}
+                        color="red"
+                        leftSection={<IconTrash size={16} />}
                         onClick={handleDelete}
                         loading={loading}
                     >

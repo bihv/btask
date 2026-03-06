@@ -1,14 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, Button, Input, Typography, Spin, Tag, Space, App, Row, Col, Empty, Modal, Avatar, Tooltip } from 'antd';
-import { SearchOutlined, ThunderboltOutlined, CheckCircleOutlined, PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { usePublishedPlugins, useWorkspacePlugins, useInstallPluginToWorkspace, useUninstallPluginFromWorkspace } from '@/hooks/usePlugins';
-import { Plugin, PluginInstallation } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { useInstallPluginToWorkspace, usePublishedPlugins, useUninstallPluginFromWorkspace, useWorkspacePlugins } from '@/hooks/usePlugins';
+import { Plugin, PluginInstallation } from '@/types';
+import { useState } from 'react';
 
-const { Title, Text, Paragraph } = Typography;
-
+import { Avatar, Badge, Card, Group, Loader, Modal, SimpleGrid, Text, TextInput, Title, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconBolt, IconCircleCheck, IconInfoCircle, IconSearch } from '@tabler/icons-react';
 interface WorkspacePowerUpsProps {
     workspace: {
         id: string;
@@ -17,7 +16,6 @@ interface WorkspacePowerUpsProps {
 }
 
 export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps) {
-    const { message, modal } = App.useApp();
     const t = useTranslation();
     const [searchText, setSearchText] = useState('');
     const [selectedPlugin, setSelectedPlugin] = useState<Plugin | null>(null);
@@ -43,17 +41,17 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
     const handleInstall = async (plugin: Plugin) => {
         try {
             await installPlugin.mutateAsync({ workspaceId: workspace.id, slug: plugin.slug });
-            message.success(`${plugin.name} installed successfully!`);
+            notifications.show({ message: `${plugin.name} installed successfully!`, color: 'green' });
         } catch (error: any) {
             const errorMsg = error.response?.data?.error || error.message || t('ERROR_INSTALL_PLUGIN');
-            message.error(errorMsg);
+            notifications.show({ title: 'Error', message: errorMsg, color: 'red' });
             console.error('Install failed:', error);
         }
     };
 
     const handleUninstall = async (plugin: Plugin, slug?: string) => {
         const pluginSlug = slug || plugin.slug;
-        modal.confirm({
+        /* TODO: implement confirmation dialog */ ({
             title: `Uninstall ${plugin.name}?`,
             content: t('UI_UNINSTALL_CONFIRM'),
             okText: t('UI_UNINSTALL'),
@@ -61,9 +59,9 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
             onOk: async () => {
                 try {
                     await uninstallPlugin.mutateAsync({ workspaceId: workspace.id, slug: pluginSlug });
-                    message.success(`${plugin.name} uninstalled`);
+                    notifications.show({ message: `${plugin.name} uninstalled`, color: 'green' });
                 } catch {
-                    message.error(t('ERROR_UNINSTALL_PLUGIN'));
+                    notifications.show({ title: 'Error', message: t('ERROR_UNINSTALL_PLUGIN'), color: 'red' });
                 }
             },
         });
@@ -77,7 +75,7 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
     if (loadingAll || loadingInstalled) {
         return (
             <div style={{ textAlign: 'center', padding: 60 }}>
-                <Spin size="large" />
+                <Loader size="lg" />
                 <div style={{ marginTop: 16 }}>{t('UI_LOADING_POWERUPS')}</div>
             </div>
         );
@@ -87,115 +85,115 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <div>
-                    <Title level={3} style={{ margin: 0 }}>
-                        <ThunderboltOutlined /> {t('UI_POWERUPS')}
+                    <Title order={3} style={{ margin: 0 }}>
+                        <IconBolt size={16} /> {t('UI_POWERUPS')}
                     </Title>
-                    <Text type="secondary">{t('UI_POWERUPS_DESC')}</Text>
+                    <Text c="dimmed">{t('UI_POWERUPS_DESC')}</Text>
                 </div>
             </div>
 
             {/* Search */}
-            <Card size="small" style={{ marginBottom: 24 }}>
-                <Input
+            <Card style={{ marginBottom: 24 }}>
+                <TextInput
                     placeholder={t('UI_SEARCH_POWERUPS')}
-                    prefix={<SearchOutlined />}
+                    leftSection={<IconSearch size={16} />}
                     value={searchText}
                     onChange={e => setSearchText(e.target.value)}
                     style={{ maxWidth: 400 }}
-                    allowClear
+
                 />
             </Card>
 
             {/* Installed Plugins Section */}
             {installedPlugins.length > 0 && (
                 <div style={{ marginBottom: 32 }}>
-                    <Title level={5} style={{ marginBottom: 16 }}>
-                        <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
+                    <Title order={5} style={{ marginBottom: 16 }}>
+                        <IconCircleCheck size={16} style={{ color: '#52c41a', marginRight: 8 }} />
                         {t('UI_ENABLED')} ({installedPlugins.length})
                     </Title>
-                    <Row gutter={[16, 16]}>
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                         {installedPlugins.map((installation: PluginInstallation) => (
-                            <Col key={installation.id} xs={24} sm={12} lg={8} xl={6}>
+                            <div>
                                 <Card
-                                    size="small"
-                                    hoverable
+
+                                    withBorder
                                     style={{ height: '100%', borderColor: '#52c41a' }}
                                     onClick={() => installation.plugin && showPluginDetails(installation.plugin)}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                                         <Avatar
                                             src={installation.plugin?.icon_url}
-                                            icon={<ThunderboltOutlined />}
+
                                             size={48}
                                             style={{ backgroundColor: '#1890ff', flexShrink: 0 }}
                                         />
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ fontWeight: 600, marginBottom: 4 }}>{installation.plugin?.name}</div>
-                                            <Paragraph
-                                                type="secondary"
-                                                ellipsis={{ rows: 2 }}
+                                            <Text
+                                                c="dimmed"
+                                                lineClamp={2}
                                                 style={{ marginBottom: 8, fontSize: 12 }}
                                             >
                                                 {installation.plugin?.description || t('UI_NO_DESCRIPTION')}
-                                            </Paragraph>
-                                            <Tag color="green" style={{ margin: 0 }}>{t('UI_ENABLED')}</Tag>
+                                            </Text>
+                                            <Badge color="green" style={{ margin: 0 }}>{t('UI_ENABLED')}</Badge>
                                         </div>
                                     </div>
                                 </Card>
-                            </Col>
+                            </div>
                         ))}
-                    </Row>
+                    </SimpleGrid>
                 </div>
             )}
 
             {/* Available Plugins Section */}
             <div>
-                <Title level={5} style={{ marginBottom: 16 }}>
+                <Title order={5} style={{ marginBottom: 16 }}>
                     {t('UI_AVAILABLE_POWERUPS')} ({filteredPlugins.filter((p: Plugin) => !installedSlugs.has(p.slug)).length})
                 </Title>
 
                 {filteredPlugins.length === 0 ? (
-                    <Empty description={t('UI_NO_POWERUPS')} />
+                    <Text c="dimmed" ta="center" py="xl">{t('UI_NO_POWERUPS')}</Text>
                 ) : (
-                    <Row gutter={[16, 16]}>
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                         {filteredPlugins
                             .filter((plugin: Plugin) => !installedSlugs.has(plugin.slug))
                             .map((plugin: Plugin) => (
-                                <Col key={plugin.id} xs={24} sm={12} lg={8} xl={6}>
+                                <div>
                                     <Card
-                                        size="small"
-                                        hoverable
+
+                                        withBorder
                                         style={{ height: '100%' }}
                                         onClick={() => showPluginDetails(plugin)}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                                             <Avatar
                                                 src={plugin.icon_url}
-                                                icon={<ThunderboltOutlined />}
+
                                                 size={48}
                                                 style={{ backgroundColor: '#8c8c8c', flexShrink: 0 }}
                                             />
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ fontWeight: 600, marginBottom: 4 }}>{plugin.name}</div>
-                                                <Paragraph
-                                                    type="secondary"
-                                                    ellipsis={{ rows: 2 }}
+                                                <Text
+                                                    c="dimmed"
+                                                    lineClamp={2}
                                                     style={{ marginBottom: 8, fontSize: 12 }}
                                                 >
                                                     {plugin.description || t('UI_NO_DESCRIPTION')}
-                                                </Paragraph>
-                                                <Space size={4}>
-                                                    <Tag>{plugin.version}</Tag>
+                                                </Text>
+                                                <Group gap={4}>
+                                                    <Badge>{plugin.version}</Badge>
                                                     {plugin.install_count > 0 && (
-                                                        <Tag color="blue">{plugin.install_count} installs</Tag>
+                                                        <Badge color="blue">{plugin.install_count} installs</Badge>
                                                     )}
-                                                </Space>
+                                                </Group>
                                             </div>
                                         </div>
                                     </Card>
-                                </Col>
+                                </div>
                             ))}
-                    </Row>
+                    </SimpleGrid>
                 )}
             </div>
 
@@ -205,57 +203,35 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Avatar
                             src={selectedPlugin?.icon_url}
-                            icon={<ThunderboltOutlined />}
+
                             size={40}
                             style={{ backgroundColor: '#1890ff' }}
                         />
                         <div>
                             <div style={{ fontWeight: 600 }}>{selectedPlugin?.name}</div>
-                            <Text type="secondary" style={{ fontSize: 12 }}>v{selectedPlugin?.version}</Text>
+                            <Text c="dimmed" style={{ fontSize: 12 }}>v{selectedPlugin?.version}</Text>
                         </div>
                     </div>
                 }
-                open={detailModalOpen}
-                onCancel={() => {
+                opened={detailModalOpen}
+                onClose={() => {
                     setDetailModalOpen(false);
                     setSelectedPlugin(null);
                 }}
-                footer={
-                    selectedPlugin && (
-                        installedSlugs.has(selectedPlugin.slug) ? (
-                            <Button
-                                danger
-                                onClick={() => handleUninstall(selectedPlugin)}
-                                loading={uninstallPlugin.isPending}
-                            >
-                                {t('UI_UNINSTALL')}
-                            </Button>
-                        ) : (
-                            <Button
-                                type="primary"
-                                icon={<PlusOutlined />}
-                                onClick={() => handleInstall(selectedPlugin)}
-                                loading={installPlugin.isPending}
-                            >
-                                {t('UI_ADD_TO_WORKSPACE')}
-                            </Button>
-                        )
-                    )
-                }
-                width={500}
+                size="md"
             >
                 {selectedPlugin && (
                     <div>
-                        <Paragraph>{selectedPlugin.description || t('UI_NO_DESCRIPTION')}</Paragraph>
+                        <Text>{selectedPlugin.description || t('UI_NO_DESCRIPTION')}</Text>
 
                         {selectedPlugin.capabilities && selectedPlugin.capabilities.length > 0 && (
                             <div style={{ marginTop: 16 }}>
-                                <Text strong>{t('UI_CAPABILITIES')}</Text>
+                                <Text fw={700}>{t('UI_CAPABILITIES')}</Text>
                                 <div style={{ marginTop: 8 }}>
                                     {selectedPlugin.capabilities.map((cap, idx) => (
-                                        <Tag key={idx} style={{ marginBottom: 4 }}>
+                                        <Badge key={idx} style={{ marginBottom: 4 }}>
                                             {typeof cap === 'string' ? cap : cap.capability}
-                                        </Tag>
+                                        </Badge>
                                     ))}
                                 </div>
                             </div>
@@ -263,16 +239,16 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
 
                         {selectedPlugin.permissions && selectedPlugin.permissions.length > 0 && (
                             <div style={{ marginTop: 16 }}>
-                                <Text strong>
-                                    <Tooltip title={t('UI_PERMISSIONS_TOOLTIP')}>
-                                        {t('UI_PERMISSIONS')} <InfoCircleOutlined />
+                                <Text fw={700}>
+                                    <Tooltip label={t('UI_PERMISSIONS_TOOLTIP')}>
+                                        {t('UI_PERMISSIONS')} <IconInfoCircle size={16} />
                                     </Tooltip>
                                 </Text>
                                 <div style={{ marginTop: 8 }}>
                                     {selectedPlugin.permissions.map((perm, idx) => (
-                                        <Tag key={idx} color="orange" style={{ marginBottom: 4 }}>
+                                        <Badge key={idx} color="orange" style={{ marginBottom: 4 }}>
                                             {typeof perm === 'string' ? perm : perm.permission}
-                                        </Tag>
+                                        </Badge>
                                     ))}
                                 </div>
                             </div>
@@ -287,12 +263,12 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
                         )}
 
                         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
-                            <Space>
-                                <Text type="secondary">{selectedPlugin.install_count || 0} installs</Text>
+                            <Group>
+                                <Text c="dimmed">{selectedPlugin.install_count || 0} installs</Text>
                                 {selectedPlugin.author && (
-                                    <Text type="secondary">• by {(selectedPlugin.author as any).name || (selectedPlugin.author as any).username || 'Unknown'}</Text>
+                                    <Text c="dimmed">• by {(selectedPlugin.author as any).name || (selectedPlugin.author as any).username || 'Unknown'}</Text>
                                 )}
-                            </Space>
+                            </Group>
                         </div>
                     </div>
                 )}

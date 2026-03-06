@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { Button, List, Tag, Space, Typography, Popconfirm, Empty, App, Modal } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined, HistoryOutlined } from '@ant-design/icons';
-import { useWebhooks, useDeleteWebhook, Webhook } from '@/hooks/useWebhooks';
-import WebhookForm from './WebhookForm';
 import { useTranslation } from '@/hooks/useLabels';
+import { useDeleteWebhook, useWebhooks, Webhook } from '@/hooks/useWebhooks';
+import { useState } from 'react';
+import WebhookForm from './WebhookForm';
 
-const { Text } = Typography;
+import { Badge, Button, Card, Center, Group, Loader, Modal, Stack, Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconCircleCheck, IconCircleX, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 
 interface WebhookManagerProps {
     pluginId: string;
@@ -15,7 +15,6 @@ interface WebhookManagerProps {
 }
 
 export default function WebhookManager({ pluginId, installationId }: WebhookManagerProps) {
-    const { message } = App.useApp();
     const t = useTranslation();
     const { data: webhooks = [], isLoading } = useWebhooks(pluginId, installationId);
     const deleteWebhook = useDeleteWebhook();
@@ -26,21 +25,20 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
     const handleDelete = async (id: string) => {
         try {
             await deleteWebhook.mutateAsync(id);
-            message.success(t('SUCCESS_WEBHOOK_DELETED'));
+            notifications.show({ message: t('SUCCESS_WEBHOOK_DELETED'), color: 'green' });
         } catch {
-            message.error(t('ERROR_DELETE_WEBHOOK_FAILED'));
+            notifications.show({ title: 'Error', message: t('ERROR_DELETE_WEBHOOK_FAILED'), color: 'red' });
         }
     };
 
     return (
         <div>
             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary">
+                <Text c="dimmed">
                     {t('UI_WEBHOOKS_DESCRIPTION')}
                 </Text>
                 <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
+                    leftSection={<IconPlus size={16} />}
                     onClick={() => {
                         setEditingWebhook(null);
                         setIsModalOpen(true);
@@ -50,76 +48,70 @@ export default function WebhookManager({ pluginId, installationId }: WebhookMana
                 </Button>
             </div>
 
-            <List
-                loading={isLoading}
-                dataSource={webhooks}
-                locale={{ emptyText: <Empty description={t('UI_NO_WEBHOOKS')} /> }}
-                renderItem={(item) => (
-                    <List.Item
-                        actions={[
-                            <Button
-                                key="edit"
-                                icon={<EditOutlined />}
-                                size="small"
-                                onClick={() => {
-                                    setEditingWebhook(item);
-                                    setIsModalOpen(true);
-                                }}
-                            >
-                                {t('UI_EDIT')}
-                            </Button>,
-                            <Popconfirm
-                                title={t('UI_DELETE_WEBHOOK')}
-                                description={t('UI_CANNOT_UNDO')}
-                                onConfirm={() => handleDelete(item.id)}
-                                okText={t('UI_DELETE')}
-                                okType="danger"
-                                key="delete"
-                            >
-                                <Button danger icon={<DeleteOutlined />} size="small" />
-                            </Popconfirm>
-                        ]}
-                    >
-                        <List.Item.Meta
-                            title={
-                                <Space>
-                                    <Text strong style={{ wordBreak: 'break-all' }}>{item.callback_url}</Text>
-                                    {item.is_active ?
-                                        <Tag color="success" icon={<CheckCircleOutlined />}>{t('UI_ACTIVE')}</Tag> :
-                                        <Tag color="error" icon={<CloseCircleOutlined />}>{t('UI_INACTIVE')}</Tag>
-                                    }
-                                </Space>
-                            }
-                            description={
-                                <Space direction="vertical" size={0}>
-                                    <Space size={[0, 8]} wrap>
-                                        {item.events.map(event => (
-                                            <Tag key={event} style={{ marginRight: 4 }}>{event}</Tag>
+            {isLoading ? (
+                <Center py="xl"><Loader size="sm" /></Center>
+            ) : webhooks.length === 0 ? (
+                <Text c="dimmed" ta="center" py="xl">{t('UI_NO_WEBHOOKS')}</Text>
+            ) : (
+                <Stack gap={8}>
+                    {webhooks.map((item: Webhook) => (
+                        <Card key={item.id} withBorder>
+                            <Group justify="space-between" align="flex-start">
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <Group gap={8} mb={4}>
+                                        <Text fw={700} style={{ wordBreak: 'break-all' }}>{item.callback_url}</Text>
+                                        {item.is_active ? (
+                                            <Badge color="green" leftSection={<IconCircleCheck size={14} />}>{t('UI_ACTIVE')}</Badge>
+                                        ) : (
+                                            <Badge color="red" leftSection={<IconCircleX size={14} />}>{t('UI_INACTIVE')}</Badge>
+                                        )}
+                                    </Group>
+                                    <Group gap={4} wrap="wrap" mb={4}>
+                                        {item.events.map((event: string) => (
+                                            <Badge key={event} size="sm">{event}</Badge>
                                         ))}
-                                    </Space>
+                                    </Group>
                                     {item.last_triggered_at && (
-                                        <Text type="secondary" style={{ fontSize: 12 }}>
+                                        <Text c="dimmed" size="xs">
                                             {t('UI_LAST_TRIGGERED')} {new Date(item.last_triggered_at).toLocaleString()}
                                             {item.last_error && <span style={{ color: '#ff4d4f', marginLeft: 8 }}>({t('UI_ERROR_LABEL')} {item.last_error})</span>}
                                         </Text>
                                     )}
-                                </Space>
-                            }
-                        />
-                    </List.Item>
-                )}
-            />
+                                </div>
+                                <Group gap={4}>
+                                    <Button
+                                        size="xs"
+                                        variant="subtle"
+                                        leftSection={<IconEdit size={14} />}
+                                        onClick={() => {
+                                            setEditingWebhook(item);
+                                            setIsModalOpen(true);
+                                        }}
+                                    >
+                                        {t('UI_EDIT')}
+                                    </Button>
+                                    <Button
+                                        size="xs"
+                                        variant="subtle"
+                                        color="red"
+                                        leftSection={<IconTrash size={14} />}
+                                        onClick={() => handleDelete(item.id)}
+                                    />
+                                </Group>
+                            </Group>
+                        </Card>
+                    ))}
+                </Stack>
+            )}
 
             <Modal
                 title={editingWebhook ? t('UI_EDIT_WEBHOOK') : t('UI_ADD_WEBHOOK')}
-                open={isModalOpen}
-                onCancel={() => {
+                opened={isModalOpen}
+                onClose={() => {
                     setIsModalOpen(false);
                     setEditingWebhook(null);
                 }}
-                footer={null}
-                width={600}
-                destroyOnClose
+                size="lg"
             >
                 <WebhookForm
                     pluginId={pluginId}

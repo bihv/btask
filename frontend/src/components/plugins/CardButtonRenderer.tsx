@@ -5,13 +5,13 @@
 
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { createRenderIframe, type PluginSlotType } from '@/lib/pluginIframeManager';
-import { usePluginsOptional } from './PluginProvider';
+import { PLUGIN_CAPABILITIES, PLUGIN_SLOTS } from '@/constants/plugin';
+import { createRenderIframe } from '@/lib/pluginIframeManager';
+import { pluginLoader, type LoadedPlugin } from '@/lib/pluginLoader';
 import { useTheme } from '@/providers/ThemeProvider';
 import type { Card } from '@/types';
-import { pluginLoader, type LoadedPlugin } from '@/lib/pluginLoader';
-import { PLUGIN_CAPABILITIES, PLUGIN_SLOTS } from '@/constants/plugin';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePluginsOptional } from './PluginProvider';
 
 interface CardButtonRendererProps {
     card: Card;

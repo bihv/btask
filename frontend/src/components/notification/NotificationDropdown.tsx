@@ -1,18 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Dropdown, Badge, Button, Typography, Spin, Empty, Switch, Tooltip } from 'antd';
-import { BellOutlined, CheckOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import { useNotificationStore, Notification } from '@/stores/notificationStore';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { Notification, useNotificationStore } from '@/stores/notificationStore';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Link from 'next/link';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Button, Indicator, Loader, Popover, Switch, Text, Tooltip } from '@mantine/core';
+import { IconBellFilled, IconCheck, IconEye, IconEyeOff } from '@tabler/icons-react';
 dayjs.extend(relativeTime);
-
-const { Text } = Typography;
 
 export default function NotificationDropdown() {
     // Use individual selectors for proper reactivity
@@ -91,23 +89,23 @@ export default function NotificationDropdown() {
                 justifyContent: 'space-between',
                 alignItems: 'center'
             }}>
-                <Text strong>{t('UI_NOTIFICATIONS')}</Text>
+                <Text fw={700}>{t('UI_NOTIFICATIONS')}</Text>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Tooltip title={t('UI_ONLY_UNREAD')}>
+                    <Tooltip label={t('UI_ONLY_UNREAD')}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                             <Switch
-                                size="small"
+                                size="sm"
                                 checked={unreadOnly}
-                                onChange={(checked) => setUnreadOnly(checked)}
+                                onChange={(e) => setUnreadOnly(e.currentTarget.checked)}
                             />
-                            <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_UNREAD')}</Text>
+                            <Text c="dimmed" style={{ fontSize: 12 }}>{t('UI_UNREAD')}</Text>
                         </div>
                     </Tooltip>
                     {unreadCount > 0 && (
                         <Button
-                            type="link"
-                            size="small"
-                            icon={<CheckOutlined />}
+                            variant="transparent"
+                            size="sm"
+                            leftSection={<IconCheck size={16} />}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 markAllAsRead();
@@ -129,11 +127,9 @@ export default function NotificationDropdown() {
                 }}
             >
                 {notifications.length === 0 && !isLoading ? (
-                    <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={unreadOnly ? t('UI_NO_UNREAD_NOTIFICATIONS') : t('UI_NO_NOTIFICATIONS')}
-                        style={{ padding: 40 }}
-                    />
+                    <Text c="dimmed" ta="center" py="xl">
+                        {unreadOnly ? t('UI_NO_UNREAD_NOTIFICATIONS') : t('UI_NO_NOTIFICATIONS')}
+                    </Text>
                 ) : (
                     <>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -143,7 +139,7 @@ export default function NotificationDropdown() {
                                     style={{
                                         padding: '12px 16px',
                                         cursor: 'pointer',
-                                        background: notification.is_read ? 'transparent' : token.colorPrimaryBg,
+                                        background: notification.is_read ? 'transparent' : 'var(--mantine-primary-color-light)',
                                         display: 'flex',
                                         alignItems: 'flex-start'
                                     }}
@@ -157,36 +153,36 @@ export default function NotificationDropdown() {
                                                 onClick={() => handleNotificationClick(notification)}
                                             >
                                                 <div>
-                                                    <Text strong style={{ display: 'block' }}>
+                                                    <Text fw={700} style={{ display: 'block' }}>
                                                         {notification.title}
                                                     </Text>
-                                                    <Text type="secondary" style={{ fontSize: 12 }}>
+                                                    <Text c="dimmed" style={{ fontSize: 12 }}>
                                                         {notification.message}
                                                     </Text>
-                                                    <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                                                    <Text c="dimmed" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
                                                         {dayjs(notification.created_at).fromNow()}
                                                     </Text>
                                                 </div>
                                             </Link>
                                         ) : (
                                             <div style={{ width: '100%' }}>
-                                                <Text strong style={{ display: 'block' }}>
+                                                <Text fw={700} style={{ display: 'block' }}>
                                                     {notification.title}
                                                 </Text>
-                                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                                <Text c="dimmed" style={{ fontSize: 12 }}>
                                                     {notification.message}
                                                 </Text>
-                                                <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                                                <Text c="dimmed" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
                                                     {dayjs(notification.created_at).fromNow()}
                                                 </Text>
                                             </div>
                                         )}
                                     </div>
-                                    <Tooltip title={notification.is_read ? t('UI_MARK_AS_UNREAD') : t('UI_MARK_AS_READ')}>
+                                    <Tooltip label={notification.is_read ? t('UI_MARK_AS_UNREAD') : t('UI_MARK_AS_READ')}>
                                         <Button
-                                            type="text"
-                                            size="small"
-                                            icon={notification.is_read ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                                            variant="subtle"
+                                            size="sm"
+                                            leftSection={notification.is_read ? <IconEyeOff size={16} /> : <IconEye size={16} />}
                                             onClick={(e) => handleToggleRead(e, notification)}
                                             style={{
                                                 marginLeft: 8,
@@ -200,12 +196,12 @@ export default function NotificationDropdown() {
                         </div>
                         {isLoading && (
                             <div style={{ padding: 16, textAlign: 'center' }}>
-                                <Spin size="small" />
+                                <Loader size="sm" />
                             </div>
                         )}
                         {!hasMore && notifications.length > 0 && (
                             <div style={{ padding: 12, textAlign: 'center' }}>
-                                <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_NO_MORE_NOTIFICATIONS')}</Text>
+                                <Text c="dimmed" style={{ fontSize: 12 }}>{t('UI_NO_MORE_NOTIFICATIONS')}</Text>
                             </div>
                         )}
                     </>
@@ -215,25 +211,30 @@ export default function NotificationDropdown() {
     );
 
     return (
-        <Dropdown
-            open={open}
-            onOpenChange={handleOpenChange}
-            popupRender={() => dropdownContent}
-            trigger={['click']}
-            placement="bottomRight"
+        <Popover
+            opened={open}
+            onChange={handleOpenChange}
+            position="bottom-end"
+            width={380}
         >
-            <Badge count={unreadCount} size="small" offset={[-2, 2]} overflowCount={99}>
-                <Button
-                    type="text"
-                    icon={<BellOutlined style={{ fontSize: 20 }} />}
-                    style={{
-                        color: 'var(--text-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                />
-            </Badge>
-        </Dropdown>
+            <Popover.Target>
+                <Indicator label={unreadCount > 0 ? unreadCount : undefined} size={16} offset={4} disabled={unreadCount === 0}>
+                    <Button
+                        variant="subtle"
+                        leftSection={<IconBellFilled size={20} />}
+                        onClick={() => handleOpenChange(!open)}
+                        style={{
+                            color: 'var(--text-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    />
+                </Indicator>
+            </Popover.Target>
+            <Popover.Dropdown p={0}>
+                {dropdownContent}
+            </Popover.Dropdown>
+        </Popover>
     );
 }

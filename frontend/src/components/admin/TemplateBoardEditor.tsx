@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { Button, Input, App } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
 import styles from '@/components/board/views/kanban/KanbanBoard.module.css';
-import TemplateCardEditModal from './TemplateCardEditModal';
 import api from '@/lib/api';
 import { BoardList, Card } from '@/types';
-import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
+import { useCallback, useState } from 'react';
+import TemplateCardEditModal from './TemplateCardEditModal';
 
+import { Button, TextInput } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 export interface TemplateCardInput {
     id: string;
     title: string;
@@ -54,7 +54,6 @@ const isURL = (str: string): boolean => {
 };
 
 export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEditorProps) {
-    const { message } = App.useApp();
     const [newListTitle, setNewListTitle] = useState('');
     const [isAddingList, setIsAddingList] = useState(false);
     const [editingCard, setEditingCard] = useState<Card | null>(null);
@@ -178,12 +177,12 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
     // Update card from modal
     const handleUpdateCard = (updatedCard: { id: string; title: string; description?: string; cover_url?: string }) => {
         if (!editingCard) return;
-        
+
         onChange(lists.map(list => ({
             ...list,
-            cards: list.cards.map(card => 
-                card.id === updatedCard.id 
-                    ? { ...card, ...updatedCard } 
+            cards: list.cards.map(card =>
+                card.id === updatedCard.id
+                    ? { ...card, ...updatedCard }
                     : card
             )
         })));
@@ -192,18 +191,18 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
 
     return (
         <>
-            <div style={{ 
-                background: 'var(--bg-tertiary)', 
-                padding: 16, 
+            <div style={{
+                background: 'var(--bg-tertiary)',
+                padding: 16,
                 borderRadius: 8,
             }}>
-                <div style={{ 
-                    display: 'flex', 
-                    gap: 12, 
+                <div style={{
+                    display: 'flex',
+                    gap: 12,
                     overflowX: 'auto',
-                    alignItems: 'flex-start' 
+                    alignItems: 'flex-start'
                 }}>
-                    <KanbanBoard 
+                    <KanbanBoard
                         listsData={boardLists}
                         onListsChange={handleListsChange}
                         onCardClick={handleCardClick}
@@ -212,15 +211,14 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
                         readOnly={false}
                         showCovers={true}
                     />
-                    
+
                     {/* Add List Section */}
                     {isAddingList ? (
                         <div className={styles.list} style={{ minWidth: 250, maxWidth: 250, flexShrink: 0 }}>
-                            <Input
+                            <TextInput
                                 value={newListTitle}
                                 onChange={(e) => setNewListTitle(e.target.value)}
                                 placeholder="Enter list title..."
-                                onPressEnter={handleAddList}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Escape') {
                                         setIsAddingList(false);
@@ -230,18 +228,18 @@ export default function TemplateBoardEditor({ lists, onChange }: TemplateBoardEd
                                 autoFocus
                             />
                             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                                <Button type="primary" size="small" onClick={handleAddList}>
-                                    Add list
-                                </Button>
-                                <Button size="small" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
+                                <Button variant="subtle" size="sm" onClick={() => { setIsAddingList(false); setNewListTitle(''); }}>
                                     Cancel
+                                </Button>
+                                <Button size="sm" onClick={handleAddList}>
+                                    Add list
                                 </Button>
                             </div>
                         </div>
                     ) : (
                         <Button
-                            type="dashed"
-                            icon={<PlusOutlined />}
+                            variant="default"
+                            leftSection={<IconPlus size={16} />}
                             onClick={() => setIsAddingList(true)}
                             style={{ minWidth: 250, height: 48, flexShrink: 0 }}
                         >

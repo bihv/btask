@@ -3,19 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAppToken } from '@/hooks/useAppToken';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Typography, Button, Input, Spin, App, Tooltip } from 'antd';
 import AutomationModal from '@/components/board/automation/AutomationModal';
-import {
-    MoreOutlined,
-    ArrowLeftOutlined,
-    StarOutlined,
-    StarFilled,
-    ShareAltOutlined,
-    FilterOutlined,
-    ThunderboltOutlined,
-    RobotOutlined,
-} from '@ant-design/icons';
 import { useBoardStore } from '@/stores/boardStore';
+import { Text, Title, Button, TextInput, Loader, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconDots, IconArrowLeft, IconStar, IconStarFilled, IconShare, IconFilter, IconBolt, IconRobot } from '@tabler/icons-react';
 import {
     KanbanView as KanbanBoard,
     BoardViewSwitcher,
@@ -34,13 +26,10 @@ import api from '@/lib/api';
 import { PluginProvider } from '@/components/plugins';
 import BoardPluginsModal from '@/components/board/plugins/BoardPluginsModal';
 
-const { Text } = Typography;
-
 export default function BoardPage() {
     const router = useRouter();
     const params = useParams();
     const boardId = params.id as string;
-    const { message } = App.useApp();
     const token = useAppToken();
 
     // React Query for fetching board data
@@ -108,7 +97,7 @@ export default function BoardPage() {
                 await updateMutation.mutateAsync({ id: boardId, data: { title: title.trim() } });
                 refetch();
             } catch (error) {
-                message.error('Failed to update title');
+                notifications.show({ title: 'Error', message: 'Failed to update title', color: 'red' });
                 setTitle(board?.title || '');
             }
         }
@@ -123,7 +112,7 @@ export default function BoardPage() {
                 data: { is_starred: !board.is_starred }
             });
         } catch (error) {
-            message.error('Failed to update board');
+            notifications.show({ title: 'Error', message: 'Failed to update board', color: 'red' });
         }
     };
 
@@ -137,7 +126,7 @@ export default function BoardPage() {
             }
             refetch();
         } catch (error) {
-            message.error('Failed to update watch status');
+            notifications.show({ title: 'Error', message: 'Failed to update watch status', color: 'red' });
         }
     };
 
@@ -162,7 +151,7 @@ export default function BoardPage() {
     if (isLoading || !board) {
         return (
             <div className="loading-container" style={{ minHeight: '100%' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
@@ -194,17 +183,17 @@ export default function BoardPage() {
                     {/* Left: Back + Board Name + View Switcher */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Button
-                            type="text"
-                            icon={<ArrowLeftOutlined />}
+                            variant="subtle"
+                            leftSection={<IconArrowLeft size={16} />}
                             onClick={() => router.back()}
                             style={{ color: token.colorWhite }}
                         />
                         {isEditing ? (
-                            <Input
+                            <TextInput
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 onBlur={handleTitleSave}
-                                onPressEnter={handleTitleSave}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleTitleSave(); }}
                                 autoFocus
                                 style={{
                                     width: 200,
@@ -214,7 +203,7 @@ export default function BoardPage() {
                             />
                         ) : (
                             <Text
-                                strong
+                                fw={700}
                                 style={{ fontSize: 16, cursor: 'pointer', color: token.colorWhite }}
                                 onClick={() => setIsEditing(true)}
                             >
@@ -226,18 +215,18 @@ export default function BoardPage() {
 
                     {/* Right: Placeholders + Actions */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Tooltip title="Plugins & Power-Ups">
+                        <Tooltip label="Plugins & Power-Ups">
                             <Button
-                                type="text"
-                                icon={<ThunderboltOutlined />}
+                                variant="subtle"
+                                leftSection={<IconBolt size={16} />}
                                 onClick={() => setPluginsModalOpen(true)}
                                 style={{ color: token.colorWhite }}
                             />
                         </Tooltip>
-                        <Tooltip title="Automation">
+                        <Tooltip label="Automation">
                             <Button
-                                type="text"
-                                icon={<RobotOutlined />}
+                                variant="subtle"
+                                leftSection={<IconRobot size={16} />}
                                 onClick={() => setAutomationModalOpen(true)}
                                 style={{ color: token.colorWhite }}
                             />
@@ -252,10 +241,10 @@ export default function BoardPage() {
                                 onChange={setFilters}
                                 hideNoDateOption={viewMode === 'calendar'}
                             >
-                                <Tooltip title="Filter cards">
+                                <Tooltip label="Filter cards">
                                     <Button
-                                        type={hasActiveFilters(filters) ? 'primary' : 'text'}
-                                        icon={<FilterOutlined />}
+                                        variant={hasActiveFilters(filters) ? "filled" : "subtle"}
+                                        leftSection={<IconFilter size={16} />}
                                         style={!hasActiveFilters(filters) ? { color: token.colorWhite } : {}}
                                     >
                                         {hasActiveFilters(filters) ? 'Filters' : 'Filter'}
@@ -265,10 +254,10 @@ export default function BoardPage() {
                         )}
 
                         {/* Star */}
-                        <Tooltip title={board.is_starred ? 'Unstar' : 'Star'}>
+                        <Tooltip label={board.is_starred ? 'Unstar' : 'Star'}>
                             <Button
-                                type="text"
-                                icon={board.is_starred ? <StarFilled style={{ color: token.colorStarYellow }} /> : <StarOutlined />}
+                                variant="subtle"
+                                leftSection={board.is_starred ? <IconStarFilled size={16} style={{ color: token.colorStarYellow }} /> : <IconStar size={16} />}
                                 onClick={toggleStar}
                                 style={{ color: token.colorWhite }}
                             />
@@ -276,8 +265,8 @@ export default function BoardPage() {
 
                         {/* Share */}
                         <Button
-                            type="text"
-                            icon={<ShareAltOutlined />}
+                            variant="subtle"
+                            leftSection={<IconShare size={16} />}
                             onClick={() => setShareOpen(true)}
                             style={{ color: token.colorWhite }}
                         >
@@ -313,12 +302,10 @@ export default function BoardPage() {
                             }}
                             onCardClick={(cardId) => router.push(`/boards/${boardId}/cards/${cardId}`)}
                         >
-                            <Button type="text" icon={<MoreOutlined />} style={{ color: token.colorWhite }} />
+                            <Button variant="subtle" leftSection={<IconDots size={16} />} style={{ color: token.colorWhite }} />
                         </BoardMenuPopover>
                     </div>
                 </div>
-
-
 
                 {/* Board Views */}
                 <div style={{ flex: 1, overflow: 'hidden' }}>

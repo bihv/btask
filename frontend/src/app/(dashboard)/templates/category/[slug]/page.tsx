@@ -1,16 +1,13 @@
 'use client';
 
-import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Typography, Row, Col, Spin, Empty, Button, Breadcrumb } from 'antd';
-import { LeftOutlined } from '@ant-design/icons';
-import { useTemplates } from '@/hooks/useTemplates';
-import { Template } from '@/types';
 import TemplateCard from '@/components/templates/TemplateCard';
 import { useTranslation } from '@/hooks/useLabels';
+import { useTemplates } from '@/hooks/useTemplates';
+import { Template } from '@/types';
+import { useParams, useRouter } from 'next/navigation';
 
-const { Title, Text } = Typography;
-
+import { Anchor, Breadcrumbs, Button, Center, Loader, SimpleGrid, Text, Title } from '@mantine/core';
+import { IconChevronLeft } from '@tabler/icons-react';
 export default function CategoryPage() {
     const params = useParams();
     const router = useRouter();
@@ -46,7 +43,7 @@ export default function CategoryPage() {
     if (isLoading) {
         return (
             <div style={{ padding: '48px', textAlign: 'center' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
@@ -54,42 +51,41 @@ export default function CategoryPage() {
     return (
         <div style={{ padding: '24px 32px', maxWidth: '1200px', margin: '0 auto' }}>
             {/* Breadcrumb */}
-            <Breadcrumb
-                style={{ marginBottom: '24px' }}
-                items={[
-                    { title: <a onClick={() => router.push('/templates')}>Templates</a> },
-                    { title: categoryName },
-                ]}
-            />
+            <Breadcrumbs style={{ marginBottom: '24px' }}>
+                <Anchor onClick={() => router.push('/templates')}>Templates</Anchor>
+                <Text>{categoryName}</Text>
+            </Breadcrumbs>
 
             {/* Header */}
             <div style={{ marginBottom: '32px' }}>
                 <Button
-                    type="text"
-                    icon={<LeftOutlined />}
+                    variant="subtle"
+                    leftSection={<IconChevronLeft size={16} />}
                     onClick={() => router.push('/templates')}
                     style={{ marginBottom: '16px', padding: 0 }}
                 >
                     {t('UI_BACK_TO_TEMPLATES')}
                 </Button>
-                <Title level={2} style={{ margin: 0 }}>{categoryName} Templates</Title>
-                <Text type="secondary">{templates.length} template{templates.length !== 1 ? 's' : ''} available</Text>
+                <Title order={2} style={{ margin: 0 }}>{categoryName} Templates</Title>
+                <Text c="dimmed">{templates.length} template{templates.length !== 1 ? 's' : ''} available</Text>
             </div>
 
             {/* Templates Grid */}
             {templates.length === 0 ? (
-                <Empty description={`No templates found for ${categoryName}`} />
+                <Center py={48}>
+                    <Text c="dimmed">{`No templates found for ${categoryName}`}</Text>
+                </Center>
             ) : (
-                <Row gutter={[24, 24]}>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                     {templates.map((template: Template) => (
-                        <Col key={template.id} xs={24} sm={12} md={8} lg={8}>
+                        <div>
                             <TemplateCard
                                 template={toCardFormat(template)}
                                 onClick={() => handleTemplateClick(template.id)}
                             />
-                        </Col>
+                        </div>
                     ))}
-                </Row>
+                </SimpleGrid>
             )}
         </div>
     );

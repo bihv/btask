@@ -1,15 +1,13 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, Typography, Spin, Result, Button } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { useTranslation } from '@/hooks/useLabels';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { useTranslation } from '@/hooks/useLabels';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
-const { Title } = Typography;
-
+import { Button, Card, Loader, Text, Title } from '@mantine/core';
+import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 export default function VerifyEmailPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -75,60 +73,62 @@ export default function VerifyEmailPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #206A5D 0%, #3DA88E 100%)',
             padding: '20px'
         }}>
             <Card style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
-                <Title level={3} style={{ marginBottom: 24 }}>
+                <Title order={3} style={{ marginBottom: 24 }}>
                     {t('UI_EMAIL_VERIFICATION')}
                 </Title>
 
                 {status === 'loading' && (
                     <div style={{ padding: '40px 0' }}>
-                        <Spin size="large" />
+                        <Loader size="lg" />
                         <p style={{ marginTop: 16 }}>{t('UI_VERIFYING_EMAIL')}</p>
                     </div>
                 )}
 
                 {status === 'success' && (
-                    <Result
-                        icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                        title={t('UI_EMAIL_VERIFIED')}
-                        subTitle={
-                            <>
-                                {message}
-                                {newEmail && (
-                                    <p style={{ marginTop: 8 }}>
-                                        {t('UI_YOUR_NEW_EMAIL')} <strong>{newEmail}</strong>
-                                    </p>
-                                )}
-                            </>
-                        }
-                        extra={[
-                            <Button type="primary" key="settings" onClick={handleGoToSettings}>
+                    <div style={{ padding: '24px 0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                            <IconCircleCheck size={48} style={{ color: '#52c41a' }} />
+                        </div>
+                        <Title order={4} style={{ marginBottom: 8 }}>{t('UI_EMAIL_VERIFIED')}</Title>
+                        <Text c="dimmed">
+                            {message}
+                            {newEmail && (
+                                <p style={{ marginTop: 8 }}>
+                                    {t('UI_YOUR_NEW_EMAIL')} <strong>{newEmail}</strong>
+                                </p>
+                            )}
+                        </Text>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>
+                            <Button key="settings" onClick={handleGoToSettings}>
                                 {t('UI_GO_TO_SETTINGS')}
-                            </Button>,
-                            <Button key="login" onClick={handleGoToLogin}>
+                            </Button>
+                            <Button key="login" variant="default" onClick={handleGoToLogin}>
                                 {t('UI_LOGIN_AGAIN')}
-                            </Button>,
-                        ]}
-                    />
+                            </Button>
+                        </div>
+                    </div>
                 )}
 
                 {status === 'error' && (
-                    <Result
-                        icon={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                        title={t('UI_VERIFICATION_FAILED')}
-                        subTitle={message}
-                        extra={[
-                            <Button type="primary" key="settings" onClick={handleGoToSettings}>
+                    <div style={{ padding: '24px 0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                            <IconCircleX size={48} style={{ color: '#ff4d4f' }} />
+                        </div>
+                        <Title order={4} style={{ marginBottom: 8 }}>{t('UI_VERIFICATION_FAILED')}</Title>
+                        <Text c="dimmed">{message}</Text>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>
+                            <Button key="settings" onClick={handleGoToSettings}>
                                 {t('UI_GO_TO_SETTINGS')}
-                            </Button>,
-                            <Button key="login" onClick={handleGoToLogin}>
+                            </Button>
+                            <Button key="login" variant="default" onClick={handleGoToLogin}>
                                 {t('UI_GO_TO_LOGIN')}
-                            </Button>,
-                        ]}
-                    />
+                            </Button>
+                        </div>
+                    </div>
                 )}
             </Card>
         </div>

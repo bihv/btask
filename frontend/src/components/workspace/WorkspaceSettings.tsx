@@ -1,82 +1,71 @@
 'use client';
 
-import { Typography, Form, Input, Button, Divider, Popconfirm, App } from 'antd';
-import { Workspace } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { Workspace } from '@/types';
 
-const { Title, Text, Paragraph } = Typography;
+import { Button, Divider, Group, Text, Textarea, TextInput, Title } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
 
 interface WorkspaceSettingsProps {
     workspace: Workspace;
 }
 
 export default function WorkspaceSettings({ workspace }: WorkspaceSettingsProps) {
-    const { message } = App.useApp();
     const t = useTranslation();
-    const [form] = Form.useForm();
 
-    const handleUpdate = (values: any) => {
+    const form = useForm({
+        initialValues: {
+            name: workspace.name,
+            description: workspace.description || '',
+        },
+    });
+
+    const handleUpdate = (values: typeof form.values) => {
         console.log('Update workspace:', values);
-        message.info(t('UI_COMING_SOON'));
+        notifications.show({ message: t('UI_COMING_SOON'), color: 'blue' });
     };
 
     const handleDelete = () => {
         console.log('Delete workspace:', workspace.id);
-        message.info(t('UI_COMING_SOON'));
+        notifications.show({ message: t('UI_COMING_SOON'), color: 'blue' });
     };
 
     return (
         <div>
-            <Title level={4} style={{ marginBottom: 24 }}>{t('UI_WORKSPACE_SETTINGS')}</Title>
+            <Title order={4} mb="lg">{t('UI_WORKSPACE_SETTINGS')}</Title>
 
-            <Form
-                form={form}
-                layout="vertical"
-                initialValues={{
-                    name: workspace.name,
-                    description: workspace.description
-                }}
-                onFinish={handleUpdate}
-            >
-                <Form.Item
-                    name="name"
-                    label={t('UI_WORKSPACE_NAME')}
-                    rules={[{ required: true, message: t('VALIDATE_WORKSPACE_NAME') }]}
-                >
-                    <Input />
-                </Form.Item>
+            <form onSubmit={form.onSubmit(handleUpdate)}>
+                <TextInput
+                    label={t('UI_NAME')}
+                    mb="md"
+                    {...form.getInputProps('name')}
+                />
 
-                <Form.Item
-                    name="description"
+                <Textarea
                     label={t('UI_DESCRIPTION')}
-                >
-                    <Input.TextArea rows={4} />
-                </Form.Item>
+                    rows={4}
+                    mb="lg"
+                    {...form.getInputProps('description')}
+                />
 
-                <Form.Item>
-                    <Button type="primary" htmlType="submit">
+                <Group justify="flex-end">
+                    <Button type="submit">
                         {t('UI_SAVE_CHANGES')}
                     </Button>
-                </Form.Item>
-            </Form>
+                </Group>
+            </form>
 
-            <Divider />
+            <Divider my="xl" />
 
-            <div style={{ padding: '16px', border: '1px solid red', borderRadius: '8px' }}>
-                <Title level={5} type="danger">{t('UI_DANGER_ZONE')}</Title>
-                <Paragraph>
+            <div style={{ padding: '16px', border: '1px solid var(--mantine-color-red-filled)', borderRadius: '8px' }}>
+                <Title order={5} c="red" mb="xs">{t('UI_DANGER_ZONE')}</Title>
+                <Text mb="md">
                     {t('UI_DELETE_WORKSPACE_DESC')}
-                </Paragraph>
-                <Popconfirm
-                    title={t('UI_DELETE_WORKSPACE')}
-                    description={t('UI_CONFIRM_DELETE_WORKSPACE')}
-                    onConfirm={handleDelete}
-                    okText={t('UI_YES_DELETE')}
-                    cancelText={t('UI_CANCEL')}
-                    okButtonProps={{ danger: true }}
-                >
-                    <Button danger>{t('UI_DELETE_WORKSPACE')}</Button>
-                </Popconfirm>
+                </Text>
+                <Button color="red" onClick={handleDelete}>
+                    {t('UI_DELETE_WORKSPACE')}
+                </Button>
             </div>
         </div>
     );

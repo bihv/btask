@@ -1,51 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAppToken } from '@/hooks/useAppToken';
-import { useRouter } from 'next/navigation';
-import {
-    Card,
-    Row,
-    Col,
-    Typography,
-    Button,
-    Modal,
-    Form,
-    Input,
-    Empty,
-    Spin,
-    App,
-    Dropdown,
-} from 'antd';
-import { PlusOutlined, ProjectOutlined, MoreOutlined, TeamOutlined, SettingOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { CreateWorkspaceRequest } from '@/types';
-import { useHeader } from '@/providers/HeaderProvider';
-import { useWorkspaces, useDeleteWorkspace } from '@/hooks/useWorkspaces';
 import ShareModal from '@/components/workspace/ShareModal';
-import { useAuthStore } from '@/stores/authStore';
-import type { MenuProps } from 'antd';
 import { useTranslation } from '@/hooks/useLabels';
+import { useDeleteWorkspace, useWorkspaces } from '@/hooks/useWorkspaces';
+import { useHeader } from '@/providers/HeaderProvider';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-const { Title, Text, Paragraph } = Typography;
-const { confirm } = Modal;
+import { Button, Card, Loader, Menu, SimpleGrid, Text, Title } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconDots, IconLayoutBoard, IconSettings, IconTrash, IconUsers } from '@tabler/icons-react';
 
 export default function WorkspacesPage() {
     const router = useRouter();
     const { setHeaderContent } = useHeader();
-    const { message, modal } = App.useApp();
     const { user } = useAuthStore();
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
     const deleteWorkspace = useDeleteWorkspace();
     const t = useTranslation();
-    const token = useAppToken();
 
     // React Query hooks
     const { data: workspaces = [], isLoading } = useWorkspaces();
-
-    const handleMenuClick = (e: React.MouseEvent, workspaceId: string) => {
-        e.stopPropagation();
-    };
 
     const handleShare = (workspaceId: string) => {
         setSelectedWorkspaceId(workspaceId);
@@ -56,67 +33,21 @@ export default function WorkspacesPage() {
         router.push(`/workspace/${workspaceId}/settings`);
     };
 
-    const handleDelete = (workspaceId: string, workspaceName: string) => {
-        modal.confirm({
-            title: t('UI_DELETE_WORKSPACE'),
-            icon: <ExclamationCircleOutlined />,
-            content: `Are you sure you want to delete "${workspaceName}"? This will delete all boards in this workspace. This action cannot be undone.`,
-            okText: t('UI_DELETE'),
-            okType: 'danger',
-            cancelText: t('UI_CANCEL'),
-            onOk: async () => {
-                try {
-                    await deleteWorkspace.mutateAsync(workspaceId);
-                    message.success(t('UI_WORKSPACE_DELETED'));
-                } catch (error: any) {
-                    message.error(error.response?.data?.error || t('ERROR_DELETE_WORKSPACE'));
-                }
-            },
-        });
-    };
-
-    const getMenuItems = (workspaceId: string, workspaceName: string, ownerId: string): MenuProps['items'] => {
-        const isOwner = user?.id === ownerId;
-
-        return [
-            {
-                key: 'share',
-                icon: <TeamOutlined />,
-                label: t('UI_SHARE_INVITE'),
-                onClick: (e) => {
-                    e.domEvent.stopPropagation();
-                    handleShare(workspaceId);
-                },
-            },
-            {
-                key: 'settings',
-                icon: <SettingOutlined />,
-                label: t('UI_SETTINGS'),
-                onClick: (e) => {
-                    e.domEvent.stopPropagation();
-                    handleSettings(workspaceId);
-                },
-            },
-            { type: 'divider' as const },
-            {
-                key: 'delete',
-                icon: <DeleteOutlined />,
-                label: t('UI_DELETE'),
-                danger: true,
-                disabled: !isOwner,
-                onClick: (e) => {
-                    e.domEvent.stopPropagation();
-                    handleDelete(workspaceId, workspaceName);
-                },
-            },
-        ];
+    const handleDelete = async (workspaceId: string, workspaceName: string) => {
+        if (!window.confirm(`Are you sure you want to delete "${workspaceName}"? This will delete all boards in this workspace. This action cannot be undone.`)) return;
+        try {
+            await deleteWorkspace.mutateAsync(workspaceId);
+            notifications.show({ message: t('UI_WORKSPACE_DELETED'), color: 'green' });
+        } catch (error: any) {
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_DELETE_WORKSPACE'), color: 'red' });
+        }
     };
 
     // Set dynamic header
     useEffect(() => {
         setHeaderContent(
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', justifyContent: 'space-between' }}>
-                <Title level={4} style={{ margin: 0 }}>{t('UI_YOUR_WORKSPACES_TITLE')}</Title>
+                <Title order={4} style={{ margin: 0 }}>{t('UI_YOUR_WORKSPACES_TITLE')}</Title>
 
             </div>
         );
@@ -126,7 +57,7 @@ export default function WorkspacesPage() {
     if (isLoading) {
         return (
             <div className="loading-container">
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
@@ -134,41 +65,60 @@ export default function WorkspacesPage() {
     return (
         <div style={{ padding: 24 }}>
             {workspaces.length === 0 ? (
-                <Empty
-                    description={t('UI_NO_WORKSPACES_YET')}
-                    style={{ marginTop: 48 }}
-                >
-                    <Button type="primary" disabled>
+                <div style={{ textAlign: "center", marginTop: 48 }}>
+                    <Text c="dimmed" mb={16}>{t('UI_NO_WORKSPACES_YET')}</Text>
+                    <Button disabled>
                         {t('UI_USE_CREATE_BUTTON')}
                     </Button>
-                </Empty>
+                </div>
             ) : (
-                <Row gutter={[16, 16]}>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                     {workspaces.map((workspace) => (
-                        <Col xs={24} sm={12} md={8} lg={6} key={workspace.id}>
+                        <div key={workspace.id}>
                             <Card
-                                hoverable
+                                withBorder
                                 onClick={() => router.push(`/workspaces/${workspace.id}`)}
                                 style={{ height: '100%', position: 'relative' }}
                             >
                                 {/* Menu Button */}
-                                <Dropdown
-                                    menu={{ items: getMenuItems(workspace.id, workspace.name, workspace.owner_id) }}
-                                    trigger={['click']}
-                                    placement="bottomRight"
-                                >
-                                    <Button
-                                        type="text"
-                                        icon={<MoreOutlined />}
-                                        onClick={handleMenuClick}
-                                        size="small"
-                                        style={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            right: 8,
-                                        }}
-                                    />
-                                </Dropdown>
+                                <Menu shadow="md" position="bottom-end">
+                                    <Menu.Target>
+                                        <Button
+                                            variant="subtle"
+                                            leftSection={<IconDots size={16} />}
+                                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                            size="sm"
+                                            style={{
+                                                position: 'absolute',
+                                                top: 8,
+                                                right: 8,
+                                            }}
+                                        />
+                                    </Menu.Target>
+                                    <Menu.Dropdown>
+                                        <Menu.Item
+                                            leftSection={<IconUsers size={16} />}
+                                            onClick={(e) => { e.stopPropagation(); handleShare(workspace.id); }}
+                                        >
+                                            {t('UI_SHARE_INVITE')}
+                                        </Menu.Item>
+                                        <Menu.Item
+                                            leftSection={<IconSettings size={16} />}
+                                            onClick={(e) => { e.stopPropagation(); handleSettings(workspace.id); }}
+                                        >
+                                            {t('UI_SETTINGS')}
+                                        </Menu.Item>
+                                        <Menu.Divider />
+                                        <Menu.Item
+                                            leftSection={<IconTrash size={16} />}
+                                            color="red"
+                                            disabled={user?.id !== workspace.owner_id}
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(workspace.id, workspace.name); }}
+                                        >
+                                            {t('UI_DELETE')}
+                                        </Menu.Item>
+                                    </Menu.Dropdown>
+                                </Menu>
                                 <div
                                     style={{
                                         display: 'flex',
@@ -182,11 +132,11 @@ export default function WorkspacesPage() {
                                             width: 40,
                                             height: 40,
                                             borderRadius: 8,
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            background: 'linear-gradient(135deg, #206A5D 0%, #3DA88E 100%)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            color: token.colorWhite,
+                                            color: '#fff',
                                             fontSize: 18,
                                             fontWeight: 600,
                                         }}
@@ -194,29 +144,29 @@ export default function WorkspacesPage() {
                                         {workspace.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <Text strong style={{ fontSize: 16 }}>
+                                        <Text fw={700} style={{ fontSize: 16 }}>
                                             {workspace.name}
                                         </Text>
                                     </div>
                                 </div>
                                 {workspace.description && (
-                                    <Paragraph
-                                        type="secondary"
-                                        ellipsis={{ rows: 2 }}
+                                    <Text
+                                        c="dimmed"
+                                        lineClamp={2}
                                         style={{ margin: 0 }}
                                     >
                                         {workspace.description}
-                                    </Paragraph>
+                                    </Text>
                                 )}
                                 <div style={{ marginTop: 12 }}>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>
-                                        <ProjectOutlined /> {workspace.board_count ?? 0} boards
+                                    <Text c="dimmed" style={{ fontSize: 12 }}>
+                                        <IconLayoutBoard size={16} /> {workspace.board_count ?? 0} boards
                                     </Text>
                                 </div>
                             </Card>
-                        </Col>
+                        </div>
                     ))}
-                </Row>
+                </SimpleGrid>
             )}
 
             {/* Share Modal */}

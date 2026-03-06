@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Button, Select, Empty, Typography } from 'antd';
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { useEffect } from 'react';
 
-const { Text } = Typography;
+import { Button, Group, Modal, Select, Text, TextInput } from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 // Default background
 const DEFAULT_BACKGROUND = SOLID_COLORS[0];
@@ -28,7 +28,6 @@ interface CreateBoardModalProps {
     onCancel: () => void;
     onSubmit: (data: CreateBoardData) => Promise<void>;
     loading?: boolean;
-    // Optional: for workspace selection mode (used in header dropdown)
     workspaces?: Workspace[];
     showWorkspaceSelect?: boolean;
     onCreateWorkspace?: () => void;
@@ -45,32 +44,38 @@ export default function CreateBoardModal({
 }: CreateBoardModalProps) {
     const t = useTranslation();
     const token = useAppToken();
-    const [form] = Form.useForm();
-    const [selectedBackground, setSelectedBackground] = useState(DEFAULT_BACKGROUND);
-    const [selectedImage, setSelectedImage] = useState('');
+
+    const form = useForm({
+        initialValues: {
+            title: '',
+            workspaceId: null as string | null,
+            selectedBackground: DEFAULT_BACKGROUND,
+            selectedImage: '',
+        },
+        validate: {
+            title: (value) => (!value.trim() ? 'Title is required' : null),
+        }
+    });
 
     // Reset form when modal opens
     useEffect(() => {
         if (open) {
-            form.resetFields();
-            setSelectedBackground(DEFAULT_BACKGROUND);
-            setSelectedImage('');
+            form.reset();
         }
-    }, [open, form]);
+    }, [open]);
 
-    const handleSubmit = async (values: { title: string; workspace_id?: string }) => {
+    const handleSubmit = async (values: typeof form.values) => {
+        if (!values.title.trim()) return;
         await onSubmit({
-            title: values.title,
-            background_color: selectedImage ? '' : selectedBackground,
-            background_image: selectedImage,
-            workspace_id: values.workspace_id,
+            title: values.title.trim(),
+            background_color: values.selectedImage ? '' : values.selectedBackground,
+            background_image: values.selectedImage,
+            workspace_id: values.workspaceId || undefined,
         });
     };
 
     const handleCancel = () => {
-        form.resetFields();
-        setSelectedBackground(DEFAULT_BACKGROUND);
-        setSelectedImage('');
+        form.reset();
         onCancel();
     };
 
@@ -79,20 +84,17 @@ export default function CreateBoardModal({
         return (
             <Modal
                 title={t('UI_CREATE_BOARD')}
-                open={open}
-                onCancel={handleCancel}
-                footer={null}
+                opened={open}
+                onClose={handleCancel}
             >
-                <Empty
-                    description={t('UI_NO_WORKSPACES')}
-                    style={{ padding: '24px 0' }}
-                >
+                <div style={{ textAlign: "center", padding: '24px 0' }}>
+                    <Text c="dimmed" mb={16}>{t('UI_NO_WORKSPACES')}</Text>
                     {onCreateWorkspace && (
-                        <Button type="primary" onClick={onCreateWorkspace}>
+                        <Button onClick={onCreateWorkspace}>
                             {t('UI_CREATE_WORKSPACE')}
                         </Button>
                     )}
-                </Empty>
+                </div>
             </Modal>
         );
     }
@@ -100,20 +102,19 @@ export default function CreateBoardModal({
     return (
         <Modal
             title="Create Board"
-            open={open}
-            onCancel={handleCancel}
-            footer={null}
+            opened={open}
+            onClose={handleCancel}
         >
-            <Form form={form} layout="vertical" onFinish={handleSubmit}>
+            <form onSubmit={form.onSubmit(handleSubmit)}>
                 {/* Preview */}
                 <div
                     style={{
                         height: 100,
                         borderRadius: 8,
                         marginBottom: 16,
-                        background: selectedImage
-                            ? `url(${selectedImage}) center/cover`
-                            : selectedBackground,
+                        background: form.values.selectedImage
+                            ? `url(${form.values.selectedImage}) center/cover`
+                            : form.values.selectedBackground,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -126,50 +127,47 @@ export default function CreateBoardModal({
 
                 {/* Workspace Select (optional) */}
                 {showWorkspaceSelect && workspaces && (
-                    <Form.Item
-                        name="workspace_id"
-                        label={t('UI_WORKSPACE')}
-                        rules={[{ required: true, message: t('UI_REQUIRED_SELECT_WORKSPACE') }]}
-                    >
+                    <div style={{ marginBottom: 12 }}>
                         <Select
                             placeholder={t('UI_PLACEHOLDER_SELECT_WORKSPACE')}
-                            options={workspaces.map((ws) => ({
+                            data={workspaces.map((ws) => ({
                                 value: ws.id,
                                 label: ws.name,
                             }))}
+                            {...form.getInputProps('workspaceId')}
                         />
-                    </Form.Item>
+                    </div>
                 )}
 
                 {/* Board Title */}
-                <Form.Item
-                    name="title"
-                    label={t('UI_BOARD_TITLE')}
-                    rules={[{ required: true, message: t('UI_REQUIRED_BOARD_TITLE') }]}
-                >
-                    <Input placeholder="e.g., Project Alpha" autoFocus={!showWorkspaceSelect} />
-                </Form.Item>
+                <div style={{ marginBottom: 12 }}>
+                    <TextInput
+                        placeholder="e.g., Project Alpha"
+                        autoFocus={!showWorkspaceSelect}
+                        {...form.getInputProps('title')}
+                    />
+                </div>
 
                 {/* Background Picker */}
-                <Form.Item label={t('UI_BACKGROUND')}>
+                <div style={{ marginBottom: 16 }}>
                     <BackgroundPicker
-                        value={selectedBackground}
-                        imageValue={selectedImage}
-                        onChange={setSelectedBackground}
-                        onImageChange={setSelectedImage}
+                        value={form.values.selectedBackground}
+                        imageValue={form.values.selectedImage}
+                        onChange={(val) => form.setFieldValue('selectedBackground', val)}
+                        onImageChange={(val) => form.setFieldValue('selectedImage', val)}
                     />
-                </Form.Item>
+                </div>
 
                 {/* Actions */}
-                <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-                    <Button onClick={handleCancel} style={{ marginRight: 8 }}>
+                <Group justify="flex-end">
+                    <Button variant="subtle" onClick={handleCancel}>
                         {t('UI_CANCEL')}
                     </Button>
-                    <Button type="primary" htmlType="submit" loading={loading}>
+                    <Button type="submit" loading={loading}>
                         {t('UI_CREATE')}
                     </Button>
-                </Form.Item>
-            </Form>
+                </Group>
+            </form>
         </Modal>
     );
 }

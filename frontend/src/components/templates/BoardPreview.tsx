@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Typography } from 'antd';
 import KanbanBoard from '@/components/board/views/kanban/KanbanBoard';
-import TemplateCardModal from './TemplateCardModal';
-import { TemplateList, TemplateCard, BoardList, Card } from '@/types';
 import { useAppToken } from '@/hooks/useAppToken';
+import { BoardList, Card, TemplateList } from '@/types';
+import { useMemo, useState } from 'react';
+import TemplateCardModal from './TemplateCardModal';
 
-const { Text } = Typography;
-
+import { Text } from '@mantine/core';
 interface BoardPreviewProps {
     lists: TemplateList[];
     title?: string;
@@ -64,7 +62,7 @@ function convertToLists(templateLists: TemplateList[], fallbackColor: string): B
     }));
 }
 
-export default function BoardPreview({ lists, title, backgroundColor = '#0079bf', backgroundImage }: BoardPreviewProps) {
+export default function BoardPreview({ lists, title, backgroundColor = '#206A5D', backgroundImage }: BoardPreviewProps) {
     const token = useAppToken();
     const convertedLists = useMemo(() => convertToLists(lists, token.colorPrimary), [lists, token.colorPrimary]);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
@@ -110,7 +108,7 @@ export default function BoardPreview({ lists, title, backgroundColor = '#0079bf'
                             backdropFilter: 'blur(8px)',
                         }}
                     >
-                        <Text strong style={{ color: token.colorWhite, fontSize: '14px' }}>{title}</Text>
+                        <Text fw={700} style={{ color: token.colorWhite, fontSize: '14px' }}>{title}</Text>
                         <span
                             style={{
                                 backgroundColor: 'rgba(255,255,255,0.3)',

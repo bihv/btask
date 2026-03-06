@@ -8,17 +8,17 @@
  */
 
 import type { PluginInstallation } from '@/types';
-import { createPluginIframe, ALLOWED_ORIGINS, PLUGIN_TIMEOUT } from './pluginIframeManager';
+import { ALLOWED_ORIGINS, createPluginIframe, PLUGIN_TIMEOUT } from './pluginIframeManager';
 import {
   handleContextRequest,
-  handleModalShow,
-  handleModalClose,
-  handleSnackbarShow,
-  handleTokenRequest,
   handleDataRequest,
   handleDataSave,
   handleDataUpdated,
+  handleModalClose,
+  handleModalShow,
   handleSettingsGet,
+  handleSnackbarShow,
+  handleTokenRequest,
 } from './pluginMessageHandler';
 
 export interface PluginContext {

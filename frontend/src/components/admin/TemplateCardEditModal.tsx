@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Modal, Input, Button, Upload, Typography, Spin, App } from 'antd';
-import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
-import dynamic from 'next/dynamic';
 import { uploadFile } from '@/lib/api';
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 
+import { Button, FileButton, Loader, Modal, Text, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconTrash, IconUpload } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
-    loading: () => <Spin size="small" />,
+    loading: () => <Loader size="sm" />,
 });
-
-const { Text } = Typography;
 
 interface TemplateCardEditModalProps {
     open: boolean;
@@ -26,7 +25,6 @@ interface TemplateCardEditModalProps {
 }
 
 export default function TemplateCardEditModal({ open, card, onSave, onCancel }: TemplateCardEditModalProps) {
-    const { message } = App.useApp();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [coverUrl, setCoverUrl] = useState('');
@@ -42,7 +40,7 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
 
     const handleSave = () => {
         if (!title.trim()) {
-            message.error('Title is required');
+            notifications.show({ title: 'Error', message: 'Title is required', color: 'red' });
             return;
         }
         onSave({
@@ -53,17 +51,17 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
         });
     };
 
-    const handleUpload = async (file: File) => {
+    const handleUpload = async (file: File | null) => {
+        if (!file) return;
         setUploading(true);
         try {
             const url = await uploadFile(file);
             setCoverUrl(url);
         } catch (error) {
-            message.error('Failed to upload cover');
+            notifications.show({ title: 'Error', message: 'Failed to upload cover', color: 'red' });
         } finally {
             setUploading(false);
         }
-        return false; // Prevent default upload behavior
     };
 
     const handleRemoveCover = () => {
@@ -73,23 +71,15 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
     return (
         <Modal
             title="Edit Card"
-            open={open}
-            onCancel={onCancel}
-            width={700}
-            footer={[
-                <Button key="cancel" onClick={onCancel}>
-                    Cancel
-                </Button>,
-                <Button key="save" type="primary" onClick={handleSave}>
-                    Save
-                </Button>,
-            ]}
+            opened={open}
+            onClose={onCancel}
+            size="lg"
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Title */}
                 <div>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>Title</Text>
-                    <Input
+                    <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>Title</Text>
+                    <TextInput
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Card title"
@@ -98,7 +88,7 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
 
                 {/* Cover Image */}
                 <div>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>Cover Image</Text>
+                    <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>Cover Image</Text>
                     {coverUrl ? (
                         <div style={{ position: 'relative', marginBottom: 8 }}>
                             <img
@@ -112,9 +102,9 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
                                 }}
                             />
                             <Button
-                                danger
-                                size="small"
-                                icon={<DeleteOutlined />}
+                                color="red"
+                                size="sm"
+                                leftSection={<IconTrash size={16} />}
                                 onClick={handleRemoveCover}
                                 style={{
                                     position: 'absolute',
@@ -126,23 +116,21 @@ export default function TemplateCardEditModal({ open, card, onSave, onCancel }: 
                             </Button>
                         </div>
                     ) : (
-                        <Upload
-                            beforeUpload={handleUpload}
-                            showUploadList={false}
-                            accept="image/*"
-                        >
-                            <Button icon={<UploadOutlined />} loading={uploading}>
-                                Upload Cover Image
-                            </Button>
-                        </Upload>
+                        <FileButton onChange={handleUpload} accept="image/*">
+                            {(props) => (
+                                <Button {...props} leftSection={<IconUpload size={16} />} loading={uploading}>
+                                    Upload Cover Image
+                                </Button>
+                            )}
+                        </FileButton>
                     )}
                 </div>
 
                 {/* Description */}
                 <div>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>Description</Text>
+                    <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>Description</Text>
                     <RichTextEditor
-                        key={card?.id || 'new'} 
+                        key={card?.id || 'new'}
                         content={description}
                         onChange={setDescription}
                         editable={true}

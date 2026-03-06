@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, AutoComplete, Button, Typography, Spin, Select, App } from 'antd';
-import { DeleteOutlined, CrownOutlined } from '@ant-design/icons';
-import api from '@/lib/api';
 import UserAvatar from '@/components/common/UserAvatar';
-import { useUserSuggest } from '@/hooks/useUsers';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTranslation } from '@/hooks/useLabels';
+import { useUserSuggest } from '@/hooks/useUsers';
+import api from '@/lib/api';
+import { useEffect, useMemo, useState } from 'react';
 
-const { Text } = Typography;
-
+import { Autocomplete, Button, Loader, Modal, Select, Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconCrown, IconTrash } from '@tabler/icons-react';
 interface Member {
     id: string;
     user_id: string;
@@ -49,7 +48,6 @@ export default function ShareModal({
     const [members, setMembers] = useState<Member[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isInviting, setIsInviting] = useState(false);
-    const { message } = App.useApp();
     const t = useTranslation();
 
     const isBoard = type === 'board';
@@ -99,7 +97,7 @@ export default function ShareModal({
 
     const handleInvite = async () => {
         if (!email.trim()) {
-            message.warning(t('WARN_ENTER_EMAIL'));
+            notifications.show({ message: t('WARN_ENTER_EMAIL'), color: 'yellow' });
             return;
         }
 
@@ -109,11 +107,11 @@ export default function ShareModal({
                 email: email.trim(),
                 role
             });
-            message.success(t('SUCCESS_MEMBER_INVITED'));
+            notifications.show({ message: t('SUCCESS_MEMBER_INVITED'), color: 'green' });
             setEmail('');
             fetchMembers();
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_INVITE_MEMBER'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_INVITE_MEMBER'), color: 'red' });
         }
         setIsInviting(false);
     };
@@ -121,10 +119,10 @@ export default function ShareModal({
     const handleRemove = async (userId: string) => {
         try {
             await api.delete(`${basePath}/members/${userId}`);
-            message.success(t('SUCCESS_MEMBER_REMOVED'));
+            notifications.show({ message: t('SUCCESS_MEMBER_REMOVED'), color: 'green' });
             fetchMembers();
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_REMOVE_MEMBER'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_REMOVE_MEMBER'), color: 'red' });
         }
     };
 
@@ -138,32 +136,34 @@ export default function ShareModal({
     return (
         <Modal
             title={title}
-            open={open}
-            onCancel={onClose}
-            footer={null}
-            width={480}
+            opened={open}
+            onClose={onClose}
+            size={480}
         >
             {isOwner && (
                 <div style={{ marginBottom: 24 }}>
-                    <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                    <Text c="dimmed" style={{ display: 'block', marginBottom: 8 }}>
                         {t('UI_INVITE_BY_EMAIL')}
                     </Text>
                     <div style={{ display: 'flex', gap: 8 }}>
-                        <AutoComplete
+                        <Autocomplete
                             value={email}
-                            options={options}
-                            onSelect={handleSelect}
-                            onChange={setEmail}
+                            data={options}
+                            onChange={(val) => {
+                                setEmail(val);
+                                handleSelect(val);
+                            }}
                             placeholder={t('UI_PLACEHOLDER_EMAIL_DOTS')}
                             style={{ flex: 1 }}
-                            notFoundContent={isSearching ? <Spin size="small" /> : null}
+                            rightSection={isSearching ? <Loader size="xs" /> : null}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     handleInvite();
                                 }
                             }}
-                            optionRender={(option) => {
-                                const user = (option.data as any).user;
+                            renderOption={({ option }) => {
+                                const user = (option as any).user;
+                                if (!user) return <Text>{(option as any).label || option.value}</Text>;
                                 return (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
                                         <UserAvatar
@@ -185,15 +185,14 @@ export default function ShareModal({
                         />
                         <Select
                             value={role}
-                            onChange={setRole}
+                            onChange={(val) => setRole(val || 'member')}
                             style={{ width: 100 }}
-                            options={[
+                            data={[
                                 { value: 'member', label: t('UI_MEMBER') },
                                 { value: 'admin', label: t('UI_ADMIN') },
                             ]}
                         />
                         <Button
-                            type="primary"
                             onClick={handleInvite}
                             loading={isInviting}
                         >
@@ -204,13 +203,13 @@ export default function ShareModal({
             )}
 
             <div>
-                <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                <Text c="dimmed" style={{ display: 'block', marginBottom: 8 }}>
                     {t('UI_MEMBERS')} ({members.length})
                 </Text>
 
                 {isLoading ? (
                     <div style={{ textAlign: 'center', padding: 20 }}>
-                        <Spin />
+                        <Loader />
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -245,7 +244,7 @@ export default function ShareModal({
                                         <div style={{ fontWeight: 500 }}>
                                             {member.user?.full_name || member.user?.email}
                                             {member.role === 'owner' && (
-                                                <CrownOutlined
+                                                <IconCrown size={16}
                                                     style={{ marginLeft: 8, color: '#faad14' }}
                                                 />
                                             )}
@@ -257,8 +256,7 @@ export default function ShareModal({
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                                    <Text
-                                        type="secondary"
+                                    <Text c="dimmed"
                                         style={{
                                             fontSize: 12,
                                             textTransform: 'capitalize',
@@ -269,9 +267,9 @@ export default function ShareModal({
                                     </Text>
                                     {isOwner && member.role !== 'owner' && (
                                         <Button
-                                            type="text"
-                                            danger
-                                            icon={<DeleteOutlined />}
+                                            variant="subtle"
+                                            color="red"
+                                            leftSection={<IconTrash size={16} />}
                                             onClick={() => handleRemove(member.user_id)}
                                         />
                                     )}

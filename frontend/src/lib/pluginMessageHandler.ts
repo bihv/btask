@@ -3,8 +3,8 @@
  * Handles postMessage communication between host and plugins
  */
 
-import type { LoadedPlugin } from './pluginLoader';
 import api from '@/lib/api';
+import type { LoadedPlugin } from './pluginLoader';
 
 interface MessageHandlerContext {
     loadedPlugins: Map<string, LoadedPlugin>;
@@ -103,7 +103,6 @@ export function handleTokenRequest(
         );
     }
 }
-
 
 /**
  * Handle data request from plugin

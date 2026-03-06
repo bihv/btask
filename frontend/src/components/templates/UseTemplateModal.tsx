@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Modal, Select, Input, Form, App, Spin } from 'antd';
-import { useRouter } from 'next/navigation';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useTemplateToBoard } from '@/hooks/useTemplates';
-import type { Template } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { useTemplateToBoard } from '@/hooks/useTemplates';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import type { Template } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
+import { Button, Group, Loader, Modal, Select, TextInput } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
 interface UseTemplateModalProps {
     template: Template;
     open: boolean;
@@ -15,9 +17,7 @@ interface UseTemplateModalProps {
 }
 
 export default function UseTemplateModal({ template, open, onClose }: UseTemplateModalProps) {
-    const [form] = Form.useForm();
     const router = useRouter();
-    const { message } = App.useApp();
     const t = useTranslation();
 
     const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
@@ -25,37 +25,41 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
 
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
 
-    const handleSubmit = () => {
-        form.validateFields().then((values) => {
-            if (!selectedWorkspaceId) {
-                message.error(t('VALIDATE_SELECT_WORKSPACE'));
-                return;
-            }
+    const form = useForm({
+        initialValues: {
+            boardTitle: template.title,
+        },
+    });
 
-            createFromTemplate(
-                {
-                    templateId: template.id,
-                    workspaceId: selectedWorkspaceId,
-                    boardTitle: values.boardTitle || template.title,
+    const handleSubmit = (values: typeof form.values) => {
+        if (!selectedWorkspaceId) {
+            notifications.show({ title: 'Error', message: t('VALIDATE_SELECT_WORKSPACE'), color: 'red' });
+            return;
+        }
+
+        createFromTemplate(
+            {
+                templateId: template.id,
+                workspaceId: selectedWorkspaceId,
+                boardTitle: values.boardTitle || template.title,
+            },
+            {
+                onSuccess: (board) => {
+                    onClose();
+                    form.reset();
+                    // Redirect to the new board
+                    router.push(`/boards/${board.id}`);
                 },
-                {
-                    onSuccess: (board) => {
-                        onClose();
-                        form.resetFields();
-                        // Redirect to the new board
-                        router.push(`/boards/${board.id}`);
-                    },
-                    onError: (error: any) => {
-                        const errorMsg = error?.response?.data?.message || t('ERROR_CREATE_FROM_TEMPLATE');
-                        message.error(errorMsg);
-                    },
-                }
-            );
-        });
+                onError: (error: any) => {
+                    const errorMsg = error?.response?.data?.message || t('ERROR_CREATE_FROM_TEMPLATE');
+                    notifications.show({ title: 'Error', message: errorMsg, color: 'red' });
+                },
+            }
+        );
     };
 
     const handleCancel = () => {
-        form.resetFields();
+        form.reset();
         setSelectedWorkspaceId('');
         onClose();
     };
@@ -63,13 +67,9 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
     return (
         <Modal
             title={t('UI_USE_TEMPLATE')}
-            open={open}
-            onOk={handleSubmit}
-            onCancel={handleCancel}
-            confirmLoading={isPending}
-            okText={t('UI_CREATE_BOARD')}
-            cancelText={t('UI_CANCEL')}
-            width={500}
+            opened={open}
+            onClose={handleCancel}
+            size={500}
         >
             <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
@@ -79,7 +79,7 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                             height: '40px',
                             background: template.cover_url
                                 ? `url(${template.cover_url}) center/cover`
-                                : template.cover_color || '#0079bf',
+                                : template.cover_color || '#206A5D',
                             borderRadius: '6px',
                             display: 'flex',
                             alignItems: 'center',
@@ -104,21 +104,11 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                 </div>
             </div>
 
-            <Form
-                form={form}
-                layout="vertical"
-                initialValues={{
-                    boardTitle: template.title,
-                }}
-            >
-                <Form.Item
-                    label={t('UI_WORKSPACE')}
-                    name="workspaceId"
-                    rules={[{ required: true, message: t('VALIDATE_SELECT_WORKSPACE') }]}
-                >
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+                <div style={{ marginBottom: '16px' }}>
                     {isLoadingWorkspaces ? (
                         <div style={{ textAlign: 'center', padding: '12px' }}>
-                            <Spin size="small" />
+                            <Loader size="sm" />
                         </div>
                     ) : workspaces.length === 0 ? (
                         <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)' }}>
@@ -127,32 +117,35 @@ export default function UseTemplateModal({ template, open, onClose }: UseTemplat
                     ) : (
                         <Select
                             placeholder={t('UI_PLACEHOLDER_WORKSPACE')}
-                            size="large"
-                            value={selectedWorkspaceId || undefined}
-                            onChange={setSelectedWorkspaceId}
-                            options={workspaces.map((ws) => ({
+                            size="md"
+                            value={selectedWorkspaceId || null}
+                            onChange={(val) => val && setSelectedWorkspaceId(val)}
+                            data={workspaces.map((ws) => ({
                                 label: ws.name,
                                 value: ws.id,
                             }))}
                         />
                     )}
-                </Form.Item>
+                </div>
 
-                <Form.Item
-                    label={t('UI_BOARD_TITLE')}
-                    name="boardTitle"
-                    rules={[
-                        { required: true, message: t('VALIDATE_BOARD_TITLE') },
-                        { min: 1, max: 100, message: t('VALIDATE_TITLE_LENGTH') },
-                    ]}
-                >
-                    <Input
+                <div style={{ marginBottom: '24px' }}>
+                    <TextInput
                         placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')}
-                        size="large"
+                        size="md"
                         maxLength={100}
+                        {...form.getInputProps('boardTitle')}
                     />
-                </Form.Item>
-            </Form>
+                </div>
+
+                <Group justify="flex-end">
+                    <Button variant="subtle" onClick={handleCancel}>
+                        {t('UI_CANCEL')}
+                    </Button>
+                    <Button type="submit" loading={isPending}>
+                        {t('UI_CREATE_BOARD')}
+                    </Button>
+                </Group>
+            </form>
         </Modal>
     );
 }

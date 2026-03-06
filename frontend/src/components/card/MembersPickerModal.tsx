@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import { App } from 'antd';
-import { User, CardMember } from '@/types';
 import MemberPickerModal from '@/components/common/MemberPickerModal';
-import api from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
+import api from '@/lib/api';
+import { CardMember, User } from '@/types';
 
+import { notifications } from '@mantine/notifications';
 interface CardMembersPickerModalProps {
     open: boolean;
     onClose: () => void;
@@ -24,8 +23,7 @@ export default function MembersPickerModal({
     workspaceMembers,
     onUpdate,
 }: CardMembersPickerModalProps) {
-    const { message } = App.useApp();
-    const t = useTranslation();
+        const t = useTranslation();
 
     const selectedMemberIds = cardMembers?.map((cm) => cm.user_id) || [];
 
@@ -40,7 +38,7 @@ export default function MembersPickerModal({
             }
             await onUpdate();
         } catch (error) {
-            message.error(t('ERROR_UPDATE_MEMBER'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_MEMBER'), color: 'red' });
         }
     };
 
@@ -54,7 +52,7 @@ export default function MembersPickerModal({
             );
             await onUpdate();
         } catch (error) {
-            message.error(t('ERROR_REMOVE_MEMBERS'));
+            notifications.show({ title: 'Error', message: t('ERROR_REMOVE_MEMBERS'), color: 'red' });
         }
     };
 

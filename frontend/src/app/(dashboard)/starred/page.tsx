@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useEffect } from 'react';
 import { useAppToken } from '@/hooks/useAppToken';
-import { useRouter } from 'next/navigation';
-import { Typography, Spin, Empty, Card, Row, Col } from 'antd';
-import { StarFilled } from '@ant-design/icons';
-import { useHeader } from '@/providers/HeaderProvider';
 import { useStarredBoards, useUpdateBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
+import { useHeader } from '@/providers/HeaderProvider';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-const { Title, Text } = Typography;
-
+import { Card, Center, Loader, SimpleGrid, Text, Title } from '@mantine/core';
+import { IconStarFilled } from '@tabler/icons-react';
 export default function StarredPage() {
     const router = useRouter();
     const { setHeaderContent } = useHeader();
@@ -23,7 +21,7 @@ export default function StarredPage() {
 
     useEffect(() => {
         setHeaderContent(
-            <Title level={4} style={{ margin: 0 }}>{t('UI_STARRED_BOARDS')}</Title>
+            <Title order={4} style={{ margin: 0 }}>{t('UI_STARRED_BOARDS')}</Title>
         );
         return () => setHeaderContent(null);
     }, [setHeaderContent]);
@@ -39,7 +37,7 @@ export default function StarredPage() {
     if (isLoading) {
         return (
             <div className="loading-container" style={{ minHeight: '100%' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
@@ -47,16 +45,13 @@ export default function StarredPage() {
     return (
         <div style={{ padding: 24 }}>
             {boards.length === 0 ? (
-                <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={t('UI_NO_STARRED_BOARDS')}
-                />
+                <Center py="xl"><Text c="dimmed">{t('UI_NO_STARRED_BOARDS')}</Text></Center>
             ) : (
-                <Row gutter={[16, 16]}>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                     {boards.map((board) => (
-                        <Col key={board.id} xs={24} sm={12} md={8} lg={6}>
+                        <div>
                             <Card
-                                hoverable
+                                withBorder
                                 style={{
                                     background: board.background_image
                                         ? `url(${board.background_image}) center/cover`
@@ -64,25 +59,17 @@ export default function StarredPage() {
                                     borderRadius: 8,
                                     height: 100,
                                 }}
-                                styles={{
-                                    body: {
-                                        padding: 12,
-                                        height: '100%',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'space-between',
-                                    }
-                                }}
+                                
                                 onClick={() => handleBoardClick(board.id)}
                             >
                                 <Text
-                                    strong
+                                    fw={700}
                                     style={{
                                         color: token.colorWhite,
                                         fontSize: 16,
                                         textShadow: `0 1px 2px ${token.colorShadowHeavy}`,
                                     }}
-                                    ellipsis
+                                    truncate
                                 >
                                     {board.title}
                                 </Text>
@@ -92,22 +79,20 @@ export default function StarredPage() {
                                         justifyContent: 'flex-end',
                                     }}
                                 >
-                                    <StarFilled
-                                        style={{
-                                            color: token.colorStarYellow,
-                                            cursor: 'pointer',
-                                            fontSize: 18,
-                                        }}
+                                    <div
+                                        style={{ cursor: 'pointer', color: '#faad14' }}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             toggleStar(board.id);
                                         }}
-                                    />
+                                    >
+                                        <IconStarFilled size={18} />
+                                    </div>
                                 </div>
                             </Card>
-                        </Col>
+                        </div>
                     ))}
-                </Row>
+                </SimpleGrid>
             )}
         </div>
     );

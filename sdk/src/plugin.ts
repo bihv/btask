@@ -5,27 +5,27 @@
 import EventEmitter from 'eventemitter3';
 import { MelloClient } from './client';
 import {
-  PluginError,
+  DataError,
   InitializationError,
   PermissionError,
-  DataError,
+  PluginError,
   PluginErrorCode,
 } from './errors';
 import type {
-  PluginManifest,
-  PluginContext,
-  PluginCapability,
-  DataScope,
+  AttachmentSection,
+  BoardButton,
+  CardBackSection,
   CardBadge,
   CardButton,
-  CardBackSection,
-  BoardButton,
-  AttachmentSection,
-  ModalOptions,
-  SnackbarType,
-  EventType,
+  DataScope,
   EventPayload,
+  EventType,
   HookRegistration,
+  ModalOptions,
+  PluginCapability,
+  PluginContext,
+  PluginManifest,
+  SnackbarType,
 } from './types';
 
 export class MelloPlugin extends EventEmitter {
@@ -50,7 +50,7 @@ export class MelloPlugin extends EventEmitter {
 
     // Request context from parent window
     await this.requestContext();
-    
+
     this.emit('initialized');
   }
 

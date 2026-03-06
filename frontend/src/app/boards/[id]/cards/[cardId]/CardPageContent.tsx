@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Spin, Typography, Button, App } from 'antd';
 import { Card } from '@/types';
 import { useBoardStore } from '@/stores/boardStore';
 import api, { attachmentApi } from '@/lib/api';
@@ -11,6 +10,8 @@ import { useCard, useBoardLabels, useWorkspaceMembers, useAddComment, useUpdateC
 import { useQueryClient } from '@tanstack/react-query';
 import { useReactToPrint } from 'react-to-print';
 
+import { Loader, Text, Title, Button } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 // Card components
 import CardHeader from '@/components/card/CardHeader';
 import CardMainContent from '@/components/card/CardMainContent';
@@ -22,8 +23,6 @@ import LabelPickerModal from '@/components/card/LabelPickerModal';
 import styles from './CardPageContent.module.css';
 import { pluginLoader } from '@/lib/pluginLoader';
 import { usePluginsOptional } from '@/components/plugins';
-
-const { Text } = Typography;
 
 // Helper to extract all file URLs from BlockNote JSON content
 const extractFileUrls = (content: string): string[] => {
@@ -74,8 +73,7 @@ export default function CardPageContent() {
     const { updateCard, currentBoard, fetchBoard } = useBoardStore();
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
-    const { message } = App.useApp();
-    const pluginContext = usePluginsOptional();
+        const pluginContext = usePluginsOptional();
     const loadingPlugins = pluginContext?.loading ?? true;
 
     const invalidateBoardCache = () => {
@@ -88,7 +86,6 @@ export default function CardPageContent() {
             pluginLoader.broadcast('card:opened', { cardId });
         }
     }, [cardId, loadingPlugins]);
-
 
     // Print Logic
     const printContentRef = useRef<HTMLDivElement>(null);
@@ -129,7 +126,7 @@ export default function CardPageContent() {
                     await fetchBoard(boardId);
                 }
             } catch (error) {
-                message.error('Failed to load board');
+                notifications.show({ title: 'Error', message: 'Failed to load board', color: 'red' });
             } finally {
                 setLoading(false);
             }
@@ -183,7 +180,7 @@ export default function CardPageContent() {
     if (loading || isCardLoading) {
         return (
             <div className="loading-container" style={{ minHeight: 300 }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }

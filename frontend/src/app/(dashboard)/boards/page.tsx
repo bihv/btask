@@ -1,39 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-    Typography,
-    Button,
-    Modal,
-    Form,
-    Input,
-    Empty,
-    Spin,
-    App,
-    Select,
-} from 'antd';
-import {
-    PlusOutlined,
-    ProjectOutlined,
-    TeamOutlined,
-    SettingOutlined,
-    ClockCircleOutlined,
-    AppstoreOutlined,
-    StarOutlined,
-} from '@ant-design/icons';
-import { CreateBoardRequest, Board, Workspace } from '@/types';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import { useCreateBoard, useStarredBoards, useRecentlyViewedBoards, useUpdateBoard } from '@/hooks/useBoards';
 import BackgroundPicker from '@/components/board/BackgroundPicker';
 import BoardCard from '@/components/board/BoardCard';
-import styles from './boards.module.css';
+import { useCreateBoard, useRecentlyViewedBoards, useStarredBoards, useUpdateBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { Board, Workspace } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import styles from './boards.module.css';
 
-const { Title, Text } = Typography;
-
-
-
+import { Button, Center, Loader, Modal, Text, TextInput, Title } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconClock, IconLayoutBoard, IconSettings, IconStar, IconUsers } from '@tabler/icons-react';
 // Create new board card
 function CreateBoardCard({ onClick, label }: { onClick: () => void; label: string }) {
     return (
@@ -83,7 +63,7 @@ function WorkspaceSection({
     // Generate gradient based on workspace name
     const getGradient = (name: string) => {
         const gradients = [
-            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #206A5D 0%, #3DA88E 100%)',
             'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
             'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
             'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
@@ -107,31 +87,31 @@ function WorkspaceSection({
                     >
                         {initial}
                     </div>
-                    <Text strong className={styles.workspaceName}>
+                    <Text fw={700} className={styles.workspaceName}>
                         {workspace.name}
                     </Text>
                 </div>
                 <div className={styles.workspaceActions}>
                     <Button
-                        type="text"
-                        size="small"
-                        icon={<ProjectOutlined />}
+                        variant="subtle"
+                        size="sm"
+                        leftSection={<IconLayoutBoard size={16} />}
                         onClick={() => router.push(`/workspace/${workspace.id}/boards`)}
                     >
                         {t('UI_BOARDS')}
                     </Button>
                     <Button
-                        type="text"
-                        size="small"
-                        icon={<TeamOutlined />}
+                        variant="subtle"
+                        size="sm"
+                        leftSection={<IconUsers size={16} />}
                         onClick={() => router.push(`/workspace/${workspace.id}/members`)}
                     >
                         {t('UI_WORKSPACE_MEMBERS')}
                     </Button>
                     <Button
-                        type="text"
-                        size="small"
-                        icon={<SettingOutlined />}
+                        variant="subtle"
+                        size="sm"
+                        leftSection={<IconSettings size={16} />}
                         onClick={() => router.push(`/workspace/${workspace.id}/settings`)}
                     >
                         {t('UI_SETTINGS')}
@@ -176,8 +156,8 @@ function StarredBoardsSection({
     return (
         <div className={styles.section}>
             <div className={styles.sectionHeader}>
-                <StarOutlined />
-                <Title level={5} style={{ margin: 0 }}>
+                <IconStar size={16} />
+                <Title order={5} style={{ margin: 0 }}>
                     Starred boards
                 </Title>
             </div>
@@ -211,8 +191,8 @@ function RecentlyViewedSection({
     return (
         <div className={styles.section}>
             <div className={styles.sectionHeader}>
-                <ClockCircleOutlined />
-                <Title level={5} style={{ margin: 0 }}>
+                <IconClock size={16} />
+                <Title order={5} style={{ margin: 0 }}>
                     Recently viewed
                 </Title>
             </div>
@@ -233,15 +213,18 @@ function RecentlyViewedSection({
 
 export default function BoardsPage() {
     const router = useRouter();
-    const { message } = App.useApp();
     const [createBoardModalOpen, setCreateBoardModalOpen] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
-    const [boardForm] = Form.useForm();
     const t = useTranslation();
 
-    // Watch form values
-    const backgroundColor = Form.useWatch('background_color', boardForm);
-    const backgroundImage = Form.useWatch('background_image', boardForm);
+    // Board form state
+    const form = useForm({
+        initialValues: {
+            title: '',
+            background_color: '',
+            background_image: '',
+        }
+    });
 
     // React Query hooks
     const { data: workspaces = [], isLoading } = useWorkspaces();
@@ -253,7 +236,6 @@ export default function BoardsPage() {
         updateMutation.mutate({ id: boardId, data: { is_starred: !isStarred } });
     };
 
-
     // Get the selected workspace for board creation
     const selectedWorkspace = workspaces.find((w) => w.id === selectedWorkspaceId);
     const createBoardMutation = useCreateBoard(selectedWorkspaceId || '');
@@ -263,30 +245,31 @@ export default function BoardsPage() {
         setCreateBoardModalOpen(true);
     };
 
-    const handleCreateBoard = async (values: CreateBoardRequest) => {
-        if (!selectedWorkspaceId) return;
+    const handleCreateBoard = async (values: typeof form.values) => {
+        if (!selectedWorkspaceId || !values.title.trim()) return;
         try {
-            const newBoard = await createBoardMutation.mutateAsync(values);
+            const newBoard = await createBoardMutation.mutateAsync({
+                title: values.title,
+                background_color: values.background_color,
+                background_image: values.background_image,
+            });
             setCreateBoardModalOpen(false);
-            boardForm.resetFields();
+            form.reset();
             router.push(`/boards/${newBoard.id}`);
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_CREATE_BOARD'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_CREATE_BOARD'), color: 'red' });
         }
     };
-
-
 
     if (isLoading) {
         return (
             <div className="loading-container">
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
 
     // Background color options for board creation (Moved to BackgroundPicker component)
-
 
     return (
         <div className={styles.container}>
@@ -299,24 +282,23 @@ export default function BoardsPage() {
             {/* Your Workspaces Section */}
             <div className={styles.section}>
                 <div className={styles.sectionHeader}>
-                    <Title level={5} style={{ margin: 0 }}>
+                    <Title order={5} style={{ margin: 0 }}>
                         YOUR WORKSPACES
                     </Title>
                 </div>
 
                 {workspaces.length === 0 ? (
-                    <Empty
-                        description={t('UI_NO_WORKSPACES_YET')}
-                        style={{ marginTop: 48, marginBottom: 48 }}
-                    >
-                        <Button
-                            type="primary"
-                            onClick={() => { }} // User should use Header Create button
-                            disabled
-                        >
-                            {t('UI_CREATE_FIRST_WORKSPACE')}
-                        </Button>
-                    </Empty>
+                    <Center py={48}>
+                        <div style={{ textAlign: 'center' }}>
+                            <Text c="dimmed" mb={16}>{t('UI_NO_WORKSPACES_YET')}</Text>
+                            <Button
+                                onClick={() => { }}
+                                disabled
+                            >
+                                {t('UI_CREATE_FIRST_WORKSPACE')}
+                            </Button>
+                        </div>
+                    </Center>
                 ) : (
                     <>
                         {workspaces.map((workspace) => (
@@ -335,69 +317,57 @@ export default function BoardsPage() {
             {/* Create Board Modal */}
             <Modal
                 title={t('UI_CREATE_BOARD')}
-                open={createBoardModalOpen}
-                onCancel={() => {
+                opened={createBoardModalOpen}
+                onClose={() => {
                     setCreateBoardModalOpen(false);
-                    boardForm.resetFields();
+                    form.reset();
                 }}
-                footer={null}
-                width={400}
+                size="md"
             >
-                <Form form={boardForm} layout="vertical" onFinish={handleCreateBoard} style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: 8 }}>
-                    <Form.Item
-                        name="title"
-                        label={t('UI_BOARD_TITLE')}
-                        rules={[{ required: true, message: t('VALIDATE_BOARD_TITLE') }]}
-                    >
-                        <Input placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')} autoFocus />
-                    </Form.Item>
+                <form onSubmit={form.onSubmit(handleCreateBoard)} style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: 8 }}>
+                    <div>
+                        <TextInput
+                            placeholder={t('UI_PLACEHOLDER_BOARD_TITLE')}
+                            autoFocus
+                            {...form.getInputProps('title')}
+                        />
+                    </div>
 
                     <div style={{ marginBottom: 16 }}>
-                        <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+                        <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>
                             {t('UI_BACKGROUND')}
-                        </Typography.Text>
-                        <Form.Item name="background_color" noStyle initialValue="#0079bf">
-                            <Input type="hidden" />
-                        </Form.Item>
-                        <Form.Item name="background_image" noStyle>
-                            <Input type="hidden" />
-                        </Form.Item>
+                        </Text>
                         <BackgroundPicker
-                            value={backgroundColor}
-                            imageValue={backgroundImage}
+                            value={form.values.background_color}
+                            imageValue={form.values.background_image}
                             onChange={(color) => {
-                                boardForm.setFieldsValue({
-                                    background_color: color,
-                                    background_image: '', // Clear image if color is selected
-                                });
+                                form.setFieldValue('background_color', color);
+                                form.setFieldValue('background_image', '');
                             }}
                             onImageChange={(url) => {
-                                boardForm.setFieldsValue({
-                                    background_image: url,
-                                    background_color: '', // Clear color if image is selected
-                                });
+                                form.setFieldValue('background_image', url);
+                                form.setFieldValue('background_color', '');
                             }}
                         />
                     </div>
 
                     <div className={styles.workspaceLabel}>
-                        <Text type="secondary">
+                        <Text c="dimmed">
                             Workspace: <strong>{selectedWorkspace?.name}</strong>
                         </Text>
                     </div>
-                    <Form.Item style={{ marginBottom: 0, marginTop: 16 }}>
+                    <div>
                         <Button
-                            type="primary"
-                            htmlType="submit"
-                            block
+
+                            type="submit"
+                            fullWidth
                             loading={createBoardMutation.isPending}
                         >
                             {t('UI_CREATE')}
                         </Button>
-                    </Form.Item>
-                </Form>
+                    </div>
+                </form>
             </Modal>
-
 
         </div>
     );

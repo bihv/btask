@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useTheme } from '@/providers/ThemeProvider';
-import { Input, Button, Space, App } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from '@/hooks/useLabels';
-import { Checklist, ChecklistItem, User, BoardList } from '@/types';
-import { checklistApi } from '@/lib/api';
-import api from '@/lib/api';
+import api, { checklistApi } from '@/lib/api';
+import { useTheme } from '@/providers/ThemeProvider';
+import { BoardList, Checklist, ChecklistItem, User } from '@/types';
+import React, { useState } from 'react';
 
+import { Button, Group, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconPlus } from '@tabler/icons-react';
 import {
     ChecklistHeader,
     ChecklistItemRow,
-    NewChecklistItemForm,
     ConvertToCardModal,
+    NewChecklistItemForm,
 } from './checklist';
 
 interface ChecklistSectionProps {
@@ -38,7 +38,6 @@ export default function ChecklistSection({
     onAddChecklistTriggered,
 }: ChecklistSectionProps) {
     const [newChecklistTitle, setNewChecklistTitle] = useState('');
-    const { message } = App.useApp();
     const t = useTranslation();
     const [showAddChecklist, setShowAddChecklist] = useState(false);
     const [newItemContent, setNewItemContent] = useState<Record<string, string>>({});
@@ -72,7 +71,7 @@ export default function ChecklistSection({
             setShowAddChecklist(false);
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_CREATE_CHECKLIST'));
+            notifications.show({ title: 'Error', message: t('ERROR_CREATE_CHECKLIST'), color: 'red' });
         }
     };
 
@@ -81,7 +80,7 @@ export default function ChecklistSection({
             await checklistApi.delete(checklistId);
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_DELETE_CHECKLIST'));
+            notifications.show({ title: 'Error', message: t('ERROR_DELETE_CHECKLIST'), color: 'red' });
         }
     };
 
@@ -97,7 +96,7 @@ export default function ChecklistSection({
             clearNewItemForm(checklistId);
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_ADD_ITEM'));
+            notifications.show({ title: 'Error', message: t('ERROR_ADD_ITEM'), color: 'red' });
         }
     };
 
@@ -113,7 +112,7 @@ export default function ChecklistSection({
             await checklistApi.toggleItem(checklistId, itemId);
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_UPDATE_ITEM'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_ITEM'), color: 'red' });
         }
     };
 
@@ -125,7 +124,7 @@ export default function ChecklistSection({
             setEditingContent('');
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_UPDATE_ITEM'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_ITEM'), color: 'red' });
         }
     };
 
@@ -134,7 +133,7 @@ export default function ChecklistSection({
             await checklistApi.deleteItem(checklistId, itemId);
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_DELETE_ITEM'));
+            notifications.show({ title: 'Error', message: t('ERROR_DELETE_ITEM'), color: 'red' });
         }
     };
 
@@ -147,7 +146,7 @@ export default function ChecklistSection({
             await checklistApi.updateItem(checklistId, itemId, { assignee_ids: newAssigneeIds });
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_UPDATE_ASSIGNEES'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_ASSIGNEES'), color: 'red' });
         }
     };
 
@@ -156,7 +155,7 @@ export default function ChecklistSection({
             await checklistApi.updateItem(checklistId, itemId, { assignee_ids: [] });
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_REMOVE_ASSIGNEES'));
+            notifications.show({ title: 'Error', message: t('ERROR_REMOVE_ASSIGNEES'), color: 'red' });
         }
     };
 
@@ -165,7 +164,7 @@ export default function ChecklistSection({
             await checklistApi.updateItem(checklistId, itemId, { due_date: date });
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_UPDATE_DUE_DATE'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_DUE_DATE'), color: 'red' });
         }
     };
 
@@ -178,7 +177,7 @@ export default function ChecklistSection({
             setSelectedListId('');
             onUpdate();
         } catch (error) {
-            message.error(t('ERROR_CONVERT_CARD'));
+            notifications.show({ title: 'Error', message: t('ERROR_CONVERT_CARD'), color: 'red' });
         }
     };
 
@@ -278,30 +277,30 @@ export default function ChecklistSection({
             {/* Add Checklist Button/Form */}
             {showAddChecklist ? (
                 <div style={{ marginTop: 16 }}>
-                    <Input
+                    <TextInput
                         placeholder={t('UI_PLACEHOLDER_CHECKLIST_TITLE')}
                         value={newChecklistTitle}
                         onChange={(e) => setNewChecklistTitle(e.target.value)}
-                        onPressEnter={handleAddChecklist}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleAddChecklist(); }}
                         autoFocus
                     />
-                    <Space style={{ marginTop: 8 }}>
-                        <Button type="primary" onClick={handleAddChecklist}>
-                            {t('UI_ADD')}
-                        </Button>
-                        <Button onClick={() => {
+                    <Group style={{ marginTop: 8 }}>
+                        <Button variant="subtle" onClick={() => {
                             setShowAddChecklist(false);
                             setNewChecklistTitle('');
                         }}>
                             {t('UI_CANCEL')}
                         </Button>
-                    </Space>
+                        <Button onClick={handleAddChecklist}>
+                            {t('UI_ADD')}
+                        </Button>
+                    </Group>
                 </div>
             ) : (
                 <Button
-                    type="dashed"
-                    block
-                    icon={<PlusOutlined />}
+                    variant="default"
+                    fullWidth
+                    leftSection={<IconPlus size={16} />}
                     onClick={() => setShowAddChecklist(true)}
                     style={{ marginTop: checklists.length > 0 ? 16 : 0 }}
                 >

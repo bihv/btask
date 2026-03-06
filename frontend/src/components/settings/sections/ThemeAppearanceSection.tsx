@@ -1,13 +1,12 @@
 'use client';
 
-import React from 'react';
-import { Typography, Card, Divider, Tag, Row, Col } from 'antd';
-import { SunOutlined, MoonOutlined, DesktopOutlined, CheckCircleFilled } from '@ant-design/icons';
-import { useTheme } from '@/providers/ThemeProvider';
+import { useAppToken } from '@/hooks/useAppToken';
 import { useTranslation } from '@/hooks/useLabels';
+import { useTheme } from '@/providers/ThemeProvider';
+import React from 'react';
 
-const { Text } = Typography;
-
+import { Badge, Card, Divider, SimpleGrid, Text } from '@mantine/core';
+import { IconCircleCheckFilled, IconDeviceDesktop, IconMoon, IconSun } from '@tabler/icons-react';
 type ThemeOption = 'light' | 'dark' | 'system';
 
 interface ThemeCardProps {
@@ -21,7 +20,7 @@ interface ThemeCardProps {
     previewBorder: string;
 }
 
-const ThemeCard: React.FC<ThemeCardProps> = ({
+const ThemeCard: React.FC<ThemeCardProps & { colorPrimary: string; colorBorder: string; colorPrimaryBg: string }> = ({
     icon,
     title,
     description,
@@ -29,14 +28,17 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
     onClick,
     previewBg,
     previewBorder,
+    colorPrimary,
+    colorBorder,
+    colorPrimaryBg,
 }) => (
     <div
         onClick={onClick}
         style={{
             padding: 16,
             borderRadius: 8,
-            border: isSelected ? '2px solid var(--ant-color-primary)' : '1px solid var(--ant-color-border)',
-            background: isSelected ? 'var(--ant-color-primary-bg)' : 'transparent',
+            border: isSelected ? `2px solid ${colorPrimary}` : `1px solid ${colorBorder}`,
+            background: isSelected ? colorPrimaryBg : 'transparent',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
             position: 'relative',
@@ -45,13 +47,13 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
     >
         {/* Selected checkmark */}
         {isSelected && (
-            <CheckCircleFilled
+            <IconCircleCheckFilled
                 style={{
                     position: 'absolute',
                     top: 8,
                     right: 8,
                     fontSize: 18,
-                    color: 'var(--ant-color-primary)',
+                    color: colorPrimary,
                 }}
             />
         )}
@@ -76,19 +78,20 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
         </div>
 
         {/* Title & description */}
-        <Text strong style={{ display: 'block', marginBottom: 4 }}>{title}</Text>
-        <Text type="secondary" style={{ fontSize: 12 }}>{description}</Text>
+        <Text fw={700} style={{ display: 'block', marginBottom: 4 }}>{title}</Text>
+        <Text c="dimmed" style={{ fontSize: 12 }}>{description}</Text>
     </div>
 );
 
 export default function ThemeAppearanceSection() {
     const { preference, setTheme } = useTheme();
     const t = useTranslation();
+    const token = useAppToken();
 
-    const themeOptions: Omit<ThemeCardProps, 'isSelected' | 'onClick'>[] = [
+    const themeOptions: Omit<ThemeCardProps, 'isSelected' | 'onClick' | 'colorPrimary' | 'colorBorder' | 'colorPrimaryBg'>[] = [
         {
             value: 'light',
-            icon: <SunOutlined />,
+            icon: <IconSun size={16} />,
             title: t('UI_THEME_LIGHT'),
             description: t('UI_THEME_LIGHT_DESC'),
             previewBg: '#ffffff',
@@ -96,7 +99,7 @@ export default function ThemeAppearanceSection() {
         },
         {
             value: 'dark',
-            icon: <MoonOutlined />,
+            icon: <IconMoon size={16} />,
             title: t('UI_THEME_DARK'),
             description: t('UI_THEME_DARK_DESC'),
             previewBg: '#1d2125',
@@ -104,7 +107,7 @@ export default function ThemeAppearanceSection() {
         },
         {
             value: 'system',
-            icon: <DesktopOutlined />,
+            icon: <IconDeviceDesktop size={16} />,
             title: t('UI_THEME_SYSTEM'),
             description: t('UI_THEME_SYSTEM_DESC'),
             previewBg: 'linear-gradient(135deg, #ffffff 50%, #1d2125 50%)',
@@ -113,28 +116,31 @@ export default function ThemeAppearanceSection() {
     ];
 
     return (
-        <Card size="small">
+        <Card >
             <Text style={{ marginTop: 0, display: 'block', marginBottom: 12 }}>{t('UI_COLOR_MODE')}</Text>
-            <Row gutter={[12, 12]}>
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                 {themeOptions.map((option) => (
-                    <Col xs={24} sm={8} key={option.value}>
+                    <div key={option.value}>
                         <ThemeCard
                             {...option}
                             isSelected={preference === option.value}
                             onClick={() => setTheme(option.value as ThemeOption)}
+                            colorPrimary={token.colorPrimary}
+                            colorBorder="var(--mantine-color-default-border)"
+                            colorPrimaryBg="var(--mantine-primary-color-light)"
                         />
-                    </Col>
+                    </div>
                 ))}
-            </Row>
+            </SimpleGrid>
 
             <Divider style={{ margin: '16px 0' }} />
 
             <div style={{ opacity: 0.5 }}>
                 <Text style={{ marginTop: 0, display: 'block' }}>
                     {t('UI_COLOR_SCHEME')}
-                    <Tag color="blue" style={{ marginLeft: 8 }}>{t('UI_COMING_SOON')}</Tag>
+                    <Badge color="blue" style={{ marginLeft: 8 }}>{t('UI_COMING_SOON')}</Badge>
                 </Text>
-                <Text type="secondary">{t('UI_COLOR_SCHEME_DESC')}</Text>
+                <Text c="dimmed">{t('UI_COLOR_SCHEME_DESC')}</Text>
             </div>
         </Card>
     );

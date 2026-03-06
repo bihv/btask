@@ -1,22 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-    Input,
-    Button,
-    Space,
-    Popover,
-    DatePicker,
-    Tag,
-} from 'antd';
-import { UserOutlined, CalendarOutlined } from '@ant-design/icons';
-import { User } from '@/types';
-import dayjs from 'dayjs';
 import MemberPickerContent from '@/components/common/MemberPickerContent';
 import UserAvatar from '@/components/common/UserAvatar';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import { User } from '@/types';
+import dayjs from 'dayjs';
+import { useEffect, useState } from 'react';
 
+import { Badge, Button, CloseButton, Group, Popover, Textarea } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
+import { IconCalendar, IconUser } from '@tabler/icons-react';
 interface NewChecklistItemFormProps {
     checklistId: string;
     mode: 'dark' | 'light';
@@ -82,16 +76,16 @@ export default function NewChecklistItemForm({
     const renderDueDatePicker = () => (
         <div style={{ padding: 8 }}>
             <div style={{ marginBottom: 8, fontWeight: 500 }}>{t('UI_DUE_DATE_LABEL')}</div>
-            <DatePicker
-                value={dueDate ? dayjs(dueDate) : null}
-                onChange={(date) => onDueDateChange(date ? date.toISOString() : null)}
+            <DatePickerInput
+                value={dueDate ? new Date(dueDate) : null}
+                onChange={(date: any) => onDueDateChange(date ? new Date(date).toISOString() : null)}
                 style={{ width: '100%' }}
                 placeholder={t('UI_SELECT_DUE_DATE')}
             />
             {dueDate && (
                 <Button
-                    size="small"
-                    danger
+                    size="sm"
+                    color="red"
                     style={{ marginTop: 8, width: '100%' }}
                     onClick={() => onDueDateChange(null)}
                 >
@@ -103,7 +97,7 @@ export default function NewChecklistItemForm({
 
     return (
         <div style={{ marginTop: 8 }}>
-            <Input.TextArea
+            <Textarea
                 placeholder={t('UI_PLACEHOLDER_ADD_ITEM')}
                 value={content}
                 onChange={(e) => {
@@ -113,13 +107,9 @@ export default function NewChecklistItemForm({
                     }
                 }}
                 onFocus={onFocus}
-                onPressEnter={(e) => {
-                    if (!e.shiftKey) {
-                        e.preventDefault();
-                        onSubmit();
-                    }
-                }}
-                autoSize={{ minRows: 1, maxRows: 4 }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSubmit(); } }}
+                minRows={1}
+                maxRows={4}
                 style={{
                     resize: 'vertical',
                     borderColor: isActive ? token.colorPrimary : undefined,
@@ -132,10 +122,15 @@ export default function NewChecklistItemForm({
                     {assigneeIds.map(assigneeId => {
                         const member = workspaceMembers.find(m => m.id === assigneeId);
                         return member ? (
-                            <Tag
+                            <Badge
                                 key={member.id}
-                                closable
-                                onClose={() => onAssigneeIdsChange(assigneeIds.filter(id => id !== assigneeId))}
+                                rightSection={
+                                    <CloseButton
+                                        size="xs"
+                                        variant="transparent"
+                                        onClick={() => onAssigneeIdsChange(assigneeIds.filter(id => id !== assigneeId))}
+                                    />
+                                }
                                 style={{ display: 'flex', alignItems: 'center', gap: 4 }}
                             >
                                 <UserAvatar
@@ -144,18 +139,23 @@ export default function NewChecklistItemForm({
                                     size={14}
                                 />
                                 {member.full_name}
-                            </Tag>
+                            </Badge>
                         ) : null;
                     })}
                     {dueDate && (
-                        <Tag
-                            closable
-                            onClose={() => onDueDateChange(null)}
-                            icon={<CalendarOutlined />}
+                        <Badge
+                            rightSection={
+                                <CloseButton
+                                    size="xs"
+                                    variant="transparent"
+                                    onClick={() => onDueDateChange(null)}
+                                />
+                            }
+                            leftSection={<IconCalendar size={16} />}
                             color="blue"
                         >
                             {dayjs(dueDate).format('MMM D')}
-                        </Tag>
+                        </Badge>
                     )}
                 </div>
             )}
@@ -169,53 +169,54 @@ export default function NewChecklistItemForm({
                     marginTop: 8,
                     justifyContent: 'space-between'
                 }}>
-                    <Space>
+                    <Group>
+                        <Button variant="subtle" size="sm" onClick={onCancel}>
+                            {t('UI_CANCEL')}
+                        </Button>
                         <Button
-                            type="primary"
-                            size="small"
+                            size="sm"
                             onClick={onSubmit}
                             disabled={!content.trim()}
                         >
                             {t('UI_ADD')}
                         </Button>
-                        <Button size="small" onClick={onCancel}>
-                            {t('UI_CANCEL')}
-                        </Button>
-                    </Space>
-                    <Space>
-                        <Popover
-                            content={renderMemberPicker()}
-                            trigger="click"
-                            placement="bottomRight"
-                        >
-                            <Button
-                                type="text"
-                                size="small"
-                                icon={<UserOutlined />}
-                                style={{
-                                    color: assigneeIds.length > 0 ? token.colorPrimary : undefined
-                                }}
-                            >
-                                {t('UI_ASSIGN')}
-                            </Button>
+                    </Group>
+                    <Group>
+                        <Popover position="bottom-end">
+                            <Popover.Target>
+                                <Button
+                                    variant="subtle"
+                                    size="sm"
+                                    leftSection={<IconUser size={16} />}
+                                    style={{
+                                        color: assigneeIds.length > 0 ? token.colorPrimary : undefined
+                                    }}
+                                >
+                                    {t('UI_ASSIGN')}
+                                </Button>
+                            </Popover.Target>
+                            <Popover.Dropdown p={0}>
+                                {renderMemberPicker()}
+                            </Popover.Dropdown>
                         </Popover>
-                        <Popover
-                            content={renderDueDatePicker()}
-                            trigger="click"
-                            placement="bottomRight"
-                        >
-                            <Button
-                                type="text"
-                                size="small"
-                                icon={<CalendarOutlined />}
-                                style={{
-                                    color: dueDate ? token.colorPrimary : undefined
-                                }}
-                            >
-                                {t('UI_DUE_DATE_LABEL')}
-                            </Button>
+                        <Popover position="bottom-end">
+                            <Popover.Target>
+                                <Button
+                                    variant="subtle"
+                                    size="sm"
+                                    leftSection={<IconCalendar size={16} />}
+                                    style={{
+                                        color: dueDate ? token.colorPrimary : undefined
+                                    }}
+                                >
+                                    {t('UI_DUE_DATE_LABEL')}
+                                </Button>
+                            </Popover.Target>
+                            <Popover.Dropdown p={0}>
+                                {renderDueDatePicker()}
+                            </Popover.Dropdown>
                         </Popover>
-                    </Space>
+                    </Group>
                 </div>
             )}
         </div>

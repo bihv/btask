@@ -1,23 +1,22 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Input, Button, Dropdown, Popover, Space, Divider, Modal, Select, App } from 'antd';
-import { MoreOutlined, PlusOutlined, BgColorsOutlined, DeleteOutlined, CloseOutlined, CopyOutlined, SwapOutlined, SortAscendingOutlined, EyeOutlined, EyeInvisibleOutlined, InboxOutlined, ColumnWidthOutlined } from '@ant-design/icons';
-import { BoardList, Card } from '@/types';
-import { useBoardStore } from '@/stores/boardStore';
-import EditableTitle from '@/components/common/EditableTitle';
-import api from '@/lib/api';
 import { FilterState } from '@/components/board/BoardFilterPopover';
-import { isDueSoon, isDueLater, isOverdue } from '@/components/common/DueDateTag';
-import KanbanCard from './KanbanCard';
-import styles from './KanbanBoard.module.css';
-import { useTranslation } from '@/hooks/useLabels';
+import { filterCard } from '@/components/board/utils/filterCard';
+import EditableTitle from '@/components/common/EditableTitle';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
+import api from '@/lib/api';
+import { useBoardStore } from '@/stores/boardStore';
+import { BoardList, Card } from '@/types';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useEffect, useMemo, useState } from 'react';
+import styles from './KanbanBoard.module.css';
+import KanbanCard from './KanbanCard';
 
+import { Button, Divider, Group, Menu, Modal, Popover, Select, TextInput, Textarea } from '@mantine/core';
+import { IconArrowsExchange, IconChevronRight, IconColumnInsertRight, IconCopy, IconDots, IconEye, IconEyeOff, IconInbox, IconPalette, IconPlus, IconSortAscending, IconTrash, IconX } from '@tabler/icons-react';
 const LIST_COLORS = [
     '#61bd4f', '#f2d600', '#ff9f1a', '#eb5a46', '#c377e0',
     '#0079bf', '#00c2e0', '#51e898', '#ff78cb', '#344563',
@@ -33,54 +32,8 @@ interface KanbanListProps {
     onDeleteCard?: (cardId: string) => void;
 }
 
-function matchesFilters(card: Card, filters: FilterState): boolean {
-    // Search filter (title or description)
-    if (filters.search) {
-        const search = filters.search.toLowerCase();
-        const titleMatch = card.title.toLowerCase().includes(search);
-        const descMatch = card.description?.toLowerCase().includes(search) || false;
-        if (!titleMatch && !descMatch) return false;
-    }
-
-    // Label filter
-    if (filters.labelIds.length > 0 || filters.noLabels) {
-        const cardLabelIds = (card.labels || []).map((l: { label_id: string }) => l.label_id);
-        const matchesNoLabels = filters.noLabels && cardLabelIds.length === 0;
-        const matchesSpecific = filters.labelIds.length > 0 && filters.labelIds.some(id => cardLabelIds.includes(id));
-        if (!matchesNoLabels && !matchesSpecific) return false;
-    }
-
-    // Member filter
-    if (filters.memberIds.length > 0 || filters.noMembers) {
-        const cardMemberIds = (card.members || []).map((m: { user_id: string }) => m.user_id);
-        const matchesNoMembers = filters.noMembers && cardMemberIds.length === 0;
-        const matchesSpecific = filters.memberIds.length > 0 && filters.memberIds.some(id => cardMemberIds.includes(id));
-        if (!matchesNoMembers && !matchesSpecific) return false;
-    }
-
-    // Due date filter
-    if (filters.dueDate) {
-        switch (filters.dueDate) {
-            case 'overdue':
-                if (!card.due_date || !isOverdue(card.due_date)) return false;
-                break;
-            case 'due_soon':
-                if (!card.due_date || !isDueSoon(card.due_date)) return false;
-                break;
-            case 'due_later':
-                if (!card.due_date || !isDueLater(card.due_date)) return false;
-                break;
-            case 'no_date':
-                if (card.due_date) return false;
-                break;
-        }
-    }
-
-    return true;
-}
 
 export default function KanbanList({ list, filters, readOnly = false, onCardClick, showCovers, onAddCard, onDeleteCard }: KanbanListProps) {
-    const { modal } = App.useApp();
     const t = useTranslation();
     const token = useAppToken();
     const { updateList, updateListColor, deleteList, copyList, moveAllCards, sortCards, createCard, lists } = useBoardStore();
@@ -137,7 +90,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
     const filteredCards = useMemo(() => {
         const cards = list.cards || [];
         if (!filters) return cards;
-        return cards.filter((card: Card) => matchesFilters(card, filters));
+        return cards.filter((card: Card) => filterCard(card, filters));
     }, [list.cards, filters]);
 
     const {
@@ -221,8 +174,8 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                 <>
                     <Divider style={{ margin: '12px 0' }} />
                     <Button
-                        type="text"
-                        icon={<CloseOutlined />}
+                        variant="subtle"
+                        leftSection={<IconX size={16} />}
                         onClick={() => handleColorChange(null)}
                         style={{ width: '100%' }}
                     >
@@ -250,19 +203,19 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         {
             key: 'watch',
             label: isWatching ? t('UI_UNWATCH') : t('UI_WATCH'),
-            icon: isWatching ? <EyeInvisibleOutlined /> : <EyeOutlined />,
+            icon: isWatching ? <IconEyeOff size={16} /> : <IconEye size={16} />,
             onClick: handleToggleWatch,
         },
         {
             key: 'copy',
             label: t('UI_COPY_LIST'),
-            icon: <CopyOutlined />,
+            icon: <IconCopy size={16} />,
             onClick: handleOpenCopyModal,
         },
         {
             key: 'move-all',
             label: t('UI_MOVE_ALL_CARDS'),
-            icon: <SwapOutlined />,
+            icon: <IconArrowsExchange size={16} />,
             onClick: () => {
                 setMenuOpen(false);
                 setTargetListId('');
@@ -272,7 +225,7 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         {
             key: 'sort',
             label: t('UI_SORT_BY'),
-            icon: <SortAscendingOutlined />,
+            icon: <IconSortAscending size={16} />,
             children: [
                 {
                     key: 'sort-newest',
@@ -294,17 +247,17 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         {
             key: 'color',
             label: t('UI_CHANGE_COLOR'),
-            icon: <BgColorsOutlined />,
+            icon: <IconPalette size={16} />,
             onClick: handleOpenColorPicker,
         },
         { type: 'divider' as const },
         {
             key: 'archive-all-cards',
             label: t('UI_ARCHIVE_ALL_CARDS'),
-            icon: <InboxOutlined />,
+            icon: <IconInbox size={16} />,
             onClick: () => {
                 setMenuOpen(false);
-                modal.confirm({
+                /* TODO: implement confirmation dialog */ ({
                     title: t('UI_ARCHIVE_ALL_CARDS_TITLE'),
                     content: `${t('UI_ARCHIVE_ALL_CARDS_CONFIRM')} ${list.cards?.length || 0} ${t('UI_CARDS_IN')} "${list.title}"?`,
                     okText: t('UI_ARCHIVE_ALL'),
@@ -327,10 +280,10 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
         {
             key: 'archive-list',
             label: t('UI_ARCHIVE_THIS_LIST'),
-            icon: <InboxOutlined />,
+            icon: <IconInbox size={16} />,
             onClick: () => {
                 setMenuOpen(false);
-                modal.confirm({
+                /* TODO: implement confirmation dialog */ ({
                     title: t('UI_ARCHIVE_LIST_TITLE'),
                     content: `${t('UI_ARCHIVE_LIST_CONFIRM')} "${list.title}"? ${t('UI_HIDDEN_FROM_BOARD')}`,
                     okText: t('UI_ARCHIVE'),
@@ -355,10 +308,10 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
             key: 'delete',
             label: t('UI_DELETE_LIST'),
             danger: true,
-            icon: <DeleteOutlined />,
+            icon: <IconTrash size={16} />,
             onClick: () => {
                 setMenuOpen(false);
-                modal.confirm({
+                /* TODO: implement confirmation dialog */ ({
                     title: t('UI_DELETE_LIST_TITLE'),
                     content: `${t('UI_DELETE_LIST_BODY')} "${list.title}"? ${t('UI_CANNOT_UNDO')}`,
                     okText: t('UI_DELETE'),
@@ -389,14 +342,14 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     alignItems: 'center',
                     cursor: 'pointer',
                     flexShrink: 0,
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    border: `1px solid var(--border-color)`,
                     boxShadow: `0 4px 16px ${token.colorShadowLight}`,
                 }}
                 {...attributes}
                 {...listeners}
                 onClick={handleToggleCollapse}
             >
-                <ColumnWidthOutlined
+                <IconColumnInsertRight size={16}
                     style={{
                         color: list.color ? token.colorWhite : token.colorTemplateDarkText,
                         marginBottom: 12,
@@ -449,41 +402,74 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                     disabled={readOnly}
                     style={{ flex: 1 }}
                     textStyle={{ color: list.color ? token.colorWhite : undefined }}
-                    size="small"
+                    size="sm"
                 />
                 <Popover
-                    content={colorPickerContent}
-                    title={t('UI_LIST_COLOR')}
-                    trigger="click"
-                    open={colorPickerOpen}
-                    onOpenChange={setColorPickerOpen}
-                    placement="bottomRight"
+                    opened={colorPickerOpen}
+                    onChange={setColorPickerOpen}
+                    position="bottom-end"
                 >
-                    <span />
+                    <Popover.Target>
+                        <span />
+                    </Popover.Target>
+                    <Popover.Dropdown>
+                        <div style={{ fontWeight: 600, marginBottom: 8 }}>{t('UI_LIST_COLOR')}</div>
+                        {colorPickerContent}
+                    </Popover.Dropdown>
                 </Popover>
                 {!readOnly && (
                     <>
                         <Button
-                            type="text"
-                            size="small"
-                            icon={<ColumnWidthOutlined />}
+                            variant="subtle"
+                            size="sm"
+                            leftSection={<IconColumnInsertRight size={16} />}
                             onClick={handleToggleCollapse}
                             title={t('UI_COLLAPSE_LIST')}
                             style={list.color ? { color: token.colorWhite } : undefined}
                         />
-                        <Dropdown
-                            menu={{ items: menuItems }}
-                            trigger={['click']}
-                            open={menuOpen}
-                            onOpenChange={setMenuOpen}
+                        <Menu
+                            trigger="click"
+                            opened={menuOpen}
+                            onChange={setMenuOpen}
+                            position="bottom-end"
                         >
-                            <Button
-                                type="text"
-                                size="small"
-                                icon={<MoreOutlined />}
-                                style={list.color ? { color: token.colorWhite } : undefined}
-                            />
-                        </Dropdown>
+                            <Menu.Target>
+                                <Button
+                                    variant="subtle"
+                                    size="sm"
+                                    leftSection={<IconDots size={16} />}
+                                    style={list.color ? { color: token.colorWhite } : undefined}
+                                />
+                            </Menu.Target>
+                            <Menu.Dropdown>
+                                {menuItems.map((item: any, index: number) => {
+                                    if (item.type === 'divider') return <Menu.Divider key={`div-${index}`} />;
+                                    if (item.children) {
+                                        return (
+                                            <Menu key={item.key} trigger="hover" position="right-start" withinPortal>
+                                                <Menu.Target>
+                                                    <Menu.Item leftSection={item.icon} rightSection={<IconChevronRight size={14} />}>
+                                                        {item.label}
+                                                    </Menu.Item>
+                                                </Menu.Target>
+                                                <Menu.Dropdown>
+                                                    {item.children.map((child: any) => (
+                                                        <Menu.Item key={child.key} onClick={child.onClick}>
+                                                            {child.label}
+                                                        </Menu.Item>
+                                                    ))}
+                                                </Menu.Dropdown>
+                                            </Menu>
+                                        );
+                                    }
+                                    return (
+                                        <Menu.Item key={item.key} leftSection={item.icon} color={item.danger ? 'red' : undefined} onClick={item.onClick}>
+                                            {item.label}
+                                        </Menu.Item>
+                                    );
+                                })}
+                            </Menu.Dropdown>
+                        </Menu>
                     </>
                 )}
             </div>
@@ -509,11 +495,13 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
             {/* Add Card - only show when not readOnly */}
             {!readOnly && (isAddingCard ? (
                 <div style={{ padding: '4px 0' }}>
-                    <Input.TextArea
+                    <Textarea
                         value={newCardTitle}
                         onChange={(e) => setNewCardTitle(e.target.value)}
                         placeholder={t('UI_PLACEHOLDER_CARD_TITLE')}
-                        autoSize={{ minRows: 2, maxRows: 4 }}
+                        autosize
+                        minRows={2}
+                        maxRows={4}
                         autoFocus
                         onBlur={() => {
                             if (!newCardTitle.trim()) {
@@ -532,11 +520,9 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                         }}
                     />
                     <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                        <Button type="primary" size="small" onClick={handleAddCard}>
-                            {t('UI_ADD_CARD')}
-                        </Button>
                         <Button
-                            size="small"
+                            variant="subtle"
+                            size="sm"
                             onClick={() => {
                                 setIsAddingCard(false);
                                 setNewCardTitle('');
@@ -544,12 +530,15 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
                         >
                             {t('UI_CANCEL')}
                         </Button>
+                        <Button size="sm" onClick={handleAddCard}>
+                            {t('UI_ADD_CARD')}
+                        </Button>
                     </div>
                 </div>
             ) : (
                 <Button
-                    type="text"
-                    icon={<PlusOutlined />}
+                    variant="subtle"
+                    leftSection={<IconPlus size={16} />}
                     onClick={() => setIsAddingCard(true)}
                     style={{
                         width: '100%',
@@ -564,48 +553,54 @@ export default function KanbanList({ list, filters, readOnly = false, onCardClic
             {/* Copy List Modal */}
             <Modal
                 title={t('UI_COPY_LIST')}
-                open={copyModalOpen}
-                onOk={handleCopyList}
-                onCancel={() => setCopyModalOpen(false)}
-                okText={t('UI_CREATE_LIST')}
-                cancelText={t('UI_CANCEL')}
+                opened={copyModalOpen}
+                onClose={() => setCopyModalOpen(false)}
             >
                 <div style={{ marginBottom: 8 }}>{t('UI_NAME')}</div>
-                <Input
+                <TextInput
                     value={copyTitle}
                     onChange={(e) => setCopyTitle(e.target.value)}
                     placeholder={t('UI_PLACEHOLDER_LIST_NAME')}
                     autoFocus
-                    onPressEnter={handleCopyList}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCopyList(); }}
                 />
+                <Group justify="flex-end" mt="md">
+                    <Button variant="subtle" onClick={() => setCopyModalOpen(false)}>{t('UI_CANCEL')}</Button>
+                    <Button onClick={handleCopyList}>{t('UI_CREATE_LIST')}</Button>
+                </Group>
             </Modal>
 
             {/* Move All Cards Modal */}
             <Modal
                 title={t('UI_MOVE_ALL_CARDS_TITLE')}
-                open={moveModalOpen}
-                onOk={() => {
-                    if (targetListId) {
-                        moveAllCards(list.id, targetListId);
-                        setMoveModalOpen(false);
-                    }
-                }}
-                onCancel={() => setMoveModalOpen(false)}
-                okText={t('UI_MOVE')}
-                cancelText={t('UI_CANCEL')}
-                okButtonProps={{ disabled: !targetListId }}
+                opened={moveModalOpen}
+                onClose={() => setMoveModalOpen(false)}
             >
                 <div style={{ marginBottom: 8 }}>{t('UI_SELECT_DESTINATION_LIST')}</div>
                 <Select
-                    value={targetListId || undefined}
-                    onChange={setTargetListId}
+                    value={targetListId || null}
+                    onChange={(val) => setTargetListId(val || '')}
                     placeholder={t('UI_PLACEHOLDER_CHOOSE_LIST')}
                     style={{ width: '100%' }}
-                    options={lists
+                    data={lists
                         .filter(l => l.id !== list.id)
                         .map(l => ({ value: l.id, label: l.title }))
                     }
                 />
+                <Group justify="flex-end" mt="md">
+                    <Button variant="subtle" onClick={() => setMoveModalOpen(false)}>{t('UI_CANCEL')}</Button>
+                    <Button
+                        disabled={!targetListId}
+                        onClick={() => {
+                            if (targetListId) {
+                                moveAllCards(list.id, targetListId);
+                                setMoveModalOpen(false);
+                            }
+                        }}
+                    >
+                        {t('UI_MOVE')}
+                    </Button>
+                </Group>
             </Modal>
         </div>
     );

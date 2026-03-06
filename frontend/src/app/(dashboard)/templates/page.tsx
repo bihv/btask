@@ -1,36 +1,25 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Input, Typography, Row, Col, Spin, Empty } from 'antd';
-import {
-    SearchOutlined,
-    BankOutlined,
-    FormatPainterOutlined,
-    ReadOutlined,
-    CodeOutlined,
-    ShopOutlined,
-    ProjectOutlined,
-    GlobalOutlined,
-} from '@ant-design/icons';
 import CategoryCard from '@/components/templates/CategoryCard';
-import TemplateCard from '@/components/templates/TemplateCard';
 import SectionHeader from '@/components/templates/SectionHeader';
+import TemplateCard from '@/components/templates/TemplateCard';
+import { useTranslation } from '@/hooks/useLabels';
 import { useTemplates } from '@/hooks/useTemplates';
 import { Template } from '@/types';
-import { useTranslation } from '@/hooks/useLabels';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
+import { Loader, SimpleGrid, Text, TextInput, Title } from '@mantine/core';
+import { IconBook, IconBrush, IconBuildingBank, IconBuildingStore, IconCode, IconLayoutBoard, IconSearch, IconWorld } from '@tabler/icons-react';
 const CATEGORIES = [
-    { name: 'Business', icon: BankOutlined, color: '#4bce97' },
-    { name: 'Design', icon: FormatPainterOutlined, color: '#e2b203' },
-    { name: 'Education', icon: ReadOutlined, color: '#faa53d' },
-    { name: 'Engineering', icon: CodeOutlined, color: '#f87462' },
-    { name: 'Marketing', icon: ShopOutlined, color: '#9f8fef' },
-    { name: 'Project management', icon: ProjectOutlined, color: '#579dff' },
-    { name: 'Remote work', icon: GlobalOutlined, color: '#60c6d2' },
+    { name: 'Business', icon: IconBuildingBank, color: '#4bce97' },
+    { name: 'Design', icon: IconBrush, color: '#e2b203' },
+    { name: 'Education', icon: IconBook, color: '#faa53d' },
+    { name: 'Engineering', icon: IconCode, color: '#f87462' },
+    { name: 'Marketing', icon: IconBuildingStore, color: '#9f8fef' },
+    { name: 'Project management', icon: IconLayoutBoard, color: '#579dff' },
+    { name: 'Remote work', icon: IconWorld, color: '#60c6d2' },
 ];
-
-const { Title } = Typography;
 
 export default function TemplatesPage() {
     const router = useRouter();
@@ -78,16 +67,16 @@ export default function TemplatesPage() {
     });
 
     const renderTemplateRow = (templateList: Template[], limit: number = 3) => (
-        <Row gutter={[24, 24]}>
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
             {templateList.slice(0, limit).map((template: Template) => (
-                <Col key={template.id} xs={24} sm={12} md={8} lg={8}>
+                <div>
                     <TemplateCard
                         template={toCardFormat(template)}
                         onClick={() => handleTemplateClick(template.id)}
                     />
-                </Col>
+                </div>
             ))}
-        </Row>
+        </SimpleGrid>
     );
 
     const handleCategoryClick = (category: string) => {
@@ -97,7 +86,7 @@ export default function TemplatesPage() {
     if (isLoading) {
         return (
             <div style={{ padding: '48px', textAlign: 'center' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
@@ -112,33 +101,33 @@ export default function TemplatesPage() {
             {filteredCategories.length > 0 && (
                 <div style={{ marginBottom: '40px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                        <Title level={4} style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        <Title order={4} style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>
                             Featured categories
                         </Title>
-                        <Input
-                            prefix={<SearchOutlined style={{ color: 'var(--text-secondary)' }} />}
+                        <TextInput
+                            leftSection={<IconSearch size={16} style={{ color: 'var(--text-secondary)' }} />}
                             placeholder={t('UI_FIND_TEMPLATES')}
                             style={{ width: '240px' }}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            allowClear
+
                         />
                     </div>
 
-                    <Row gutter={[16, 16]}>
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                         {filteredCategories.map((cat) => (
-                            <Col key={cat.name} xs={24} sm={12} md={8} lg={6} xl={4} xxl={3}>
+                            <div>
                                 <div style={{ cursor: 'pointer' }}>
                                     <CategoryCard name={cat.name} icon={cat.icon} color={cat.color} />
                                 </div>
-                            </Col>
+                            </div>
                         ))}
-                    </Row>
+                    </SimpleGrid>
                 </div>
             )}
 
             {templates.length === 0 ? (
-                <Empty description={t('UI_NO_TEMPLATES')} />
+                <Text c="dimmed" ta="center" py="xl">{t('UI_NO_TEMPLATES')}</Text>
             ) : (
                 <>
                     {/* Featured */}
@@ -157,7 +146,7 @@ export default function TemplatesPage() {
                         <>
                             <SectionHeader
                                 title="Business"
-                                icon={<BankOutlined style={{ color: '#4bce97' }} />}
+                                icon={<IconBuildingBank size={16} style={{ color: '#4bce97' }} />}
                                 actionLabel={businessTemplates.length > 3 ? "More templates for Business" : undefined}
                                 onAction={() => handleCategoryClick('Business')}
                             />
@@ -170,7 +159,7 @@ export default function TemplatesPage() {
                         <>
                             <SectionHeader
                                 title="Design"
-                                icon={<FormatPainterOutlined style={{ color: '#e2b203' }} />}
+                                icon={<IconBrush size={16} style={{ color: '#e2b203' }} />}
                                 actionLabel={designTemplates.length > 3 ? "More templates for Design" : undefined}
                                 onAction={() => handleCategoryClick('Design')}
                             />
@@ -183,7 +172,7 @@ export default function TemplatesPage() {
                         <>
                             <SectionHeader
                                 title="Education"
-                                icon={<ReadOutlined style={{ color: '#faa53d' }} />}
+                                icon={<IconBook size={16} style={{ color: '#faa53d' }} />}
                                 actionLabel={educationTemplates.length > 3 ? "More templates for Education" : undefined}
                                 onAction={() => handleCategoryClick('Education')}
                             />

@@ -1,9 +1,8 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api, { checklistApi } from '@/lib/api';
-import { Card, Comment, Label, User, Checklist } from '@/types';
-import { boardKeys } from './useBoards';
+import { Card, Checklist, Comment, Label, User } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Query Keys
 export const cardKeys = {

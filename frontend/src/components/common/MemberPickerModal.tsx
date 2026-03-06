@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
-import { Modal } from 'antd';
-import { User } from '@/types';
-import MemberPickerContent from './MemberPickerContent';
 import { useTranslation } from '@/hooks/useLabels';
+import { User } from '@/types';
+import { Modal } from '@mantine/core';
+import MemberPickerContent from './MemberPickerContent';
 
 interface MemberPickerModalProps {
     open: boolean;
@@ -27,11 +26,9 @@ export default function MemberPickerModal({
     return (
         <Modal
             title={t('UI_MEMBERS')}
-            open={open}
-            onCancel={onClose}
-            footer={null}
-            width={320}
-            destroyOnHidden
+            opened={open}
+            onClose={onClose}
+            size={320}
         >
             <MemberPickerContent
                 workspaceMembers={workspaceMembers}

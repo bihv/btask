@@ -764,8 +764,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_KEYWORDS",
 		Category:     "ui",
-		DefaultValue: "KEYWORDS",
-		Translations: map[string]string{"vi": "TỪ KHÓA"},
+		DefaultValue: "Keywords",
+		Translations: map[string]string{"vi": "Từ khóa"},
 	},
 	{
 		Key:          "UI_PLACEHOLDER_SEARCH_CARDS",
@@ -776,8 +776,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_MEMBERS",
 		Category:     "ui",
-		DefaultValue: "MEMBERS",
-		Translations: map[string]string{"vi": "THÀNH VIÊN"},
+		DefaultValue: "Members",
+		Translations: map[string]string{"vi": "Thành viên"},
 	},
 	{
 		Key:          "UI_NO_MEMBERS",
@@ -788,8 +788,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_LABELS_SECTION",
 		Category:     "ui",
-		DefaultValue: "LABELS",
-		Translations: map[string]string{"vi": "NHÃN"},
+		DefaultValue: "Labels",
+		Translations: map[string]string{"vi": "Nhãn"},
 	},
 	{
 		Key:          "UI_NO_LABELS",
@@ -800,8 +800,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_DUE_DATE",
 		Category:     "ui",
-		DefaultValue: "DUE DATE",
-		Translations: map[string]string{"vi": "NGÀY HẾT HẠN"},
+		DefaultValue: "Due Date",
+		Translations: map[string]string{"vi": "Ngày hết hạn"},
 	},
 	{
 		Key:          "UI_NO_FILTER",
@@ -1214,8 +1214,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_CARDS",
 		Category:     "ui",
-		DefaultValue: "cards",
-		Translations: map[string]string{"vi": "thẻ"},
+		DefaultValue: "Cards",
+		Translations: map[string]string{"vi": "Thẻ"},
 	},
 	{
 		Key:          "UI_VISIBILITY",
@@ -1867,6 +1867,12 @@ var DefaultLabels = []models.LabelSeed{
 		Category:     "ui",
 		DefaultValue: "Installed",
 		Translations: map[string]string{"vi": "Đã cài đặt"},
+	},
+	{
+		Key:          "UI_INSTALL",
+		Category:     "ui",
+		DefaultValue: "Install",
+		Translations: map[string]string{"vi": "Cài đặt"},
 	},
 	{
 		Key:          "UI_BROWSE_MARKETPLACE",
@@ -2526,6 +2532,24 @@ var DefaultLabels = []models.LabelSeed{
 		DefaultValue: "Delete card?",
 		Translations: map[string]string{"vi": "Xóa thẻ?"},
 	},
+	{
+		Key:          "UI_CONFIRM_DELETE",
+		Category:     "ui",
+		DefaultValue: "Confirm Delete",
+		Translations: map[string]string{"vi": "Xác nhận xóa"},
+	},
+	{
+		Key:          "UI_CONFIRM_DELETE_CHECKLIST_MSG",
+		Category:     "ui",
+		DefaultValue: "Are you sure you want to delete this checklist? This action cannot be undone.",
+		Translations: map[string]string{"vi": "Bạn có chắc chắn muốn xóa checklist này không? Hành động này không thể hoàn tác."},
+	},
+	{
+		Key:          "UI_CONFIRM_DELETE_CHECKLIST_ITEM_MSG",
+		Category:     "ui",
+		DefaultValue: "Are you sure you want to delete this item?",
+		Translations: map[string]string{"vi": "Bạn có chắc chắn muốn xóa mục này không?"},
+	},
 	// Error messages for card components
 	{
 		Key:          "ERROR_CREATE_CHECKLIST",
@@ -2968,8 +2992,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_INSTALLS",
 		Category:     "ui",
-		DefaultValue: "installs",
-		Translations: map[string]string{"vi": "lượt cài"},
+		DefaultValue: "Installs",
+		Translations: map[string]string{"vi": "Lượt cài"},
 	},
 	{
 		Key:          "ERROR_INSTALL_PLUGIN",
@@ -3746,8 +3770,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_MORE_BOARDS",
 		Category:     "ui",
-		DefaultValue: "more boards",
-		Translations: map[string]string{"vi": "bảng khác"},
+		DefaultValue: "More Boards",
+		Translations: map[string]string{"vi": "Bảng khác"},
 	},
 	{
 		Key:          "UI_STARRED_BOARDS",
@@ -3764,8 +3788,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_YOUR_WORKSPACES",
 		Category:     "ui",
-		DefaultValue: "YOUR WORKSPACES",
-		Translations: map[string]string{"vi": "KHÔNG GIAN LÀM VIỆC CỦA BẠN"},
+		DefaultValue: "Your Workspaces",
+		Translations: map[string]string{"vi": "Không gian làm việc của bạn"},
 	},
 	{
 		Key:          "UI_NO_WORKSPACES_YET",
@@ -4297,8 +4321,8 @@ var DefaultLabels = []models.LabelSeed{
 	{
 		Key:          "UI_AVAILABLE",
 		Category:     "ui",
-		DefaultValue: "available",
-		Translations: map[string]string{"vi": "có sẵn"},
+		DefaultValue: "Available",
+		Translations: map[string]string{"vi": "Có sẵn"},
 	},
 }
 

@@ -1,24 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Typography, Select, Checkbox, Input, DatePicker, InputNumber, Spin, App } from 'antd';
-import {
-    ThunderboltOutlined,
-    FlagOutlined,
-    WarningOutlined,
-    CheckCircleOutlined,
-    FieldStringOutlined,
-    NumberOutlined,
-    CalendarOutlined,
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { useQueryClient } from '@tanstack/react-query';
-import { CustomField, CardCustomFieldValue } from '@/types';
-import { customFieldApi } from '@/lib/api';
 import { useTranslation } from '@/hooks/useLabels';
+import { customFieldApi } from '@/lib/api';
+import { CardCustomFieldValue, CustomField } from '@/types';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
-const { Text } = Typography;
-
+import { Checkbox, Loader, NumberInput, Select, Text, TextInput } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
+import { notifications } from '@mantine/notifications';
+import { IconAlertTriangle, IconBolt, IconCalendar, IconCircleCheck, IconFlag, IconForms, IconHash } from '@tabler/icons-react';
 interface CustomFieldsSectionProps {
     cardId: string;
     boardId: string;
@@ -27,30 +18,29 @@ interface CustomFieldsSectionProps {
 // Get icon for field based on name or type
 const getFieldIcon = (field: CustomField) => {
     const nameLower = field.name.toLowerCase();
-    if (nameLower === 'priority') return <ThunderboltOutlined />;
-    if (nameLower === 'status') return <FlagOutlined />;
-    if (nameLower === 'risk') return <WarningOutlined />;
-    if (nameLower === 'effort') return <ThunderboltOutlined style={{ transform: 'scaleX(-1)' }} />;
+    if (nameLower === 'priority') return <IconBolt size={16} />;
+    if (nameLower === 'status') return <IconFlag size={16} />;
+    if (nameLower === 'risk') return <IconAlertTriangle size={16} />;
+    if (nameLower === 'effort') return <IconBolt size={16} style={{ transform: 'scaleX(-1)' }} />;
 
     switch (field.type) {
         case 'checkbox':
-            return <CheckCircleOutlined />;
+            return <IconCircleCheck size={16} />;
         case 'text':
-            return <FieldStringOutlined />;
+            return <IconForms size={16} />;
         case 'number':
-            return <NumberOutlined />;
+            return <IconHash size={16} />;
         case 'date':
-            return <CalendarOutlined />;
+            return <IconCalendar size={16} />;
         case 'dropdown':
-            return <FlagOutlined />;
+            return <IconFlag size={16} />;
         default:
-            return <FlagOutlined />;
+            return <IconFlag size={16} />;
     }
 };
 
 export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSectionProps) {
     const queryClient = useQueryClient();
-    const { message } = App.useApp();
     const t = useTranslation();
     const [fields, setFields] = useState<CustomField[]>([]);
     const [values, setValues] = useState<CardCustomFieldValue[]>([]);
@@ -121,7 +111,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
             // Invalidate board cache so card shows updated values
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error(t('ERROR_UPDATE_FIELD'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_FIELD'), color: 'red' });
         } finally {
             setSaving(null);
         }
@@ -137,7 +127,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
             // Invalidate board cache
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
         } catch (error) {
-            message.error(t('ERROR_CLEAR_FIELD'));
+            notifications.show({ title: 'Error', message: t('ERROR_CLEAR_FIELD'), color: 'red' });
         } finally {
             setSaving(null);
         }
@@ -158,13 +148,13 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
         };
 
         return (
-            <Input
+            <TextInput
                 value={localValue}
                 onChange={(e) => setLocalValue(e.target.value)}
                 onBlur={handleSave}
-                onPressEnter={handleSave}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
                 placeholder={t('UI_PLACEHOLDER_ENTER_TEXT')}
-                size="small"
+                size="sm"
                 disabled={isSaving}
             />
         );
@@ -187,13 +177,13 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
         };
 
         return (
-            <InputNumber
-                value={localValue}
-                onChange={(value) => setLocalValue(value ?? undefined)}
+            <NumberInput
+                value={localValue === undefined ? '' : localValue}
+                onChange={(value) => setLocalValue(typeof value === 'number' ? value : undefined)}
                 onBlur={handleSave}
-                onPressEnter={handleSave}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
                 placeholder={t('UI_PLACEHOLDER_ENTER_NUMBER')}
-                size="small"
+                size="sm"
                 style={{ width: '100%' }}
                 disabled={isSaving}
             />
@@ -220,19 +210,25 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
             case 'dropdown':
                 return (
                     <Select
-                        value={fieldValue?.option_id || undefined}
-                        onChange={(value) => handleValueChange(field, undefined, value)}
-                        allowClear
-                        onClear={() => handleClearValue(field)}
+                        value={fieldValue?.option_id || null}
+                        onChange={(value) => {
+                            if (!value) handleClearValue(field);
+                            else handleValueChange(field, undefined, value);
+                        }}
+                        clearable
                         placeholder={t('UI_PLACEHOLDER_SELECT')}
-                        size="small"
+                        size="sm"
                         style={{ width: '100%' }}
-                        loading={isSaving}
-                        options={field.options?.map(opt => ({
+                        disabled={isSaving}
+                        data={field.options?.map(opt => ({
                             value: opt.id,
-                            label: (
+                            label: opt.value
+                        })) || []}
+                        renderOption={({ option }) => {
+                            const opt = field.options?.find(o => o.id === option.value);
+                            return (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    {opt.color && (
+                                    {opt?.color && (
                                         <div
                                             style={{
                                                 width: 8,
@@ -242,10 +238,10 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
                                             }}
                                         />
                                     )}
-                                    {opt.value}
+                                    {option.label}
                                 </div>
-                            ),
-                        }))}
+                            );
+                        }}
                     />
                 );
 
@@ -271,12 +267,12 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
 
             case 'date':
                 return (
-                    <DatePicker
-                        value={fieldValue?.value ? dayjs(fieldValue.value) : null}
-                        onChange={(date) =>
-                            handleValueChange(field, date?.toISOString())
+                    <DatePickerInput
+                        value={fieldValue?.value ? new Date(fieldValue.value) : null}
+                        onChange={(date: any) =>
+                            handleValueChange(field, date ? new Date(date).toISOString() : undefined)
                         }
-                        size="small"
+                        size="sm"
                         style={{ width: '100%' }}
                         disabled={isSaving}
                     />
@@ -290,7 +286,7 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
     if (loading) {
         return (
             <div style={{ padding: '8px 0' }}>
-                <Spin size="small" />
+                <Loader size="sm" />
             </div>
         );
     }
@@ -302,8 +298,8 @@ export default function CustomFieldsSection({ cardId, boardId }: CustomFieldsSec
     return (
         <div style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <FlagOutlined style={{ color: 'var(--text-secondary)' }} />
-                <Text type="secondary" style={{ fontSize: 12 }}>{t('UI_CUSTOM_FIELDS')}</Text>
+                <IconFlag size={16} style={{ color: 'var(--text-secondary)' }} />
+                <Text c="dimmed" style={{ fontSize: 12 }}>{t('UI_CUSTOM_FIELDS')}</Text>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

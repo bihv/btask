@@ -1,8 +1,12 @@
-import { Modal, Tabs, Form, Input, Button, App, Switch, InputNumber, Select, Alert, Spin } from 'antd';
+import { useTranslation } from '@/hooks/useLabels';
+import { useGetPluginSettings, usePluginManifest, useUpdatePluginSettings } from '@/hooks/usePluginSettings';
 import { useEffect } from 'react';
 import WebhookManager from './webhook/WebhookManager';
-import { useGetPluginSettings, useUpdatePluginSettings, usePluginManifest } from '@/hooks/usePluginSettings';
-import { useTranslation } from '@/hooks/useLabels';
+
+import { Alert, Button, Loader, Modal, NumberInput, Select, Switch, Tabs, TextInput } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconInfoCircle } from '@tabler/icons-react';
 
 interface PluginSettingsModalProps {
     open: boolean;
@@ -13,9 +17,7 @@ interface PluginSettingsModalProps {
 }
 
 export default function PluginSettingsModal({ open, onClose, plugin, installationId, boardId }: PluginSettingsModalProps) {
-    const { message } = App.useApp();
     const t = useTranslation();
-    const [form] = Form.useForm();
 
     // Fetch settings values from DB
     const { data: settings, isLoading: isLoadingSettings } = useGetPluginSettings(installationId);
@@ -26,23 +28,28 @@ export default function PluginSettingsModal({ open, onClose, plugin, installatio
     // Mutation to update settings
     const updateSettings = useUpdatePluginSettings();
 
+    // Form state
+    const form = useForm({
+        initialValues: {},
+    });
+
     // Populate form when settings are loaded
     useEffect(() => {
         if (settings) {
-            form.setFieldsValue(settings);
+            form.setValues(settings);
         }
-    }, [settings, form]);
+    }, [settings]);
 
-    const handleSaveGeneral = async (values: any) => {
+    const handleSaveGeneral = async (values: typeof form.values) => {
         try {
             await updateSettings.mutateAsync({
                 installationId,
                 settings: values
             });
-            message.success(t('SUCCESS_SETTINGS_UPDATED'));
+            notifications.show({ message: t('SUCCESS_SETTINGS_UPDATED'), color: 'green' });
         } catch (err) {
             console.error(err);
-            message.error(t('ERROR_UPDATE_SETTINGS_FAILED'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_SETTINGS_FAILED'), color: 'red' });
         }
     };
 
@@ -53,28 +60,45 @@ export default function PluginSettingsModal({ open, onClose, plugin, installatio
         switch (config.type) {
             case 'boolean':
                 return (
-                    <Form.Item name={key} label={label} help={help} valuePropName="checked">
-                        <Switch />
-                    </Form.Item>
+                    <div style={{ marginBottom: 16 }}>
+                        <Switch
+                            label={label}
+                            description={help}
+                            {...form.getInputProps(key, { type: 'checkbox' })}
+                        />
+                    </div>
                 );
             case 'number':
                 return (
-                    <Form.Item name={key} label={label} help={help}>
-                        <InputNumber />
-                    </Form.Item>
+                    <div style={{ marginBottom: 16 }}>
+                        <NumberInput
+                            label={label}
+                            description={help}
+                            {...form.getInputProps(key)}
+                        />
+                    </div>
                 );
             case 'select':
                 return (
-                    <Form.Item name={key} label={label} help={help}>
-                        <Select options={config.options?.map((opt: string) => ({ label: opt, value: opt }))} />
-                    </Form.Item>
+                    <div style={{ marginBottom: 16 }}>
+                        <Select
+                            label={label}
+                            description={help}
+                            data={config.options?.map((opt: string) => ({ label: opt, value: opt })) || []}
+                            {...form.getInputProps(key)}
+                        />
+                    </div>
                 );
             case 'string':
             default:
                 return (
-                    <Form.Item name={key} label={label} help={help}>
-                        <Input />
-                    </Form.Item>
+                    <div style={{ marginBottom: 16 }}>
+                        <TextInput
+                            label={label}
+                            description={help}
+                            {...form.getInputProps(key)}
+                        />
+                    </div>
                 );
         }
     };
@@ -86,45 +110,46 @@ export default function PluginSettingsModal({ open, onClose, plugin, installatio
     return (
         <Modal
             title={`${t('UI_SETTINGS')}: ${plugin.name}`}
-            open={open}
-            onCancel={onClose}
-            footer={null}
-            width={800}
+            opened={open}
+            onClose={onClose}
+            size={800}
         >
-            <Tabs defaultActiveKey="general">
-                <Tabs.TabPane tab={t('UI_GENERAL')} key="general">
+            <Tabs defaultValue="general">
+                <Tabs.List style={{ marginBottom: 16 }}>
+                    <Tabs.Tab value="general">{t('UI_GENERAL')}</Tabs.Tab>
+                    <Tabs.Tab value="webhooks">{t('UI_WEBHOOKS')}</Tabs.Tab>
+                </Tabs.List>
+
+                <Tabs.Panel value="general">
                     {isLoading ? (
-                        <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
+                        <div style={{ textAlign: 'center', padding: 40 }}><Loader /></div>
                     ) : !hasSettings ? (
-                        <Alert message={t('UI_NO_CONFIG_AVAILABLE')} type="info" showIcon />
+                        <Alert title={t('UI_NO_CONFIG_AVAILABLE')} color="blue" icon={<IconInfoCircle size={16} />}>
+                            {t('UI_NO_CONFIG_AVAILABLE')}
+                        </Alert>
                     ) : (
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            onFinish={handleSaveGeneral}
-                            initialValues={settings || {}}
-                            style={{ marginTop: 20 }}
-                        >
+                        <form onSubmit={form.onSubmit(handleSaveGeneral)} style={{ marginTop: 20 }}>
                             {Object.entries(manifestSettings).map(([key, config]) => (
                                 <div key={key}>
                                     {renderSettingField(key, config)}
                                 </div>
                             ))}
 
-                            <Form.Item>
-                                <Button type="primary" htmlType="submit" loading={updateSettings.isPending}>
+                            <div style={{ marginTop: 24, textAlign: 'right' }}>
+                                <Button type="submit" loading={updateSettings.isPending}>
                                     {t('UI_SAVE_CHANGES')}
                                 </Button>
-                            </Form.Item>
-                        </Form>
+                            </div>
+                        </form>
                     )}
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={t('UI_WEBHOOKS')} key="webhooks">
+                </Tabs.Panel>
+
+                <Tabs.Panel value="webhooks">
                     <WebhookManager
                         pluginId={plugin.id}
                         installationId={installationId}
                     />
-                </Tabs.TabPane>
+                </Tabs.Panel>
             </Tabs>
         </Modal>
     );

@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button } from 'antd';
-import { ScreenHeader } from './MenuShared';
-import BackgroundPicker from '../BackgroundPicker';
 import { useTranslation } from '@/hooks/useLabels';
+import { useState } from 'react';
+import BackgroundPicker from '../BackgroundPicker';
+import { ScreenHeader } from './MenuShared';
 
+import { Button } from '@mantine/core';
 interface BackgroundScreenProps {
     initialColor: string;
     initialImage: string;
@@ -40,7 +40,7 @@ export default function BackgroundScreen({ initialColor, initialImage, onBack, o
                     onImageChange={setSelectedImage}
                 />
                 <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button type="primary" size="small" loading={saving} onClick={handleSave}>
+                    <Button  size="sm" loading={saving} onClick={handleSave}>
                         {t('UI_SAVE')}
                     </Button>
                 </div>

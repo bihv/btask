@@ -1,22 +1,15 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { Card, Row, Col, Typography, Progress, Statistic, Tag, Avatar, Empty } from 'antd';
-import {
-    CheckCircleOutlined,
-    ClockCircleOutlined,
-    ExclamationCircleOutlined,
-    UserOutlined,
-} from '@ant-design/icons';
+import { isDueSoon, isOverdue } from '@/components/common/DueDateTag';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
 import { useBoardStore } from '@/stores/boardStore';
 import { Card as CardType } from '@/types';
 import dayjs from 'dayjs';
-import { isOverdue, isDueSoon } from '@/components/common/DueDateTag';
-import { useTranslation } from '@/hooks/useLabels';
-import { useAppToken } from '@/hooks/useAppToken';
+import { useMemo } from 'react';
 
-const { Title, Text } = Typography;
-
+import { Avatar, Badge, Card, Center, Progress, SimpleGrid, Text, Title } from '@mantine/core';
+import { IconAlertCircle, IconCircleCheck, IconClock } from '@tabler/icons-react';
 interface DashboardViewProps {
     onCardClick?: (cardId: string) => void;
 }
@@ -95,78 +88,76 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
 
     return (
         <div style={{ padding: 16, height: '100%', overflow: 'auto' }}>
-            <Row gutter={[16, 16]}>
+            <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                 {/* Overview Stats */}
-                <Col xs={24} sm={12} md={6}>
+                <div>
                     <Card style={cardStyle}>
-                        <Statistic
-                            title={t('UI_TOTAL_CARDS')}
-                            value={stats.total}
-                            prefix={<CheckCircleOutlined />}
-                        />
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mb={4}>{t('UI_TOTAL_CARDS')}</Text>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <IconCircleCheck size={20} style={{ color: token.colorPrimary }} />
+                            <Title order={2} style={{ margin: 0 }}>{stats.total}</Title>
+                        </div>
                     </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6}>
+                </div>
+                <div>
                     <Card style={cardStyle}>
-                        <Statistic
-                            title={t('UI_COMPLETED')}
-                            value={stats.complete}
-                            suffix={`/ ${stats.total}`}
-                            styles={{ content: { color: token.colorSuccess } }}
-                        />
-                        <Progress percent={completionPercent} size="small" />
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mb={4}>{t('UI_COMPLETED')}</Text>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+                            <Title order={2} style={{ margin: 0, color: token.colorSuccess }}>{stats.complete}</Title>
+                            <Text c="dimmed" size="sm">/ {stats.total}</Text>
+                        </div>
+                        <Progress value={completionPercent} size="sm" />
                     </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6}>
+                </div>
+                <div>
                     <Card style={cardStyle}>
-                        <Statistic
-                            title={t('UI_OVERDUE')}
-                            value={stats.overdue}
-                            styles={{ content: { color: stats.overdue > 0 ? token.colorError : undefined } }}
-                            prefix={<ExclamationCircleOutlined />}
-                        />
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mb={4}>{t('UI_OVERDUE')}</Text>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <IconAlertCircle size={20} style={{ color: stats.overdue > 0 ? token.colorError : 'var(--text-secondary)' }} />
+                            <Title order={2} style={{ margin: 0, color: stats.overdue > 0 ? token.colorError : undefined }}>{stats.overdue}</Title>
+                        </div>
                     </Card>
-                </Col>
-                <Col xs={24} sm={12} md={6}>
+                </div>
+                <div>
                     <Card style={cardStyle}>
-                        <Statistic
-                            title={t('UI_DUE_SOON')}
-                            value={stats.dueSoon}
-                            styles={{ content: { color: stats.dueSoon > 0 ? token.colorWarning : undefined } }}
-                            prefix={<ClockCircleOutlined />}
-                        />
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mb={4}>{t('UI_DUE_SOON')}</Text>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <IconClock size={20} style={{ color: stats.dueSoon > 0 ? token.colorWarning : 'var(--text-secondary)' }} />
+                            <Title order={2} style={{ margin: 0, color: stats.dueSoon > 0 ? token.colorWarning : undefined }}>{stats.dueSoon}</Title>
+                        </div>
                     </Card>
-                </Col>
+                </div>
 
                 {/* Cards by List */}
-                <Col xs={24} md={12}>
-                    <Card title={t('UI_CARDS_BY_LIST')} style={cardStyle}>
+                <div>
+                    <Card style={cardStyle}>
+                        <Text fw={600} mb="md">{t('UI_CARDS_BY_LIST')}</Text>
                         {stats.byList.length === 0 ? (
-                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                            <Text c="dimmed" ta="center" py="xl">No data</Text>
                         ) : (
                             stats.byList.map((item) => (
                                 <div key={item.title} style={{ marginBottom: 12 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                                         <Text>{item.title}</Text>
-                                        <Text strong>{item.count}</Text>
+                                        <Text fw={700}>{item.count}</Text>
                                     </div>
                                     <Progress
-                                        percent={stats.total > 0 ? Math.round((item.count / stats.total) * 100) : 0}
-                                        strokeColor={item.color || token.colorPrimary}
-                                        showInfo={false}
-                                        size="small"
+                                        value={stats.total > 0 ? Math.round((item.count / stats.total) * 100) : 0}
+                                        color={item.color || token.colorPrimary}
+                                        size="sm"
                                     />
                                 </div>
                             ))
                         )}
                     </Card>
-                </Col>
+                </div>
 
                 {/* Top Labels */}
-                <Col xs={24} md={12}>
-                    <Card title={t('UI_TOP_LABELS')} style={cardStyle}>
+                <div>
+                    <Card style={cardStyle}>
+                        <Text fw={600} mb="md">{t('UI_TOP_LABELS')}</Text>
                         {stats.byLabel.length === 0 ? (
-                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('UI_NO_LABELS_USED')} />
+                            <Center py="xl"><Text c="dimmed">{t('UI_NO_LABELS_USED')}</Text></Center>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {stats.byLabel.map((item, index) => (
@@ -179,20 +170,21 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                                             padding: '8px 0',
                                         }}
                                     >
-                                        <Tag color={item.color}>{item.name}</Tag>
-                                        <Text strong>{item.count}</Text>
+                                        <Badge color={item.color}>{item.name}</Badge>
+                                        <Text fw={700}>{item.count}</Text>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </Card>
-                </Col>
+                </div>
 
                 {/* Top Members */}
-                <Col xs={24} md={12}>
-                    <Card title={t('UI_MEMBER_WORKLOAD')} style={cardStyle}>
+                <div>
+                    <Card style={cardStyle}>
+                        <Text fw={600} mb="md">{t('UI_MEMBER_WORKLOAD')}</Text>
                         {stats.byMember.length === 0 ? (
-                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('UI_NO_MEMBERS_ASSIGNED')} />
+                            <Center py="xl"><Text c="dimmed">{t('UI_NO_MEMBERS_ASSIGNED')}</Text></Center>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {stats.byMember.map((item, index) => (
@@ -206,25 +198,25 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                                         }}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                            <Avatar src={item.avatar} icon={<UserOutlined />} />
+                                            <Avatar src={item.avatar} />
                                             <Text>{item.name}</Text>
                                         </div>
-                                        <Text strong>{item.count} {t('UI_CARDS')}</Text>
+                                        <Text fw={700}>{item.count} {t('UI_CARDS')}</Text>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </Card>
-                </Col>
+                </div>
 
                 {/* Overdue Cards */}
-                <Col xs={24} md={12}>
+                <div>
                     <Card
-                        title={<Text style={{ color: token.colorError }}>{t('UI_OVERDUE_CARDS')}</Text>}
                         style={cardStyle}
                     >
+                        <Text fw={600} mb="md" style={{ color: token.colorError }}>{t('UI_OVERDUE_CARDS')}</Text>
                         {stats.overdueCards.length === 0 ? (
-                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('UI_NO_OVERDUE_CARDS')} />
+                            <Center py="xl"><Text c="dimmed">{t('UI_NO_OVERDUE_CARDS')}</Text></Center>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 {stats.overdueCards.map((card, index) => (
@@ -237,19 +229,19 @@ export default function DashboardView({ onCardClick }: DashboardViewProps) {
                                         onClick={() => onCardClick?.(card.id)}
                                     >
                                         <div style={{ marginBottom: 4 }}>
-                                            <Text strong>{card.title}</Text>
+                                            <Text fw={700}>{card.title}</Text>
                                         </div>
                                         <div>
-                                            <Tag color="blue">{card.listTitle}</Tag>
-                                            <Tag color="red">Due {dayjs(card.due_date).format('MMM D')}</Tag>
+                                            <Badge color="blue">{card.listTitle}</Badge>
+                                            <Badge color="red">Due {dayjs(card.due_date).format('MMM D')}</Badge>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </Card>
-                </Col>
-            </Row>
+                </div>
+            </SimpleGrid>
         </div>
     );
 }

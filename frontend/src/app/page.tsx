@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
-import { Spin } from 'antd';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
+import { Loader } from '@mantine/core';
 export default function HomePage() {
     const router = useRouter();
     const { isAuthenticated } = useAuthStore();
@@ -19,7 +19,7 @@ export default function HomePage() {
 
     return (
         <div className="loading-container" style={{ minHeight: '100vh' }}>
-            <Spin size="large" />
+            <Loader size="lg" />
         </div>
     );
 }

@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import api from '@/lib/api';
+import { create } from 'zustand';
 
 export interface Notification {
     id: string;

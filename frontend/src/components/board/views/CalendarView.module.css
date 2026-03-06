@@ -1,101 +1,604 @@
+/* ============================================
+   CalendarView — react-big-calendar theme
+   ============================================ */
+
 .container {
     padding: 16px;
     height: 100%;
     overflow: hidden;
     display: flex;
-    gap: 16px;
-}
-
-.calendarWrapper {
-    flex: 1;
-    border-radius: 8px;
-    padding: 16px;
-    background: var(--ant-color-bg-container);
-    overflow: auto;
-    min-height: 0;
-}
-
-.sidebar {
-    width: 300px;
-    border-radius: 8px;
-    padding: 16px;
+    flex-direction: column;
     background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin: 8px;
+}
+
+/* When month mode, switch to horizontal layout for calendar + panel */
+.containerMonthMode {
+    flex-direction: row;
+    gap: 0;
+}
+
+.calendarPane {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    max-height: 100%;
+    overflow: hidden;
+    transition: flex 0.3s ease;
+}
+
+.calendarPaneWithPanel {
+    flex: 1 1 0;
+}
+
+/* ---- Toolbar ---- */
+.container :global(.rbc-toolbar) {
+    padding: 8px 4px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.container :global(.rbc-toolbar button) {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.container :global(.rbc-toolbar button:hover) {
+    background: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.container :global(.rbc-toolbar button.rbc-active) {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.container :global(.rbc-toolbar-label) {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+/* ---- Month view grid ---- */
+.container :global(.rbc-month-view) {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     overflow: hidden;
 }
 
-.sidebarHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    flex-shrink: 0;
+.container :global(.rbc-month-header) {
+    background: var(--bg-tertiary);
 }
 
-.cardsList {
-    flex: 1;
-    overflow: auto;
+.container :global(.rbc-header) {
+    padding: 8px 6px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
 }
 
-.cardsListInner {
+.container :global(.rbc-header:first-child) {
+    border-left: none;
+}
+
+.container :global(.rbc-month-row) {
+    border-top: 1px solid var(--border-color);
+}
+
+
+.container :global(.rbc-day-bg + .rbc-day-bg) {
+    border-left: 1px solid var(--border-color);
+}
+
+.container :global(.rbc-off-range-bg) {
+    background: var(--bg-primary);
+    opacity: 0.6;
+}
+
+.container :global(.rbc-today) {
+    background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-secondary));
+}
+
+
+.container :global(.rbc-date-cell.rbc-now) {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.container :global(.rbc-off-range) {
+    color: var(--text-secondary);
+    opacity: 0.4;
+}
+
+/* ---- MONTH VIEW: Hide default event rows (dot mode) ---- */
+
+/* Make month view fill available height */
+.containerMonthMode :global(.rbc-month-view) {
     display: flex;
     flex-direction: column;
+    flex: 1;
+}
+
+/* Distribute month rows evenly */
+.containerMonthMode :global(.rbc-month-row) {
+    flex: 1 1 0% !important;
+    overflow: hidden !important;
+}
+
+/* Content layer: fill the row fully */
+.containerMonthMode :global(.rbc-row-content) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* First .rbc-row (date headers) fills the entire row */
+.containerMonthMode :global(.rbc-row-content > .rbc-row:first-child) {
+    flex: 1;
+    display: flex;
+}
+
+/* Hide default date link (we render our own via MonthDateHeader) */
+.containerMonthMode :global(.rbc-date-cell > a),
+.containerMonthMode :global(.rbc-date-cell > button) {
+    display: none;
+}
+
+/* Hide event bar rows */
+.containerMonthMode :global(.rbc-row-content .rbc-row + .rbc-row) {
+    display: none !important;
+}
+
+/* ---- Week / Day view ---- */
+.container :global(.rbc-time-view) {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Expand all-day header to fill the view */
+.container :global(.rbc-time-header) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.container :global(.rbc-time-header-content) {
+    border-left: 1px solid var(--border-color);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Make all-day section scrollable and fill available space */
+.container :global(.rbc-allday-cell) {
+    flex: 1;
+    overflow-y: auto;
+    max-height: none !important;
+}
+
+.container :global(.rbc-row-content) {
+    min-height: 100%;
+}
+
+/* Style all-day event rows */
+.container :global(.rbc-time-header-content .rbc-row-segment) {
+    padding: 2px 4px;
+}
+
+/* Hide the hourly time grid — all tasks are all-day */
+.container :global(.rbc-time-content) {
+    display: none !important;
+}
+
+
+/* ---- Agenda view ---- */
+.container :global(.rbc-agenda-view) {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: auto;
+    flex: 1;
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table) {
+    border: none;
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table thead > tr > th) {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table tbody > tr > td) {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.container :global(.rbc-agenda-view table.rbc-agenda-table tbody > tr:hover > td) {
+    background: var(--bg-tertiary);
+}
+
+/* ---- Popup ("+N more") ---- */
+.container :global(.rbc-overlay) {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    z-index: 100;
+}
+
+.container :global(.rbc-overlay-header) {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 4px 8px 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 4px;
+}
+
+/* ---- Show more link ---- */
+.container :global(.rbc-show-more) {
+    color: var(--primary-color);
+    font-size: 11px;
+    font-weight: 600;
+    background: transparent;
+    margin-top: 2px;
+}
+
+.container :global(.rbc-show-more:hover) {
+    text-decoration: underline;
+}
+
+/* ---- Event wrapper (for week/day views) ---- */
+.container :global(.rbc-event) {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.container :global(.rbc-event:focus) {
+    outline: none !important;
+}
+
+.container :global(.rbc-event.rbc-selected) {
+    background: transparent !important;
+}
+
+.container :global(.rbc-event-content) {
+    overflow: visible;
+}
+
+.container :global(.rbc-row-segment) {
+    padding: 1px 4px;
+}
+
+/* ---- Custom event component (week/day) ---- */
+.calendarEvent {
+    padding: 3px 6px;
+    border-radius: 4px;
+    border-left: 3px solid var(--primary-color);
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    overflow: hidden;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.calendarEvent:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.eventCompleted {
+    opacity: 0.6;
+    text-decoration: line-through;
+    border-left-color: var(--text-secondary) !important;
+}
+
+.eventOverdue {
+    background: color-mix(in srgb, #eb5a46 10%, var(--bg-primary));
+}
+
+.eventTitle {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.eventLinkIcon {
+    flex-shrink: 0;
+    margin-right: 2px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+.eventBadge {
+    flex-shrink: 0;
+    font-size: 9px !important;
+    height: 16px;
+    max-width: 60px;
+    overflow: hidden;
+}
+
+/* Wrapper-level status classes (via eventPropGetter) */
+.eventWrapper {
+    cursor: pointer;
+}
+
+.eventWrapperCompleted :global(.rbc-event-content) {
+    opacity: 0.55;
+}
+
+
+/* ============================================
+   MONTH CELL (Content Layer — unified hover/click/count)
+   ============================================ */
+
+/* Make .rbc-date-cell fill the full cell height */
+.containerMonthMode :global(.rbc-date-cell) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.monthCell {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    padding: 4px 8px;
+}
+
+.monthCell:hover {
+    background: var(--bg-tertiary);
+}
+
+.monthCellSelected {
+    background: color-mix(in srgb, var(--primary-color) 15%, var(--bg-secondary)) !important;
+    box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+.monthCellHeader {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.monthCellDate {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.monthCellCount {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.countText {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+}
+
+.countDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+}
+
+.monthCell:hover .countText {
+    opacity: 1;
+}
+
+.monthCell:hover .countDot {
+    opacity: 0.9;
+}
+
+.countTextOverdue {
+    color: #eb5a46;
+    opacity: 0.85;
+}
+
+.countTextDone {
+    color: #61bd4f;
+    opacity: 0.6;
+}
+
+
+/* ============================================
+   DETAIL PANEL (Right side)
+   ============================================ */
+
+.detailPanel {
+    width: 320px;
+    min-width: 320px;
+    border-left: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn 0.25s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        width: 0;
+        min-width: 0;
+        opacity: 0;
+    }
+
+    to {
+        width: 320px;
+        min-width: 320px;
+        opacity: 1;
+    }
+}
+
+.detailPanelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px 4px;
     gap: 8px;
 }
 
-.cardItem {
-    cursor: pointer;
-    padding: 12px;
-    background: var(--bg-primary);
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    transition: all 0.2s;
-}
-
-.cardItem:hover {
-    border-color: var(--primary-color, #1890ff);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.cardTags {
-    margin-top: 8px;
+.detailPanelHeaderLeft {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+    min-width: 0;
 }
 
-.popoverContent {
-    max-height: 200px;
-    overflow: auto;
-    min-width: 200px;
+.detailPanelCount {
+    padding: 0 16px 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detailPanelScroll {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.detailPanelList {
+    padding: 8px;
     display: flex;
     flex-direction: column;
+    gap: 6px;
 }
 
-.popoverCardItem {
+.detailPanelEmpty {
+    padding: 32px 16px;
+    text-align: center;
+}
+
+.detailPanelCard {
+    display: flex;
+    gap: 0;
+    border-radius: 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
     cursor: pointer;
-    padding: 4px 0;
+    overflow: hidden;
+    transition: all 0.15s ease;
 }
 
-.popoverCardTags {
+.detailPanelCard:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.detailCardCompleted {
+    opacity: 0.6;
+}
+
+.detailCardCompleted .detailCardTitle {
+    text-decoration: line-through;
+}
+
+.detailCardOverdue {
+    border-color: color-mix(in srgb, #eb5a46 40%, var(--border-color));
+    background: color-mix(in srgb, #eb5a46 5%, var(--bg-primary));
+}
+
+.detailCardColorBar {
+    width: 4px;
+    flex-shrink: 0;
+}
+
+.detailCardContent {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.detailCardTitle {
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.detailCardMeta {
+    display: flex;
+    align-items: center;
     gap: 4px;
+    flex-wrap: wrap;
 }
 
-.badgeWrapper {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
+
+/* ---- Dark mode overrides ---- */
+[data-theme='dark'] .container :global(.rbc-toolbar button) {
+    border-color: var(--border-color);
+    color: var(--text-primary);
 }
 
-.monthBadges {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    display: flex;
-    gap: 2px;
+[data-theme='dark'] .container :global(.rbc-toolbar button:hover) {
+    background: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .container :global(.rbc-overlay) {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='dark'] .calendarEvent {
+    background: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .calendarEvent:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .detailPanelCard {
+    background: var(--bg-tertiary);
+}
+
+[data-theme='dark'] .detailPanelCard:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }

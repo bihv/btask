@@ -1,32 +1,23 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { Typography, Spin, Empty } from 'antd';
-import {
-    AppstoreOutlined,
-    TeamOutlined,
-    SettingOutlined,
-    ThunderboltOutlined,
-    DollarOutlined,
-    ExportOutlined,
-} from '@ant-design/icons';
-import { useWorkspace } from '@/hooks/useWorkspaces';
 import WorkspaceBoards from '@/components/workspace/WorkspaceBoards';
 import WorkspaceMembers from '@/components/workspace/WorkspaceMembers';
-import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
 import WorkspacePowerUps from '@/components/workspace/WorkspacePowerUps';
+import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
+import { useWorkspace } from '@/hooks/useWorkspaces';
+import { useParams } from 'next/navigation';
 
-const { Title } = Typography;
-
+import { Center, Loader, Text, Title } from '@mantine/core';
+import { IconCurrencyDollar, IconExternalLink } from '@tabler/icons-react';
 const tabConfig: Record<string, { title: string; icon: React.ReactNode; description: string }> = {
     billing: {
         title: 'Billing',
-        icon: <DollarOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
+        icon: <IconCurrencyDollar size={48} style={{ color: 'var(--text-secondary)' }} />,
         description: 'Manage billing and subscription for this workspace.',
     },
     export: {
         title: 'Export',
-        icon: <ExportOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />,
+        icon: <IconExternalLink size={48} />,
         description: 'Export workspace data and boards.',
     },
 };
@@ -41,14 +32,14 @@ export default function WorkspaceSettingsTabPage() {
     if (isLoading) {
         return (
             <div className="loading-container">
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
 
     if (!workspace) {
         return (
-            <Empty description="Workspace not found" />
+            <Text c="dimmed" ta="center" py="xl">Workspace not found</Text>
         );
     }
 
@@ -73,24 +64,22 @@ export default function WorkspaceSettingsTabPage() {
     const config = tabConfig[tab];
 
     if (!config) {
-        return <Empty description="Page not found" />;
+        return <Text c="dimmed" ta="center" py="xl">Page not found</Text>;
     }
 
     return (
         <div>
-            <Title level={3} style={{ marginBottom: 24 }}>{config.title}</Title>
+            <Title order={3} style={{ marginBottom: 24 }}>{config.title}</Title>
 
-            <Empty
-                image={config.icon}
-                description={
-                    <div>
-                        <Title level={5} style={{ marginBottom: 8 }}>{config.title}</Title>
-                        <span style={{ color: 'var(--text-secondary)' }}>
-                            {config.description} Content will be provided later.
-                        </span>
-                    </div>
-                }
-            />
+            <Center py={48}>
+                <div style={{ textAlign: 'center' }}>
+                    {config.icon}
+                    <Title order={5} style={{ marginBottom: 8 }}>{config.title}</Title>
+                    <Text c="dimmed">
+                        {config.description} Content will be provided later.
+                    </Text>
+                </div>
+            </Center>
         </div>
     );
 }

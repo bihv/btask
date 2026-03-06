@@ -1,29 +1,22 @@
 'use client';
 
-import React from 'react';
-import { Typography, Empty } from 'antd';
-import { HistoryOutlined } from '@ant-design/icons';
 import { useTranslation } from '@/hooks/useLabels';
 
-const { Title } = Typography;
-
+import { Center, Text, Title } from '@mantine/core';
 export default function ActivityTab() {
     const t = useTranslation();
     return (
         <div>
-            <Title level={3} style={{ marginBottom: 24 }}>{t('UI_ACTIVITY')}</Title>
+            <Title order={3} style={{ marginBottom: 24 }}>{t('UI_ACTIVITY')}</Title>
 
-            <Empty
-                image={<HistoryOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />}
-                description={
-                    <div>
-                        <Title level={5} style={{ marginBottom: 8 }}>{t('UI_ACTIVITY')}</Title>
-                        <span style={{ color: 'var(--text-secondary)' }}>
-                            {t('UI_ACTIVITY_DESC')}
-                        </span>
-                    </div>
-                }
-            />
+            <Center py={48}>
+                <div style={{ textAlign: 'center' }}>
+                    <Title order={5} style={{ marginBottom: 8 }}>{t('UI_ACTIVITY')}</Title>
+                    <Text c="dimmed">
+                        {t('UI_ACTIVITY_DESC')}
+                    </Text>
+                </div>
+            </Center>
         </div>
     );
 }

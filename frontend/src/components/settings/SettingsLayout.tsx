@@ -1,37 +1,20 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Menu, Spin, Button, Select } from 'antd';
-import {
-    UserOutlined,
-    HistoryOutlined,
-    CreditCardOutlined,
-    SettingOutlined,
-    AppstoreOutlined,
-    TeamOutlined,
-    ThunderboltOutlined,
-    DollarOutlined,
-    ExportOutlined,
-    CloseOutlined,
-    DownOutlined,
-    CrownOutlined,
-    TranslationOutlined,
-    BellOutlined,
-    GlobalOutlined,
-    BgColorsOutlined,
-    SafetyOutlined,
-    BlockOutlined,
-    ApiOutlined,
-} from '@ant-design/icons';
-import { useAuthStore } from '@/stores/authStore';
-import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useLabels, useTranslation } from '@/hooks/useLabels';
-import type { MenuProps } from 'antd';
+import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useAuthStore } from '@/stores/authStore';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
-const { Sider, Content } = Layout;
+import { AppShell, Avatar, Button, Group, Loader, NavLink, ScrollArea, Select, Text } from '@mantine/core';
+import { IconApi, IconApps, IconBellFilled, IconBlockquote, IconBolt, IconChevronDown, IconCreditCard, IconCrown, IconCurrencyDollar, IconExternalLink, IconHistory, IconLanguage, IconPalette, IconSettings, IconShieldCheck, IconUser, IconUsers, IconWorld, IconX } from '@tabler/icons-react';
 
-type MenuItem = Required<MenuProps>['items'][number];
+interface MenuItem {
+    key: string;
+    icon?: React.ReactNode;
+    label: string;
+    children?: MenuItem[];
+}
 
 interface SettingsLayoutProps {
     children: React.ReactNode;
@@ -47,7 +30,7 @@ const getWorkspaceInitials = (name: string) => {
 // Generate a color based on workspace name
 const getWorkspaceColor = (name: string) => {
     const colors = [
-        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'linear-gradient(135deg, #206A5D 0%, #3DA88E 100%)',
         'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
         'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
         'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
@@ -100,41 +83,41 @@ export default function SettingsLayout({
     }, [workspaces, workspaceId, selectedWorkspaceId]);
 
     const personalMenuItems: MenuItem[] = [
-        { key: 'profile', icon: <UserOutlined />, label: t('UI_PROFILE_VISIBILITY') },
-        { key: 'activity', icon: <HistoryOutlined />, label: t('UI_ACTIVITY') },
-        { key: 'cards', icon: <CreditCardOutlined />, label: t('UI_CARDS') },
-        { key: 'plugins', icon: <ApiOutlined />, label: t('UI_MY_PLUGINS') },
+        { key: 'profile', icon: <IconUser size={16} />, label: t('UI_PROFILE_VISIBILITY') },
+        { key: 'activity', icon: <IconHistory size={16} />, label: t('UI_ACTIVITY') },
+        { key: 'cards', icon: <IconCreditCard size={16} />, label: t('UI_CARDS') },
+        { key: 'plugins', icon: <IconApi size={16} />, label: t('UI_MY_PLUGINS') },
         {
             key: 'settings',
-            icon: <SettingOutlined />,
+            icon: <IconSettings size={16} />,
             label: t('UI_SETTINGS'),
             children: [
-                { key: 'settings/account', icon: <UserOutlined />, label: t('UI_ACCOUNT') },
-                { key: 'settings/notifications', icon: <BellOutlined />, label: t('UI_NOTIFICATIONS') },
-                { key: 'settings/language', icon: <GlobalOutlined />, label: t('UI_LANGUAGE_REGION') },
-                { key: 'settings/appearance', icon: <BgColorsOutlined />, label: t('UI_APPEARANCE') },
-                { key: 'settings/security', icon: <SafetyOutlined />, label: t('UI_SECURITY') },
+                { key: 'settings/account', icon: <IconUser size={16} />, label: t('UI_ACCOUNT') },
+                { key: 'settings/notifications', icon: <IconBellFilled size={16} />, label: t('UI_NOTIFICATIONS') },
+                { key: 'settings/language', icon: <IconWorld size={16} />, label: t('UI_LANGUAGE_REGION') },
+                { key: 'settings/appearance', icon: <IconPalette size={16} />, label: t('UI_APPEARANCE') },
+                { key: 'settings/security', icon: <IconShieldCheck size={16} />, label: t('UI_SECURITY') },
             ],
         },
     ];
 
     const workspaceMenuItems: MenuItem[] = [
-        { key: 'ws-boards', icon: <AppstoreOutlined />, label: t('UI_BOARDS') },
-        { key: 'ws-members', icon: <TeamOutlined />, label: t('UI_WORKSPACE_MEMBERS') },
-        { key: 'ws-settings', icon: <SettingOutlined />, label: t('UI_SETTINGS') },
-        { key: 'ws-powerups', icon: <ThunderboltOutlined />, label: t('UI_POWERUPS') },
-        { key: 'ws-billing', icon: <DollarOutlined />, label: t('UI_BILLING') },
-        { key: 'ws-export', icon: <ExportOutlined />, label: t('UI_EXPORT') },
+        { key: 'ws-boards', icon: <IconApps size={16} />, label: t('UI_BOARDS') },
+        { key: 'ws-members', icon: <IconUsers size={16} />, label: t('UI_WORKSPACE_MEMBERS') },
+        { key: 'ws-settings', icon: <IconSettings size={16} />, label: t('UI_SETTINGS') },
+        { key: 'ws-powerups', icon: <IconBolt size={16} />, label: t('UI_POWERUPS') },
+        { key: 'ws-billing', icon: <IconCurrencyDollar size={16} />, label: t('UI_BILLING') },
+        { key: 'ws-export', icon: <IconExternalLink size={16} />, label: t('UI_EXPORT') },
     ];
 
     const adminMenuItems: MenuItem[] = [
-        { key: 'admin-users', icon: <CrownOutlined />, label: t('UI_USER_MANAGEMENT') },
-        { key: 'admin-labels', icon: <TranslationOutlined />, label: t('UI_SYSTEM_LABELS') },
-        { key: 'admin-templates', icon: <BlockOutlined />, label: t('UI_TEMPLATES') },
-        { key: 'admin-plugins', icon: <ApiOutlined />, label: t('UI_PLUGINS') },
+        { key: 'admin-users', icon: <IconCrown size={16} />, label: t('UI_USER_MANAGEMENT') },
+        { key: 'admin-labels', icon: <IconLanguage size={16} />, label: t('UI_SYSTEM_LABELS') },
+        { key: 'admin-templates', icon: <IconBlockquote size={16} />, label: t('UI_TEMPLATES') },
+        { key: 'admin-plugins', icon: <IconApi size={16} />, label: t('UI_PLUGINS') },
         {
             key: 'admin-settings',
-            icon: <SettingOutlined />,
+            icon: <IconSettings size={16} />,
             label: t('UI_SYSTEM_SETTINGS'),
             children: [
                 { key: 'admin-settings-general', label: t('UI_GENERAL') },
@@ -143,32 +126,20 @@ export default function SettingsLayout({
         },
     ];
 
-    const handlePersonalMenuClick: MenuProps['onClick'] = (e) => {
-        router.push(`/me/${e.key}`);
-    };
-
-    const handleWorkspaceMenuClick: MenuProps['onClick'] = (e) => {
-        if (e.key.startsWith('ws-') && selectedWorkspaceId) {
-            const tab = e.key.replace('ws-', '');
+    const handleMenuClick = (key: string, type: 'personal' | 'workspace' | 'admin') => {
+        if (type === 'personal') {
+            router.push(`/me/${key}`);
+        } else if (type === 'workspace' && selectedWorkspaceId && key.startsWith('ws-')) {
+            const tab = key.replace('ws-', '');
             router.push(`/workspace/${selectedWorkspaceId}/${tab}`);
-        }
-    };
-
-    const handleAdminMenuClick: MenuProps['onClick'] = (e) => {
-        if (e.key === 'admin-users') {
-            router.push('/admin/users');
-        } else if (e.key === 'admin-labels') {
-            router.push('/admin/labels');
-        } else if (e.key === 'admin-templates') {
-            router.push('/admin/templates');
-        } else if (e.key === 'admin-plugins') {
-            router.push('/admin/plugins');
-        } else if (e.key === 'admin-settings') {
-            router.push('/admin/settings/general');
-        } else if (e.key === 'admin-settings-general') {
-            router.push('/admin/settings/general');
-        } else if (e.key === 'admin-settings-security') {
-            router.push('/admin/settings/security');
+        } else if (type === 'admin') {
+            if (key === 'admin-users') router.push('/admin/users');
+            else if (key === 'admin-labels') router.push('/admin/labels');
+            else if (key === 'admin-templates') router.push('/admin/templates');
+            else if (key === 'admin-plugins') router.push('/admin/plugins');
+            else if (key === 'admin-settings') router.push('/admin/settings/general');
+            else if (key === 'admin-settings-general') router.push('/admin/settings/general');
+            else if (key === 'admin-settings-security') router.push('/admin/settings/security');
         }
     };
 
@@ -220,191 +191,139 @@ export default function SettingsLayout({
         return lastSegment;
     })();
 
-    const defaultOpenPersonalKeys = pathname.includes('/me/settings') ? ['settings'] : [];
-    const defaultOpenAdminKeys = pathname.startsWith('/admin/settings') ? ['admin-settings'] : [];
+    const renderNavLinks = (items: MenuItem[], type: 'personal' | 'workspace' | 'admin', activeKey: string, defaultOpenKeys: string[]) => {
+        return items.map((item) => {
+            if (item.children) {
+                return (
+                    <NavLink
+                        key={item.key}
+                        label={item.label}
+                        leftSection={item.icon}
+                        defaultOpened={defaultOpenKeys.includes(item.key)}
+                    >
+                        {item.children.map((child) => (
+                            <NavLink
+                                key={child.key}
+                                label={child.label}
+                                leftSection={child.icon}
+                                active={activeKey === child.key}
+                                onClick={() => handleMenuClick(child.key, type)}
+                            />
+                        ))}
+                    </NavLink>
+                );
+            }
+            return (
+                <NavLink
+                    key={item.key}
+                    label={item.label}
+                    leftSection={item.icon}
+                    active={activeKey === item.key}
+                    onClick={() => handleMenuClick(item.key, type)}
+                />
+            );
+        });
+    };
 
-    // Show loading until mounted, authenticated, AND labels are loaded
     if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
-            <div className="loading-container" style={{ minHeight: '100vh' }}>
-                <Spin size="large" />
+            <div className="loading-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Loader size="lg" />
             </div>
         );
     }
 
     return (
-        <Layout style={{ minHeight: '100vh', height: '100vh', overflow: 'hidden' }}>
-            {/* Close button */}
-            <Button
-                type="text"
-                icon={<CloseOutlined />}
-                onClick={handleClose}
-                style={{
-                    position: 'fixed',
-                    top: 16,
-                    right: 16,
-                    zIndex: 100,
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                }}
-            />
-
-            <Sider
-                width={240}
-                style={{
-                    borderRight: '1px solid var(--border-color)',
-                    height: '100vh',
-                    position: 'fixed',
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    overflow: 'auto',
-                }}
-            >
-                {/* Personal Settings */}
-                <div style={{ padding: '16px 8px 0' }}>
-                    <div style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: 'var(--text-secondary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: 0.5,
-                        padding: '8px 12px',
-                        marginBottom: 4,
-                    }}>
-                        Personal Settings
-                    </div>
-                    <Menu
-                        mode="inline"
-                        selectedKeys={activePersonalKey ? [activePersonalKey] : []}
-                        defaultOpenKeys={defaultOpenPersonalKeys}
-                        items={personalMenuItems}
-                        onClick={handlePersonalMenuClick}
-                        style={{ border: 'none' }}
-                    />
-                </div>
-
-                {/* Workspace Section with Dropdown */}
-                <div style={{ padding: '16px 8px 0' }}>
-                    <div style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: 'var(--text-secondary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: 0.5,
-                        padding: '8px 12px',
-                        marginBottom: 8,
-                    }}>
-                        {t('UI_WORKSPACE')}
+        <AppShell
+            navbar={{ width: 240, breakpoint: 'sm' }}
+            padding="md"
+            style={{ backgroundColor: 'var(--mantine-color-body)' }}
+        >
+            <AppShell.Navbar p="xs">
+                <ScrollArea h="100%">
+                    {/* Close button */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                        <Button
+                            variant="subtle"
+                            leftSection={<IconX size={16} />}
+                            onClick={handleClose}
+                            size="compact-md"
+                        >
+                            {t('UI_CLOSE')}
+                        </Button>
                     </div>
 
-                    {/* Workspace Dropdown Selector */}
-                    {isLoadingWorkspaces ? (
-                        <div style={{ padding: '8px 12px' }}>
-                            <Spin size="small" />
-                        </div>
-                    ) : (
-                        <div style={{ padding: '0 8px', marginBottom: 8 }}>
-                            <Select
-                                value={selectedWorkspaceId || undefined}
-                                onChange={handleWorkspaceChange}
-                                style={{ width: '100%' }}
-                                suffixIcon={<DownOutlined />}
-                                optionLabelProp="label"
-                                placeholder={t('UI_SELECT_WORKSPACE')}
-                            >
-                                {workspaces.map((ws) => (
-                                    <Select.Option key={ws.id} value={ws.id} label={
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                            <div style={{
-                                                width: 24,
-                                                height: 24,
-                                                borderRadius: 4,
-                                                background: getWorkspaceColor(ws.name),
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: '#fff',
-                                                fontSize: 12,
-                                                fontWeight: 600,
-                                                flexShrink: 0,
-                                            }}>{getWorkspaceInitials(ws.name)}</div>
-                                            <span style={{
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}>{ws.name}</span>
-                                        </div>
-                                    }>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                            <div style={{
-                                                width: 24,
-                                                height: 24,
-                                                borderRadius: 4,
-                                                background: getWorkspaceColor(ws.name),
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: '#fff',
-                                                fontSize: 12,
-                                                fontWeight: 600,
-                                                flexShrink: 0,
-                                            }}>{getWorkspaceInitials(ws.name)}</div>
-                                            <span>{ws.name}</span>
-                                        </div>
-                                    </Select.Option>
-                                ))}
-                            </Select>
+                    {/* Personal Settings */}
+                    <div style={{ marginBottom: 16 }}>
+                        <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.5} px="sm" mb={4}>
+                            Personal Settings
+                        </Text>
+                        {renderNavLinks(personalMenuItems, 'personal', activePersonalKey, ['settings'])}
+                    </div>
+
+                    {/* Workspace Section with Dropdown */}
+                    <div style={{ marginBottom: 16 }}>
+                        <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.5} px="sm" mb={4}>
+                            {t('UI_WORKSPACE')}
+                        </Text>
+
+                        {/* Workspace Dropdown Selector */}
+                        {isLoadingWorkspaces ? (
+                            <div style={{ padding: '8px 12px' }}>
+                                <Loader size="sm" />
+                            </div>
+                        ) : (
+                            <div style={{ padding: '0 8px', marginBottom: 8 }}>
+                                <Select
+                                    value={selectedWorkspaceId || null}
+                                    onChange={(val) => {
+                                        if (val) handleWorkspaceChange(val);
+                                    }}
+                                    data={workspaces.map(ws => ({
+                                        value: ws.id,
+                                        label: ws.name,
+                                        color: getWorkspaceColor(ws.name),
+                                    }))}
+                                    rightSection={<IconChevronDown size={14} />}
+                                    placeholder={t('UI_SELECT_WORKSPACE')}
+                                    renderOption={({ option }) => (
+                                        <Group gap="sm">
+                                            <Avatar
+                                                size={24}
+                                                radius="sm"
+                                                style={{ background: (option as any).color as string }}
+                                                color="white"
+                                            >
+                                                {getWorkspaceInitials(option.label)}
+                                            </Avatar>
+                                            <Text size="sm">{option.label}</Text>
+                                        </Group>
+                                    )}
+                                />
+                            </div>
+                        )}
+
+                        {/* Workspace Nav Links */}
+                        {renderNavLinks(workspaceMenuItems, 'workspace', activeWorkspaceKey, [])}
+                    </div>
+
+                    {/* Admin Section - only visible to admins */}
+                    {user?.is_admin && (
+                        <div>
+                            <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.5} px="sm" mb={4}>
+                                Admin
+                            </Text>
+                            {renderNavLinks(adminMenuItems, 'admin', activeAdminKey, ['admin-settings'])}
                         </div>
                     )}
+                </ScrollArea>
+            </AppShell.Navbar>
 
-                    {/* Workspace Menu Items */}
-                    <Menu
-                        mode="inline"
-                        selectedKeys={activeWorkspaceKey ? [activeWorkspaceKey] : []}
-                        items={workspaceMenuItems}
-                        onClick={handleWorkspaceMenuClick}
-                        style={{ border: 'none' }}
-                    />
-                </div>
-
-                {/* Admin Section - only visible to admins */}
-                {user?.is_admin && (
-                    <div style={{ padding: '16px 8px 0' }}>
-                        <div style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: 'var(--text-secondary)',
-                            textTransform: 'uppercase',
-                            letterSpacing: 0.5,
-                            padding: '8px 12px',
-                            marginBottom: 4,
-                        }}>
-                            Admin
-                        </div>
-                        <Menu
-                            mode="inline"
-                            selectedKeys={activeAdminKey ? [activeAdminKey] : []}
-                            defaultOpenKeys={defaultOpenAdminKeys}
-                            items={adminMenuItems}
-                            onClick={handleAdminMenuClick}
-                            style={{ border: 'none' }}
-                        />
-                    </div>
-                )}
-            </Sider>
-
-            <Layout style={{ marginLeft: 240 }}>
-                <Content style={{
-                    padding: '32px 48px',
-                    overflow: 'auto',
-                    height: '100vh',
-                    background: 'var(--bg-primary)',
-                }}>
+            <AppShell.Main>
+                <div style={{ padding: '16px 32px' }}>
                     {children}
-                </Content>
-            </Layout>
-        </Layout>
+                </div>
+            </AppShell.Main>
+        </AppShell>
     );
 }

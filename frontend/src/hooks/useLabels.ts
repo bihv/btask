@@ -1,7 +1,7 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Query Keys
 export const labelKeys = {

@@ -1,44 +1,33 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-    Typography,
-    Card,
-    Spin,
-    Form,
-    InputNumber,
-    Switch,
-    Button,
-    App,
-    Descriptions,
-    Divider,
-    Alert,
-    Input,
-    Space,
-} from 'antd';
-import {
-    SettingOutlined,
-    ClockCircleOutlined,
-    CloudUploadOutlined,
-    DeleteOutlined,
-} from '@ant-design/icons';
-import { useAuthStore } from '@/stores/authStore';
-import { useSystemSettings, useUpdateSystemSettings, useRunCleanup } from '@/hooks/useAdmin';
+import { useRunCleanup, useSystemSettings, useUpdateSystemSettings } from '@/hooks/useAdmin';
 import { useTranslation } from '@/hooks/useLabels';
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-const { Title, Text } = Typography;
+import { Alert, Button, Card, Divider, Group, Loader, NumberInput, Stack, Switch, Text, Title } from '@mantine/core';
+import { useForm } from '@mantine/form';
+import { notifications } from '@mantine/notifications';
+import { IconClock, IconCloudUpload, IconSettings, IconTrash } from '@tabler/icons-react';
 
 export default function GeneralSettingsPage() {
     const router = useRouter();
     const { user } = useAuthStore();
-    const { message } = App.useApp();
-    const [form] = Form.useForm();
 
     const { data: settings, isLoading, refetch } = useSystemSettings();
     const updateSettings = useUpdateSystemSettings();
     const runCleanup = useRunCleanup();
     const t = useTranslation();
+
+    // Form state
+    const form = useForm({
+        initialValues: {
+            orphan_cleanup_days: 7,
+            orphan_cleanup_enabled: true,
+            max_upload_size_mb: 10,
+        }
+    });
 
     useEffect(() => {
         if (!user?.is_admin) {
@@ -48,34 +37,30 @@ export default function GeneralSettingsPage() {
 
     useEffect(() => {
         if (settings) {
-            form.setFieldsValue({
-                orphan_cleanup_days: settings.orphan_cleanup_days,
-                orphan_cleanup_enabled: settings.orphan_cleanup_enabled,
-                max_upload_size_mb: settings.max_upload_size_mb,
+            form.setValues({
+                orphan_cleanup_days: settings.orphan_cleanup_days ?? 7,
+                orphan_cleanup_enabled: settings.orphan_cleanup_enabled ?? true,
+                max_upload_size_mb: settings.max_upload_size_mb ?? 10,
             });
         }
-    }, [settings, form]);
+    }, [settings]);
 
-    const handleSubmit = async (values: {
-        orphan_cleanup_days: number;
-        orphan_cleanup_enabled: boolean;
-        max_upload_size_mb: number;
-    }) => {
+    const handleSubmit = async (values: typeof form.values) => {
         try {
             await updateSettings.mutateAsync(values);
-            message.success(t('UI_SETTINGS_SAVED'));
+            notifications.show({ message: t('UI_SETTINGS_SAVED'), color: 'green' });
         } catch {
-            message.error(t('ERROR_SAVE_SETTINGS'));
+            notifications.show({ title: 'Error', message: t('ERROR_SAVE_SETTINGS'), color: 'red' });
         }
     };
 
     const handleRunCleanup = async () => {
         try {
             const result = await runCleanup.mutateAsync();
-            message.success(`Cleanup completed: ${result.deleted} files deleted, ${result.failed} failed`);
+            notifications.show({ message: `Cleanup completed: ${result.deleted} files deleted, ${result.failed} failed`, color: 'green' });
             refetch();
         } catch {
-            message.error(t('ERROR_RUN_CLEANUP'));
+            notifications.show({ title: 'Error', message: t('ERROR_RUN_CLEANUP'), color: 'red' });
         }
     };
 
@@ -85,159 +70,112 @@ export default function GeneralSettingsPage() {
 
     return (
         <>
-            <Title level={2} style={{ marginBottom: 24 }}>
-                <SettingOutlined style={{ marginRight: 8 }} />
+            <Title order={2} style={{ marginBottom: 24 }}>
+                <IconSettings size={16} style={{ marginRight: 8 }} />
                 {t('UI_GENERAL_SETTINGS')}
             </Title>
 
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: 40 }}>
-                    <Spin size="large" />
+                    <Loader size="lg" />
                 </div>
             ) : (
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
-                    <Card title={t('UI_FILE_STORAGE_SETTINGS')}>
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            onFinish={handleSubmit}
-                        >
-                            <Title level={4} style={{ marginTop: 0, marginBottom: 16 }}>
-                                <DeleteOutlined style={{ marginRight: 8 }} />
+                <Stack gap="lg">
+                    <Card withBorder>
+                        <Title order={4} mb="md">{t('UI_FILE_STORAGE_SETTINGS')}</Title>
+                        <form onSubmit={form.onSubmit(handleSubmit)}>
+                            <Title order={5} style={{ marginTop: 0, marginBottom: 16 }}>
+                                <IconTrash size={16} style={{ marginRight: 8 }} />
                                 {t('UI_ORPHAN_FILE_CLEANUP')}
                             </Title>
 
-                            <Alert
-                                description="When users upload images and later remove them, these files become 'orphaned'."
-                                type="info"
-                                showIcon
-                                style={{ marginBottom: 24 }}
-                            />
+                            <Alert color="blue" mb="md">
+                                When users upload images and later remove them, these files become &apos;orphaned&apos;.
+                            </Alert>
 
-                            <Form.Item
-                                name="orphan_cleanup_enabled"
-                                label={t('UI_ENABLE_AUTO_CLEANUP')}
-                                valuePropName="checked"
-                            >
+                            <div style={{ marginBottom: 16 }}>
                                 <Switch
-                                    checkedChildren={t('UI_ENABLED')}
-                                    unCheckedChildren={t('UI_DISABLED')}
+                                    label={form.values.orphan_cleanup_enabled ? t('UI_ENABLED') : t('UI_DISABLED')}
+                                    {...form.getInputProps('orphan_cleanup_enabled', { type: 'checkbox' })}
                                 />
-                            </Form.Item>
+                            </div>
 
-                            <Form.Item
-                                label={t('UI_DAYS_BEFORE_CLEANUP')}
-                                extra="Number of days to wait before deleting orphan files."
-                                required
-                            >
-                                <Space.Compact>
-                                    <Form.Item
-                                        name="orphan_cleanup_days"
-                                        noStyle
-                                        rules={[
-                                            { required: true, message: 'Please enter cleanup days' },
-                                            { type: 'number', min: 1, max: 365, message: 'Must be between 1 and 365 days' },
-                                        ]}
-                                    >
-                                        <InputNumber
-                                            min={1}
-                                            max={365}
-                                            style={{ width: 155 }}
-                                        />
-                                    </Form.Item>
-                                    <Input
-                                        style={{ width: 50, textAlign: 'center', pointerEvents: 'none' }}
-                                        value="days"
-                                        readOnly
-                                    />
-                                </Space.Compact>
-                            </Form.Item>
+                            <Group mb="md">
+                                <NumberInput
+                                    min={1}
+                                    max={365}
+                                    style={{ width: 155 }}
+                                    {...form.getInputProps('orphan_cleanup_days')}
+                                />
+                                <Text c="dimmed">days</Text>
+                            </Group>
 
-                            <Form.Item label={t('UI_MANUAL_CLEANUP')}>
+                            <Group mb="md">
                                 <Button
-                                    danger
-                                    icon={<DeleteOutlined />}
+                                    color="red"
+                                    leftSection={<IconTrash size={16} />}
                                     onClick={handleRunCleanup}
                                     loading={runCleanup.isPending}
                                 >
                                     {t('UI_RUN_CLEANUP_NOW')}
                                 </Button>
-                                <Text type="secondary" style={{ marginLeft: 12 }}>
+                                <Text c="dimmed">
                                     Delete files older than {settings?.orphan_cleanup_days || 7} days
                                 </Text>
-                            </Form.Item>
+                            </Group>
 
                             <Divider style={{ margin: '24px 0' }} />
 
-                            <Title level={4} style={{ marginTop: 0, marginBottom: 16 }}>
-                                <CloudUploadOutlined style={{ marginRight: 8 }} />
+                            <Title order={5} style={{ marginTop: 0, marginBottom: 16 }}>
+                                <IconCloudUpload size={16} style={{ marginRight: 8 }} />
                                 {t('UI_UPLOAD_CONFIGURATION')}
                             </Title>
 
-                            <Form.Item
-                                label={t('UI_MAX_UPLOAD_SIZE')}
-                                extra="Maximum file size allowed (1-500 MB)"
-                                required
-                            >
-                                <Space.Compact>
-                                    <Form.Item
-                                        name="max_upload_size_mb"
-                                        noStyle
-                                        rules={[
-                                            { required: true, message: 'Please enter max upload size' },
-                                            { type: 'number', min: 1, max: 500, message: 'Must be between 1 and 500 MB' },
-                                        ]}
-                                    >
-                                        <InputNumber
-                                            min={1}
-                                            max={500}
-                                            style={{ width: 160 }}
-                                        />
-                                    </Form.Item>
-                                    <Input
-                                        style={{ width: 50, textAlign: 'center', pointerEvents: 'none' }}
-                                        value="MB"
-                                        readOnly
-                                    />
-                                </Space.Compact>
-                            </Form.Item>
+                            <Group mb="md">
+                                <NumberInput
+                                    min={1}
+                                    max={500}
+                                    style={{ width: 160 }}
+                                    {...form.getInputProps('max_upload_size_mb')}
+                                />
+                                <Text c="dimmed">MB</Text>
+                            </Group>
 
-                            <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                    loading={updateSettings.isPending}
-                                >
+                            <div>
+                                <Button type="submit" loading={updateSettings.isPending}>
                                     {t('UI_SAVE_CHANGES')}
                                 </Button>
-                            </Form.Item>
-                        </Form>
+                            </div>
+                        </form>
                     </Card>
 
-                    <Card title={t('UI_SYSTEM_INFORMATION')}>
-                        <Descriptions column={1} bordered size="small">
-                            <Descriptions.Item
-                                label={
-                                    <>
-                                        <ClockCircleOutlined style={{ marginRight: 8 }} />
-                                        {t('UI_LAST_CLEANUP_RUN')}
-                                    </>
-                                }
-                            >
-                                {settings?.last_orphan_cleanup_at
-                                    ? new Date(settings.last_orphan_cleanup_at).toLocaleString()
-                                    : <Text type="secondary">{t('UI_NEVER')}</Text>
-                                }
-                            </Descriptions.Item>
-                            <Descriptions.Item label={t('UI_SETTINGS_LAST_UPDATED')}>
-                                {settings?.updated_at
-                                    ? new Date(settings.updated_at).toLocaleString()
-                                    : <Text type="secondary">{t('UI_NEVER')}</Text>
-                                }
-                            </Descriptions.Item>
-                        </Descriptions>
+                    <Card withBorder>
+                        <Title order={4} mb="md">{t('UI_SYSTEM_INFORMATION')}</Title>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-color)' }}>
+                                <Text c="dimmed">
+                                    <IconClock size={16} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                                    {t('UI_LAST_CLEANUP_RUN')}
+                                </Text>
+                                <Text>
+                                    {settings?.last_orphan_cleanup_at
+                                        ? new Date(settings.last_orphan_cleanup_at).toLocaleString()
+                                        : t('UI_NEVER')
+                                    }
+                                </Text>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                                <Text c="dimmed">{t('UI_SETTINGS_LAST_UPDATED')}</Text>
+                                <Text>
+                                    {settings?.updated_at
+                                        ? new Date(settings.updated_at).toLocaleString()
+                                        : t('UI_NEVER')
+                                    }
+                                </Text>
+                            </div>
+                        </div>
                     </Card>
-                </Space>
+                </Stack>
             )}
         </>
     );

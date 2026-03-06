@@ -1,9 +1,9 @@
 'use client';
 
-import { useParams, redirect } from 'next/navigation';
-import ProfileVisibilityTab from '@/components/settings/tabs/ProfileVisibilityTab';
 import ActivityTab from '@/components/settings/tabs/ActivityTab';
 import CardsTab from '@/components/settings/tabs/CardsTab';
+import ProfileVisibilityTab from '@/components/settings/tabs/ProfileVisibilityTab';
+import { redirect, useParams } from 'next/navigation';
 
 export default function MeSettingsTabPage() {
     const params = useParams();

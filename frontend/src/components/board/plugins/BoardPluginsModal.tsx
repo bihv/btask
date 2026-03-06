@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { Modal, List, Button, Typography, Space, Tag, Empty, App, Tabs, Input, Avatar, Card, Row, Col, Tooltip } from 'antd';
-import { ThunderboltOutlined, SettingOutlined, PlusOutlined, DeleteOutlined, SearchOutlined, CheckCircleOutlined, ShopOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { useBoardPlugins, usePublishedPlugins, useInstallPluginToBoard, useUninstallPluginFromBoard } from '@/hooks/usePlugins';
-import PluginSettingsModal from './PluginSettingsModal';
-import { Plugin } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { useBoardPlugins, useInstallPluginToBoard, usePublishedPlugins, useUninstallPluginFromBoard } from '@/hooks/usePlugins';
+import { Plugin } from '@/types';
+import { useState } from 'react';
+import PluginSettingsModal from './PluginSettingsModal';
 
-const { Text, Title, Paragraph } = Typography;
+import { Avatar, Badge, Button, Card, Center, Group, Loader, Modal, SimpleGrid, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconBolt, IconPlus, IconSearch, IconSettings, IconTrash } from '@tabler/icons-react';
 
 interface BoardPluginsModalProps {
     open: boolean;
@@ -18,9 +18,8 @@ interface BoardPluginsModalProps {
 }
 
 export default function BoardPluginsModal({ open, onClose, boardId, workspaceId }: BoardPluginsModalProps) {
-    const { modal, message } = App.useApp();
     const t = useTranslation();
-    const [activeTab, setActiveTab] = useState('installed');
+    const [activeTab, setActiveTab] = useState<string | null>('installed');
     const [searchText, setSearchText] = useState('');
 
     // Queries
@@ -47,194 +46,141 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
     const handleInstall = async (plugin: Plugin) => {
         try {
             await installPlugin.mutateAsync({ boardId, slug: plugin.slug });
-            message.success(`${plugin.name} ${t('SUCCESS_PLUGIN_INSTALLED')}`);
+            notifications.show({ message: `${plugin.name} installed`, color: 'green' });
             setActiveTab('installed');
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_INSTALL_PLUGIN_FAILED'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_INSTALL_PLUGIN_FAILED'), color: 'red' });
         }
     };
 
-    const handleUninstall = (installation: any) => {
+    const handleUninstall = async (installation: any) => {
         const isInherited = !!installation.workspace_id;
-
         if (isInherited) {
-            message.info(t('UI_WORKSPACE_PLUGIN_INFO'));
+            notifications.show({ message: t('UI_WORKSPACE_PLUGIN_INFO'), color: 'blue' });
             return;
         }
-
-        modal.confirm({
-            title: `Uninstall ${installation.plugin.name}?`,
-            content: t('UI_PLUGIN_UNINSTALL_CONFIRM'),
-            okText: t('UI_UNINSTALL'),
-            okType: 'danger',
-            onOk: async () => {
-                try {
-                    await uninstallPlugin.mutateAsync({ boardId, slug: installation.plugin.slug });
-                    message.success(t('SUCCESS_PLUGIN_UNINSTALLED'));
-                } catch {
-                    message.error(t('ERROR_UNINSTALL_PLUGIN_FAILED'));
-                }
-            },
-        });
+        try {
+            await uninstallPlugin.mutateAsync({ boardId, slug: installation.plugin.slug });
+            notifications.show({ message: t('SUCCESS_PLUGIN_UNINSTALLED'), color: 'green' });
+        } catch {
+            notifications.show({ title: 'Error', message: t('ERROR_UNINSTALL_PLUGIN_FAILED'), color: 'red' });
+        }
     };
-
-    const InstalledTab = () => (
-        <List
-            loading={loadingInstalled}
-            dataSource={installedPlugins}
-            locale={{ emptyText: <Empty description={t('UI_NO_PLUGINS_ENABLED')} /> }}
-            renderItem={(item: any) => {
-                const isInherited = !!item.workspace_id;
-                return (
-                    <List.Item
-                        actions={[
-                            <Button
-                                key="settings"
-                                icon={<SettingOutlined />}
-                                onClick={() => {
-                                    setSelectedPlugin(item);
-                                    setSettingsOpen(true);
-                                }}
-                            >
-                                {t('UI_SETTINGS')}
-                            </Button>,
-                            isInherited ? (
-                                <Tooltip title={t('UI_WORKSPACE_INHERITED')}>
-                                    <Button disabled icon={<DeleteOutlined />} />
-                                </Tooltip>
-                            ) : (
-                                <Button
-                                    key="uninstall"
-                                    danger
-                                    icon={<DeleteOutlined />}
-                                    onClick={() => handleUninstall(item)}
-                                    loading={uninstallPlugin.isPending && uninstallPlugin.variables?.slug === item.plugin.slug}
-                                />
-                            )
-                        ]}
-                    >
-                        <List.Item.Meta
-                            avatar={
-                                <Avatar
-                                    src={item.plugin.icon_url}
-                                    icon={<ThunderboltOutlined />}
-                                    shape="square"
-                                    size="large"
-                                    style={{ backgroundColor: isInherited ? '#8c8c8c' : '#1890ff' }}
-                                />
-                            }
-                            title={
-                                <Space>
-                                    <Text strong>{item.plugin.name}</Text>
-                                    {isInherited && <Tag color="blue">Workspace</Tag>}
-                                    {!isInherited && <Tag color="cyan">Board</Tag>}
-                                </Space>
-                            }
-                            description={item.plugin.description}
-                        />
-                    </List.Item>
-                );
-            }}
-        />
-    );
-
-    const AvailableTab = () => (
-        <div>
-            <div style={{ marginBottom: 16 }}>
-                <Input
-                    placeholder={t('UI_PLACEHOLDER_SEARCH_PLUGINS')}
-                    prefix={<SearchOutlined />}
-                    value={searchText}
-                    onChange={e => setSearchText(e.target.value)}
-                    allowClear
-                />
-            </div>
-
-            {filteredAvailable.length === 0 ? (
-                <Empty description={t('UI_NO_NEW_PLUGINS')} />
-            ) : (
-                <List
-                    grid={{ gutter: 16, column: 2 }}
-                    dataSource={filteredAvailable}
-                    loading={loadingAvailable}
-                    renderItem={(plugin: Plugin) => (
-                        <List.Item>
-                            <Card
-                                hoverable
-                                size="small"
-                                actions={[
-                                    <Button
-                                        type="primary"
-                                        ghost
-                                        size="small"
-                                        icon={<PlusOutlined />}
-                                        onClick={() => handleInstall(plugin)}
-                                        loading={installPlugin.isPending && installPlugin.variables?.slug === plugin.slug}
-                                    >
-                                        {t('UI_ADD')}
-                                    </Button>
-                                ]}
-                            >
-                                <List.Item.Meta
-                                    avatar={<Avatar src={plugin.icon_url} icon={<ThunderboltOutlined />} />}
-                                    title={plugin.name}
-                                    description={
-                                        <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 0, fontSize: 12 }}>
-                                            {plugin.description}
-                                        </Paragraph>
-                                    }
-                                />
-                            </Card>
-                        </List.Item>
-                    )}
-                />
-            )}
-        </div>
-    );
 
     return (
         <>
             <Modal
-                title={
-                    <Space>
-                        <ThunderboltOutlined />
-                        <span>{t('UI_BOARD_POWER_UPS')}</span>
-                    </Space>
-                }
-                open={open}
-                onCancel={onClose}
-                footer={null}
-                width={'90vw'}
-                styles={{
-                    body: {
-                        padding: '0 24px 24px'
-                    }
-                }}
+                opened={open}
+                onClose={onClose}
+                title={<Group><IconBolt size={20} /><Text fw={700}>{t('UI_PLUGINS')}</Text></Group>}
+                size="lg"
             >
-                <Tabs
-                    activeKey={activeTab}
-                    onChange={setActiveTab}
-                    items={[
-                        {
-                            key: 'installed',
-                            label: (
-                                <span>
-                                    <CheckCircleOutlined /> {t('UI_INSTALLED')}
-                                </span>
-                            ),
-                            children: <InstalledTab />,
-                        },
-                        {
-                            key: 'available',
-                            label: (
-                                <span>
-                                    <ShopOutlined /> {t('UI_BROWSE_MARKETPLACE')}
-                                </span>
-                            ),
-                            children: <AvailableTab />,
-                        },
-                    ]}
-                />
+                <Tabs value={activeTab} onChange={setActiveTab}>
+                    <Tabs.List>
+                        <Tabs.Tab value="installed">{t('UI_INSTALLED')} ({installedPlugins.length})</Tabs.Tab>
+                        <Tabs.Tab value="available">{t('UI_AVAILABLE')}</Tabs.Tab>
+                    </Tabs.List>
+
+                    <Tabs.Panel value="installed" pt="md">
+                        {loadingInstalled ? (
+                            <Center py="xl"><Loader size="sm" /></Center>
+                        ) : installedPlugins.length === 0 ? (
+                            <Text c="dimmed" ta="center" py="xl">{t('UI_NO_PLUGINS_ENABLED')}</Text>
+                        ) : (
+                            <Stack gap={8}>
+                                {installedPlugins.map((item: any) => {
+                                    const isInherited = !!item.workspace_id;
+                                    return (
+                                        <Card key={item.id} withBorder>
+                                            <Group justify="space-between">
+                                                <Group>
+                                                    <Avatar
+                                                        src={item.plugin.icon_url}
+                                                        radius="sm"
+                                                        size="lg"
+                                                        style={{ backgroundColor: isInherited ? '#8c8c8c' : '#1890ff' }}
+                                                    />
+                                                    <div>
+                                                        <Group gap={4}>
+                                                            <Text fw={700}>{item.plugin.name}</Text>
+                                                            {isInherited && <Badge color="blue">Workspace</Badge>}
+                                                            {!isInherited && <Badge color="cyan">Board</Badge>}
+                                                        </Group>
+                                                        <Text c="dimmed" size="sm">{item.plugin.description}</Text>
+                                                    </div>
+                                                </Group>
+                                                <Group gap={4}>
+                                                    <Button
+                                                        size="xs"
+                                                        variant="subtle"
+                                                        leftSection={<IconSettings size={14} />}
+                                                        onClick={() => {
+                                                            setSelectedPlugin(item);
+                                                            setSettingsOpen(true);
+                                                        }}
+                                                    >
+                                                        {t('UI_SETTINGS')}
+                                                    </Button>
+                                                    {isInherited ? (
+                                                        <Tooltip label={t('UI_WORKSPACE_INHERITED')}>
+                                                            <Button size="xs" variant="subtle" disabled leftSection={<IconTrash size={14} />} />
+                                                        </Tooltip>
+                                                    ) : (
+                                                        <Button
+                                                            size="xs"
+                                                            variant="subtle"
+                                                            color="red"
+                                                            leftSection={<IconTrash size={14} />}
+                                                            onClick={() => handleUninstall(item)}
+                                                            loading={uninstallPlugin.isPending && uninstallPlugin.variables?.slug === item.plugin.slug}
+                                                        />
+                                                    )}
+                                                </Group>
+                                            </Group>
+                                        </Card>
+                                    );
+                                })}
+                            </Stack>
+                        )}
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="available" pt="md">
+                        <TextInput
+                            placeholder={t('UI_PLACEHOLDER_SEARCH_PLUGINS')}
+                            leftSection={<IconSearch size={16} />}
+                            value={searchText}
+                            onChange={e => setSearchText(e.target.value)}
+                            mb={16}
+                        />
+                        {loadingAvailable ? (
+                            <Center py="xl"><Loader size="sm" /></Center>
+                        ) : filteredAvailable.length === 0 ? (
+                            <Text c="dimmed" ta="center" py="xl">{t('UI_NO_NEW_PLUGINS')}</Text>
+                        ) : (
+                            <SimpleGrid cols={2} spacing="md">
+                                {filteredAvailable.map((plugin: Plugin) => (
+                                    <Card key={plugin.slug} withBorder>
+                                        <Group justify="space-between" mb={8}>
+                                            <Group>
+                                                <Avatar src={plugin.icon_url} radius="sm" size="md" />
+                                                <Text fw={700}>{plugin.name}</Text>
+                                            </Group>
+                                            <Button
+                                                size="xs"
+                                                leftSection={<IconPlus size={14} />}
+                                                onClick={() => handleInstall(plugin)}
+                                                loading={installPlugin.isPending && installPlugin.variables?.slug === plugin.slug}
+                                            >
+                                                {t('UI_INSTALL')}
+                                            </Button>
+                                        </Group>
+                                        <Text c="dimmed" size="sm" lineClamp={2}>{plugin.description}</Text>
+                                    </Card>
+                                ))}
+                            </SimpleGrid>
+                        )}
+                    </Tabs.Panel>
+                </Tabs>
             </Modal>
 
             {selectedPlugin && (

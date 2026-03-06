@@ -1,17 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { Typography, Table, Tag, Empty, Spin, Button, Drawer, Input, Checkbox, Select, Divider, Badge, App } from 'antd';
-import { CreditCardOutlined, ClockCircleOutlined, CheckCircleFilled, FilterOutlined, CalendarOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
-import { useMyCards, useUpdateCard, CardFilters as ApiCardFilters } from '@/hooks/useCards';
-import { Card, CardLabel, BoardList, Board, Workspace } from '@/types';
-import dayjs from 'dayjs';
+import { CardFilters as ApiCardFilters, useMyCards, useUpdateCard } from '@/hooks/useCards';
 import { useTranslation } from '@/hooks/useLabels';
+import { Board, BoardList, Card, Workspace } from '@/types';
+import dayjs from 'dayjs';
+import { useRouter } from 'next/navigation';
+import React, { useMemo, useState } from 'react';
 
-const { Title, Text } = Typography;
-
+import { Badge, Button, Center, Checkbox, Divider, Drawer, Indicator, Loader, MultiSelect, Text, TextInput, Title } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconAlertCircle, IconCalendar, IconCircleCheckFilled, IconClock, IconFilter } from '@tabler/icons-react';
 // Extended card type with nested list/board/workspace
 interface AssignedCard extends Card {
     list?: BoardList & {
@@ -73,7 +71,6 @@ function toApiFilters(filters: UICardFilters): ApiCardFilters {
 export default function CardsTab() {
     const router = useRouter();
     const updateCard = useUpdateCard();
-    const { message } = App.useApp();
     const t = useTranslation();
     const [filterOpen, setFilterOpen] = useState(false);
 
@@ -146,7 +143,7 @@ export default function CardsTab() {
             });
             refetch();
         } catch {
-            message.error(t('ERROR_UPDATE_CARD'));
+            notifications.show({ title: 'Error', message: t('ERROR_UPDATE_CARD'), color: 'red' });
         }
     };
 
@@ -155,200 +152,40 @@ export default function CardsTab() {
         setAppliedFilters(defaultFilters);
     };
 
-    const columns: ColumnsType<AssignedCard> = [
-        {
-            title: '',
-            key: 'complete',
-            width: 40,
-            render: (_, record) => (
-                <div
-                    onClick={(e) => handleToggleComplete(record, e)}
-                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                    {record.is_completed ? (
-                        <CheckCircleFilled style={{ color: '#52c41a', fontSize: 18 }} />
-                    ) : (
-                        <div style={{
-                            width: 16,
-                            height: 16,
-                            borderRadius: '50%',
-                            border: '2px solid var(--text-secondary)',
-                        }} />
-                    )}
-                </div>
-            ),
-        },
-        {
-            title: t('UI_CARD'),
-            dataIndex: 'title',
-            key: 'title',
-            sorter: (a, b) => (a.title || '').localeCompare(b.title || ''),
-            render: (title: string, record) => (
-                <Button
-                    type="link"
-                    onClick={() => handleCardClick(record)}
-                    style={{ padding: 0, height: 'auto', textAlign: 'left' }}
-                >
-                    <Text strong style={{ color: 'var(--text-primary)' }}>{title}</Text>
-                </Button>
-            ),
-        },
-        {
-            title: t('UI_LIST'),
-            dataIndex: ['list', 'title'],
-            key: 'list',
-            width: 150,
-            sorter: (a, b) => (a.list?.title || '').localeCompare(b.list?.title || ''),
-            render: (title: string) => (
-                <Text style={{ color: 'var(--text-secondary)' }}>{title || '-'}</Text>
-            ),
-        },
-        {
-            title: t('UI_LABELS'),
-            dataIndex: 'labels',
-            key: 'labels',
-            width: 200,
-            sorter: (a, b) => (a.labels?.length || 0) - (b.labels?.length || 0),
-            render: (labels: CardLabel[]) => (
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {labels?.map((cardLabel) => (
-                        <Tag
-                            key={cardLabel.id}
-                            style={{
-                                backgroundColor: cardLabel.label?.color || '#666',
-                                color: '#fff',
-                                border: 'none',
-                                marginRight: 0,
-                            }}
-                        >
-                            {cardLabel.label?.name || ''}
-                        </Tag>
-                    ))}
-                </div>
-            ),
-        },
-        {
-            title: t('UI_DUE_DATE'),
-            dataIndex: 'due_date',
-            key: 'due_date',
-            width: 120,
-            sorter: (a, b) => {
-                if (!a.due_date && !b.due_date) return 0;
-                if (!a.due_date) return 1;
-                if (!b.due_date) return -1;
-                return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
-            },
-            defaultSortOrder: 'ascend',
-            render: (dueDate: string, record) => {
-                if (!dueDate) return <Text style={{ color: 'var(--text-secondary)' }}>-</Text>;
+    const renderDueDate = (card: AssignedCard) => {
+        const dueDate = card.due_date;
+        if (!dueDate) return <Text style={{ color: 'var(--text-secondary)' }}>-</Text>;
 
-                const date = dayjs(dueDate);
-                const now = dayjs();
-                const isOverdue = date.isBefore(now) && !record.is_completed;
-                const isDueSoon = date.diff(now, 'day') <= 1 && date.isAfter(now) && !record.is_completed;
+        const date = dayjs(dueDate);
+        const now = dayjs();
+        const isOverdue = date.isBefore(now) && !card.is_completed;
+        const isDueSoon = date.diff(now, 'day') <= 1 && date.isAfter(now) && !card.is_completed;
 
-                let bgColor = 'var(--bg-secondary)';
-                let textColor = 'var(--text-primary)';
+        let bgColor = 'var(--bg-secondary)';
+        let textColor = 'var(--text-primary)';
 
-                if (record.is_completed) {
-                    bgColor = '#52c41a';
-                    textColor = '#fff';
-                } else if (isOverdue) {
-                    bgColor = '#ff4d4f';
-                    textColor = '#fff';
-                } else if (isDueSoon) {
-                    bgColor = '#faad14';
-                    textColor = '#fff';
-                }
+        if (card.is_completed) {
+            bgColor = '#52c41a'; textColor = '#fff';
+        } else if (isOverdue) {
+            bgColor = '#ff4d4f'; textColor = '#fff';
+        } else if (isDueSoon) {
+            bgColor = '#faad14'; textColor = '#fff';
+        }
 
-                return (
-                    <Tag
-                        icon={<ClockCircleOutlined />}
-                        style={{
-                            backgroundColor: bgColor,
-                            color: textColor,
-                            border: 'none',
-                        }}
-                    >
-                        {date.format('MMM D')}
-                    </Tag>
-                );
-            },
-        },
-        {
-            title: t('UI_CREATED'),
-            dataIndex: 'created_at',
-            key: 'created_at',
-            width: 100,
-            sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-            render: (createdAt: string) => (
-                <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                    {dayjs(createdAt).format('MMM D')}
-                </Text>
-            ),
-        },
-        {
-            title: t('UI_UPDATED'),
-            dataIndex: 'updated_at',
-            key: 'updated_at',
-            width: 100,
-            sorter: (a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime(),
-            render: (updatedAt: string) => (
-                <Text style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                    {dayjs(updatedAt).format('MMM D')}
-                </Text>
-            ),
-        },
-        {
-            title: t('UI_BOARD'),
-            key: 'board',
-            width: 220,
-            sorter: (a, b) => (a.list?.board?.title || '').localeCompare(b.list?.board?.title || ''),
-            render: (_, record) => {
-                const board = record.list?.board;
-                const workspace = board?.workspace;
-
-                if (!board) return <Text style={{ color: 'var(--text-secondary)' }}>-</Text>;
-
-                return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div
-                            style={{
-                                width: 48,
-                                height: 36,
-                                borderRadius: 4,
-                                background: board.background_image
-                                    ? `url(${board.background_image}) center/cover`
-                                    : board.background_color || '#0079bf',
-                                flexShrink: 0,
-                            }}
-                        />
-                        <div style={{ minWidth: 0 }}>
-                            <Button
-                                type="link"
-                                onClick={(e) => handleBoardClick(e, record)}
-                                style={{ padding: 0, height: 'auto', lineHeight: 1.3 }}
-                            >
-                                <Text strong style={{ color: 'var(--text-primary)', fontSize: 13 }}>{board.title}</Text>
-                            </Button>
-                            {workspace && (
-                                <div>
-                                    <Text style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
-                                        {workspace.name}
-                                    </Text>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            },
-        },
-    ];
+        return (
+            <Badge
+                leftSection={<IconClock size={14} />}
+                style={{ backgroundColor: bgColor, color: textColor, border: 'none' }}
+            >
+                {date.format('MMM D')}
+            </Badge>
+        );
+    };
 
     if (isLoading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
-                <Spin size="large" />
+                <Loader size="lg" />
             </div>
         );
     }
@@ -356,69 +193,111 @@ export default function CardsTab() {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Title level={3} style={{ margin: 0 }}>{t('UI_CARDS')}</Title>
-                <Badge count={activeFilterCount} size="small">
+                <Title order={3} style={{ margin: 0 }}>{t('UI_CARDS')}</Title>
+                <Indicator label={activeFilterCount > 0 ? activeFilterCount : undefined} size={16} disabled={activeFilterCount === 0}>
                     <Button
-                        icon={<FilterOutlined />}
+                        leftSection={<IconFilter size={16} />}
                         onClick={handleOpenFilter}
                     >
                         {t('UI_FILTER')}
                     </Button>
-                </Badge>
+                </Indicator>
             </div>
 
             {(cards as AssignedCard[]).length === 0 ? (
-                <Empty
-                    image={<CreditCardOutlined style={{ fontSize: 48, color: 'var(--text-secondary)' }} />}
-                    description={
-                        <div>
-                            <Title level={5} style={{ marginBottom: 8 }}>
-                                {activeFilterCount > 0 ? t('UI_NO_CARDS_MATCH') : t('UI_NO_CARDS_ASSIGNED')}
-                            </Title>
-                            <Text style={{ color: 'var(--text-secondary)' }}>
-                                {activeFilterCount > 0
-                                    ? t('UI_TRY_ADJUSTING_FILTERS')
-                                    : t('UI_CARDS_APPEAR_HERE')
-                                }
-                            </Text>
-                        </div>
-                    }
-                />
+                <Center py={48}>
+                    <div style={{ textAlign: 'center' }}>
+                        <Title order={5} style={{ marginBottom: 8 }}>
+                            {activeFilterCount > 0 ? t('UI_NO_CARDS_MATCH') : t('UI_NO_CARDS_ASSIGNED')}
+                        </Title>
+                        <Text c="dimmed">
+                            {activeFilterCount > 0
+                                ? t('UI_TRY_ADJUSTING_FILTERS')
+                                : t('UI_CARDS_APPEAR_HERE')
+                            }
+                        </Text>
+                    </div>
+                </Center>
             ) : (
-                <Table
-                    columns={columns}
-                    dataSource={cards as AssignedCard[]}
-                    rowKey="id"
-                    pagination={{ pageSize: 20, showSizeChanger: true }}
-                    style={{
-                        background: 'var(--bg-secondary)',
-                        borderRadius: 8,
-                    }}
-                />
+                <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, overflow: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                <th style={{ width: 40, padding: '8px' }}></th>
+                                <th style={{ padding: '8px', textAlign: 'left' }}>{t('UI_CARD')}</th>
+                                <th style={{ padding: '8px', textAlign: 'left', width: 150 }}>{t('UI_LIST')}</th>
+                                <th style={{ padding: '8px', textAlign: 'left', width: 200 }}>{t('UI_LABELS')}</th>
+                                <th style={{ padding: '8px', textAlign: 'left', width: 120 }}>{t('UI_DUE_DATE')}</th>
+                                <th style={{ padding: '8px', textAlign: 'left', width: 220 }}>{t('UI_BOARD')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {(cards as AssignedCard[]).map((card) => (
+                                <tr key={card.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '8px', textAlign: 'center' }}>
+                                        <div onClick={(e) => handleToggleComplete(card, e)} style={{ cursor: 'pointer' }}>
+                                            {card.is_completed ? (
+                                                <IconCircleCheckFilled size={18} style={{ color: '#52c41a' }} />
+                                            ) : (
+                                                <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid var(--text-secondary)' }} />
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '8px' }}>
+                                        <Text fw={700} style={{ cursor: 'pointer', color: 'var(--text-primary)' }} onClick={() => handleCardClick(card)}>{card.title}</Text>
+                                    </td>
+                                    <td style={{ padding: '8px' }}>
+                                        <Text c="dimmed">{card.list?.title || '-'}</Text>
+                                    </td>
+                                    <td style={{ padding: '8px' }}>
+                                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                            {card.labels?.map((cardLabel) => (
+                                                <Badge key={cardLabel.id} style={{ backgroundColor: cardLabel.label?.color || '#666', color: '#fff', border: 'none' }}>
+                                                    {cardLabel.label?.name || ''}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '8px' }}>{renderDueDate(card)}</td>
+                                    <td style={{ padding: '8px' }}>
+                                        {card.list?.board ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                <div style={{ width: 48, height: 36, borderRadius: 4, background: card.list.board.background_image ? `url(${card.list.board.background_image}) center/cover` : card.list.board.background_color || '#206A5D', flexShrink: 0 }} />
+                                                <div>
+                                                    <Text fw={700} size="sm" style={{ cursor: 'pointer', color: 'var(--text-primary)' }} onClick={(e) => handleBoardClick(e, card)}>{card.list.board.title}</Text>
+                                                    {card.list.board.workspace && <Text size="xs" c="dimmed">{card.list.board.workspace.name}</Text>}
+                                                </div>
+                                            </div>
+                                        ) : <Text c="dimmed">-</Text>}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
 
             {/* Filter Drawer */}
             <Drawer
                 title={t('UI_FILTER_CARDS')}
-                open={filterOpen}
+                opened={filterOpen}
                 onClose={handleCloseFilter}
-                width={360}
-                extra={
-                    activeFilterCount > 0 && (
-                        <Button type="link" onClick={handleClearFilters}>
-                            {t('UI_CLEAR_ALL')}
-                        </Button>
-                    )
-                }
+                size="sm"
+                position="right"
             >
+                {activeFilterCount > 0 && (
+                    <Button variant="subtle" onClick={handleClearFilters} style={{ marginBottom: 16 }}>
+                        {t('UI_CLEAR_ALL')}
+                    </Button>
+                )}
                 {/* Card keyword */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('UI_CARD')}</Text>
-                    <Input
+                    <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>{t('UI_CARD')}</Text>
+                    <TextInput
                         placeholder={t('UI_ENTER_KEYWORD')}
                         value={pendingFilters.keyword}
                         onChange={(e) => setPendingFilters(prev => ({ ...prev, keyword: e.target.value }))}
-                        allowClear
+
                     />
                     <Text style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
                         {t('UI_FILTER_BY_KEYWORD')}
@@ -429,36 +308,34 @@ export default function CardsTab() {
 
                 {/* Card status */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 12 }}>{t('UI_CARD_STATUS')}</Text>
+                    <Text fw={700} style={{ display: 'block', marginBottom: 12 }}>{t('UI_CARD_STATUS')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <Checkbox
                             checked={pendingFilters.status.complete}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                status: { ...prev.status, complete: e.target.checked }
+                                status: { ...prev.status, complete: e.currentTarget.checked }
                             }))}
-                        >
-                            <CheckCircleFilled style={{ color: '#52c41a', marginRight: 8 }} />
-                            {t('UI_MARKED_COMPLETE')}
-                        </Checkbox>
+                            label={
+                                <span>
+                                    <IconCircleCheckFilled size={14} style={{ color: '#52c41a', marginRight: 8, verticalAlign: 'middle' }} />
+                                    {t('UI_MARKED_COMPLETE')}
+                                </span>
+                            }
+                        />
                         <Checkbox
                             checked={pendingFilters.status.incomplete}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                status: { ...prev.status, incomplete: e.target.checked }
+                                status: { ...prev.status, incomplete: e.currentTarget.checked }
                             }))}
-                        >
-                            <div style={{
-                                display: 'inline-block',
-                                width: 14,
-                                height: 14,
-                                borderRadius: '50%',
-                                border: '2px solid var(--text-secondary)',
-                                marginRight: 8,
-                                verticalAlign: 'middle',
-                            }} />
-                            {t('UI_NOT_MARKED_COMPLETE')}
-                        </Checkbox>
+                            label={
+                                <span>
+                                    <div style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', border: '2px solid var(--text-secondary)', marginRight: 8, verticalAlign: 'middle' }} />
+                                    {t('UI_NOT_MARKED_COMPLETE')}
+                                </span>
+                            }
+                        />
                     </div>
                 </div>
 
@@ -466,58 +343,48 @@ export default function CardsTab() {
 
                 {/* Due date */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 12 }}>{t('UI_DUE_DATE')}</Text>
+                    <Text fw={700} style={{ display: 'block', marginBottom: 12 }}>{t('UI_DUE_DATE')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <Checkbox
                             checked={pendingFilters.dueDate.noDates}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                dueDate: { ...prev.dueDate, noDates: e.target.checked }
+                                dueDate: { ...prev.dueDate, noDates: e.currentTarget.checked }
                             }))}
-                        >
-                            <CalendarOutlined style={{ marginRight: 8, color: 'var(--text-secondary)' }} />
-                            {t('UI_NO_DATES')}
-                        </Checkbox>
+                            label={<span><IconCalendar size={14} style={{ marginRight: 8, color: 'var(--text-secondary)', verticalAlign: 'middle' }} />{t('UI_NO_DATES')}</span>}
+                        />
                         <Checkbox
                             checked={pendingFilters.dueDate.overdue}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                dueDate: { ...prev.dueDate, overdue: e.target.checked }
+                                dueDate: { ...prev.dueDate, overdue: e.currentTarget.checked }
                             }))}
-                        >
-                            <ExclamationCircleOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
-                            {t('UI_OVERDUE')}
-                        </Checkbox>
+                            label={<span><IconAlertCircle size={14} style={{ marginRight: 8, color: '#ff4d4f', verticalAlign: 'middle' }} />{t('UI_OVERDUE')}</span>}
+                        />
                         <Checkbox
                             checked={pendingFilters.dueDate.dueNextDay}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                dueDate: { ...prev.dueDate, dueNextDay: e.target.checked }
+                                dueDate: { ...prev.dueDate, dueNextDay: e.currentTarget.checked }
                             }))}
-                        >
-                            <ClockCircleOutlined style={{ marginRight: 8, color: '#faad14' }} />
-                            {t('UI_DUE_NEXT_DAY')}
-                        </Checkbox>
+                            label={<span><IconClock size={14} style={{ marginRight: 8, color: '#faad14', verticalAlign: 'middle' }} />{t('UI_DUE_NEXT_DAY')}</span>}
+                        />
                         <Checkbox
                             checked={pendingFilters.dueDate.dueNextWeek}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                dueDate: { ...prev.dueDate, dueNextWeek: e.target.checked }
+                                dueDate: { ...prev.dueDate, dueNextWeek: e.currentTarget.checked }
                             }))}
-                        >
-                            <ClockCircleOutlined style={{ marginRight: 8, color: 'var(--text-secondary)' }} />
-                            {t('UI_DUE_NEXT_WEEK')}
-                        </Checkbox>
+                            label={<span><IconClock size={14} style={{ marginRight: 8, color: 'var(--text-secondary)', verticalAlign: 'middle' }} />{t('UI_DUE_NEXT_WEEK')}</span>}
+                        />
                         <Checkbox
                             checked={pendingFilters.dueDate.dueNextMonth}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                dueDate: { ...prev.dueDate, dueNextMonth: e.target.checked }
+                                dueDate: { ...prev.dueDate, dueNextMonth: e.currentTarget.checked }
                             }))}
-                        >
-                            <ClockCircleOutlined style={{ marginRight: 8, color: 'var(--text-secondary)' }} />
-                            {t('UI_DUE_NEXT_MONTH')}
-                        </Checkbox>
+                            label={<span><IconClock size={14} style={{ marginRight: 8, color: 'var(--text-secondary)', verticalAlign: 'middle' }} />{t('UI_DUE_NEXT_MONTH')}</span>}
+                        />
                     </div>
                 </div>
 
@@ -525,18 +392,16 @@ export default function CardsTab() {
 
                 {/* Board */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>{t('UI_BOARD')}</Text>
-                    <Select
-                        mode="multiple"
+                    <Text fw={700} style={{ display: 'block', marginBottom: 8 }}>{t('UI_BOARD')}</Text>
+                    <MultiSelect
                         placeholder={t('UI_FILTER_BY_BOARD')}
                         value={pendingFilters.boardIds}
                         onChange={(value) => setPendingFilters(prev => ({ ...prev, boardIds: value }))}
                         style={{ width: '100%' }}
-                        options={uniqueBoards.map(board => ({
+                        data={uniqueBoards.map(board => ({
                             value: board.id,
                             label: board.title,
                         }))}
-                        allowClear
                     />
                 </div>
 
@@ -544,44 +409,40 @@ export default function CardsTab() {
 
                 {/* Activity */}
                 <div style={{ marginBottom: 24 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 12 }}>{t('UI_ACTIVITY')}</Text>
+                    <Text fw={700} style={{ display: 'block', marginBottom: 12 }}>{t('UI_ACTIVITY')}</Text>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <Checkbox
                             checked={pendingFilters.activity.lastDay}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                activity: { ...prev.activity, lastDay: e.target.checked }
+                                activity: { ...prev.activity, lastDay: e.currentTarget.checked }
                             }))}
-                        >
-                            {t('UI_ACTIVE_LAST_DAY')}
-                        </Checkbox>
+                            label={t('UI_ACTIVE_LAST_DAY')}
+                        />
                         <Checkbox
                             checked={pendingFilters.activity.lastWeek}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                activity: { ...prev.activity, lastWeek: e.target.checked }
+                                activity: { ...prev.activity, lastWeek: e.currentTarget.checked }
                             }))}
-                        >
-                            {t('UI_ACTIVE_LAST_WEEK')}
-                        </Checkbox>
+                            label={t('UI_ACTIVE_LAST_WEEK')}
+                        />
                         <Checkbox
                             checked={pendingFilters.activity.lastMonth}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                activity: { ...prev.activity, lastMonth: e.target.checked }
+                                activity: { ...prev.activity, lastMonth: e.currentTarget.checked }
                             }))}
-                        >
-                            {t('UI_ACTIVE_LAST_MONTH')}
-                        </Checkbox>
+                            label={t('UI_ACTIVE_LAST_MONTH')}
+                        />
                         <Checkbox
                             checked={pendingFilters.activity.lastYear}
                             onChange={(e) => setPendingFilters(prev => ({
                                 ...prev,
-                                activity: { ...prev.activity, lastYear: e.target.checked }
+                                activity: { ...prev.activity, lastYear: e.currentTarget.checked }
                             }))}
-                        >
-                            {t('UI_ACTIVE_LAST_YEAR')}
-                        </Checkbox>
+                            label={t('UI_ACTIVE_LAST_YEAR')}
+                        />
                     </div>
                 </div>
             </Drawer>

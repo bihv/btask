@@ -1,7 +1,7 @@
 'use client';
 
-import { useParams } from 'next/navigation';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import { useParams } from 'next/navigation';
 
 export default function WorkspaceSettingsLayout({
     children,

@@ -1,31 +1,31 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { useWorkspaceMembers } from '@/hooks/useCards';
+import { uploadFile, uploadFileWithAttachment } from '@/lib/api';
+import { fullCodeBlockOptions } from '@/lib/codeBlockConfig';
+import { useTheme } from '@/providers/ThemeProvider';
 import {
     BlockNoteSchema,
+    createCodeBlockSpec,
     defaultBlockSpecs,
     defaultInlineContentSpecs,
-    createCodeBlockSpec,
 } from '@blocknote/core';
 import { filterSuggestionItems } from '@blocknote/core/extensions';
 import '@blocknote/core/fonts/inter.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import {
-    useCreateBlockNote,
     DefaultReactSuggestionItem,
     SuggestionMenuController,
+    useCreateBlockNote,
 } from '@blocknote/react';
-import { fullCodeBlockOptions } from '@/lib/codeBlockConfig';
-import { useTheme } from '@/providers/ThemeProvider';
-import { uploadFile, uploadFileWithAttachment } from '@/lib/api';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Lightbox, { SlideImage, SlideVideo } from 'yet-another-react-lightbox';
 import Video from 'yet-another-react-lightbox/plugins/video';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import { Mention } from './Mention';
-import { MentionSuggestionMenu, MentionSuggestionItem } from './MentionSuggestionMenu';
-import { useWorkspaceMembers } from '@/hooks/useCards';
+import { MentionSuggestionMenu } from './MentionSuggestionMenu';
 
 // Create code block with syntax highlighting for ALL languages
 const codeBlock = createCodeBlockSpec(fullCodeBlockOptions);
@@ -49,6 +49,8 @@ interface RichTextEditorProps {
     placeholder?: string;
     workspaceId?: string;
     cardId?: string; // If provided, creates attachment record when uploading files
+    minHeight?: number | string;
+    maxHeight?: number | string;
 }
 
 const editorStyles: React.CSSProperties = {
@@ -99,6 +101,8 @@ export default function RichTextEditor({
     placeholder = 'Start typing...',
     workspaceId,
     cardId,
+    minHeight,
+    maxHeight,
 }: RichTextEditorProps) {
     const { resolvedTheme } = useTheme();
     const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -242,6 +246,8 @@ export default function RichTextEditor({
                 .bn-editor {
                     padding-left: 0 !important;
                     padding-right: 0 !important;
+                    ${minHeight ? `min-height: ${typeof minHeight === 'number' ? `${minHeight}px` : minHeight} !important;` : ''}
+                    ${maxHeight ? `max-height: ${typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight} !important; overflow-y: auto;` : ''}
                 }
                 .bn-block-outer {
                     margin-left: 0 !important;

@@ -1,19 +1,17 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { Button, Typography, Spin } from 'antd';
-import { CommentOutlined, EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
-import { Comment, User } from '@/types';
 import UserAvatar from '@/components/common/UserAvatar';
 import { useTranslation } from '@/hooks/useLabels';
+import { Comment, User } from '@/types';
+import dynamic from 'next/dynamic';
+import { useCallback, useState } from 'react';
 
+import { Button, Loader, Text } from '@mantine/core';
+import { IconCheck, IconEdit, IconMessage, IconX } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
-    loading: () => <Spin size="small" />,
+    loading: () => <Loader size="sm" />,
 });
-
-const { Text } = Typography;
 
 interface ActivitySectionProps {
     comments: Comment[];
@@ -36,6 +34,7 @@ export default function ActivitySection({
 }: ActivitySectionProps) {
     const t = useTranslation();
     const [newComment, setNewComment] = useState('');
+    const [isAddingComment, setIsAddingComment] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState('');
@@ -55,6 +54,7 @@ export default function ActivitySection({
         await onAddComment(newComment);
         setNewComment('');
         setEditorKey((k) => k + 1);
+        setIsAddingComment(false);
     };
 
     const handleCommentChange = useCallback((content: string) => {
@@ -105,8 +105,8 @@ export default function ActivitySection({
     return (
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <CommentOutlined />
-                <Text strong>{t('UI_ACTIVITY')}</Text>
+                <IconMessage size={16} />
+                <Text fw={700}>{t('UI_ACTIVITY')}</Text>
             </div>
 
             {/* Add Comment */}
@@ -117,25 +117,59 @@ export default function ActivitySection({
                     size="small"
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <RichTextEditor
-                        key={editorKey}
-                        content=""
-                        onChange={handleCommentChange}
-                        editable={true}
-                        placeholder={t('UI_PLACEHOLDER_COMMENT')}
-                        workspaceId={workspaceId}
-                        cardId={cardId}
-                    />
-                    <Button
-                        type="primary"
-                        size="small"
-                        style={{ marginTop: 8 }}
-                        onClick={handleSubmit}
-                        disabled={isCommentEmpty}
-                        loading={isLoading}
-                    >
-                        {t('UI_SAVE')}
-                    </Button>
+                    {!isAddingComment ? (
+                        <div
+                            onClick={() => setIsAddingComment(true)}
+                            style={{
+                                padding: '10px 12px',
+                                background: 'var(--bg-tertiary)',
+                                borderRadius: 8,
+                                cursor: 'pointer',
+                                minHeight: 40,
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <Text c="dimmed" size="sm" style={{ paddingLeft: 46 }}>{t('UI_PLACEHOLDER_COMMENT')}</Text>
+                        </div>
+                    ) : (
+                        <div>
+                            <div style={{ padding: '8px 0', minHeight: 120 }}>
+                                <RichTextEditor
+                                    key={editorKey}
+                                    content=""
+                                    onChange={handleCommentChange}
+                                    editable={true}
+                                    placeholder={t('UI_PLACEHOLDER_COMMENT')}
+                                    workspaceId={workspaceId}
+                                    cardId={cardId}
+                                    minHeight={100}
+                                    maxHeight={300}
+                                />
+                            </div>
+                            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                                <Button
+                                    variant="subtle"
+                                    size="sm"
+                                    onClick={() => {
+                                        setIsAddingComment(false);
+                                        setNewComment('');
+                                        setEditorKey((k) => k + 1);
+                                    }}
+                                >
+                                    {t('UI_CANCEL')}
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    onClick={handleSubmit}
+                                    disabled={isCommentEmpty}
+                                    loading={isLoading}
+                                >
+                                    {t('UI_SAVE')}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -157,10 +191,10 @@ export default function ActivitySection({
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div>
-                                    <Text strong style={{ fontSize: 13 }}>
+                                    <Text fw={700} style={{ fontSize: 13 }}>
                                         {comment.user?.full_name}
                                     </Text>
-                                    <Text type="secondary" style={{ marginLeft: 8, fontSize: 11 }}>
+                                    <Text c="dimmed" style={{ marginLeft: 8, fontSize: 11 }}>
                                         {formatDate(comment.created_at)}
                                         {comment.updated_at !== comment.created_at && (
                                             <span style={{ marginLeft: 4, fontStyle: 'italic' }}>{t('UI_EDITED')}</span>
@@ -169,9 +203,9 @@ export default function ActivitySection({
                                 </div>
                                 {isOwn && !isEditing && onUpdateComment && (
                                     <Button
-                                        type="text"
-                                        size="small"
-                                        icon={<EditOutlined />}
+                                        variant="subtle"
+                                        size="sm"
+                                        leftSection={<IconEdit size={16} />}
                                         onClick={() => handleEditStart(comment)}
                                         style={{ opacity: 0.6 }}
                                     />
@@ -180,30 +214,34 @@ export default function ActivitySection({
                             <div style={{ marginTop: 4 }}>
                                 {isEditing ? (
                                     <div>
-                                        <RichTextEditor
-                                            content={editingContent}
-                                            onChange={handleEditChange}
-                                            editable={true}
-                                            placeholder={t('UI_PLACEHOLDER_EDIT_COMMENT')}
-                                            workspaceId={workspaceId}
-                                            cardId={cardId}
-                                        />
+                                        <div style={{ padding: '8px 0', minHeight: 120 }}>
+                                            <RichTextEditor
+                                                content={editingContent}
+                                                onChange={handleEditChange}
+                                                editable={true}
+                                                placeholder={t('UI_PLACEHOLDER_EDIT_COMMENT')}
+                                                workspaceId={workspaceId}
+                                                cardId={cardId}
+                                                minHeight={100}
+                                                maxHeight={300}
+                                            />
+                                        </div>
                                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                                             <Button
-                                                type="primary"
-                                                size="small"
-                                                icon={<CheckOutlined />}
+                                                size="sm"
+                                                leftSection={<IconX size={16} />}
+                                                onClick={handleEditCancel}
+                                                variant="subtle"
+                                            >
+                                                {t('UI_CANCEL')}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                leftSection={<IconCheck size={16} />}
                                                 onClick={handleEditSave}
                                                 loading={isSavingEdit}
                                             >
                                                 {t('UI_SAVE')}
-                                            </Button>
-                                            <Button
-                                                size="small"
-                                                icon={<CloseOutlined />}
-                                                onClick={handleEditCancel}
-                                            >
-                                                {t('UI_CANCEL')}
                                             </Button>
                                         </div>
                                     </div>
@@ -220,7 +258,7 @@ export default function ActivitySection({
             })}
 
             {comments.length === 0 && (
-                <Text type="secondary" style={{ fontSize: 13 }}>
+                <Text c="dimmed" style={{ fontSize: 13 }}>
                     {t('UI_NO_COMMENTS')}
                 </Text>
             )}

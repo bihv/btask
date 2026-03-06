@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Input, Button, Space, Avatar, Divider, Typography } from 'antd';
-import { UserOutlined, AlignLeftOutlined, EditOutlined } from '@ant-design/icons';
-import { Board, User } from '@/types';
-import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
+import { Board, User } from '@/types';
+import { useState } from 'react';
+import { ScreenHeader } from './MenuShared';
 
-const { Text, Paragraph } = Typography;
+import { Avatar, Button, Divider, Group, Text, Textarea } from '@mantine/core';
+import { IconAlignLeft, IconEdit, IconUser } from '@tabler/icons-react';
 
 interface AboutScreenProps {
     board: Board;
@@ -42,8 +41,8 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
             {/* Board Admin */}
             <div style={{ padding: '8px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <UserOutlined style={{ opacity: 0.6 }} />
-                    <Text strong style={{ fontSize: 12 }}>{t('UI_BOARD_ADMIN')}</Text>
+                    <IconUser size={16} style={{ opacity: 0.6 }} />
+                    <Text fw={700} style={{ fontSize: 12 }}>{t('UI_BOARD_ADMIN')}</Text>
                 </div>
                 {admin ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 24 }}>
@@ -51,12 +50,12 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
                             {admin.full_name?.charAt(0)?.toUpperCase() || 'U'}
                         </Avatar>
                         <div>
-                            <div><Text strong style={{ fontSize: 13 }}>{admin.full_name || 'Unknown'}</Text></div>
-                            <Text type="secondary" style={{ fontSize: 11 }}>@{admin.email?.split('@')[0]}</Text>
+                            <div><Text fw={700} style={{ fontSize: 13 }}>{admin.full_name || 'Unknown'}</Text></div>
+                            <Text c="dimmed" style={{ fontSize: 11 }}>@{admin.email?.split('@')[0]}</Text>
                         </div>
                     </div>
                 ) : (
-                    <Text type="secondary" style={{ marginLeft: 24, fontSize: 12 }}>
+                    <Text c="dimmed" style={{ marginLeft: 24, fontSize: 12 }}>
                         {t('UI_NO_ADMIN_INFO')}
                     </Text>
                 )}
@@ -67,19 +66,19 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
             {/* Description */}
             <div style={{ padding: '8px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <Space size={8}>
-                        <AlignLeftOutlined style={{ opacity: 0.6 }} />
-                        <Text strong style={{ fontSize: 12 }}>{t('UI_DESCRIPTION')}</Text>
-                    </Space>
+                    <Group gap={8}>
+                        <IconAlignLeft size={16} style={{ opacity: 0.6 }} />
+                        <Text fw={700} style={{ fontSize: 12 }}>{t('UI_DESCRIPTION')}</Text>
+                    </Group>
                     {!isEditing && (
-                        <Button size="small" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
+                        <Button size="sm" leftSection={<IconEdit size={16} />} onClick={() => setIsEditing(true)}>
                             {t('UI_EDIT')}
                         </Button>
                     )}
                 </div>
                 {isEditing ? (
                     <div style={{ marginLeft: 24 }}>
-                        <Input.TextArea
+                        <Textarea
                             value={descValue}
                             onChange={(e) => setDescValue(e.target.value)}
                             rows={3}
@@ -87,20 +86,20 @@ export default function AboutScreen({ board, workspaceMembers, onBack, onUpdateD
                             autoFocus
                             style={{ marginBottom: 8 }}
                         />
-                        <Space>
-                            <Button type="primary" size="small" loading={saving} onClick={handleSave}>
-                                {t('UI_SAVE')}
-                            </Button>
-                            <Button size="small" onClick={() => setIsEditing(false)}>
+                        <Group>
+                            <Button variant="subtle" size="sm" onClick={() => setIsEditing(false)}>
                                 {t('UI_CANCEL')}
                             </Button>
-                        </Space>
+                            <Button size="sm" loading={saving} onClick={handleSave}>
+                                {t('UI_SAVE')}
+                            </Button>
+                        </Group>
                     </div>
                 ) : (
                     <div style={{ marginLeft: 24 }}>
-                        <Paragraph type={board.description ? undefined : 'secondary'} style={{ fontSize: 13, margin: 0 }}>
+                        <Text style={{ fontSize: 13, margin: 0 }}>
                             {board.description || t('UI_NO_DESCRIPTION')}
-                        </Paragraph>
+                        </Text>
                     </div>
                 )}
             </div>

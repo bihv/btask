@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { User, Comment } from '@/types';
+import { Comment, User } from '@/types';
 import ActivitySection from './ActivitySection';
 
 interface CardSidebarProps {

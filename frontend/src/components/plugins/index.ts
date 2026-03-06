@@ -3,11 +3,11 @@
  * Export all plugin-related components
  */
 
-export { PluginProvider, usePlugins, usePluginsOptional } from './PluginProvider';
-export { PluginModalHandler } from './PluginModalHandler';
-export { CardBadgeRenderer } from './CardBadgeRenderer';
 export { CardBackSectionRenderer } from './CardBackSectionRenderer';
+export { CardBadgeRenderer } from './CardBadgeRenderer';
 export { CardButtonRenderer } from './CardButtonRenderer';
+export { PluginModalHandler } from './PluginModalHandler';
+export { PluginProvider, usePlugins, usePluginsOptional } from './PluginProvider';
 
 // Re-export plugin loader for convenience
 export { pluginLoader } from '@/lib/pluginLoader';

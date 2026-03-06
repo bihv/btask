@@ -1,21 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { Modal, Typography } from 'antd';
-import { CloseOutlined } from '@ant-design/icons';
-import { useBoardStore } from '@/stores/boardStore';
+import CardPageContent from '@/app/boards/[id]/cards/[cardId]/CardPageContent';
 import { useCard } from '@/hooks/useCards';
+import { useBoardStore } from '@/stores/boardStore';
+import { useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
-import CardPageContent from '@/app/boards/[id]/cards/[cardId]/CardPageContent';
 
 import { PluginProvider } from '@/components/plugins';
-import { useTranslation } from '@/hooks/useLabels';
 import { useAppToken } from '@/hooks/useAppToken';
+import { useTranslation } from '@/hooks/useLabels';
 
-const { Text } = Typography;
-
+import { Modal, Text } from '@mantine/core';
+import { IconX } from '@tabler/icons-react';
 interface CardModalWrapperProps {
     cardId: string;
     onClose: () => void;
@@ -28,17 +26,20 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
     const t = useTranslation();
     const token = useAppToken();
 
-
-
     return (
         <>
             <Modal
-                open={true}
-                onCancel={onClose}
-                footer={null}
-                width="90vw"
+                opened={true}
+                onClose={onClose}
+                size="90vw"
                 style={{ top: 20, maxHeight: 'calc(100vh - 40px)' }}
                 styles={{
+                    header: {
+                        padding: 0,
+                    },
+                    title: {
+                        width: '100%',
+                    },
                     body: {
                         padding: 0,
                         maxHeight: 'calc(100vh - 240px)',
@@ -48,17 +49,18 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                     },
                 }}
                 className="card-modal-hide-scrollbar"
-                destroyOnHidden={true}
-                closeIcon={false}
+                withCloseButton={false}
                 title={
                     <div style={{
                         position: 'relative',
-                        margin: '-20px -24px 0 -24px',
-                        borderRadius: '8px 8px 0 0',
+                        borderTopLeftRadius: '8px',
+                        borderTopRightRadius: '8px',
                         overflow: 'hidden',
+                        width: '100%',
                         minHeight: cardData?.cover_image ? 160 : 60,
                         display: 'flex',
                         alignItems: 'flex-start',
+                        backgroundColor: cardData?.cover_bg_color || 'transparent',
                     }}>
                         {cardData?.cover_image && (
                             <div
@@ -67,9 +69,10 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                                     top: 0,
                                     left: 0,
                                     right: 0,
-                                    height: 160,
+                                    bottom: 0,
+                                    height: '100%',
                                     backgroundColor: cardData.cover_bg_color || 'var(--bg-tertiary)',
-                                    backgroundImage: `url(${cardData.cover_image})`,
+                                    backgroundImage: `url("${cardData.cover_image}")`,
                                     backgroundSize: 'contain',
                                     backgroundRepeat: 'no-repeat',
                                     backgroundPosition: 'center',
@@ -91,21 +94,22 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                                 : 'transparent',
                             borderBottom: cardData?.cover_image ? 'none' : '1px solid var(--border-color)',
                         }}>
-                            <Text strong style={{
+                            <Text fw={700} style={{
                                 fontSize: 16,
                                 color: cardData?.cover_image ? token.colorWhite : 'inherit',
                                 textShadow: cardData?.cover_image ? `0 1px 2px ${token.colorOverlayDark}` : 'none',
                             }}>
                                 {currentBoard?.title || t('UI_BOARD')}
                             </Text>
-                            <CloseOutlined
+                            <div
                                 onClick={onClose}
                                 style={{
                                     cursor: 'pointer',
-                                    fontSize: 16,
-                                    padding: 8,
+                                    padding: 4,
                                     borderRadius: 4,
-                                    color: cardData?.cover_image ? token.colorWhite : 'inherit',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.background = cardData?.cover_image
@@ -115,7 +119,9 @@ export default function CardModalWrapper({ cardId, onClose }: CardModalWrapperPr
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.background = 'transparent';
                                 }}
-                            />
+                            >
+                                <IconX size={16} />
+                            </div>
                         </div>
                     </div>
                 }

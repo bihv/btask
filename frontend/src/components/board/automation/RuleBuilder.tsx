@@ -1,21 +1,20 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { Steps, Form, Input, Button, Space, Card, Typography, List, Tag, Switch, theme, Empty, Spin, Alert, Divider, Flex, App } from 'antd';
-import { PlayCircleOutlined, ThunderboltOutlined, SaveOutlined, PlusOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons';
-import { useBoard, useAllBoards } from '@/hooks/useBoards';
 import {
-    useTriggersByCategory,
     useActionsByCategory,
     useCreateRule,
+    useTriggersByCategory,
     useUpdateRule,
 } from '@/hooks/useAutomationSchema';
-import type { TriggerSchema, ActionSchema, PropertySchema, AutomationRule } from '@/types/automation';
-import { TRIGGER_CATEGORY_INFO, ACTION_CATEGORY_INFO } from '@/types/automation';
-import SentenceTemplateRenderer, { SentenceDisplay } from './SentenceTemplateRenderer';
+import { useAllBoards, useBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
-
-const { Text, Title } = Typography;
+import type { ActionSchema, AutomationRule, PropertySchema, TriggerSchema } from '@/types/automation';
+import { ACTION_CATEGORY_INFO, TRIGGER_CATEGORY_INFO } from '@/types/automation';
+import { Alert, Button, Card, Divider, Flex, Group, Loader, Stack, Stepper, Switch, Text, TextInput, Title } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconBolt, IconCheck, IconDeviceFloppy, IconPlayerPlay, IconPlus, IconTrash } from '@tabler/icons-react';
+import { useEffect, useMemo, useState } from 'react';
+import SentenceTemplateRenderer, { SentenceDisplay } from './SentenceTemplateRenderer';
 
 // ============================================================================
 // Types
@@ -58,10 +57,7 @@ function propertiesToRecord(properties: PropertySchema[]): Record<string, Proper
 // ============================================================================
 
 export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }: RuleBuilderProps) {
-    const { token } = theme.useToken();
-    const { message } = App.useApp();
     const t = useTranslation();
-    const [form] = Form.useForm();
 
     // API hooks
     const { data: triggersByCategory, triggers: allTriggers = [], isLoading: loadingTriggers } = useTriggersByCategory();
@@ -195,7 +191,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
 
     const handleSave = async () => {
         if (!selectedTrigger || actions.length === 0) {
-            message.error(t('ERROR_SELECT_TRIGGER_AND_ACTION'));
+            notifications.show({ title: 'Error', message: t('ERROR_SELECT_TRIGGER_AND_ACTION'), color: 'red' });
             return;
         }
 
@@ -205,7 +201,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
             if (schema) {
                 for (const prop of schema.properties) {
                     if (prop.required && (action[prop.name] === undefined || action[prop.name] === null || action[prop.name] === '')) {
-                        message.error(`Please fill in "${prop.label || prop.name}" for action "${schema.name}"`);
+                        notifications.show({ title: 'Error', message: `Please fill in "${prop.label || prop.name}" for action "${schema.name}"`, color: 'red' });
                         return;
                     }
                 }
@@ -219,10 +215,8 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                 return schema?.name || a.id;
             }).join(' and ')}`,
             board_id: boardId,
-            // trigger_type is always 'event' for event-based rules
             trigger_type: 'event' as const,
             trigger_config: { ...triggerConfig, id: selectedTrigger.id },
-            // Use action objects directly - they contain the latest config
             actions: actions.map(a => ({ ...a })),
             is_enabled: isEnabled,
         };
@@ -230,14 +224,14 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
         try {
             if (ruleToEdit) {
                 await updateRule.mutateAsync({ id: ruleToEdit.id, data: ruleData });
-                message.success(t('SUCCESS_RULE_UPDATED'));
+                notifications.show({ message: t('SUCCESS_RULE_UPDATED'), color: 'green' });
             } else {
                 await createRule.mutateAsync(ruleData);
-                message.success(t('SUCCESS_RULE_CREATED'));
+                notifications.show({ message: t('SUCCESS_RULE_CREATED'), color: 'green' });
             }
             onSuccess();
         } catch (error: any) {
-            message.error(error.message || t('ERROR_SAVE_RULE_FAILED'));
+            notifications.show({ title: 'Error', message: error.message || t('ERROR_SAVE_RULE_FAILED'), color: 'red' });
         }
     };
 
@@ -245,7 +239,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
     if (loadingTriggers || loadingActions) {
         return (
             <div style={{ padding: 40, textAlign: 'center' }}>
-                <Spin size="large" />
+                <Loader size="lg" />
                 <div style={{ marginTop: 16 }}>{t('UI_LOADING_AUTOMATION_SCHEMA')}</div>
             </div>
         );
@@ -255,79 +249,84 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
     if (allTriggers.length === 0 && allActions.length === 0) {
         return (
             <Alert
-                type="warning"
-                message={t('UI_NO_AUTOMATION_AVAILABLE')}
-                description={t('UI_AUTOMATION_NOT_INITIALIZED')}
+                color="yellow"
+                title={t('UI_NO_AUTOMATION_AVAILABLE')}
                 style={{ margin: 40 }}
-            />
+            >
+                {t('UI_AUTOMATION_NOT_INITIALIZED')}
+            </Alert>
         );
     }
+
+    // Current triggers/actions for active category
+    const currentTriggers = triggersByCategory[activeCategory] || [];
+    const currentActions = actionsByCategory[activeActionCategory] || [];
 
     // Render trigger selection step
     const renderTriggerStep = () => (
         <Flex gap={24}>
             {/* Category sidebar */}
             <div style={{ width: 160 }}>
-                <Space direction="vertical" style={{ width: '100%' }}>
+                <Stack gap={4} style={{ width: '100%' }}>
                     {triggerCategories.map(cat => (
                         <Button
                             key={cat.id}
-                            type={activeCategory === cat.id ? 'primary' : 'default'}
+                            variant={activeCategory === cat.id ? 'filled' : 'default'}
                             onClick={() => {
                                 setActiveCategory(cat.id);
-                                // Reset trigger selection when switching categories
                                 if (selectedTrigger && selectedTrigger.category !== cat.id) {
                                     setSelectedTrigger(null);
                                     setTriggerConfig({});
                                 }
                             }}
-                            block
+                            fullWidth
                         >
                             {cat.label}
                         </Button>
                     ))}
-                </Space>
+                </Stack>
             </div>
 
             {/* Trigger list */}
             <div style={{ flex: 1 }}>
-                <List
-                    dataSource={triggersByCategory[activeCategory] || []}
-                    renderItem={(trigger: TriggerSchema) => (
-                        <List.Item
-                            onClick={() => handleSelectTrigger(trigger)}
-                            style={{
-                                cursor: 'pointer',
-                                backgroundColor: selectedTrigger?.id === trigger.id
-                                    ? token.colorPrimaryBg
-                                    : 'transparent',
-                                borderRadius: 8,
-                                padding: '12px 16px',
-                                marginBottom: 8,
-                                border: selectedTrigger?.id === trigger.id
-                                    ? `1px solid ${token.colorPrimary}`
-                                    : '1px solid transparent',
-                            }}
-                        >
-                            <List.Item.Meta
-                                title={trigger.name}
-                                description={trigger.description}
-                            />
-                            {selectedTrigger?.id === trigger.id && (
-                                <CheckOutlined style={{ color: token.colorPrimary }} />
-                            )}
-                        </List.Item>
-                    )}
-                    locale={{ emptyText: t('UI_NO_TRIGGERS_IN_CATEGORY') }}
-                />
+                {currentTriggers.length === 0 ? (
+                    <Text c="dimmed" ta="center" py="xl">{t('UI_NO_TRIGGERS_IN_CATEGORY')}</Text>
+                ) : (
+                    <Stack gap={4}>
+                        {currentTriggers.map((trigger: TriggerSchema) => (
+                            <div
+                                key={trigger.id}
+                                onClick={() => handleSelectTrigger(trigger)}
+                                style={{
+                                    cursor: 'pointer',
+                                    backgroundColor: selectedTrigger?.id === trigger.id
+                                        ? 'var(--mantine-primary-color-light)'
+                                        : 'transparent',
+                                    borderRadius: 8,
+                                    padding: '12px 16px',
+                                    border: selectedTrigger?.id === trigger.id
+                                        ? '1px solid var(--mantine-primary-color-filled)'
+                                        : '1px solid transparent',
+                                }}
+                            >
+                                <Group justify="space-between">
+                                    <div>
+                                        <Text fw={600}>{trigger.name}</Text>
+                                        <Text c="dimmed" size="sm">{trigger.description}</Text>
+                                    </div>
+                                    {selectedTrigger?.id === trigger.id && (
+                                        <IconCheck size={16} style={{ color: 'var(--mantine-primary-color-filled)' }} />
+                                    )}
+                                </Group>
+                            </div>
+                        ))}
+                    </Stack>
+                )}
 
                 {/* Trigger configuration */}
                 {selectedTrigger && selectedTrigger.sentence_template && (
-                    <Card
-                        title={t('UI_CONFIGURE_TRIGGER')}
-                        size="small"
-                        style={{ marginTop: 16 }}
-                    >
+                    <Card withBorder style={{ marginTop: 16 }}>
+                        <Text fw={700} mb={8}>{t('UI_CONFIGURE_TRIGGER')}</Text>
                         <SentenceTemplateRenderer
                             template={selectedTrigger.sentence_template}
                             properties={propertiesToRecord(selectedTrigger.properties)}
@@ -346,78 +345,73 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
         <Flex gap={24}>
             {/* Category sidebar */}
             <div style={{ width: 160 }}>
-                <Space direction="vertical" style={{ width: '100%' }}>
+                <Stack gap={4} style={{ width: '100%' }}>
                     {actionCategories.map(cat => (
                         <Button
                             key={cat.id}
-                            type={activeActionCategory === cat.id ? 'primary' : 'default'}
+                            variant={activeActionCategory === cat.id ? 'filled' : 'default'}
                             onClick={() => setActiveActionCategory(cat.id)}
-                            block
+                            fullWidth
                         >
                             {cat.label}
                         </Button>
                     ))}
-                </Space>
+                </Stack>
             </div>
 
             {/* Action list and selected actions */}
             <div style={{ flex: 1 }}>
                 {/* Available actions */}
-                <Title level={5}>{t('UI_AVAILABLE_ACTIONS')}</Title>
-                <List
-                    size="small"
-                    dataSource={actionsByCategory[activeActionCategory] || []}
-                    renderItem={(action: ActionSchema) => (
-                        <List.Item
-                            style={{ padding: '8px 12px' }}
-                            actions={[
-                                <Button
-                                    key="add"
-                                    type="link"
-                                    icon={<PlusOutlined />}
-                                    onClick={() => handleAddAction(action)}
-                                >
-                                    {t('UI_ADD')}
-                                </Button>
-                            ]}
-                        >
-                            <List.Item.Meta
-                                title={action.name}
-                                description={action.description}
-                            />
-                        </List.Item>
-                    )}
-                    locale={{ emptyText: t('UI_NO_ACTIONS_IN_CATEGORY') }}
-                />
+                <Title order={5}>{t('UI_AVAILABLE_ACTIONS')}</Title>
+                {currentActions.length === 0 ? (
+                    <Text c="dimmed" ta="center" py="xl">{t('UI_NO_ACTIONS_IN_CATEGORY')}</Text>
+                ) : (
+                    <Stack gap={4}>
+                        {currentActions.map((action: ActionSchema) => (
+                            <div key={action.id} style={{ padding: '8px 12px' }}>
+                                <Group justify="space-between">
+                                    <div>
+                                        <Text fw={600}>{action.name}</Text>
+                                        <Text c="dimmed" size="sm">{action.description}</Text>
+                                    </div>
+                                    <Button
+                                        variant="subtle"
+                                        leftSection={<IconPlus size={16} />}
+                                        onClick={() => handleAddAction(action)}
+                                    >
+                                        {t('UI_ADD')}
+                                    </Button>
+                                </Group>
+                            </div>
+                        ))}
+                    </Stack>
+                )}
 
-                <Divider />
+                <Divider my="md" />
 
                 {/* Selected actions */}
-                <Title level={5}>
+                <Title order={5}>
                     {t('UI_ADDED_ACTIONS')} ({actions.length})
                 </Title>
                 {actions.length === 0 ? (
-                    <Empty description={t('UI_NO_ACTIONS_ADDED')} />
+                    <Text c="dimmed" ta="center" py="xl">{t('UI_NO_ACTIONS_ADDED')}</Text>
                 ) : (
-                    <Space direction="vertical" style={{ width: '100%' }}>
+                    <Stack gap={8}>
                         {actions.map((action, index) => {
                             const schema = allActions.find(a => a.id === action.id);
                             if (!schema) return null;
 
                             return (
-                                <Card
-                                    key={`${action.id}-${index}`}
-                                    size="small"
-                                    extra={
+                                <Card key={`${action.id}-${index}`} withBorder>
+                                    <Group justify="space-between" mb={8}>
+                                        <Text fw={700}>{schema.name}</Text>
                                         <Button
-                                            type="text"
-                                            danger
-                                            icon={<DeleteOutlined />}
+                                            variant="subtle"
+                                            color="red"
+                                            leftSection={<IconTrash size={16} />}
                                             onClick={() => handleRemoveAction(index)}
                                         />
-                                    }
-                                    title={schema.name}
-                                >
+                                    </Group>
                                     {schema.sentence_template ? (
                                         <SentenceTemplateRenderer
                                             template={schema.sentence_template}
@@ -427,12 +421,12 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                                             context={context}
                                         />
                                     ) : (
-                                        <Text type="secondary">{t('UI_NO_CONFIG_NEEDED')}</Text>
+                                        <Text c="dimmed">{t('UI_NO_CONFIG_NEEDED')}</Text>
                                     )}
                                 </Card>
                             );
                         })}
-                    </Space>
+                    </Stack>
                 )}
             </div>
         </Flex>
@@ -440,24 +434,28 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
 
     // Render review step
     const renderReviewStep = () => (
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <Form form={form} layout="vertical">
-                <Form.Item label={t('UI_RULE_NAME')}>
-                    <Input
-                        value={ruleName}
-                        onChange={e => setRuleName(e.target.value)}
-                        placeholder={t('UI_PLACEHOLDER_RULE_NAME')}
-                    />
-                </Form.Item>
-                <Form.Item label={t('UI_ENABLED')}>
-                    <Switch checked={isEnabled} onChange={setIsEnabled} />
-                </Form.Item>
-            </Form>
+        <Stack gap="lg" style={{ width: '100%' }}>
+            <div>
+                <TextInput
+                    label={t('UI_RULE_NAME')}
+                    value={ruleName}
+                    onChange={e => setRuleName(e.target.value)}
+                    placeholder={t('UI_PLACEHOLDER_RULE_NAME')}
+                />
+            </div>
+            <div>
+                <Switch
+                    label={t('UI_ENABLED')}
+                    checked={isEnabled}
+                    onChange={(e) => setIsEnabled(e.currentTarget.checked)}
+                />
+            </div>
 
-            <Card title={t('UI_SUMMARY')} size="small">
-                <Space direction="vertical" style={{ width: '100%' }}>
+            <Card withBorder>
+                <Text fw={700} mb={8}>{t('UI_SUMMARY')}</Text>
+                <Stack gap={8}>
                     <div>
-                        <Text strong>{t('UI_WHEN')} </Text>
+                        <Text fw={700}>{t('UI_WHEN')} </Text>
                         {selectedTrigger && selectedTrigger.sentence_template ? (
                             <SentenceDisplay
                                 template={selectedTrigger.sentence_template}
@@ -471,7 +469,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                     </div>
 
                     <div>
-                        <Text strong>{t('UI_THEN')} </Text>
+                        <Text fw={700}>{t('UI_THEN')} </Text>
                         <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
                             {actions.map((action, index) => {
                                 const schema = allActions.find(a => a.id === action.id);
@@ -494,22 +492,21 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             })}
                         </ul>
                     </div>
-                </Space>
+                </Stack>
             </Card>
-        </Space>
+        </Stack>
     );
 
     return (
         <div style={{ padding: 16 }}>
-            <Steps
-                current={currentStep}
-                items={[
-                    { title: t('UI_TRIGGER'), icon: <ThunderboltOutlined /> },
-                    { title: t('UI_ACTIONS'), icon: <PlayCircleOutlined /> },
-                    { title: t('UI_REVIEW'), icon: <SaveOutlined /> },
-                ]}
+            <Stepper
+                active={currentStep}
                 style={{ marginBottom: 24 }}
-            />
+            >
+                <Stepper.Step label={t('UI_TRIGGER')} icon={<IconBolt size={16} />} />
+                <Stepper.Step label={t('UI_ACTIONS')} icon={<IconPlayerPlay size={16} />} />
+                <Stepper.Step label={t('UI_REVIEW')} icon={<IconDeviceFloppy size={16} />} />
+            </Stepper>
 
             <div style={{ minHeight: 400 }}>
                 {currentStep === 0 && renderTriggerStep()}
@@ -520,8 +517,8 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
             <Divider />
 
             <Flex justify="space-between">
-                <Button onClick={onCancel}>{t('UI_CANCEL')}</Button>
-                <Space>
+                <Button variant="subtle" onClick={onCancel}>{t('UI_CANCEL')}</Button>
+                <Group>
                     {currentStep > 0 && (
                         <Button onClick={() => setCurrentStep(prev => prev - 1)}>
                             {t('UI_PREVIOUS')}
@@ -529,7 +526,6 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                     )}
                     {currentStep < 2 ? (
                         <Button
-                            type="primary"
                             onClick={() => setCurrentStep(prev => prev + 1)}
                             disabled={currentStep === 0 && !selectedTrigger}
                         >
@@ -537,8 +533,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                         </Button>
                     ) : (
                         <Button
-                            type="primary"
-                            icon={<SaveOutlined />}
+                            leftSection={<IconDeviceFloppy size={16} />}
                             onClick={handleSave}
                             loading={createRule.isPending || updateRule.isPending}
                             disabled={actions.length === 0}
@@ -546,7 +541,7 @@ export default function RuleBuilder({ boardId, onCancel, onSuccess, ruleToEdit }
                             {ruleToEdit ? t('UI_UPDATE_RULE') : t('UI_CREATE_RULE')}
                         </Button>
                     )}
-                </Space>
+                </Group>
             </Flex>
         </div>
     );

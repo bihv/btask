@@ -4,13 +4,13 @@
  */
 
 import type {
-  PluginContext,
-  DataScope,
+  APIResponse,
   Board,
   Card,
-  List,
   Comment,
-  APIResponse,
+  DataScope,
+  List,
+  PluginContext,
 } from './types';
 
 export interface ClientConfig {
@@ -92,14 +92,14 @@ export class MelloClient {
       'GET',
       `/plugin-data/${scope}/${entityId}/${key}`
     );
-    
+
     if (response.error) {
       if (this.config.debug) {
         console.error('[Mello SDK] getData error:', response.error);
       }
       return null;
     }
-    
+
     return response.data || null;
   }
 
@@ -114,7 +114,7 @@ export class MelloClient {
       `/plugin-data/${scope}/${entityId}/${key}`,
       value
     );
-    
+
     return !response.error;
   }
 
@@ -127,7 +127,7 @@ export class MelloClient {
       'DELETE',
       `/plugin-data/${scope}/${entityId}/${key}`
     );
-    
+
     return !response.error;
   }
 
@@ -139,14 +139,14 @@ export class MelloClient {
       'GET',
       `/plugin-data/${scope}/${entityId}`
     );
-    
+
     if (response.error) {
       if (this.config.debug) {
         console.error('[Mello SDK] getAllData error:', response.error);
       }
       return null;
     }
-    
+
     return response.data || null;
   }
 

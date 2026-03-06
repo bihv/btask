@@ -1,11 +1,9 @@
 'use client';
 
-import React from 'react';
-import { Card, Typography, Tag } from 'antd';
-import { Template } from '@/types';
 import { useAppToken } from '@/hooks/useAppToken';
+import { Template } from '@/types';
 
-const { Text, Paragraph } = Typography;
+import { Badge, Card, Text } from '@mantine/core';
 
 interface TemplateCardProps {
     template: Template;
@@ -16,10 +14,21 @@ export default function TemplateCard({ template, onClick }: TemplateCardProps) {
     const token = useAppToken();
     return (
         <Card
-            hoverable
+            withBorder
             className="template-card"
             onClick={onClick}
-            cover={
+            style={{
+                borderRadius: '8px',
+                border: '1px solid var(--border-color)',
+                backgroundColor: 'var(--bg-secondary)',
+                boxShadow: 'none',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                cursor: onClick ? 'pointer' : 'default',
+            }}
+        >
+            <Card.Section>
                 <div
                     style={{
                         height: '140px',
@@ -50,19 +59,7 @@ export default function TemplateCard({ template, onClick }: TemplateCardProps) {
                         TEMPLATE
                     </div>
                 </div>
-            }
-            style={{
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                backgroundColor: 'var(--bg-secondary)',
-                boxShadow: 'none',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: onClick ? 'pointer' : 'default',
-            }}
-            styles={{ body: { padding: '12px', flex: 1, display: 'flex', flexDirection: 'column' } }}
-        >
+            </Card.Section>
             <style jsx global>{`
                 .template-card:hover {
                     box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
@@ -70,23 +67,23 @@ export default function TemplateCard({ template, onClick }: TemplateCardProps) {
             `}</style>
 
             <div style={{ marginBottom: '8px' }}>
-                <Text strong style={{ fontSize: '14px', display: 'block', lineHeight: '1.4', marginBottom: '4px', color: 'var(--text-primary)' }}>
+                <Text fw={700} style={{ fontSize: '14px', display: 'block', lineHeight: '1.4', marginBottom: '4px', color: 'var(--text-primary)' }}>
                     {template.title}
                 </Text>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)' }}>
-                    <Text type="secondary" style={{ fontSize: '11px' }}>by {template.author}</Text>
+                    <Text c="dimmed" style={{ fontSize: '11px' }}>by {template.author}</Text>
                 </div>
             </div>
 
-            <Paragraph
-                ellipsis={{ rows: 3 }}
+            <Text
+                lineClamp={3}
                 style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', flex: 1 }}
             >
                 {template.description}
-            </Paragraph>
+            </Text>
 
             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Tag
+                <Badge
                     variant="filled"
                     style={{
                         margin: 0,
@@ -98,7 +95,7 @@ export default function TemplateCard({ template, onClick }: TemplateCardProps) {
                     }}
                 >
                     {template.category}
-                </Tag>
+                </Badge>
             </div>
         </Card>
     );

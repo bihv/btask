@@ -1,12 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Space, Typography, Button } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import styles from './MenuShared.module.css';
 
-const { Text } = Typography;
-
+import { Button, Group, Text } from '@mantine/core';
+import { IconArrowLeft } from '@tabler/icons-react';
 // Shared MenuItem component
 interface MenuItemProps {
     icon: React.ReactNode;
@@ -25,14 +23,14 @@ export function MenuItem({ icon, label, onClick, extra, danger }: MenuItemProps)
 
     return (
         <div onClick={onClick} className={className}>
-            <Space size={8}>
+            <Group gap={8}>
                 <span className={styles.menuItemIcon}>
                     {icon}
                 </span>
                 <Text className={danger ? styles.menuItemTextDanger : styles.menuItemText}>
                     {label}
                 </Text>
-            </Space>
+            </Group>
             {extra}
         </div>
     );
@@ -54,13 +52,13 @@ export function ScreenHeader({ title, onBack }: ScreenHeaderProps) {
             marginBottom: 8,
         }}>
             <Button
-                type="text"
-                size="small"
-                icon={<ArrowLeftOutlined />}
+                variant="subtle"
+                size="sm"
+                leftSection={<IconArrowLeft size={16}  />}
                 onClick={onBack}
                 style={{ marginRight: 8 }}
             />
-            <Text strong style={{ flex: 1, textAlign: 'center', marginRight: 32 }}>{title}</Text>
+            <Text fw={700} style={{ flex: 1, textAlign: 'center', marginRight: 32 }}>{title}</Text>
         </div>
     );
 }
@@ -73,7 +71,7 @@ interface MenuTitleProps {
 export function MenuTitle({ title }: MenuTitleProps) {
     return (
         <div style={{ textAlign: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-color)', marginBottom: 8 }}>
-            <Text strong>{title}</Text>
+            <Text fw={700}>{title}</Text>
         </div>
     );
 }

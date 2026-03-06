@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { Board, BoardList, Card } from '@/types';
 import api from '@/lib/api';
+import { Board, BoardList, Card } from '@/types';
+import { create } from 'zustand';
 
 interface BoardState {
     currentBoard: Board | null;

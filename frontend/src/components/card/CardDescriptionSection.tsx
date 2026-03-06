@@ -1,17 +1,14 @@
 'use client';
 
-import React from 'react';
-import dynamic from 'next/dynamic';
-import { Button, Typography, Spin } from 'antd';
-import { AlignLeftOutlined, EditOutlined } from '@ant-design/icons';
 import { useTranslation } from '@/hooks/useLabels';
+import dynamic from 'next/dynamic';
 
+import { Button, Loader, Text } from '@mantine/core';
+import { IconAlignLeft, IconEdit } from '@tabler/icons-react';
 const RichTextEditor = dynamic(() => import('@/components/editor/RichTextEditor'), {
     ssr: false,
-    loading: () => <Spin size="small" />,
+    loading: () => <Loader size="sm" />,
 });
-
-const { Text } = Typography;
 
 interface CardDescriptionSectionProps {
     description: string;
@@ -39,14 +36,14 @@ export default function CardDescriptionSection({
         <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <AlignLeftOutlined />
-                    <Text strong>{t('UI_DESCRIPTION')}</Text>
+                    <IconAlignLeft size={16} />
+                    <Text fw={700}>{t('UI_DESCRIPTION')}</Text>
                 </div>
                 {!isEditing && description && (
                     <Button
-                        type="text"
-                        size="small"
-                        icon={<EditOutlined />}
+                        variant="subtle"
+                        size="sm"
+                        leftSection={<IconEdit size={16} />}
                         onClick={onEditStart}
                     >
                         {t('UI_EDIT')}
@@ -62,17 +59,18 @@ export default function CardDescriptionSection({
                         placeholder={t('UI_PLACEHOLDER_DESCRIPTION')}
                         workspaceId={workspaceId}
                         cardId={cardId}
+                        minHeight={200}
                     />
-                    <div style={{ marginTop: 8 }}>
-                        <Button type="primary" size="small" onClick={onSave}>
-                            {t('UI_SAVE')}
-                        </Button>
+                    <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                         <Button
-                            size="small"
-                            style={{ marginLeft: 8 }}
+                            size="sm"
                             onClick={onCancel}
+                            variant="subtle"
                         >
                             {t('UI_CANCEL')}
+                        </Button>
+                        <Button size="sm" onClick={onSave}>
+                            {t('UI_SAVE')}
                         </Button>
                     </div>
                 </div>
@@ -84,7 +82,7 @@ export default function CardDescriptionSection({
                         background: description ? 'transparent' : 'var(--bg-tertiary)',
                         borderRadius: 8,
                         cursor: description ? 'default' : 'pointer',
-                        minHeight: description ? 'auto' : 60,
+                        minHeight: description ? 'auto' : 200,
                     }}
                 >
                     {description ? (
@@ -93,7 +91,7 @@ export default function CardDescriptionSection({
                             editable={false}
                         />
                     ) : (
-                        <Text type="secondary">{t('UI_PLACEHOLDER_DESCRIPTION')}</Text>
+                        <Text c="dimmed">{t('UI_PLACEHOLDER_DESCRIPTION')}</Text>
                     )}
                 </div>
             )}

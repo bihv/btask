@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Input, Select, Button, Checkbox, Space, Tag, App } from 'antd';
-import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
-import { CustomField, CustomFieldType } from '@/types';
-import { customFieldApi } from '@/lib/api';
-import { ScreenHeader } from './MenuShared';
 import { useTranslation } from '@/hooks/useLabels';
+import { customFieldApi } from '@/lib/api';
+import { CustomField, CustomFieldType } from '@/types';
+import { useState } from 'react';
+import { ScreenHeader } from './MenuShared';
 
-const { Option } = Select;
+import { Badge, Button, Checkbox, Select, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconX } from '@tabler/icons-react';
+
 
 const fieldTypes: { value: CustomFieldType; label: string }[] = [
     { value: 'checkbox', label: 'Checkbox' },
@@ -25,7 +26,6 @@ interface NewFieldScreenProps {
 }
 
 export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldScreenProps) {
-    const { message } = App.useApp();
     const t = useTranslation();
     const [name, setName] = useState('');
     const [type, setType] = useState<CustomFieldType>('text');
@@ -47,12 +47,12 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            message.error(t('ERROR_FIELD_NAME_REQUIRED'));
+            notifications.show({ title: 'Error', message: t('ERROR_FIELD_NAME_REQUIRED'), color: 'red' });
             return;
         }
 
         if (type === 'dropdown' && options.length === 0) {
-            message.error(t('ERROR_DROPDOWN_OPTIONS_REQUIRED'));
+            notifications.show({ title: 'Error', message: t('ERROR_DROPDOWN_OPTIONS_REQUIRED'), color: 'red' });
             return;
         }
 
@@ -66,7 +66,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
             });
             onCreate(response.data.data);
         } catch (error: any) {
-            message.error(error.response?.data?.error || t('ERROR_CREATE_FIELD_FAILED'));
+            notifications.show({ title: 'Error', message: error.response?.data?.error || t('ERROR_CREATE_FIELD_FAILED'), color: 'red' });
         } finally {
             setCreating(false);
         }
@@ -84,7 +84,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                     <label style={{ display: 'block', marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
                         {t('UI_TITLE')}
                     </label>
-                    <Input
+                    <TextInput
                         placeholder={t('UI_PLACEHOLDER_ADD_TITLE')}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -99,15 +99,10 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                     </label>
                     <Select
                         value={type}
-                        onChange={(value) => setType(value)}
+                        onChange={(value) => { if (value) setType(value as CustomFieldType); }}
+                        data={fieldTypes.map(ft => ({ value: ft.value, label: ft.label }))}
                         style={{ width: '100%' }}
-                    >
-                        {fieldTypes.map((ft) => (
-                            <Option key={ft.value} value={ft.value}>
-                                {ft.label}
-                            </Option>
-                        ))}
-                    </Select>
+                    />
                 </div>
 
                 {/* Options for dropdown */}
@@ -121,25 +116,26 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                         {options.length > 0 && (
                             <div style={{ marginBottom: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                                 {options.map((opt, index) => (
-                                    <Tag
+                                    <Badge
                                         key={index}
-                                        closable
-                                        onClose={() => handleRemoveOption(index)}
+                                        rightSection={
+                                            <IconX size={12} style={{ cursor: 'pointer' }} onClick={() => handleRemoveOption(index)} />
+                                        }
                                         style={{ marginRight: 0 }}
                                     >
                                         {opt}
-                                    </Tag>
+                                    </Badge>
                                 ))}
                             </div>
                         )}
 
                         {/* Add new option */}
-                        <Space.Compact style={{ width: '100%' }}>
-                            <Input
+                        <div style={{ width: '100%' }}>
+                            <TextInput
                                 placeholder={t('UI_PLACEHOLDER_ADD_ITEM')}
                                 value={newOption}
                                 onChange={(e) => setNewOption(e.target.value)}
-                                onPressEnter={handleAddOption}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleAddOption(); }}
                             />
                             <Button
                                 onClick={handleAddOption}
@@ -147,7 +143,7 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                             >
                                 {t('UI_ADD')}
                             </Button>
-                        </Space.Compact>
+                        </div>
                     </div>
                 )}
 
@@ -156,15 +152,14 @@ export default function NewFieldScreen({ boardId, onBack, onCreate }: NewFieldSc
                     <Checkbox
                         checked={showOnCard}
                         onChange={(e) => setShowOnCard(e.target.checked)}
-                    >
-                        {t('UI_SHOW_FIELD_ON_CARD')}
-                    </Checkbox>
+                        label={t('UI_SHOW_FIELD_ON_CARD')}
+                    />
                 </div>
 
                 {/* Create button */}
                 <Button
-                    type="primary"
-                    block
+
+                    fullWidth
                     onClick={handleCreate}
                     loading={creating}
                     disabled={!isValid}

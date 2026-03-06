@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Modal, Button, Input, Typography, Divider, QRCode, App, Space } from 'antd';
-import { ShareAltOutlined, CopyOutlined, QrcodeOutlined, PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
-import { Card } from '@/types';
 import { useTranslation } from '@/hooks/useLabels';
+import { Card } from '@/types';
+import { useState } from 'react';
 
-const { Text } = Typography;
-
+import { Button, Divider, Modal, Text, TextInput } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconCopy, IconDownload, IconPrinter, IconQrcode, IconShare } from '@tabler/icons-react';
 interface ShareCardModalProps {
     cardId: string;
     cardTitle: string;
@@ -19,7 +18,6 @@ interface ShareCardModalProps {
 export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, onPrint }: ShareCardModalProps) {
     const [open, setOpen] = useState(false);
     const [showQR, setShowQR] = useState(false);
-    const { message } = App.useApp();
     const t = useTranslation();
 
     // Generate card URL
@@ -32,7 +30,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
 
     const handleCopy = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
-        message.success(`${label} ${t('SUCCESS_COPIED')}`);
+        notifications.show({ message: `${label} copied!`, color: 'green' });
     };
 
     const handlePrint = () => {
@@ -64,29 +62,28 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        message.success(t('SUCCESS_JSON_EXPORTED'));
+        notifications.show({ message: t('SUCCESS_JSON_EXPORTED'), color: 'green' });
         setOpen(false);
     };
 
     return (
         <>
-            <Button icon={<ShareAltOutlined />} size="small" onClick={() => setOpen(true)}>
+            <Button leftSection={<IconShare size={16} />} size="sm" onClick={() => setOpen(true)}>
                 {t('UI_SHARE')}
             </Button>
             <Modal
                 title={t('UI_SHARE')}
-                open={open}
-                onCancel={() => setOpen(false)}
-                footer={null}
-                width={400}
+                opened={open}
+                onClose={() => setOpen(false)}
+                size="md"
             >
                 <div style={{ paddingTop: 16 }}>
                     {/* Print & Export */}
                     <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                        <Button icon={<PrinterOutlined />} onClick={handlePrint} style={{ flex: 1 }}>
+                        <Button leftSection={<IconPrinter size={16} />} onClick={handlePrint} style={{ flex: 1 }}>
                             {t('UI_PRINT')}
                         </Button>
-                        <Button icon={<DownloadOutlined />} onClick={handleExportJSON} style={{ flex: 1 }}>
+                        <Button leftSection={<IconDownload size={16} />} onClick={handleExportJSON} style={{ flex: 1 }}>
                             {t('UI_EXPORT_JSON')}
                         </Button>
                     </div>
@@ -95,25 +92,25 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
 
                     {/* Card Link */}
                     <div style={{ marginBottom: 16 }}>
-                        <Text strong>{t('UI_LINK_TO_CARD')}</Text>
-                        <Space.Compact style={{ marginTop: 8, width: '100%' }}>
-                            <Input
+                        <Text fw={700}>{t('UI_LINK_TO_CARD')}</Text>
+                        <div style={{ display: 'flex', width: '100%' }}>
+                            <TextInput
                                 value={cardUrl}
                                 readOnly
                                 style={{ width: 'calc(100% - 32px)' }}
                             />
                             <Button
-                                icon={<CopyOutlined />}
+                                leftSection={<IconCopy size={16} />}
                                 onClick={() => handleCopy(cardUrl, 'Link')}
                             />
-                        </Space.Compact>
+                        </div>
                     </div>
 
                     {/* QR Code */}
                     <div style={{ marginBottom: 16 }}>
                         <Button
-                            type="link"
-                            icon={<QrcodeOutlined />}
+                            variant="transparent"
+                            leftSection={<IconQrcode size={16} />}
                             onClick={() => setShowQR(!showQR)}
                             style={{ padding: 0 }}
                         >
@@ -121,7 +118,7 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
                         </Button>
                         {showQR && (
                             <div style={{ marginTop: 12, textAlign: 'center' }}>
-                                <QRCode value={cardUrl} size={150} />
+                                <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-secondary)' }}>QR Code</div>
                             </div>
                         )}
                     </div>
@@ -130,24 +127,24 @@ export default function ShareCardModal({ cardId, cardTitle, boardId, cardData, o
 
                     {/* Embed Code */}
                     <div style={{ marginBottom: 16 }}>
-                        <Text strong>{t('UI_EMBED_CARD')}</Text>
-                        <Space.Compact style={{ marginTop: 8, width: '100%' }}>
-                            <Input
+                        <Text fw={700}>{t('UI_EMBED_CARD')}</Text>
+                        <div style={{ display: 'flex', width: '100%' }}>
+                            <TextInput
                                 value={embedCode}
                                 readOnly
                                 style={{ width: 'calc(100% - 32px)', fontSize: 12 }}
                             />
                             <Button
-                                icon={<CopyOutlined />}
+                                leftSection={<IconCopy size={16} />}
                                 onClick={() => handleCopy(embedCode, 'Embed code')}
                             />
-                        </Space.Compact>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
+                        </div>
+                        <Text c="dimmed" style={{ fontSize: 12 }}>
                             {t('UI_EMBED_HINT')}
                         </Text>
                     </div>
-                </div>
-            </Modal>
+                </div >
+            </Modal >
         </>
     );
 }
