@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 
 import { Button, Loader, SimpleGrid, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconArrowLeft, IconPlus } from '@tabler/icons-react';
+import { IconArrowLeft, IconPlus, IconSettings } from '@tabler/icons-react';
 export default function WorkspaceDetailPage() {
     const router = useRouter();
     const params = useParams();
@@ -55,15 +55,23 @@ export default function WorkspaceDetailPage() {
                         />
                         <Title order={4} style={{ margin: 0 }}>{workspace.name}</Title>
                     </div>
-                    {boards.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {boards.length > 0 && (
+                            <Button
+                                leftSection={<IconPlus size={16} />}
+                                onClick={() => setModalOpen(true)}
+                            >
+                                Create Board
+                            </Button>
+                        )}
                         <Button
-                            
-                            leftSection={<IconPlus size={16}  />}
-                            onClick={() => setModalOpen(true)}
+                            variant="light"
+                            leftSection={<IconSettings size={16} />}
+                            onClick={() => router.push(`/workspace/${workspace.id}/settings`)}
                         >
-                            Create Board
+                            Settings
                         </Button>
-                    )}
+                    </div>
                 </div>
             );
         }

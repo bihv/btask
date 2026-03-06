@@ -6,6 +6,7 @@ import UserAvatar from '@/components/common/UserAvatar';
 import NotificationDropdown from '@/components/notification/NotificationDropdown';
 import { useLabels } from '@/hooks/useLabels';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useHeader } from '@/providers/HeaderProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
 import { ActionIcon, Divider, Loader, NavLink, Popover } from '@mantine/core';
@@ -42,6 +43,7 @@ export default function DashboardLayout({
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+    const { headerContent } = useHeader();
 
     const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
 
@@ -267,8 +269,22 @@ export default function DashboardLayout({
                 </nav>
 
                 {/* Right: Main Content */}
-                <main style={{ flex: 1, overflow: 'auto', background: 'var(--bg-secondary)' }}>
-                    {children}
+                <main style={{ flex: 1, overflow: 'auto', background: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column' }}>
+                    {headerContent && (
+                        <div style={{
+                            padding: '16px 24px',
+                            borderBottom: '1px solid var(--border-color)',
+                            background: 'var(--bg-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            minHeight: 64,
+                        }}>
+                            {headerContent}
+                        </div>
+                    )}
+                    <div style={{ flex: 1, overflow: 'auto' }}>
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

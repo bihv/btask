@@ -6,9 +6,9 @@ import { Plugin } from '@/types';
 import { useState } from 'react';
 import PluginSettingsModal from './PluginSettingsModal';
 
-import { Avatar, Badge, Button, Card, Center, Group, Loader, Modal, SimpleGrid, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Alert, Avatar, Badge, Button, Card, Center, Group, Loader, Modal, SimpleGrid, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconBolt, IconPlus, IconSearch, IconSettings, IconTrash } from '@tabler/icons-react';
+import { IconBolt, IconInfoCircle, IconPlus, IconSearch, IconSettings, IconTrash } from '@tabler/icons-react';
 
 interface BoardPluginsModalProps {
     open: boolean;
@@ -75,6 +75,10 @@ export default function BoardPluginsModal({ open, onClose, boardId, workspaceId 
                 title={<Group><IconBolt size={20} /><Text fw={700}>{t('UI_PLUGINS')}</Text></Group>}
                 size="lg"
             >
+                <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light" mb={16}>
+                    {t('UI_PLUGIN_BOARD_SCOPE_INFO')}
+                </Alert>
+
                 <Tabs value={activeTab} onChange={setActiveTab}>
                     <Tabs.List>
                         <Tabs.Tab value="installed">{t('UI_INSTALLED')} ({installedPlugins.length})</Tabs.Tab>

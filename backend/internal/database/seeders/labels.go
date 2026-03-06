@@ -1929,6 +1929,18 @@ var DefaultLabels = []models.LabelSeed{
 		Translations: map[string]string{"vi": "Plugin này được cài ở cấp workspace. Vui lòng vào Cài đặt Workspace để quản lý."},
 	},
 	{
+		Key:          "UI_PLUGIN_WORKSPACE_SCOPE_INFO",
+		Category:     "ui",
+		DefaultValue: "Installing a plugin here will apply it to all boards in this workspace.",
+		Translations: map[string]string{"vi": "Cài đặt plugin ở đây sẽ áp dụng cho toàn bộ Board trong Workspace này."},
+	},
+	{
+		Key:          "UI_PLUGIN_BOARD_SCOPE_INFO",
+		Category:     "ui",
+		DefaultValue: "Installing a plugin here will only apply it to this board.",
+		Translations: map[string]string{"vi": "Cài đặt plugin ở đây sẽ chỉ áp dụng cho Board hiện tại."},
+	},
+	{
 		Key:          "SUCCESS_PLUGIN_INSTALLED",
 		Category:     "success",
 		DefaultValue: "installed to board",

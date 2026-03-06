@@ -5,7 +5,7 @@ import { useInstallPluginToWorkspace, usePublishedPlugins, useUninstallPluginFro
 import { Plugin, PluginInstallation } from '@/types';
 import { useState } from 'react';
 
-import { Avatar, Badge, Card, Group, Loader, Modal, SimpleGrid, Text, TextInput, Title, Tooltip } from '@mantine/core';
+import { Alert, Avatar, Badge, Card, Group, Loader, Modal, SimpleGrid, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconBolt, IconCircleCheck, IconInfoCircle, IconSearch } from '@tabler/icons-react';
 interface WorkspacePowerUpsProps {
@@ -91,6 +91,10 @@ export default function WorkspacePowerUps({ workspace }: WorkspacePowerUpsProps)
                     <Text c="dimmed">{t('UI_POWERUPS_DESC')}</Text>
                 </div>
             </div>
+
+            <Alert icon={<IconInfoCircle size={16} />} title={t('UI_WORKSPACE_PLUGIN_INFO')} color="blue" variant="light" mb={24}>
+                {t('UI_PLUGIN_WORKSPACE_SCOPE_INFO')}
+            </Alert>
 
             {/* Search */}
             <Card style={{ marginBottom: 24 }}>
