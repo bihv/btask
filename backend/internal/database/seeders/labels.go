@@ -4336,6 +4336,18 @@ var DefaultLabels = []models.LabelSeed{
 		DefaultValue: "Available",
 		Translations: map[string]string{"vi": "Có sẵn"},
 	},
+	{
+		Key:          "UI_DELETE_LABEL_CONFIRM_TITLE",
+		Category:     "ui",
+		DefaultValue: "Delete Label",
+		Translations: map[string]string{"vi": "Xóa nhãn"},
+	},
+	{
+		Key:          "UI_DELETE_LABEL_CONFIRM_DESC",
+		Category:     "ui",
+		DefaultValue: "Are you sure you want to delete this label? This action cannot be undone.",
+		Translations: map[string]string{"vi": "Bạn có chắc chắn muốn xóa nhãn này không? Thao tác này không thể hoàn tác."},
+	},
 }
 
 // SeedLabels seeds the default labels into the database using batch operations

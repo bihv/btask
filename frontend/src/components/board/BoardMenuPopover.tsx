@@ -10,6 +10,7 @@ import ArchivedScreen from './menu/ArchivedScreen';
 import BackgroundScreen from './menu/BackgroundScreen';
 import CustomFieldsScreen from './menu/CustomFieldsScreen';
 import EditFieldScreen from './menu/EditFieldScreen';
+import LabelsScreen from './menu/LabelsScreen';
 import { MenuItem, MenuTitle } from './menu/MenuShared';
 import NewFieldScreen from './menu/NewFieldScreen';
 
@@ -17,7 +18,7 @@ import { Button, Divider, Group, Modal, Popover, TextInput } from '@mantine/core
 import { notifications } from '@mantine/notifications';
 import { IconBell, IconBellFilled, IconColumnInsertRight, IconCopy, IconEye, IconEyeOff, IconForms, IconInbox, IconInfoCircle, IconLock, IconPalette, IconPlayerStop, IconShare, IconStar, IconStarFilled, IconTags, IconTrash, IconWorld } from '@tabler/icons-react';
 
-type MenuScreen = 'main' | 'about' | 'background' | 'archived' | 'customFields' | 'newField' | 'editField';
+type MenuScreen = 'main' | 'about' | 'background' | 'archived' | 'customFields' | 'newField' | 'editField' | 'labels';
 
 interface BoardMenuPopoverProps {
     board: Board;
@@ -114,7 +115,7 @@ export default function BoardMenuPopover({
                 label={board.show_card_covers ? t('UI_HIDE_CARD_COVERS') : t('UI_SHOW_CARD_COVERS')}
                 onClick={handleToggleCardCovers}
             />
-            <MenuItem icon={<IconTags size={16} />} label={t('UI_LABELS')} onClick={() => notifications.show({ message: t('UI_COMING_SOON'), color: 'blue' })} />
+            <MenuItem icon={<IconTags size={16} />} label={t('UI_LABELS')} onClick={() => setScreen('labels')} />
             <MenuItem icon={<IconForms size={16} />} label={t('UI_CUSTOM_FIELDS')} onClick={() => setScreen('customFields')} />
 
             <Divider style={{ margin: '8px 0' }} />
@@ -226,6 +227,13 @@ export default function BoardMenuPopover({
                         onDelete={() => setScreen('customFields')}
                     />
                 ) : null;
+            case 'labels':
+                return (
+                    <LabelsScreen
+                        boardId={board.id}
+                        onBack={goBack}
+                    />
+                );
             default:
                 return renderMainScreen();
         }
@@ -240,7 +248,9 @@ export default function BoardMenuPopover({
                 shadow="md"
             >
                 <Popover.Target>
-                    {children}
+                    <div onClick={() => setOpen((o) => !o)}>
+                        {children}
+                    </div>
                 </Popover.Target>
                 <Popover.Dropdown style={{ padding: 0 }} className={styles.popover}>
                     {renderContent()}
