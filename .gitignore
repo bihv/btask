@@ -59,3 +59,9 @@ coverage/
 
 # Docker
 docker-compose.override.yml
+
+#agent
+.agent/
+ERRORS.md
+GEMINI.md
+docs/
