@@ -60,6 +60,22 @@ func (h *BoardHandler) GetByWorkspace(c *fiber.Ctx) error {
 	return utils.SuccessResponse(c, boards)
 }
 
+func (h *BoardHandler) GetArchivedByWorkspace(c *fiber.Ctx) error {
+	userID := middleware.GetUserID(c)
+
+	workspaceID, err := uuid.Parse(c.Params("workspaceId"))
+	if err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid workspace ID")
+	}
+
+	boards, err := h.service.GetArchivedByWorkspaceID(workspaceID, userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	return utils.SuccessResponse(c, boards)
+}
+
 func (h *BoardHandler) GetByID(c *fiber.Ctx) error {
 	userID := middleware.GetUserID(c)
 

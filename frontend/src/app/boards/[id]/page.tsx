@@ -1,30 +1,30 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useAppToken } from '@/hooks/useAppToken';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import AutomationModal from '@/components/board/automation/AutomationModal';
-import { useBoardStore } from '@/stores/boardStore';
-import { Text, Title, Button, TextInput, Loader, Tooltip } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconDots, IconArrowLeft, IconStar, IconStarFilled, IconShare, IconFilter, IconBolt, IconRobot } from '@tabler/icons-react';
+import BoardFilterPopover, { FilterState, defaultFilters, hasActiveFilters } from '@/components/board/BoardFilterPopover';
+import BoardMenuPopover from '@/components/board/BoardMenuPopover';
+import BoardPluginsModal from '@/components/board/plugins/BoardPluginsModal';
 import {
-    KanbanView as KanbanBoard,
     BoardViewSwitcher,
-    TableView,
     CalendarView,
     DashboardView,
+    KanbanView as KanbanBoard,
+    TableView,
     type BoardViewMode,
 } from '@/components/board/views';
-import { useBoard, useUpdateBoard, useDeleteBoard } from '@/hooks/useBoards';
-import { useWorkspaceMembers } from '@/hooks/useCards';
-import BoardFilterPopover, { FilterState, defaultFilters, hasActiveFilters } from '@/components/board/BoardFilterPopover';
-import { Label } from '@/types';
-import ShareModal from '@/components/workspace/ShareModal';
-import BoardMenuPopover from '@/components/board/BoardMenuPopover';
-import api from '@/lib/api';
 import { PluginProvider } from '@/components/plugins';
-import BoardPluginsModal from '@/components/board/plugins/BoardPluginsModal';
+import ShareModal from '@/components/workspace/ShareModal';
+import { useAppToken } from '@/hooks/useAppToken';
+import { useBoard, useDeleteBoard, useUpdateBoard } from '@/hooks/useBoards';
+import { useWorkspaceMembers } from '@/hooks/useCards';
+import api from '@/lib/api';
+import { useBoardStore } from '@/stores/boardStore';
+import { Label } from '@/types';
+import { Button, Loader, Text, TextInput, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconArrowLeft, IconBolt, IconDots, IconFilter, IconRobot, IconShare, IconStar, IconStarFilled } from '@tabler/icons-react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function BoardPage() {
     const router = useRouter();
@@ -299,6 +299,9 @@ export default function BoardPage() {
                             onDeleteBoard={async () => {
                                 await deleteMutation.mutateAsync(boardId);
                                 router.push('/workspaces');
+                            }}
+                            onCloseBoard={() => {
+                                router.push(`/workspaces/${board.workspace_id}`);
                             }}
                             onCardClick={(cardId) => router.push(`/boards/${boardId}/cards/${cardId}`)}
                         >

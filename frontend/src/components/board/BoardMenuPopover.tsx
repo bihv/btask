@@ -15,7 +15,6 @@ import { MenuItem, MenuTitle } from './menu/MenuShared';
 import NewFieldScreen from './menu/NewFieldScreen';
 
 import { Button, Divider, Group, Modal, Popover, TextInput } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
 import { IconBell, IconBellFilled, IconColumnInsertRight, IconCopy, IconEye, IconEyeOff, IconForms, IconInbox, IconInfoCircle, IconLock, IconPalette, IconPlayerStop, IconShare, IconStar, IconStarFilled, IconTags, IconTrash, IconWorld } from '@tabler/icons-react';
 
 type MenuScreen = 'main' | 'about' | 'background' | 'archived' | 'customFields' | 'newField' | 'editField' | 'labels';
@@ -31,6 +30,7 @@ interface BoardMenuPopoverProps {
     onCopyBoard: (title: string) => Promise<void>;
     onUpdateBoard: (data: Partial<Board>) => Promise<void>;
     onDeleteBoard: () => void;
+    onCloseBoard: () => void;
     onCardClick?: (cardId: string) => void;
     children: React.ReactNode;
 }
@@ -46,6 +46,7 @@ export default function BoardMenuPopover({
     onCopyBoard,
     onUpdateBoard,
     onDeleteBoard,
+    onCloseBoard,
     onCardClick,
     children,
 }: BoardMenuPopoverProps) {
@@ -157,7 +158,11 @@ export default function BoardMenuPopover({
             <MenuItem
                 icon={<IconPlayerStop size={16} />}
                 label={t('UI_CLOSE_BOARD')}
-                onClick={() => notifications.show({ message: t('UI_CLOSE_BOARD_COMING_SOON'), color: 'blue' })}
+                onClick={async () => {
+                    setOpen(false);
+                    await onUpdateBoard({ is_archived: true });
+                    onCloseBoard();
+                }}
             />
 
             <Divider style={{ margin: '8px 0' }} />

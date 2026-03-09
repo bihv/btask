@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mello/backend/internal/models"
@@ -74,6 +75,14 @@ func (s *BoardService) GetByWorkspaceID(workspaceID uuid.UUID, userID uuid.UUID)
 	return s.boardRepo.FindByWorkspaceID(workspaceID)
 }
 
+func (s *BoardService) GetArchivedByWorkspaceID(workspaceID uuid.UUID, userID uuid.UUID) ([]models.Board, error) {
+	if !s.hasWorkspaceAccess(workspaceID, userID) {
+		return nil, errors.New("access denied")
+	}
+
+	return s.boardRepo.FindArchivedByWorkspaceID(workspaceID)
+}
+
 func (s *BoardService) Update(boardID uuid.UUID, userID uuid.UUID, req models.UpdateBoardRequest) (*models.Board, error) {
 	board, err := s.boardRepo.FindByID(boardID)
 	if err != nil {
@@ -104,6 +113,14 @@ func (s *BoardService) Update(boardID uuid.UUID, userID uuid.UUID, req models.Up
 	}
 	if req.ShowCardCovers != nil {
 		board.ShowCardCovers = *req.ShowCardCovers
+	}
+	if req.IsArchived != nil {
+		if *req.IsArchived {
+			now := time.Now()
+			board.ArchivedAt = &now
+		} else {
+			board.ArchivedAt = nil
+		}
 	}
 
 	if err := s.boardRepo.Update(board); err != nil {

@@ -65,8 +65,20 @@ func (r *BoardRepository) FindByIDWithDetails(id uuid.UUID) (*models.Board, erro
 func (r *BoardRepository) FindByWorkspaceID(workspaceID uuid.UUID) ([]models.Board, error) {
 	var boards []models.Board
 	err := database.DB.
-		Where("workspace_id = ?", workspaceID).
+		Where("workspace_id = ? AND archived_at IS NULL", workspaceID).
 		Order("position ASC").
+		Find(&boards).Error
+	if err != nil {
+		return nil, err
+	}
+	return boards, nil
+}
+
+func (r *BoardRepository) FindArchivedByWorkspaceID(workspaceID uuid.UUID) ([]models.Board, error) {
+	var boards []models.Board
+	err := database.DB.
+		Where("workspace_id = ? AND archived_at IS NOT NULL", workspaceID).
+		Order("archived_at DESC").
 		Find(&boards).Error
 	if err != nil {
 		return nil, err
@@ -134,7 +146,7 @@ func (r *BoardRepository) SearchByTitle(userID uuid.UUID, query string, limit in
 	err := database.DB.
 		Joins("JOIN workspaces ON workspaces.id = boards.workspace_id").
 		Joins("LEFT JOIN workspace_members ON workspace_members.workspace_id = workspaces.id").
-		Where("(workspaces.owner_id = ? OR workspace_members.user_id = ?) AND LOWER(boards.title) LIKE LOWER(?)",
+		Where("(workspaces.owner_id = ? OR workspace_members.user_id = ?) AND LOWER(boards.title) LIKE LOWER(?) AND boards.archived_at IS NULL",
 			userID, userID, "%"+query+"%").
 		Distinct().
 		Preload("Workspace").
@@ -163,8 +175,9 @@ func (r *BoardRepository) RecordView(boardID uuid.UUID, userID uuid.UUID) error 
 func (r *BoardRepository) GetRecentlyViewed(userID uuid.UUID, limit int) ([]models.Board, error) {
 	var boardViews []models.BoardView
 	err := database.DB.
-		Where("user_id = ?", userID).
-		Order("viewed_at DESC").
+		Joins("JOIN boards ON boards.id = board_views.board_id").
+		Where("board_views.user_id = ? AND boards.archived_at IS NULL", userID).
+		Order("board_views.viewed_at DESC").
 		Limit(limit).
 		Find(&boardViews).Error
 	if err != nil {

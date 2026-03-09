@@ -19,7 +19,9 @@ func (r *WorkspaceRepository) Create(workspace *models.Workspace) error {
 
 func (r *WorkspaceRepository) FindByID(id uuid.UUID) (*models.Workspace, error) {
 	var workspace models.Workspace
-	err := database.DB.Preload("Owner").Preload("Boards").First(&workspace, "id = ?", id).Error
+	err := database.DB.Preload("Owner").Preload("Boards", func(db *gorm.DB) *gorm.DB {
+		return db.Where("archived_at IS NULL").Order("position ASC")
+	}).First(&workspace, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +40,7 @@ func (r *WorkspaceRepository) FindByUserID(userID uuid.UUID) ([]models.Workspace
 		Distinct().
 		Preload("Owner").
 		Preload("Boards", func(db *gorm.DB) *gorm.DB {
-			return db.Order("position ASC")
+			return db.Where("archived_at IS NULL").Order("position ASC")
 		}).
 		Find(&workspaces).Error
 

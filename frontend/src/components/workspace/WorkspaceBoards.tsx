@@ -2,16 +2,16 @@
 
 import BackgroundPicker, { SOLID_COLORS } from '@/components/board/BackgroundPicker';
 import BoardCard from '@/components/board/BoardCard';
-import { useCreateBoard, useUpdateBoard } from '@/hooks/useBoards';
+import { useArchivedBoards, useCreateBoard, useDeleteBoard, useUpdateBoard } from '@/hooks/useBoards';
 import { useTranslation } from '@/hooks/useLabels';
-import { Workspace } from '@/types';
+import { Board, Workspace } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Button, Center, Modal, SimpleGrid, Text, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus } from '@tabler/icons-react';
+import { IconArchive, IconPlus } from '@tabler/icons-react';
 interface WorkspaceBoardsProps {
     workspace: Workspace;
 }
@@ -20,6 +20,7 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
     const router = useRouter();
     const t = useTranslation();
     const [createBoardModalOpen, setCreateBoardModalOpen] = useState(false);
+    const [archivedModalOpen, setArchivedModalOpen] = useState(false);
 
     const form = useForm({
         initialValues: {
@@ -34,6 +35,9 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
 
     const updateMutation = useUpdateBoard();
     const createBoardMutation = useCreateBoard(workspace.id);
+    const deleteMutation = useDeleteBoard();
+
+    const { data: archivedBoards = [], isLoading: isLoadingArchived, refetch: refetchArchived } = useArchivedBoards(workspace.id);
 
     const toggleStar = (boardId: string, isStarred: boolean) => {
         updateMutation.mutate({ id: boardId, data: { is_starred: !isStarred } });
@@ -55,19 +59,51 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
         }
     };
 
+    const handleRestoreBoard = async (boardId: string) => {
+        try {
+            await updateMutation.mutateAsync({ id: boardId, data: { is_archived: false } });
+            notifications.show({ title: 'Success', message: 'Board restored', color: 'green' });
+            refetchArchived();
+        } catch (error) {
+            notifications.show({ title: 'Error', message: 'Failed to restore board', color: 'red' });
+        }
+    };
+
+    const handleDeleteArchivedBoard = async (boardId: string) => {
+        try {
+            await deleteMutation.mutateAsync(boardId);
+            notifications.show({ title: 'Success', message: 'Board deleted permanently', color: 'green' });
+            refetchArchived();
+        } catch (error) {
+            notifications.show({ title: 'Error', message: 'Failed to delete board', color: 'red' });
+        }
+    };
+
     const boards = workspace.boards || [];
 
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <Title order={4} style={{ margin: 0 }}>{t('UI_BOARDS')}</Title>
-                <Button
-
-                    leftSection={<IconPlus size={16} />}
-                    onClick={() => setCreateBoardModalOpen(true)}
-                >
-                    {t('UI_CREATE_BOARD')}
-                </Button>
+                <div style={{ display: 'flex', gap: 12 }}>
+                    <Button
+                        variant="subtle"
+                        color="gray"
+                        leftSection={<IconArchive size={16} />}
+                        onClick={() => {
+                            setArchivedModalOpen(true);
+                            refetchArchived();
+                        }}
+                    >
+                        Archived
+                    </Button>
+                    <Button
+                        leftSection={<IconPlus size={16} />}
+                        onClick={() => setCreateBoardModalOpen(true)}
+                    >
+                        {t('UI_CREATE_BOARD')}
+                    </Button>
+                </div>
             </div>
 
             {boards.length === 0 ? (
@@ -101,12 +137,13 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 cursor: 'pointer',
-                                background: 'var(--bg-tertiary)',
+                                background: 'transparent',
                                 transition: 'all 0.2s'
                             }}
+                            className="hover:bg-gray-50 dark:hover:bg-dark-600"
                             onClick={() => setCreateBoardModalOpen(true)}
                         >
-                            <Text c="dimmed">{t('UI_CREATE_NEW_BOARD')}</Text>
+                            <Text c="dimmed" size="sm" fw={500}>{t('UI_CREATE_NEW_BOARD')}</Text>
                         </div>
                     </div>
                 </SimpleGrid>
@@ -158,6 +195,34 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
                         </Button>
                     </div>
                 </form>
+            </Modal>
+
+            <Modal
+                title="Archived Boards"
+                opened={archivedModalOpen}
+                onClose={() => setArchivedModalOpen(false)}
+                size="lg"
+            >
+                {isLoadingArchived ? (
+                    <Center py={24}><div className="loader" /></Center>
+                ) : archivedBoards.length === 0 ? (
+                    <Text ta="center" c="dimmed" py={24}>No archived boards</Text>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {archivedBoards.map((board: Board) => (
+                            <div key={board.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, border: '1px solid var(--border-color)', borderRadius: 4 }}>
+                                <div>
+                                    <Text fw={500}>{board.title}</Text>
+                                    <Text size="sm" c="dimmed">Archived at: {board.archived_at ? new Date(board.archived_at).toLocaleDateString() : 'Unknown'}</Text>
+                                </div>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <Button size="sm" variant="light" onClick={() => handleRestoreBoard(board.id)}>Restore</Button>
+                                    <Button size="sm" variant="light" color="red" onClick={() => handleDeleteArchivedBoard(board.id)}>Delete</Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </Modal>
         </div>
     );

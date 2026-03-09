@@ -9,6 +9,7 @@ export const boardKeys = {
     all: ['boards'] as const,
     starred: ['boards', 'starred'] as const,
     recentlyViewed: ['boards', 'recentlyViewed'] as const,
+    archived: (workspaceId: string) => ['boards', 'archived', workspaceId] as const,
     detail: (id: string) => ['boards', id] as const,
 };
 
@@ -32,6 +33,19 @@ export function useRecentlyViewedBoards(limit: number = 4) {
             const response = await api.get(`/boards/recently-viewed?limit=${limit}`);
             return response.data.data || [];
         },
+    });
+}
+
+// Fetch archived boards for a workspace
+export function useArchivedBoards(workspaceId: string) {
+    return useQuery({
+        queryKey: boardKeys.archived(workspaceId),
+        queryFn: async (): Promise<Board[]> => {
+            if (!workspaceId) return [];
+            const response = await api.get(`/workspaces/${workspaceId}/boards/archived`);
+            return response.data.data || [];
+        },
+        enabled: !!workspaceId,
     });
 }
 

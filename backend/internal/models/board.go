@@ -8,17 +8,18 @@ import (
 )
 
 type Board struct {
-	ID              uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
-	WorkspaceID     uuid.UUID `json:"workspace_id" gorm:"type:uuid;not null"`
-	Title           string    `json:"title" gorm:"not null"`
-	Description     string    `json:"description"`
-	BackgroundColor string    `json:"background_color" gorm:"default:'#0079bf'"`
-	BackgroundImage string    `json:"background_image"`
-	IsStarred       bool      `json:"is_starred" gorm:"default:false"`
-	ShowCardCovers  bool      `json:"show_card_covers" gorm:"default:true"`
-	Position        int       `json:"position" gorm:"default:0"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	ID              uuid.UUID  `json:"id" gorm:"type:uuid;primary_key"`
+	WorkspaceID     uuid.UUID  `json:"workspace_id" gorm:"type:uuid;not null"`
+	Title           string     `json:"title" gorm:"not null"`
+	Description     string     `json:"description"`
+	BackgroundColor string     `json:"background_color" gorm:"default:'#0079bf'"`
+	BackgroundImage string     `json:"background_image"`
+	IsStarred       bool       `json:"is_starred" gorm:"default:false"`
+	ShowCardCovers  bool       `json:"show_card_covers" gorm:"default:true"`
+	Position        int        `json:"position" gorm:"default:0"`
+	ArchivedAt      *time.Time `json:"archived_at"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
 
 	// Relations
 	Workspace    Workspace     `json:"workspace,omitempty" gorm:"foreignKey:WorkspaceID"`
@@ -68,6 +69,7 @@ type UpdateBoardRequest struct {
 	BackgroundImage string `json:"background_image"`
 	IsStarred       *bool  `json:"is_starred"`
 	ShowCardCovers  *bool  `json:"show_card_covers"`
+	IsArchived      *bool  `json:"is_archived"`
 	Position        *int   `json:"position"`
 }
 

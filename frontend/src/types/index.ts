@@ -55,6 +55,8 @@ export interface Board {
     show_card_covers: boolean;
     is_watching?: boolean;
     position: number;
+    archived_at?: string;
+    is_archived?: boolean; // For update requests only, but keeping consistent
     lists?: BoardList[];
     labels?: Label[];
     custom_fields?: CustomField[];
@@ -288,6 +290,7 @@ export interface CreateBoardRequest {
     description?: string;
     background_color?: string;
     background_image?: string;
+    is_archived?: boolean;
 }
 
 export interface CreateListRequest {

@@ -160,6 +160,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Board routes
 	boardHandler := handlers.NewBoardHandler()
 	workspaces.Get("/:workspaceId/boards", boardHandler.GetByWorkspace)
+	workspaces.Get("/:workspaceId/boards/archived", boardHandler.GetArchivedByWorkspace)
 	workspaces.Post("/:workspaceId/boards", boardHandler.Create)
 
 	boards := protected.Group("/boards")
