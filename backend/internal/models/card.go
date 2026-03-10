@@ -32,12 +32,12 @@ type Card struct {
 	LinkFavicon     string `json:"link_favicon,omitempty"`
 
 	// Relations
-	List              List                   `json:"list,omitempty" gorm:"foreignKey:ListID"`
+	List              List                   `json:"list,omitempty" gorm:"foreignKey:ListID;constraint:OnDelete:CASCADE"`
 	Creator           User                   `json:"creator,omitempty" gorm:"foreignKey:CreatedBy"`
-	Labels            []CardLabel            `json:"labels,omitempty" gorm:"foreignKey:CardID"`
-	Members           []CardMember           `json:"members,omitempty" gorm:"foreignKey:CardID"`
-	Comments          []Comment              `json:"comments,omitempty" gorm:"foreignKey:CardID"`
-	CustomFieldValues []CardCustomFieldValue `json:"custom_field_values,omitempty" gorm:"foreignKey:CardID"`
+	Labels            []CardLabel            `json:"labels,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
+	Members           []CardMember           `json:"members,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
+	Comments          []Comment              `json:"comments,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
+	CustomFieldValues []CardCustomFieldValue `json:"custom_field_values,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
 }
 
 func (c *Card) BeforeCreate(tx *gorm.DB) error {
@@ -53,7 +53,7 @@ type CardMember struct {
 	UserID uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
 
 	// Relations
-	Card Card `json:"card,omitempty" gorm:"foreignKey:CardID"`
+	Card Card `json:"card,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
 	User User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 

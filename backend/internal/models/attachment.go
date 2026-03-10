@@ -30,7 +30,7 @@ type Attachment struct {
 	UpdatedAt  time.Time        `json:"updated_at"`
 
 	// Relations
-	Card     Card `json:"card,omitempty" gorm:"foreignKey:CardID"`
+	Card     Card `json:"card,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
 	Uploader User `json:"uploader,omitempty" gorm:"foreignKey:UploadedBy"`
 }
 

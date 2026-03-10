@@ -72,7 +72,7 @@ type CardCustomFieldValue struct {
 	UpdatedAt     time.Time  `json:"updated_at"`
 
 	// Relations
-	Card        Card               `json:"-" gorm:"foreignKey:CardID"`
+	Card        Card               `json:"-" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
 	CustomField CustomField        `json:"custom_field,omitempty" gorm:"foreignKey:CustomFieldID"`
 	Option      *CustomFieldOption `json:"option,omitempty" gorm:"foreignKey:OptionID"`
 }

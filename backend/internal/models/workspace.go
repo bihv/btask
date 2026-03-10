@@ -20,8 +20,8 @@ type Workspace struct {
 
 	// Relations
 	Owner   User              `json:"owner,omitempty" gorm:"foreignKey:OwnerID"`
-	Members []WorkspaceMember `json:"members,omitempty" gorm:"foreignKey:WorkspaceID"`
-	Boards  []Board           `json:"boards,omitempty" gorm:"foreignKey:WorkspaceID"`
+	Members []WorkspaceMember `json:"members,omitempty" gorm:"foreignKey:WorkspaceID;constraint:OnDelete:CASCADE"`
+	Boards  []Board           `json:"boards,omitempty" gorm:"foreignKey:WorkspaceID;constraint:OnDelete:CASCADE"`
 }
 
 func (w *Workspace) BeforeCreate(tx *gorm.DB) error {
@@ -33,13 +33,13 @@ func (w *Workspace) BeforeCreate(tx *gorm.DB) error {
 
 type WorkspaceMember struct {
 	ID          uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
-	WorkspaceID uuid.UUID `json:"workspace_id" gorm:"type:uuid;not null"`
-	UserID      uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
+	WorkspaceID uuid.UUID `json:"workspace_id" gorm:"type:uuid;not null;index"`
+	UserID      uuid.UUID `json:"user_id" gorm:"type:uuid;not null;index"`
 	Role        string    `json:"role" gorm:"default:'member'"` // owner, admin, member
 	CreatedAt   time.Time `json:"created_at"`
 
 	// Relations
-	Workspace Workspace `json:"workspace,omitempty" gorm:"foreignKey:WorkspaceID"`
+	Workspace Workspace `json:"workspace,omitempty" gorm:"foreignKey:WorkspaceID;constraint:OnDelete:CASCADE"`
 	User      User      `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 

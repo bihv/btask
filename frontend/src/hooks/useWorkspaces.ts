@@ -61,6 +61,22 @@ export function useCreateWorkspace() {
     });
 }
 
+// Update workspace mutation
+export function useUpdateWorkspace() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: string; data: { name?: string; description?: string } }): Promise<Workspace> => {
+            const response = await api.put(`/workspaces/${id}`, data);
+            return response.data.data;
+        },
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
+            queryClient.invalidateQueries({ queryKey: workspaceKeys.detail(id) });
+        },
+    });
+}
+
 // Delete workspace mutation
 export function useDeleteWorkspace() {
     const queryClient = useQueryClient();

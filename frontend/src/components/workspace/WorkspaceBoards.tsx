@@ -118,7 +118,7 @@ export default function WorkspaceBoards({ workspace }: WorkspaceBoardsProps) {
             ) : (
                 <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                     {boards.map((board) => (
-                        <div>
+                        <div key={board.id}>
                             <BoardCard
                                 board={board}
                                 onClick={() => router.push(`/boards/${board.id}`)}

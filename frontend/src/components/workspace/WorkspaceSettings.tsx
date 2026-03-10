@@ -1,9 +1,12 @@
 'use client';
 
 import { useTranslation } from '@/hooks/useLabels';
+import { useDeleteWorkspace, useUpdateWorkspace } from '@/hooks/useWorkspaces';
 import { Workspace } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import { Button, Divider, Group, Text, Textarea, TextInput, Title } from '@mantine/core';
+import { Button, Divider, Group, Modal, Text, Textarea, TextInput, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 
@@ -13,6 +16,11 @@ interface WorkspaceSettingsProps {
 
 export default function WorkspaceSettings({ workspace }: WorkspaceSettingsProps) {
     const t = useTranslation();
+    const router = useRouter();
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+    const updateWorkspace = useUpdateWorkspace();
+    const deleteWorkspace = useDeleteWorkspace();
 
     const form = useForm({
         initialValues: {
@@ -21,14 +29,29 @@ export default function WorkspaceSettings({ workspace }: WorkspaceSettingsProps)
         },
     });
 
-    const handleUpdate = (values: typeof form.values) => {
-        console.log('Update workspace:', values);
-        notifications.show({ message: t('UI_COMING_SOON'), color: 'blue' });
+    const handleUpdate = async (values: typeof form.values) => {
+        try {
+            await updateWorkspace.mutateAsync({ id: workspace.id, data: values });
+        } catch (error: any) {
+            notifications.show({
+                title: 'Error',
+                message: error.response?.data?.error,
+                color: 'red'
+            });
+        }
     };
 
-    const handleDelete = () => {
-        console.log('Delete workspace:', workspace.id);
-        notifications.show({ message: t('UI_COMING_SOON'), color: 'blue' });
+    const handleDelete = async () => {
+        try {
+            await deleteWorkspace.mutateAsync(workspace.id);
+            router.push('/workspaces');
+        } catch (error: any) {
+            notifications.show({
+                title: 'Error',
+                message: error.response?.data?.error,
+                color: 'red'
+            });
+        }
     };
 
     return (
@@ -50,7 +73,7 @@ export default function WorkspaceSettings({ workspace }: WorkspaceSettingsProps)
                 />
 
                 <Group justify="flex-end">
-                    <Button type="submit">
+                    <Button type="submit" loading={updateWorkspace.isPending}>
                         {t('UI_SAVE_CHANGES')}
                     </Button>
                 </Group>
@@ -63,10 +86,36 @@ export default function WorkspaceSettings({ workspace }: WorkspaceSettingsProps)
                 <Text mb="md">
                     {t('UI_DELETE_WORKSPACE_DESC')}
                 </Text>
-                <Button color="red" onClick={handleDelete}>
+                <Button color="red" onClick={() => setDeleteModalOpen(true)}>
                     {t('UI_DELETE_WORKSPACE')}
                 </Button>
             </div>
+
+            <Modal
+                title={t('UI_CONFIRM_DELETE')}
+                opened={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                centered
+            >
+                <Text mb="lg">
+                    {t('UI_CONFIRM_DELETE_WORKSPACE')}
+                </Text>
+                <Group justify="flex-end">
+                    <Button variant="default" onClick={() => setDeleteModalOpen(false)}>
+                        {t('UI_CANCEL')}
+                    </Button>
+                    <Button
+                        color="red"
+                        onClick={() => {
+                            setDeleteModalOpen(false);
+                            handleDelete();
+                        }}
+                        loading={deleteWorkspace.isPending}
+                    >
+                        {t('UI_DELETE_WORKSPACE')}
+                    </Button>
+                </Group>
+            </Modal>
         </div>
     );
 }

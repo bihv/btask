@@ -23,10 +23,10 @@ type Board struct {
 
 	// Relations
 	Workspace    Workspace     `json:"workspace,omitempty" gorm:"foreignKey:WorkspaceID"`
-	Lists        []List        `json:"lists,omitempty" gorm:"foreignKey:BoardID"`
-	Labels       []Label       `json:"labels,omitempty" gorm:"foreignKey:BoardID"`
-	CustomFields []CustomField `json:"custom_fields,omitempty" gorm:"foreignKey:BoardID"`
-	Members      []BoardMember `json:"members,omitempty" gorm:"foreignKey:BoardID"`
+	Lists        []List        `json:"lists,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
+	Labels       []Label       `json:"labels,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
+	CustomFields []CustomField `json:"custom_fields,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
+	Members      []BoardMember `json:"members,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
 }
 
 func (b *Board) BeforeCreate(tx *gorm.DB) error {

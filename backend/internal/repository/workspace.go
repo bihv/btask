@@ -61,7 +61,26 @@ func (r *WorkspaceRepository) Update(workspace *models.Workspace) error {
 }
 
 func (r *WorkspaceRepository) Delete(id uuid.UUID) error {
-	return database.DB.Delete(&models.Workspace{}, "id = ?", id).Error
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// Load workspace with boards to cascade delete
+		var workspace models.Workspace
+		if err := tx.Preload("Boards.Lists.Cards").First(&workspace, "id = ?", id).Error; err != nil {
+			return err
+		}
+
+		// Delete plugin installations for this workspace (nullable FK, manual delete required)
+		if err := tx.Where("workspace_id = ?", id).Delete(&models.PluginInstallation{}).Error; err != nil {
+			return err
+		}
+
+		// Delete automation rules for this workspace (nullable FK, manual delete required)
+		if err := tx.Where("workspace_id = ?", id).Delete(&models.AutomationRule{}).Error; err != nil {
+			return err
+		}
+
+		// Delete the workspace - cascade will handle Members, Boards, Lists, Cards, etc.
+		return tx.Delete(&workspace).Error
+	})
 }
 
 func (r *WorkspaceRepository) AddMember(member *models.WorkspaceMember) error {

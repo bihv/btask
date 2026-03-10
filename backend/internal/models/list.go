@@ -19,8 +19,8 @@ type List struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 
 	// Relations
-	Board Board  `json:"board,omitempty" gorm:"foreignKey:BoardID"`
-	Cards []Card `json:"cards,omitempty" gorm:"foreignKey:ListID"`
+	Board Board  `json:"board,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
+	Cards []Card `json:"cards,omitempty" gorm:"foreignKey:ListID;constraint:OnDelete:CASCADE"`
 }
 
 func (l *List) BeforeCreate(tx *gorm.DB) error {

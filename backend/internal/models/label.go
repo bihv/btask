@@ -14,8 +14,8 @@ type Label struct {
 	Color   string    `json:"color" gorm:"not null"`
 
 	// Relations
-	Board Board       `json:"board,omitempty" gorm:"foreignKey:BoardID"`
-	Cards []CardLabel `json:"cards,omitempty" gorm:"foreignKey:LabelID"`
+	Board Board       `json:"board,omitempty" gorm:"foreignKey:BoardID;constraint:OnDelete:CASCADE"`
+	Cards []CardLabel `json:"cards,omitempty" gorm:"foreignKey:LabelID;constraint:OnDelete:CASCADE"`
 }
 
 func (l *Label) BeforeCreate(tx *gorm.DB) error {
@@ -31,7 +31,7 @@ type CardLabel struct {
 	LabelID uuid.UUID `json:"label_id" gorm:"type:uuid;not null"`
 
 	// Relations
-	Card  Card  `json:"card,omitempty" gorm:"foreignKey:CardID"`
+	Card  Card  `json:"card,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
 	Label Label `json:"label,omitempty" gorm:"foreignKey:LabelID"`
 }
 
@@ -61,7 +61,7 @@ type Comment struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// Relations
-	Card Card `json:"card,omitempty" gorm:"foreignKey:CardID"`
+	Card Card `json:"card,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
 	User User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 

@@ -16,8 +16,8 @@ type Checklist struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// Relations
-	Card  Card            `json:"card,omitempty" gorm:"foreignKey:CardID"`
-	Items []ChecklistItem `json:"items,omitempty" gorm:"foreignKey:ChecklistID"`
+	Card  Card            `json:"card,omitempty" gorm:"foreignKey:CardID;constraint:OnDelete:CASCADE"`
+	Items []ChecklistItem `json:"items,omitempty" gorm:"foreignKey:ChecklistID;constraint:OnDelete:CASCADE"`
 }
 
 func (c *Checklist) BeforeCreate(tx *gorm.DB) error {
@@ -38,8 +38,8 @@ type ChecklistItem struct {
 	UpdatedAt   time.Time  `json:"updated_at"`
 
 	// Relations
-	Checklist Checklist               `json:"checklist,omitempty" gorm:"foreignKey:ChecklistID"`
-	Assignees []ChecklistItemAssignee `json:"assignees,omitempty" gorm:"foreignKey:ChecklistItemID"`
+	Checklist Checklist               `json:"checklist,omitempty" gorm:"foreignKey:ChecklistID;constraint:OnDelete:CASCADE"`
+	Assignees []ChecklistItemAssignee `json:"assignees,omitempty" gorm:"foreignKey:ChecklistItemID;constraint:OnDelete:CASCADE"`
 }
 
 func (ci *ChecklistItem) BeforeCreate(tx *gorm.DB) error {
