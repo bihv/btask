@@ -15,9 +15,9 @@ import (
 )
 
 func Setup(app *fiber.App, cfg *config.Config) {
-	// CORS
+	// CORS - must allow credentials for cookie-based auth
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000,http://localhost:3000",
+		AllowOrigins:     config.GetEnv("ALLOWED_ORIGINS", "http://localhost:3000"),
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
 		AllowCredentials: true,
@@ -39,6 +39,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	auth := api.Group("/auth")
 	auth.Post("/register", authHandler.Register)
 	auth.Post("/login", authHandler.Login)
+	auth.Post("/logout", authHandler.Logout)
 
 	// Email verification (public - user clicks link from email)
 	api.Get("/users/verify-email", userHandler.VerifyEmailChange)

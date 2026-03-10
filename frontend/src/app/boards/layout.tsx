@@ -27,9 +27,8 @@ export default function BoardsLayout({
     // Labels loading with React Query
     const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
 
-    // Get auth token for WebSocket
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    useWebSocket(token);
+    // WebSocket connection (token handled internally)
+    useWebSocket();
 
     useEffect(() => {
         setMounted(true);

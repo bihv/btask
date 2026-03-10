@@ -6,16 +6,11 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true, // Send cookies automatically
 });
 
 // Add auth token to requests
 api.interceptors.request.use((config) => {
-    if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-    }
     return config;
 });
 
@@ -25,8 +20,6 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             if (typeof window !== 'undefined') {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
                 window.location.href = '/login';
             }
         }
@@ -39,15 +32,13 @@ export const uploadFile = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
     const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/upload`,
         formData,
         {
+            withCredentials: true, // Send cookies
             headers: {
                 'Content-Type': 'multipart/form-data',
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         }
     );

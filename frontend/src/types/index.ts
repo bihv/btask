@@ -264,7 +264,6 @@ export interface ApiResponse<T> {
 
 // Auth types
 export interface AuthResponse {
-    token: string;
     user: User;
 }
 

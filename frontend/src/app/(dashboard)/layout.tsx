@@ -47,8 +47,7 @@ export default function DashboardLayout({
 
     const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    useWebSocket(token);
+    useWebSocket();
 
     useEffect(() => {
         setMounted(true);

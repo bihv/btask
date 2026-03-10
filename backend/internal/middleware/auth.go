@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"strings"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -18,17 +16,11 @@ type Claims struct {
 
 func AuthMiddleware(cfg *config.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		authHeader := c.Get("Authorization")
-		if authHeader == "" {
-			return utils.UnauthorizedResponse(c, "Missing authorization header")
-		}
+		tokenString := c.Cookies("auth_token")
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			return utils.UnauthorizedResponse(c, "Invalid authorization header format")
+		if tokenString == "" {
+			return utils.UnauthorizedResponse(c, "Missing auth token cookie")
 		}
-
-		tokenString := parts[1]
 
 		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(cfg.JWTSecret), nil
@@ -55,17 +47,13 @@ func AuthMiddleware(cfg *config.Config) fiber.Handler {
 // If not, the request continues without user context (Locals remain unset).
 func OptionalAuthMiddleware(cfg *config.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		authHeader := c.Get("Authorization")
-		if authHeader == "" {
+		tokenString := c.Cookies("auth_token")
+
+		if tokenString == "" {
 			return c.Next()
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			return c.Next()
-		}
-
-		token, err := jwt.ParseWithClaims(parts[1], &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(cfg.JWTSecret), nil
 		})
 

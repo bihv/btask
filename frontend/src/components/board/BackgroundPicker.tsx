@@ -1,6 +1,6 @@
 'use client';
 
-import { useAppToken } from '@/hooks/useAppToken';
+import { uploadFile } from '@/lib/api';
 import React, { useCallback, useRef, useState } from 'react';
 
 import { Button, Divider, Loader, Tabs, Text, TextInput } from '@mantine/core';
@@ -118,7 +118,6 @@ export default function BackgroundPicker({
     const [activeTab, setActiveTab] = useState(imageValue ? 'photos' : 'colors');
     const [urlInput, setUrlInput] = useState('');
     const [isValidatingUrl, setIsValidatingUrl] = useState(false);
-    const token = useAppToken();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
@@ -191,28 +190,8 @@ export default function BackgroundPicker({
     const handleFileUpload = async (file: File) => {
         setUploading(true);
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error('Upload failed');
-            }
-
-            const data = await response.json();
-            if (data.success && data.data?.url) {
-                onImageChange?.(data.data.url);
-            } else {
-                throw new Error(data.error || 'Upload failed');
-            }
+            const url = await uploadFile(file);
+            onImageChange?.(url);
         } catch (error: any) {
             notifications.show({ title: 'Error', message: error.message || 'Failed to upload image', color: 'red' });
         } finally {

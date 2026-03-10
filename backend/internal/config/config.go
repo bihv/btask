@@ -37,36 +37,36 @@ type Config struct {
 func Load() (*Config, error) {
 	_ = godotenv.Load()
 
-	jwtExpiry, err := time.ParseDuration(getEnv("JWT_EXPIRY", "24h"))
+	jwtExpiry, err := time.ParseDuration(GetEnv("JWT_EXPIRY", "24h"))
 	if err != nil {
 		jwtExpiry = 24 * time.Hour
 	}
 
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://mello:mello123@localhost:5432/mello?sslmode=disable"),
-		JWTSecret:   getEnv("JWT_SECRET", "your-super-secret-key"),
+		DatabaseURL: GetEnv("DATABASE_URL", "postgres://mello:mello123@localhost:5432/mello?sslmode=disable"),
+		JWTSecret:   GetEnv("JWT_SECRET", "your-super-secret-key"),
 		JWTExpiry:   jwtExpiry,
-		ServerPort:  getEnv("SERVER_PORT", "8080"),
-		ServerEnv:   getEnv("SERVER_ENV", "development"),
+		ServerPort:  GetEnv("SERVER_PORT", "8080"),
+		ServerEnv:   GetEnv("SERVER_ENV", "development"),
 
 		// MinIO config
-		MinioEndpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
-		MinioAccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
-		MinioSecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin"),
-		MinioBucket:    getEnv("MINIO_BUCKET", "mello-uploads"),
-		MinioUseSSL:    getEnv("MINIO_USE_SSL", "false") == "true",
-		MinioPublicURL: getEnv("MINIO_PUBLIC_URL", "http://localhost:9000"),
+		MinioEndpoint:  GetEnv("MINIO_ENDPOINT", "localhost:9000"),
+		MinioAccessKey: GetEnv("MINIO_ACCESS_KEY", "minioadmin"),
+		MinioSecretKey: GetEnv("MINIO_SECRET_KEY", "minioadmin"),
+		MinioBucket:    GetEnv("MINIO_BUCKET", "mello-uploads"),
+		MinioUseSSL:    GetEnv("MINIO_USE_SSL", "false") == "true",
+		MinioPublicURL: GetEnv("MINIO_PUBLIC_URL", "http://localhost:9000"),
 
 		// SMTP config
-		SMTPHost:     getEnv("SMTP_HOST", ""),
-		SMTPPort:     getEnv("SMTP_PORT", "587"),
-		SMTPUser:     getEnv("SMTP_USER", ""),
-		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
-		SMTPFrom:     getEnv("SMTP_FROM", ""),
-		AppURL:       getEnv("APP_URL", "http://localhost:3000"),
+		SMTPHost:     GetEnv("SMTP_HOST", ""),
+		SMTPPort:     GetEnv("SMTP_PORT", "587"),
+		SMTPUser:     GetEnv("SMTP_USER", ""),
+		SMTPPassword: GetEnv("SMTP_PASSWORD", ""),
+		SMTPFrom:     GetEnv("SMTP_FROM", ""),
+		AppURL:       GetEnv("APP_URL", "http://localhost:3000"),
 
 		// Admin
-		InitialAdminEmail: getEnv("INITIAL_ADMIN_EMAIL", ""),
+		InitialAdminEmail: GetEnv("INITIAL_ADMIN_EMAIL", ""),
 	}, nil
 }
 
@@ -86,7 +86,8 @@ func SetConfig(cfg *Config) {
 	globalConfig = cfg
 }
 
-func getEnv(key, defaultValue string) string {
+// GetEnv is a helper to get environment variables
+func GetEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}

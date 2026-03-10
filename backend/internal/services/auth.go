@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/mello/backend/internal/config"
 	"github.com/mello/backend/internal/middleware"
@@ -39,6 +40,11 @@ type AuthResponse struct {
 	Token string              `json:"token"`
 	User  models.UserResponse `json:"user"`
 }
+
+// Cookie names
+const (
+	TokenCookieName = "auth_token"
+)
 
 func (s *AuthService) Register(req RegisterRequest) (*AuthResponse, error) {
 	if s.userRepo.EmailExists(req.Email) {
@@ -107,4 +113,34 @@ func (s *AuthService) generateToken(user *models.User) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(s.config.JWTSecret))
+}
+
+// SetTokenCookie sets the JWT token as an httpOnly cookie
+func SetTokenCookie(c *fiber.Ctx, token string) error {
+	cfg := config.GetConfig()
+	isProduction := cfg.ServerEnv == "production"
+
+	cookie := fiber.Cookie{
+		Name:     TokenCookieName,
+		Value:    token,
+		Path:     "/",
+		HTTPOnly: true,
+		Secure:   isProduction, // Only HTTPS in production
+		SameSite: "Lax",
+		MaxAge:   int(cfg.JWTExpiry.Seconds()),
+	}
+	c.Cookie(&cookie)
+	return nil
+}
+
+// ClearTokenCookie clears the auth token cookie
+func ClearTokenCookie(c *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:   TokenCookieName,
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	}
+	c.Cookie(&cookie)
+	return nil
 }

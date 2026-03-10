@@ -1,24 +1,21 @@
 import api from '@/lib/api';
 import { User } from '@/types';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 interface AuthState {
     user: User | null;
-    token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string, fullName: string) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     setUser: (user: User) => void;
+    checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
-    persist(
-        (set) => ({
+    (set) => ({
             user: null,
-            token: null,
             isAuthenticated: false,
             isLoading: false,
 
@@ -26,10 +23,9 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true });
                 try {
                     const response = await api.post('/auth/login', { email, password });
-                    const { token, user } = response.data.data;
+                    const { user } = response.data.data;
 
-                    localStorage.setItem('token', token);
-                    set({ user, token, isAuthenticated: true, isLoading: false });
+                    set({ user, isAuthenticated: true, isLoading: false });
                 } catch (error) {
                     set({ isLoading: false });
                     throw error;
@@ -44,28 +40,36 @@ export const useAuthStore = create<AuthState>()(
                         password,
                         full_name: fullName,
                     });
-                    const { token, user } = response.data.data;
+                    const { user } = response.data.data;
 
-                    localStorage.setItem('token', token);
-                    set({ user, token, isAuthenticated: true, isLoading: false });
+                    set({ user, isAuthenticated: true, isLoading: false });
                 } catch (error) {
                     set({ isLoading: false });
                     throw error;
                 }
             },
 
-            logout: () => {
-                localStorage.removeItem('token');
-                set({ user: null, token: null, isAuthenticated: false });
+            logout: async () => {
+                try {
+                    await api.post('/auth/logout');
+                } catch (error) {
+                    // Continue with logout even if API fails
+                }
+                set({ user: null, isAuthenticated: false });
             },
 
             setUser: (user: User) => {
                 set({ user });
             },
-        }),
-        {
-            name: 'auth-storage',
-            partialize: (state) => ({ user: state.user, token: state.token, isAuthenticated: state.isAuthenticated }),
-        }
-    )
+
+            // Check if user is authenticated (by calling /users/me)
+            checkAuth: async () => {
+                try {
+                    const response = await api.get('/users/me');
+                    set({ user: response.data.data, isAuthenticated: true });
+                } catch (error) {
+                    set({ user: null, isAuthenticated: false });
+                }
+            },
+        })
 );

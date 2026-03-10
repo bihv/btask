@@ -1,16 +1,41 @@
 'use client';
 
+import api from '@/lib/api';
 import { labelKeys } from '@/hooks/useLabels';
 import { Notification, useNotificationStore } from '@/stores/notificationStore';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
 
-export function useWebSocket(token: string | null) {
+// Helper to get token from cookie
+function getTokenFromCookie(): string | null {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(/auth_token=([^;]+)/);
+    return match ? match[1] : null;
+}
+
+export function useWebSocket() {
     const wsRef = useRef<ReconnectingWebSocket | null>(null);
     const queryClient = useQueryClient();
+    const [token, setToken] = useState<string | null>(null);
+
+    // Fetch token from API on mount
+    useEffect(() => {
+        const fetchToken = async () => {
+            try {
+                const response = await api.get('/users/me');
+                // Get token from cookie after successful auth
+                const cookieToken = getTokenFromCookie();
+                setToken(cookieToken);
+            } catch (error) {
+                // Not authenticated
+                setToken(null);
+            }
+        };
+        fetchToken();
+    }, []);
 
     const connect = useCallback(() => {
         if (!token || wsRef.current) return;

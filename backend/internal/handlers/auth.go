@@ -36,6 +36,13 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusConflict, err.Error())
 	}
 
+	// Set token as httpOnly cookie
+	if err := services.SetTokenCookie(c, resp.Token); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to set session")
+	}
+
+	// Return response without token in body (since it's in cookie now)
+	resp.Token = ""
 	return utils.SuccessResponse(c, resp)
 }
 
@@ -54,5 +61,17 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return utils.UnauthorizedResponse(c, err.Error())
 	}
 
+	// Set token as httpOnly cookie
+	if err := services.SetTokenCookie(c, resp.Token); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to set session")
+	}
+
+	// Return response without token in body (since it's in cookie now)
+	resp.Token = ""
 	return utils.SuccessResponse(c, resp)
+}
+
+func (h *AuthHandler) Logout(c *fiber.Ctx) error {
+	services.ClearTokenCookie(c)
+	return utils.SuccessResponse(c, fiber.Map{"message": "Logged out successfully"})
 }
