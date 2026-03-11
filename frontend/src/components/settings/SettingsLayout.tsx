@@ -3,6 +3,7 @@
 import { useLabels, useTranslation } from '@/hooks/useLabels';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuthLoading } from '@/providers/AuthProvider';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
@@ -49,6 +50,7 @@ export default function SettingsLayout({
     const router = useRouter();
     const pathname = usePathname();
     const { user, isAuthenticated } = useAuthStore();
+    const isAuthLoading = useAuthLoading();
     const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
     const [mounted, setMounted] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>(workspaceId || '');
@@ -68,10 +70,11 @@ export default function SettingsLayout({
 
     useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated) {
+        // Only redirect if auth has been checked and user is not authenticated
+        if (!isAuthLoading && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, router, isAuthLoading]);
 
     // Set workspace ID from props or first workspace when loaded
     useEffect(() => {
@@ -225,7 +228,7 @@ export default function SettingsLayout({
         });
     };
 
-    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
+    if (!mounted || isAuthLoading || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Loader size="lg" />

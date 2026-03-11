@@ -8,18 +8,18 @@ import (
 )
 
 type UserSession struct {
-	ID            uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
-	UserID        uuid.UUID `json:"user_id" gorm:"type:uuid;index;not null"`
-	TokenHash     string    `json:"-" gorm:"uniqueIndex;not null"`
-	DeviceType    string    `json:"device_type" gorm:"type:varchar(50)"`
-	DeviceName    string    `json:"device_name" gorm:"type:varchar(255)"`
-	IPAddress     string    `json:"ip_address" gorm:"type:varchar(45)"`
-	UserAgent     string    `json:"user_agent" gorm:"type:text"`
-	Location      string    `json:"location" gorm:"type:varchar(255)"`
-	IsCurrent     bool      `json:"is_current" gorm:"default:false"`
-	CreatedAt     time.Time `json:"created_at"`
-	ExpiresAt     time.Time `json:"expires_at"`
-	LastActiveAt  time.Time `json:"last_active_at"`
+	ID           uuid.UUID `json:"id" gorm:"type:uuid;primary_key"`
+	UserID       uuid.UUID `json:"user_id" gorm:"type:uuid;index;not null"`
+	TokenHash    string    `json:"-" gorm:"uniqueIndex;not null"`
+	DeviceType   string    `json:"device_type" gorm:"type:varchar(50)"`
+	DeviceName   string    `json:"device_name" gorm:"type:varchar(255)"`
+	IPAddress    string    `json:"ip_address" gorm:"type:varchar(45)"`
+	UserAgent    string    `json:"user_agent" gorm:"type:text"`
+	Location     string    `json:"location" gorm:"type:varchar(255)"`
+	IsCurrent    bool      `json:"is_current" gorm:"default:false"`
+	CreatedAt    time.Time `json:"created_at"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	LastActiveAt time.Time `json:"last_active_at"`
 }
 
 func (s *UserSession) BeforeCreate(tx *gorm.DB) error {

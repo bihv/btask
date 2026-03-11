@@ -8,6 +8,7 @@ import { useLabels } from '@/hooks/useLabels';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuthLoading } from '@/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
@@ -21,6 +22,7 @@ export default function BoardsLayout({
 }) {
     const router = useRouter();
     const { user, isAuthenticated, logout } = useAuthStore();
+    const isAuthLoading = useAuthLoading();
     const { preference, resolvedTheme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
@@ -32,12 +34,13 @@ export default function BoardsLayout({
 
     useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated) {
+        // Only redirect if auth has been checked and user is not authenticated
+        if (!isAuthLoading && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, router, isAuthLoading]);
 
-    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
+    if (!mounted || isAuthLoading || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Loader size="lg" />

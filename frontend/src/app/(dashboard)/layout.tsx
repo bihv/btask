@@ -9,6 +9,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { useHeader } from '@/providers/HeaderProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
+import { useAuthLoading } from '@/providers/AuthProvider';
 import { ActionIcon, Divider, Loader, NavLink, Popover } from '@mantine/core';
 import {
     IconApps,
@@ -39,6 +40,7 @@ export default function DashboardLayout({
     const router = useRouter();
     const pathname = usePathname();
     const { user, isAuthenticated, logout } = useAuthStore();
+    const isAuthLoading = useAuthLoading();
     const { preference, resolvedTheme, setTheme } = useTheme();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -51,12 +53,13 @@ export default function DashboardLayout({
 
     useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated) {
+        // Only redirect if auth has been checked and user is not authenticated
+        if (!isAuthLoading && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, router, isAuthLoading]);
 
-    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
+    if (!mounted || isAuthLoading || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Loader size="lg" />
