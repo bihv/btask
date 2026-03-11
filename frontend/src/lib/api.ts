@@ -142,4 +142,31 @@ export const customFieldApi = {
         api.delete(`/cards/${cardId}/custom-fields/${fieldId}`),
 };
 
+export interface Session {
+    id: string;
+    device_type: string;
+    device_name: string;
+    ip_address: string;
+    location: string;
+    is_current: boolean;
+    created_at: string;
+    expires_at: string;
+    last_active_at: string;
+}
+
+export const sessionApi = {
+    getSessions: async (): Promise<Session[]> => {
+        const response = await api.get('/users/me/sessions');
+        return response.data.data.sessions;
+    },
+
+    revokeSession: async (sessionId: string): Promise<void> => {
+        await api.delete(`/users/me/sessions/${sessionId}`);
+    },
+
+    revokeAllSessions: async (): Promise<void> => {
+        await api.delete('/users/me/sessions');
+    },
+};
+
 export default api;

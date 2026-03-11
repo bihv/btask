@@ -585,6 +585,24 @@ var DefaultLabels = []models.LabelSeed{
 		DefaultValue: "Logout Everywhere",
 		Translations: map[string]string{"vi": "Đăng Xuất Mọi Nơi"},
 	},
+	{
+		Key:          "UI_LOGOUT",
+		Category:     "ui",
+		DefaultValue: "Logout",
+		Translations: map[string]string{"vi": "Đăng xuất"},
+	},
+	{
+		Key:          "UI_CONFIRM_LOGOUT_ALL",
+		Category:     "ui",
+		DefaultValue: "Confirm Logout",
+		Translations: map[string]string{"vi": "Xác Nhận Đăng Xuất"},
+	},
+	{
+		Key:          "UI_CONFIRM_LOGOUT_ALL_DESC",
+		Category:     "ui",
+		DefaultValue: "Are you sure you want to log out from all other devices? You will need to log in again on those devices.",
+		Translations: map[string]string{"vi": "Bạn có chắc chắn muốn đăng xuất khỏi tất cả thiết bị khác? Bạn sẽ cần đăng nhập lại trên các thiết bị đó."},
+	},
 	// ============ Board Menu ============
 	{
 		Key:          "UI_MENU",

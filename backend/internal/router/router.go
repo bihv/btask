@@ -134,6 +134,7 @@ func Setup(app *fiber.App, cfg *config.Config) {
 
 	// User routes (automationService already initialized above for public schema endpoints)
 	cardHandler := handlers.NewCardHandler(eventBus)
+	sessionHandler := handlers.NewSessionHandler(cfg)
 	users := protected.Group("/users")
 	users.Get("/me", userHandler.GetMe)
 	users.Get("/me/cards", cardHandler.GetMyCards)
@@ -145,6 +146,11 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	users.Get("/suggest", userHandler.Suggest)
 	users.Get("/:id", userHandler.GetByID)
 	users.Put("/:id", userHandler.Update)
+
+	// Session routes
+	users.Get("/me/sessions", sessionHandler.GetSessions)
+	users.Delete("/me/sessions/:id", sessionHandler.RevokeSession)
+	users.Delete("/me/sessions", sessionHandler.RevokeAllSessions)
 
 	// Workspace routes
 	workspaceHandler := handlers.NewWorkspaceHandler()

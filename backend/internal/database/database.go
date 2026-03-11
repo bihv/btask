@@ -33,6 +33,7 @@ func Migrate() error {
 
 	err := DB.AutoMigrate(
 		&models.User{},
+		&models.UserSession{},
 		&models.Workspace{},
 		&models.WorkspaceMember{},
 		&models.Board{},

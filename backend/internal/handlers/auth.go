@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/mello/backend/internal/config"
 	"github.com/mello/backend/internal/services"
@@ -56,9 +58,32 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, "Email and password are required")
 	}
 
-	resp, err := h.service.Login(req)
+	// Get IP and UserAgent from request
+	ipAddress := getRealIP(c)
+	userAgent := c.Get("User-Agent")
+
+	// First login to get user and token
+	resp, err := h.service.Login(req, services.CreateSessionParams{})
 	if err != nil {
 		return utils.UnauthorizedResponse(c, err.Error())
+	}
+
+	// Get user to create session
+	user, _ := h.service.GetUserRepo().FindByEmail(req.Email)
+	if user != nil {
+		// Create session with token hash
+		tokenHash := services.HashToken(resp.Token)
+		params := services.CreateSessionParams{
+			UserID:    user.ID,
+			TokenHash: tokenHash,
+			IPAddress: ipAddress,
+			UserAgent: userAgent,
+		}
+
+		session, sessionErr := h.service.CreateSession(params)
+		if sessionErr == nil && session != nil {
+			resp.SessionID = session.ID.String()
+		}
 	}
 
 	// Set token as httpOnly cookie
@@ -74,4 +99,21 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	services.ClearTokenCookie(c)
 	return utils.SuccessResponse(c, fiber.Map{"message": "Logged out successfully"})
+}
+
+// getRealIP returns the real client IP, checking X-Forwarded-For and X-Real-IP headers
+func getRealIP(c fiber.Ctx) string {
+	// Check X-Forwarded-For header first (for reverse proxy)
+	ipAddress := c.Get("X-Forwarded-For")
+	if ipAddress == "" {
+		ipAddress = c.Get("X-Real-IP")
+	}
+	if ipAddress == "" {
+		ipAddress = c.IP()
+	}
+	// Take the first IP if multiple are present (X-Forwarded-For can contain multiple IPs)
+	if idx := strings.Index(ipAddress, ","); idx != -1 {
+		ipAddress = ipAddress[:idx]
+	}
+	return strings.TrimSpace(ipAddress)
 }
