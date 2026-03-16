@@ -39,6 +39,27 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusConflict, err.Error())
 	}
 
+	// Get IP and UserAgent for session creation
+	ipAddress := getRealIP(c)
+	userAgent := c.Get("User-Agent")
+
+	// Create session after registration
+	user, _ := h.service.GetUserRepo().FindByEmail(req.Email)
+	if user != nil {
+		tokenHash := services.HashToken(resp.Token)
+		params := services.CreateSessionParams{
+			UserID:    user.ID,
+			TokenHash: tokenHash,
+			IPAddress: ipAddress,
+			UserAgent: userAgent,
+		}
+
+		session, sessionErr := h.service.CreateSession(params)
+		if sessionErr == nil && session != nil {
+			resp.SessionID = session.ID.String()
+		}
+	}
+
 	// Set token as httpOnly cookie
 	if err := services.SetTokenCookie(c, resp.Token); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to set session")

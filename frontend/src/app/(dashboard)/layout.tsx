@@ -6,6 +6,7 @@ import UserAvatar from '@/components/common/UserAvatar';
 import NotificationDropdown from '@/components/notification/NotificationDropdown';
 import { useLabels } from '@/hooks/useLabels';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useAuthLoading } from '@/providers/AuthProvider';
 import { useHeader } from '@/providers/HeaderProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
@@ -38,7 +39,8 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { user, isAuthenticated, isLoadingAuth, logout } = useAuthStore();
+    const { user, isAuthenticated, logout } = useAuthStore();
+    const isAuthLoading = useAuthLoading();
     const { preference, resolvedTheme, setTheme } = useTheme();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -51,16 +53,13 @@ export default function DashboardLayout({
 
     useEffect(() => {
         setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        // Only redirect if auth check is done and user is not authenticated
-        if (!isLoadingAuth && !isAuthenticated) {
+        // Only redirect if auth has been checked and user is not authenticated
+        if (!isAuthLoading && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, isLoadingAuth, router]);
+    }, [isAuthenticated, router, isAuthLoading]);
 
-    if (!mounted || isLoadingAuth || (isAuthenticated && labelsLoading) || (isAuthenticated && !labelsLoaded)) {
+    if (!mounted || isAuthLoading || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Loader size="lg" />

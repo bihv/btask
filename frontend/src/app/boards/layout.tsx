@@ -6,6 +6,7 @@ import UserAvatar from '@/components/common/UserAvatar';
 import NotificationDropdown from '@/components/notification/NotificationDropdown';
 import { useLabels } from '@/hooks/useLabels';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useAuthLoading } from '@/providers/AuthProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
@@ -20,7 +21,8 @@ export default function BoardsLayout({
     children: React.ReactNode;
 }) {
     const router = useRouter();
-    const { user, isAuthenticated, isLoadingAuth, logout } = useAuthStore();
+    const { user, isAuthenticated, logout } = useAuthStore();
+    const isAuthLoading = useAuthLoading();
     const { preference, resolvedTheme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
@@ -32,12 +34,13 @@ export default function BoardsLayout({
 
     useEffect(() => {
         setMounted(true);
-        if (!isLoadingAuth && !isAuthenticated) {
+        // Only redirect if auth has been checked and user is not authenticated
+        if (!isAuthLoading && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, isLoadingAuth, router]);
+    }, [isAuthenticated, router, isAuthLoading]);
 
-    if (!mounted || isLoadingAuth || labelsLoading || !labelsLoaded) {
+    if (!mounted || isAuthLoading || !isAuthenticated || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Loader size="lg" />
