@@ -37,6 +37,11 @@ type User struct {
 	// Admin role
 	IsAdmin bool `json:"is_admin" gorm:"default:false"`
 
+	// Two-Factor Authentication
+	TwoFactorEnabled         bool   `json:"two_factor_enabled" gorm:"default:false"`
+	TwoFactorSecretEncrypted string `json:"-" gorm:"type:text"`
+	TwoFactorRecoveryCodes   string `json:"-" gorm:"type:text"`
+
 	// Relations
 	OwnedWorkspaces []Workspace       `json:"owned_workspaces,omitempty" gorm:"foreignKey:OwnerID"`
 	Memberships     []WorkspaceMember `json:"memberships,omitempty" gorm:"foreignKey:UserID"`

@@ -74,6 +74,7 @@ func Migrate() error {
 		&models.AutomationRule{},
 		&models.AutomationRun{},
 		&models.SystemSettings{},
+		&models.RememberedDevice{},
 	)
 
 	if err != nil {

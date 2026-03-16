@@ -15,12 +15,13 @@ async function fetchLabels(): Promise<Record<string, string>> {
 }
 
 // Main hook for fetching labels
-export function useLabels() {
+export function useLabels(enabled: boolean = true) {
     return useQuery({
         queryKey: labelKeys.all,
         queryFn: fetchLabels,
         staleTime: 5 * 60 * 1000, // 5 minutes - labels don't change often
         gcTime: 30 * 60 * 1000, // 30 minutes cache
+        enabled,
     });
 }
 

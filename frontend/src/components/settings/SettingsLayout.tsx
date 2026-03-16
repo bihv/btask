@@ -48,7 +48,7 @@ export default function SettingsLayout({
 }: SettingsLayoutProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const { user, isAuthenticated } = useAuthStore();
+    const { user, isAuthenticated, isLoadingAuth } = useAuthStore();
     const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
     const [mounted, setMounted] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>(workspaceId || '');
@@ -68,10 +68,10 @@ export default function SettingsLayout({
 
     useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated) {
+        if (!isLoadingAuth && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, isLoadingAuth, router]);
 
     // Set workspace ID from props or first workspace when loaded
     useEffect(() => {
@@ -225,7 +225,7 @@ export default function SettingsLayout({
         });
     };
 
-    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
+    if (!mounted || isLoadingAuth || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Loader size="lg" />

@@ -20,7 +20,18 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             if (typeof window !== 'undefined') {
-                window.location.href = '/login';
+                const currentPath = window.location.pathname;
+                const requestUrl = error.config?.url || '';
+                
+                // Skip redirect if already on auth pages or if this is a silent auth check
+                const isAuthPage = ['/login', '/register', '/verify-2fa', '/forgot-password'].some(
+                    (path) => currentPath.startsWith(path)
+                );
+                const isAuthCheck = requestUrl.includes('/users/me');
+                
+                if (!isAuthPage && !isAuthCheck) {
+                    window.location.href = '/login';
+                }
             }
         }
         return Promise.reject(error);

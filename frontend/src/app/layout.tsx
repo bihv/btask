@@ -1,6 +1,7 @@
 import { HeaderProvider } from '@/providers/HeaderProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 import { ColorSchemeScript } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
@@ -32,7 +33,9 @@ export default function RootLayout({
             <body>
                 <QueryProvider>
                     <ThemeProvider>
-                        <HeaderProvider>{children}</HeaderProvider>
+                        <AuthProvider>
+                            <HeaderProvider>{children}</HeaderProvider>
+                        </AuthProvider>
                     </ThemeProvider>
                 </QueryProvider>
             </body>

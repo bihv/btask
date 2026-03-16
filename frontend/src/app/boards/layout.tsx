@@ -20,7 +20,7 @@ export default function BoardsLayout({
     children: React.ReactNode;
 }) {
     const router = useRouter();
-    const { user, isAuthenticated, logout } = useAuthStore();
+    const { user, isAuthenticated, isLoadingAuth, logout } = useAuthStore();
     const { preference, resolvedTheme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
@@ -32,17 +32,21 @@ export default function BoardsLayout({
 
     useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated) {
+        if (!isLoadingAuth && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, isLoadingAuth, router]);
 
-    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
+    if (!mounted || isLoadingAuth || labelsLoading || !labelsLoaded) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Loader size="lg" />
             </div>
         );
+    }
+
+    if (!isAuthenticated) {
+        return null;
     }
 
     return (

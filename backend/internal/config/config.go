@@ -32,6 +32,9 @@ type Config struct {
 
 	// Admin
 	InitialAdminEmail string
+
+	// 2FA Encryption
+	EncryptionKey string
 }
 
 func Load() (*Config, error) {
@@ -67,6 +70,9 @@ func Load() (*Config, error) {
 
 		// Admin
 		InitialAdminEmail: GetEnv("INITIAL_ADMIN_EMAIL", ""),
+
+		// 2FA Encryption (32 bytes for AES-256)
+		EncryptionKey: GetEnv("ENCRYPTION_KEY", "default-32-byte-encryption-key!!"),
 	}, nil
 }
 

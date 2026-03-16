@@ -38,30 +38,39 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { user, isAuthenticated, logout } = useAuthStore();
+    const { user, isAuthenticated, isLoadingAuth, logout } = useAuthStore();
     const { preference, resolvedTheme, setTheme } = useTheme();
     const [collapsed, setCollapsed] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
     const { headerContent } = useHeader();
 
-    const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels();
+    const { isLoading: labelsLoading, isSuccess: labelsLoaded } = useLabels(isAuthenticated);
 
     useWebSocket();
 
     useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated) {
+    }, []);
+
+    useEffect(() => {
+        // Only redirect if auth check is done and user is not authenticated
+        if (!isLoadingAuth && !isAuthenticated) {
             router.replace('/login');
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, isLoadingAuth, router]);
 
-    if (!mounted || !isAuthenticated || labelsLoading || !labelsLoaded) {
+    if (!mounted || isLoadingAuth || (isAuthenticated && labelsLoading) || (isAuthenticated && !labelsLoaded)) {
         return (
             <div className="loading-container" style={{ minHeight: '100vh' }}>
                 <Loader size="lg" />
             </div>
         );
+    }
+
+    // If not authenticated after loading, don't render children
+    if (!isAuthenticated) {
+        return null;
     }
 
     const menuItems = [

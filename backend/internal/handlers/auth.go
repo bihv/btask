@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mello/backend/internal/config"
+	"github.com/mello/backend/internal/database"
 	"github.com/mello/backend/internal/services"
 	"github.com/mello/backend/pkg/utils"
 )
@@ -101,8 +102,42 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	return utils.SuccessResponse(c, fiber.Map{"message": "Logged out successfully"})
 }
 
+func (h *AuthHandler) Check2FARequired(c *fiber.Ctx) error {
+	var req struct {
+		Email      string `json:"email"`
+		Fingerprint string `json:"fingerprint"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ValidationErrorResponse(c, "Invalid request body")
+	}
+
+	if req.Email == "" {
+		return utils.ValidationErrorResponse(c, "Email is required")
+	}
+
+	userRepo := h.service.GetUserRepo()
+	user, err := userRepo.FindByEmail(strings.ToLower(req.Email))
+	if err != nil {
+		return utils.SuccessResponse(c, fiber.Map{"required": false})
+	}
+
+	if !user.TwoFactorEnabled {
+		return utils.SuccessResponse(c, fiber.Map{"required": false})
+	}
+
+	if req.Fingerprint != "" {
+		deviceService := services.NewDeviceService(database.DB)
+		device, _ := deviceService.GetValidDevice(user.ID, req.Fingerprint)
+		if device != nil {
+			return utils.SuccessResponse(c, fiber.Map{"required": false})
+		}
+	}
+
+	return utils.SuccessResponse(c, fiber.Map{"required": true})
+}
+
 // getRealIP returns the real client IP, checking X-Forwarded-For and X-Real-IP headers
-func getRealIP(c fiber.Ctx) string {
+func getRealIP(c *fiber.Ctx) string {
 	// Check X-Forwarded-For header first (for reverse proxy)
 	ipAddress := c.Get("X-Forwarded-For")
 	if ipAddress == "" {

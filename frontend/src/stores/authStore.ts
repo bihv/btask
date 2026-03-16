@@ -1,11 +1,13 @@
 import api, { sessionApi, Session } from '@/lib/api';
 import { User } from '@/types';
 import { create } from 'zustand';
+import { getDeviceFingerprint } from '@/lib/fingerprint';
 
 interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
+    isLoadingAuth: boolean; // Track auth check loading
     sessions: Session[];
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string, fullName: string) => Promise<void>;
@@ -22,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             isAuthenticated: false,
             isLoading: false,
+            isLoadingAuth: true, // Start as loading
             sessions: [],
 
             login: async (email: string, password: string) => {
@@ -30,12 +33,30 @@ export const useAuthStore = create<AuthState>()(
                     const response = await api.post('/auth/login', { email, password });
                     const { user } = response.data.data;
 
-                    set({ user, isAuthenticated: true, isLoading: false });
+                    // Check if 2FA is required
+                    const fingerprint = await getDeviceFingerprint();
+                    const check2FA = await api.post('/auth/2fa/check', { 
+                        email, 
+                        fingerprint 
+                    });
+                    
+                    if (check2FA.data.data.required) {
+                        // 2FA required - redirect to 2FA page
+                        set({ isLoading: false });
+                        window.location.href = `/verify-2fa?email=${encodeURIComponent(email)}`;
+                        throw { requires2FA: true };
+                    }
+
+                    set({ user, isAuthenticated: true, isLoading: false, isLoadingAuth: false });
                     
                     // Fetch sessions after login
                     get().fetchSessions();
-                } catch (error) {
+                } catch (error: any) {
                     set({ isLoading: false });
+                    if (error.requires2FA) {
+                        // Already redirected, don't throw
+                        return;
+                    }
                     throw error;
                 }
             },
@@ -50,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
                     });
                     const { user } = response.data.data;
 
-                    set({ user, isAuthenticated: true, isLoading: false });
+                    set({ user, isAuthenticated: true, isLoading: false, isLoadingAuth: false });
                 } catch (error) {
                     set({ isLoading: false });
                     throw error;
@@ -63,7 +84,7 @@ export const useAuthStore = create<AuthState>()(
                 } catch (error) {
                     // Continue with logout even if API fails
                 }
-                set({ user: null, isAuthenticated: false, sessions: [] });
+                set({ user: null, isAuthenticated: false, sessions: [], isLoadingAuth: true });
             },
 
             setUser: (user: User) => {
@@ -72,14 +93,15 @@ export const useAuthStore = create<AuthState>()(
 
             // Check if user is authenticated (by calling /users/me)
             checkAuth: async () => {
+                set({ isLoadingAuth: true });
                 try {
                     const response = await api.get('/users/me');
-                    set({ user: response.data.data, isAuthenticated: true });
+                    set({ user: response.data.data, isAuthenticated: true, isLoadingAuth: false });
                     
                     // Fetch sessions when checking auth
                     get().fetchSessions();
                 } catch (error) {
-                    set({ user: null, isAuthenticated: false, sessions: [] });
+                    set({ user: null, isAuthenticated: false, isLoadingAuth: false, sessions: [] });
                 }
             },
 

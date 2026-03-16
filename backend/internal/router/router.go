@@ -41,6 +41,9 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	auth.Post("/login", authHandler.Login)
 	auth.Post("/logout", authHandler.Logout)
 
+	// Check if 2FA is required for login (public)
+	auth.Post("/2fa/check", authHandler.Check2FARequired)
+
 	// Email verification (public - user clicks link from email)
 	api.Get("/users/verify-email", userHandler.VerifyEmailChange)
 
@@ -151,6 +154,17 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	users.Get("/me/sessions", sessionHandler.GetSessions)
 	users.Delete("/me/sessions/:id", sessionHandler.RevokeSession)
 	users.Delete("/me/sessions", sessionHandler.RevokeAllSessions)
+
+	// 2FA routes
+	twoFAHandler := handlers.NewTwoFAHandler(database.DB, cfg)
+	auth.Get("/2fa/setup", twoFAHandler.GetSetup)
+	auth.Post("/2fa/setup", twoFAHandler.Setup)
+	auth.Post("/2fa/verify", twoFAHandler.Verify)
+	auth.Post("/2fa/disable", twoFAHandler.Disable)
+	auth.Get("/2fa/status", twoFAHandler.GetStatus)
+	auth.Get("/2fa/devices", twoFAHandler.GetDevices)
+	auth.Delete("/2fa/devices/:id", twoFAHandler.DeleteDevice)
+	auth.Post("/2fa/recovery-codes", twoFAHandler.RegenerateRecoveryCodes)
 
 	// Workspace routes
 	workspaceHandler := handlers.NewWorkspaceHandler()
